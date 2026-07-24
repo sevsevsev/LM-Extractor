@@ -1,0 +1,6 @@
+{
+  "name": "Logic Model Extractor",
+  "description": "Upload PDF or Word documents to automatically extract logic model data into structured tables using Gemini AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
