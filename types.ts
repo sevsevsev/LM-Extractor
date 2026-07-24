@@ -35,30 +35,5 @@ export interface ProcessingFile {
   status: 'pending' | 'converting' | 'extracting' | 'analyzing' | 'editing' | 'completed' | 'error';
   progressMsg?: string;
   error?: string;
-  markdown?: string;
-  images?: string[]; // For PDF vision processing
   result?: LogicModel;
-}
-
-export enum LogicModelColumnId {
-  ORGANIZATION = 'organization',
-  PROGRAM = 'program',
-  MISSION = 'mission',
-  TARGET_POPULATION = 'targetPopulation',
-  INPUTS = 'inputs',
-  ACTIVITIES = 'activities',
-  OUTPUTS = 'outputs',
-  SHORT_TERM_OUTCOMES = 'shortTermOutcomes',
-  MEDIUM_TERM_OUTCOMES = 'mediumTermOutcomes',
-  LONG_TERM_OUTCOMES = 'longTermOutcomes',
-  IMPACT = 'impact'
-}
-
-declare global {
-  interface Window {
-    pdfjsLib: any;
-    mammoth: any;
-    JSZip: any;
-    TurndownService: any;
-  }
 }

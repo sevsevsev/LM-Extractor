@@ -1,20 +1,32 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Logic Model Extractor
 
-# Run and deploy your AI Studio app
+Local Vite + React app that extracts structured logic models from PDF/DOCX/PPTX via Gemini, critiques them against guidance, supports human editing, and exports CSV / branded PDFs.
 
-This contains everything you need to run your app locally.
+## Run locally (development)
 
-View your app in AI Studio: https://ai.studio/apps/52973add-5b92-4732-9d8f-88c22124ab64
+1. `npm install`
+2. Set `GEMINI_API_KEY` in `.env.local`
+3. `npm run dev` — Express API (`:3011`) + Vite (`:3000`)
 
-## Run Locally
+## Production (single process)
 
-**Prerequisites:**  Node.js
+```bash
+npm start
+```
 
+Builds the client, then serves API + `dist` from Express on `:3011` (override with `PORT`).
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Scripts
+
+- `npm run dev` — API + Vite client
+- `npm run build` — client only
+- `npm run typecheck` — `tsc --noEmit`
+- `npm start` — build + production server
+
+## Architecture notes
+
+- Gemini is **server-side only** (`/api/gemini/extract`, `/api/gemini/critique`).
+- Document libs are npm packages (no script CDNs).
+- Brand tokens: `config/brand.ts`
+- Specs/roadmap: `docs/specs/`
+- Agents: `.cursor/rules/` — see `AGENTS.md`
