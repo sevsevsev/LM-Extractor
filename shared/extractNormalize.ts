@@ -1,5 +1,5 @@
 import type { LogicModel, LogicModelGroup, LogicModelItem } from '../types';
-import { harvestImpactStatementFromPlainText } from './impactStatementHarvest';
+import { harvestImpactStatementFromPlainText } from './impactStatementHarvest.js';
 
 type GroupedDomain =
   | 'outputs'

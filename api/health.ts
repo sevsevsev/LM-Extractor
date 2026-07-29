@@ -1,5 +1,5 @@
-import { getApiKey } from '../server/apiCore';
-import type { FnRequest, FnResponse } from './_types';
+import { getApiKey } from '../server/apiCore.js';
+import type { FnRequest, FnResponse } from '../server/fnTypes.js';
 
 export default function handler(_req: FnRequest, res: FnResponse): void {
   res.status(200).json({

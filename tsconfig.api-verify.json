@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "outDir": "tmp-api-verify"
+  },
+  "include": ["api/**/*.ts", "server/**/*.ts", "shared/**/*.ts", "constants.ts", "types.ts"],
+  "exclude": ["**/*.test.ts"]
+}

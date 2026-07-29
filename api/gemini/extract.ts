@@ -1,5 +1,5 @@
-import { handleExtractRequest } from '../../server/apiCore';
-import type { FnRequest, FnResponse } from '../_types';
+import { handleExtractRequest } from '../../server/apiCore.js';
+import type { FnRequest, FnResponse } from '../../server/fnTypes.js';
 
 export default async function handler(req: FnRequest, res: FnResponse): Promise<void> {
   if (req.method !== 'POST') {

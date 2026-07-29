@@ -1,5 +1,5 @@
 import type { LogicModel } from '../types';
-import { critiqueLogicModelOnServer, extractLogicModelOnServer } from './geminiLogicModel';
+import { critiqueLogicModelOnServer, extractLogicModelOnServer } from './geminiLogicModel.js';
 
 export interface ApiResult {
   status: number;

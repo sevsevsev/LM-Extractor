@@ -1,9 +1,9 @@
 import { GoogleGenAI, Type, Schema } from '@google/genai';
-import { getAiExtractionPrompt, getAiCritiquePrompt } from '../constants';
-import { LogicModel } from '../types';
-import { parseLogicModelResponse } from '../shared/logicModelValidate';
-import { normalizeExtractedLogicModel } from '../shared/extractNormalize';
-import { sanitizeAbsentDomainCritiques } from '../shared/domainPresence';
+import { getAiExtractionPrompt, getAiCritiquePrompt } from '../constants.js';
+import type { LogicModel } from '../types';
+import { parseLogicModelResponse } from '../shared/logicModelValidate.js';
+import { normalizeExtractedLogicModel } from '../shared/extractNormalize.js';
+import { sanitizeAbsentDomainCritiques } from '../shared/domainPresence.js';
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 500;

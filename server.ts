@@ -3,7 +3,7 @@ import path from 'path';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { config as loadDotenv } from 'dotenv';
-import { handleCritiqueRequest, handleExtractRequest } from './server/apiCore';
+import { handleCritiqueRequest, handleExtractRequest } from './server/apiCore.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
