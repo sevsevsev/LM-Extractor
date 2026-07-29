@@ -3,8 +3,7 @@ import path from 'path';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { config as loadDotenv } from 'dotenv';
-import type { LogicModel } from './types';
-import { critiqueLogicModelOnServer, extractLogicModelOnServer } from './server/geminiLogicModel';
+import { handleCritiqueRequest, handleExtractRequest } from './server/apiCore';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,58 +27,13 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.post('/api/gemini/extract', async (req, res) => {
-  try {
-    if (!apiKey) {
-      res.status(500).json({ error: 'Server is missing GEMINI_API_KEY in .env.local.' });
-      return;
-    }
-
-    const { images, text, textHint } = req.body as {
-      images?: string[];
-      text?: string;
-      textHint?: string;
-    };
-
-    if (Array.isArray(images) && images.length > 0) {
-      const result = await extractLogicModelOnServer(apiKey, images, {
-        textHint: typeof textHint === 'string' ? textHint : undefined,
-      });
-      res.json({ model: result });
-      return;
-    }
-
-    if (typeof text === 'string' && text.trim()) {
-      const result = await extractLogicModelOnServer(apiKey, text);
-      res.json({ model: result });
-      return;
-    }
-
-    res.status(400).json({ error: 'Request must include images[] or text.' });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown server error';
-    res.status(500).json({ error: message });
-  }
+  const result = await handleExtractRequest(req.body);
+  res.status(result.status).json(result.body);
 });
 
 app.post('/api/gemini/critique', async (req, res) => {
-  try {
-    if (!apiKey) {
-      res.status(500).json({ error: 'Server is missing GEMINI_API_KEY in .env.local.' });
-      return;
-    }
-
-    const { model } = req.body as { model?: LogicModel | string };
-    if (model == null) {
-      res.status(400).json({ error: 'Request must include model.' });
-      return;
-    }
-
-    const result = await critiqueLogicModelOnServer(apiKey, model);
-    res.json({ model: result });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown server error';
-    res.status(500).json({ error: message });
-  }
+  const result = await handleCritiqueRequest(req.body);
+  res.status(result.status).json(result.body);
 });
 
 if (isProd) {

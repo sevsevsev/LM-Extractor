@@ -23,6 +23,26 @@ Builds the client, then serves API + `dist` from Express on `:3011` (override wi
 - `npm run typecheck` — `tsc --noEmit`
 - `npm start` — build + production server
 
+## Hosted deploy (Vercel)
+
+The same API is exposed two ways so one codebase serves both targets:
+
+- **Local:** Express (`server.ts`) on `:3011`
+- **Vercel:** serverless functions in `api/` (`/api/health`, `/api/gemini/extract`, `/api/gemini/critique`)
+
+Both delegate to `server/apiCore.ts`, so behavior stays identical.
+
+Setup:
+
+1. In Vercel → Settings → Environment Variables, add `GEMINI_API_KEY` (Production + Preview).
+2. Redeploy — env vars only apply to new deployments.
+3. Verify `https<!-- -->://<your-app>/api/health` returns `{"ok":true,"configured":true,...}`.
+
+Hosted limits to be aware of:
+
+- **Request body ~4.5MB.** PDF page images are auto-downscaled to fit; local runs keep full fidelity.
+- **60s function timeout.** Very long documents may still time out — run locally for those.
+
 ## Architecture notes
 
 - Gemini is **server-side only** (`/api/gemini/extract`, `/api/gemini/critique`).

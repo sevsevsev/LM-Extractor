@@ -33,6 +33,12 @@ const friendlyError = (error: unknown): string => {
   if (/429|rate|quota/i.test(message)) {
     return 'Gemini is rate-limiting requests. Wait a moment, then try again.';
   }
+  if (/\b404\b|not found/i.test(message)) {
+    return 'The API endpoint was not found. If this is a hosted deployment, confirm the /api functions deployed.';
+  }
+  if (/\b413\b|payload too large|request entity too large/i.test(message)) {
+    return 'This document is too large for the hosted upload limit. Try a shorter PDF or run locally.';
+  }
   if (/Failed to convert|Unsupported file format|vision/i.test(message)) {
     return "Couldn't read this document. Try a PDF, or a simpler DOCX/PPTX.";
   }

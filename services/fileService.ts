@@ -10,31 +10,68 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 const MAX_VISION_PAGES = 15;
 
+/**
+ * Serverless hosts (Vercel) cap request bodies near 4.5MB, while local Express allows 40MB.
+ * Render at descending quality tiers until the base64 payload fits the budget.
+ */
+const RENDER_TIERS: { scale: number; quality: number }[] = [
+  { scale: 2.5, quality: 0.92 },
+  { scale: 2.0, quality: 0.85 },
+  { scale: 1.6, quality: 0.8 },
+  { scale: 1.25, quality: 0.72 },
+];
+
+const isLocalHost = (): boolean =>
+  typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
+
+/** Base64 chars ≈ payload bytes, so summing lengths approximates the upload size. */
+const totalPayloadBytes = (images: string[]): number =>
+  images.reduce((sum, img) => sum + img.length, 0);
+
+const renderPdfAtTier = async (
+  pdf: Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>,
+  pageCount: number,
+  tier: { scale: number; quality: number }
+): Promise<string[]> => {
+  const images: string[] = [];
+  for (let i = 1; i <= pageCount; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: tier.scale });
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    if (context) {
+      await page.render({ canvasContext: context, canvas, viewport }).promise;
+      const dataUrl = canvas.toDataURL('image/jpeg', tier.quality);
+      images.push(dataUrl.split(',')[1]);
+    }
+  }
+  return images;
+};
+
 export const convertPdfToImages = async (file: File): Promise<string[]> => {
   try {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
-    const images: string[] = [];
     const pageCount = Math.min(pdf.numPages, MAX_VISION_PAGES);
 
     if (pdf.numPages > MAX_VISION_PAGES) {
       console.warn(`PDF has ${pdf.numPages} pages; processing first ${MAX_VISION_PAGES} only.`);
     }
 
-    for (let i = 1; i <= pageCount; i++) {
-      const page = await pdf.getPage(i);
-      const viewport = page.getViewport({ scale: 2.5 }); // Higher scale for dense multi-column grids
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-      
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
+    // Local Express accepts large bodies, so keep maximum fidelity there.
+    const budgetBytes = isLocalHost() ? Number.POSITIVE_INFINITY : 3_800_000;
 
-      if (context) {
-        await page.render({ canvasContext: context, canvas, viewport }).promise;
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-        images.push(dataUrl.split(',')[1]);
-      }
+    let images: string[] = [];
+    for (const tier of RENDER_TIERS) {
+      images = await renderPdfAtTier(pdf, pageCount, tier);
+      if (totalPayloadBytes(images) <= budgetBytes) return images;
+      console.warn(
+        `Render tier scale=${tier.scale} produced ${(totalPayloadBytes(images) / 1e6).toFixed(1)}MB; retrying smaller.`
+      );
     }
     return images;
   } catch (error) {
@@ -313,7 +350,7 @@ export const extractPdfFrontMatterText = async (
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
       const pageText = textContent.items
-        .map((item: { str?: string }) => (typeof item.str === 'string' ? item.str : ''))
+        .map(item => ('str' in item && typeof item.str === 'string' ? item.str : ''))
         .join(' ');
       fullText += `\n\n## Page ${i}\n\n${pageText}`;
     }
