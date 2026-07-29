@@ -1,10 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ProcessingFile, LogicModel, LogicModelGroup } from './types';
+import { ProcessingFile, LogicModel } from './types';
 import FileUpload from './components/FileUpload';
 import LogicModelEditor from './components/LogicModelEditor';
 import { LogicModelPdfTemplate } from './components/LogicModelPdfTemplate';
 import { extractLogicModel, critiqueLogicModel } from './services/geminiService';
+import { countCodingExportRows, downloadCodingExportCsv } from './services/codingExport';
+import { normalizeExtractedLogicModel } from './shared/extractNormalize';
+import { buildGranularExportRows, sanitizeAbsentDomainCritiques } from './shared/domainPresence';
 import { brand } from './config/brand';
+
+function modelForExport(model: LogicModel): LogicModel {
+  return sanitizeAbsentDomainCritiques(
+    normalizeExtractedLogicModel(structuredClone(model))
+  );
+}
 
 const STATUS_LABELS: Record<ProcessingFile['status'], string> = {
   pending: 'Queued',
@@ -44,9 +53,11 @@ const App: React.FC = () => {
   const processingRef = useRef(false);
 
   const filesWithResults = files.filter(f => !!f.result);
-  const exportReadyCount = filesWithResults.filter(
+  const exportReadyFiles = filesWithResults.filter(
     f => f.status === 'editing' || f.status === 'completed'
-  ).length;
+  );
+  const exportReadyCount = exportReadyFiles.length;
+  const codingExportRowCount = countCodingExportRows(exportReadyFiles);
 
   const handleFilesSelected = (newFiles: File[]) => {
     const newProcessingFiles: ProcessingFile[] = newFiles.map(file => ({
@@ -93,6 +104,7 @@ const App: React.FC = () => {
         );
 
         let inputForGemini: string | string[];
+        let textHint: string | undefined;
         const fileName = pendingFile.file.name.toLowerCase();
 
         try {
@@ -100,11 +112,16 @@ const App: React.FC = () => {
             convertPdfToImages,
             convertDocxToImages,
             convertPptxToImages,
-            convertFileToMarkdown,
+            extractPdfFrontMatterText,
           } = await import('./services/fileService');
 
           if (fileName.endsWith('.pdf')) {
-            inputForGemini = await convertPdfToImages(pendingFile.file);
+            const [images, frontMatter] = await Promise.all([
+              convertPdfToImages(pendingFile.file),
+              extractPdfFrontMatterText(pendingFile.file, 2),
+            ]);
+            inputForGemini = images;
+            textHint = frontMatter || undefined;
           } else if (fileName.endsWith('.docx')) {
             inputForGemini = await convertDocxToImages(pendingFile.file);
           } else if (fileName.endsWith('.pptx')) {
@@ -116,6 +133,7 @@ const App: React.FC = () => {
           console.warn('Vision processing failed, falling back to text extraction:', visionError);
           const { convertFileToMarkdown } = await import('./services/fileService');
           inputForGemini = await convertFileToMarkdown(pendingFile.file);
+          textHint = typeof inputForGemini === 'string' ? inputForGemini : undefined;
         }
 
         setFiles(prev =>
@@ -125,7 +143,10 @@ const App: React.FC = () => {
               : f
           )
         );
-        const extractedResult = await extractLogicModel(inputForGemini);
+        const extractedResult = normalizeExtractedLogicModel(
+          await extractLogicModel(inputForGemini, { textHint }),
+          { sourceText: textHint }
+        );
 
         setFiles(prev =>
           prev.map(f =>
@@ -134,7 +155,9 @@ const App: React.FC = () => {
               : f
           )
         );
-        const finalResult = await critiqueLogicModel(extractedResult);
+        const finalResult = sanitizeAbsentDomainCritiques(
+          await critiqueLogicModel(extractedResult)
+        );
 
         setFiles(prev =>
           prev.map(f =>
@@ -177,7 +200,7 @@ const App: React.FC = () => {
     );
 
     try {
-      const result = await critiqueLogicModel(file.result);
+      const result = sanitizeAbsentDomainCritiques(await critiqueLogicModel(file.result));
       setFiles(prev =>
         prev.map(f =>
           f.id === fileId
@@ -217,72 +240,26 @@ const App: React.FC = () => {
       'Domain Rating',
       'Item Critique',
       'Item Rating',
+      'Overall Rating',
+      'Overall Rationale',
     ];
-    const rows: string[][] = [];
 
-    completed.forEach(f => {
-      const m = f.result!;
-      const pushStringField = (
-        domain: string,
-        field: { content: string; critique?: string; rating?: string }
-      ) => {
-        rows.push([
-          m.organization,
-          m.program,
-          domain,
-          'General',
-          field.content || '',
-          field.critique || '',
-          field.rating || '',
-          '',
-          '',
-        ]);
-      };
-
-      const pushField = (
-        domain: string,
-        field: { content: LogicModelGroup[]; critique?: string; rating?: string }
-      ) => {
-        field.content.forEach(g => {
-          if (g.items.length === 0) {
-            rows.push([
-              m.organization,
-              m.program,
-              domain,
-              g.name,
-              '',
-              field.critique || '',
-              field.rating || '',
-              '',
-              '',
-            ]);
-          } else {
-            g.items.forEach(item => {
-              rows.push([
-                m.organization,
-                m.program,
-                domain,
-                g.name,
-                item.text,
-                field.critique || '',
-                field.rating || '',
-                item.critique || '',
-                item.rating || '',
-              ]);
-            });
-          }
-        });
-      };
-      pushStringField('Mission / Overview', m.mission);
-      pushStringField('Target Population', m.targetPopulation);
-      pushField('Inputs', m.inputs);
-      pushField('Activities', m.activities);
-      pushField('Outputs', m.outputs);
-      pushField('Short-Term Outcomes', m.shortTermOutcomes);
-      pushField('Medium-Term Outcomes', m.mediumTermOutcomes);
-      pushField('Long-Term Outcomes', m.longTermOutcomes);
-      pushField('Impact', m.impact);
-    });
+    const exportRows = buildGranularExportRows(
+      completed.map(f => modelForExport(f.result!))
+    );
+    const rows = exportRows.map(r => [
+      r.organization,
+      r.program,
+      r.domain,
+      r.group,
+      r.content,
+      r.domainCritique,
+      r.domainRating,
+      r.itemCritique,
+      r.itemRating,
+      r.overallRating,
+      r.overallRationale,
+    ]);
 
     const csvContent = [
       headers.map(h => `"${h}"`).join(','),
@@ -296,6 +273,13 @@ const App: React.FC = () => {
     link.download = `logic_models_granular_${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleExportForCoding = () => {
+    const result = downloadCodingExportCsv(files);
+    if (result.ok === false) {
+      alert(result.reason);
+    }
   };
 
   const handleDownloadSinglePdf = async (file: ProcessingFile) => {
@@ -428,6 +412,19 @@ const App: React.FC = () => {
                 <div className="animate-spin h-3 w-3 border-2 border-slate-400 border-t-transparent rounded-full" aria-hidden="true" />
               ) : null}
               <span>Download All (ZIP)</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleExportForCoding}
+              className="bg-white border border-indigo-300 text-indigo-800 px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-50 transition-colors shadow-sm disabled:opacity-50"
+              disabled={codingExportRowCount === 0}
+              title={
+                codingExportRowCount === 0
+                  ? 'Needs short-, medium-, or long-term outcome rows'
+                  : `Export ${codingExportRowCount} outcome row(s) for Qualitative Outcomes Coder`
+              }
+            >
+              Export for coding
             </button>
             <button
               type="button"
@@ -572,7 +569,7 @@ const App: React.FC = () => {
 
       <div style={{ position: 'absolute', top: -10000, left: -10000, pointerEvents: 'none' }} aria-hidden="true">
         {filesWithResults.map(f => (
-          <LogicModelPdfTemplate key={f.id} id={`pdf-template-${f.id}`} model={f.result!} />
+          <LogicModelPdfTemplate key={f.id} id={`pdf-template-${f.id}`} model={modelForExport(f.result!)} />
         ))}
       </div>
 
@@ -613,7 +610,7 @@ const App: React.FC = () => {
             </div>
             <div className="flex-1 overflow-auto bg-gray-200 p-8 flex justify-center">
               <div className="shadow-lg transform scale-90 origin-top">
-                <LogicModelPdfTemplate model={currentPreviewFile.result} />
+                <LogicModelPdfTemplate model={modelForExport(currentPreviewFile.result)} />
               </div>
             </div>
           </div>

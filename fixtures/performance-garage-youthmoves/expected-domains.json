@@ -1,0 +1,74 @@
+{
+  "meta": {
+    "fixtureId": "performance-garage-youthmoves",
+    "organization": "The Performance Garage",
+    "programContains": "YouthMoves",
+    "source": "logic_models_granular_2026-07-28.csv failure calibration",
+    "version": "2026-07-28"
+  },
+  "mustHaveGroups": {
+    "outputs": ["YouthMoves at FLC", "Summer Intensive", "Concert"],
+    "shortTermOutcomes": ["YouthMoves at FLC", "Summer Intensive", "Concert"],
+    "mediumTermOutcomes": ["YouthMoves at FLC", "Summer Intensive", "Concert"],
+    "longTermOutcomes": ["YouthMoves at FLC", "Summer Intensive", "Concert"]
+  },
+  "placements": [
+    {
+      "domain": "outputs",
+      "group": "Summer Intensive",
+      "contentContains": "Attendance maintained",
+      "mustNotBeIn": ["shortTermOutcomes", "mediumTermOutcomes", "longTermOutcomes", "impact"]
+    },
+    {
+      "domain": "outputs",
+      "group": "Summer Intensive",
+      "contentContains": "Implementation 2",
+      "mustNotBeIn": ["shortTermOutcomes"]
+    },
+    {
+      "domain": "outputs",
+      "group": "Summer Intensive",
+      "contentContains": "Interaction with master teachers",
+      "mustNotBeIn": ["shortTermOutcomes"]
+    },
+    {
+      "domain": "outputs",
+      "group": "Concert",
+      "contentContains": "Student choreography",
+      "mustNotBeIn": ["longTermOutcomes", "impact"]
+    },
+    {
+      "domain": "outputs",
+      "group": "Concert",
+      "contentContains": "Implementation of FLC Dance",
+      "mustNotBeIn": ["longTermOutcomes", "impact"]
+    },
+    {
+      "domain": "longTermOutcomes",
+      "contentContains": "Educational attainment",
+      "mustNotBeIn": ["impact", "outputs", "mediumTermOutcomes"]
+    },
+    {
+      "domain": "longTermOutcomes",
+      "contentContains": "Sustain careers",
+      "mustNotBeIn": ["impact", "outputs"]
+    }
+  ],
+  "impactStatement": {
+    "required": true,
+    "contentContains": [
+      "affirming environment",
+      "creative expression",
+      "educational pathways"
+    ],
+    "mustNotBeIn": ["mission", "outputs", "shortTermOutcomes", "mediumTermOutcomes", "longTermOutcomes", "impact"],
+    "mustNotDuplicate": "mission"
+  },
+  "mission": {
+    "required": false,
+    "mustNotDuplicate": "impactStatement"
+  },
+  "regression": {
+    "domainsMustRemainNonEmpty": ["inputs", "activities"]
+  }
+}

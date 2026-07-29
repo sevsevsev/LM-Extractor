@@ -34,10 +34,16 @@ app.post('/api/gemini/extract', async (req, res) => {
       return;
     }
 
-    const { images, text } = req.body as { images?: string[]; text?: string };
+    const { images, text, textHint } = req.body as {
+      images?: string[];
+      text?: string;
+      textHint?: string;
+    };
 
     if (Array.isArray(images) && images.length > 0) {
-      const result = await extractLogicModelOnServer(apiKey, images);
+      const result = await extractLogicModelOnServer(apiKey, images, {
+        textHint: typeof textHint === 'string' ? textHint : undefined,
+      });
       res.json({ model: result });
       return;
     }

@@ -10,7 +10,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test shared/**/*.test.ts",
+    "test": "tsx --test shared/**/*.test.ts services/**/*.test.ts",
     "start": "npm run build && node scripts/start-prod.mjs"
   },
   "dependencies": {

@@ -42,4 +42,4 @@ Web app that extracts structured logic models from uploaded documents (PDF, DOCX
 - **Secrets:** `GEMINI_API_KEY` only in `.env.local`, read by Express. Never Vite-define into the client.
 
 ## How to invoke agents
-Reference by name in chat: `@product`, `@architect`, `@integrator`, `@devops`, `@ux`, `@pattern-analyst`, `@critic`, `@microcopy`, `@user-tester`. See `AGENTS.md`.
+Reference by name in chat: `@product`, `@architect`, `@integrator`, `@devops`, `@ux`, `@pattern-analyst`, `@critic`, `@microcopy`, `@user-tester`, `@lm-quality`, `@critique-prompt`. See `AGENTS.md`.

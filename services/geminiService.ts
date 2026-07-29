@@ -54,8 +54,13 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
   throw lastError instanceof Error ? lastError : new Error('Gemini request failed.');
 }
 
-export const extractLogicModel = async (input: string | string[]): Promise<LogicModel> => {
-  const body = Array.isArray(input) ? { images: input } : { text: input };
+export const extractLogicModel = async (
+  input: string | string[],
+  options?: { textHint?: string }
+): Promise<LogicModel> => {
+  const body = Array.isArray(input)
+    ? { images: input, textHint: options?.textHint }
+    : { text: input };
   const data = await postJson<{ model: LogicModel }>('/api/gemini/extract', body);
   return data.model;
 };

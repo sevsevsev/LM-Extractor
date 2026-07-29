@@ -1,0 +1,74 @@
+import type { LogicModel, LogicModelGroup, ProcessingFile } from '../types';
+
+/** Domains included in Export for coding — see docs/specs/export-for-coding.md */
+export const CODING_EXPORT_DOMAINS = [
+  'Short-Term Outcomes',
+  'Medium-Term Outcomes',
+  'Long-Term Outcomes',
+] as const;
+
+type CodingDomain = (typeof CODING_EXPORT_DOMAINS)[number];
+
+const DOMAIN_FIELDS: { domain: CodingDomain; field: keyof LogicModel }[] = [
+  { domain: 'Short-Term Outcomes', field: 'shortTermOutcomes' },
+  { domain: 'Medium-Term Outcomes', field: 'mediumTermOutcomes' },
+  { domain: 'Long-Term Outcomes', field: 'longTermOutcomes' },
+];
+
+export function countCodingExportRows(files: ProcessingFile[]): number {
+  return buildCodingExportRows(files).length;
+}
+
+export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
+  const rows: string[][] = [];
+
+  for (const f of files) {
+    if (!(f.status === 'editing' || f.status === 'completed') || !f.result) continue;
+    const m = f.result;
+
+    for (const { domain, field } of DOMAIN_FIELDS) {
+      const groups = (m[field] as { content: LogicModelGroup[] }).content || [];
+      groups.forEach((g, gi) => {
+        g.items.forEach((item, ii) => {
+          const text = (item.text || '').trim();
+          if (!text) return;
+          const rowId = `${f.id}-${field}-${gi}-${ii}`;
+          rows.push([
+            rowId,
+            m.organization || '',
+            m.program || '',
+            g.name || 'General',
+            domain,
+            text,
+          ]);
+        });
+      });
+    }
+  }
+
+  return rows;
+}
+
+export function buildCodingExportCsv(files: ProcessingFile[]): string | null {
+  const rows = buildCodingExportRows(files);
+  if (rows.length === 0) return null;
+
+  const headers = ['row_id', 'organization', 'program', 'group', 'domain', 'outcome_text'];
+  const escape = (c: string) => `"${String(c).replace(/"/g, '""')}"`;
+  return [headers.map(escape).join(','), ...rows.map(row => row.map(escape).join(','))].join('\n');
+}
+
+export function downloadCodingExportCsv(files: ProcessingFile[]): { ok: true } | { ok: false; reason: string } {
+  const csv = buildCodingExportCsv(files);
+  if (!csv) {
+    return { ok: false, reason: 'No short-, medium-, or long-term outcome rows to export for coding.' };
+  }
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `logic-models-for-coding_${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+  return { ok: true };
+}

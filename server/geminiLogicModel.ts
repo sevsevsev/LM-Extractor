@@ -2,6 +2,8 @@ import { GoogleGenAI, Type, Schema } from '@google/genai';
 import { getAiExtractionPrompt, getAiCritiquePrompt } from '../constants';
 import { LogicModel } from '../types';
 import { parseLogicModelResponse } from '../shared/logicModelValidate';
+import { normalizeExtractedLogicModel } from '../shared/extractNormalize';
+import { sanitizeAbsentDomainCritiques } from '../shared/domainPresence';
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 500;
@@ -38,6 +40,7 @@ const extractModelSchema: Schema = {
   properties: {
     organization: { type: Type.STRING },
     program: { type: Type.STRING },
+    impactStatement: baseFieldSchema(Type.STRING),
     mission: baseFieldSchema(Type.STRING),
     targetPopulation: baseFieldSchema(Type.STRING),
     inputs: baseFieldSchema(Type.ARRAY),
@@ -100,6 +103,7 @@ const critiqueModelSchema: Schema = {
   properties: {
     organization: { type: Type.STRING },
     program: { type: Type.STRING },
+    impactStatement: critiquedFieldSchema(Type.STRING),
     mission: critiquedFieldSchema(Type.STRING),
     targetPopulation: critiquedFieldSchema(Type.STRING),
     inputs: critiquedFieldSchema(Type.ARRAY),
@@ -109,6 +113,14 @@ const critiqueModelSchema: Schema = {
     mediumTermOutcomes: critiquedFieldSchema(Type.ARRAY),
     longTermOutcomes: critiquedFieldSchema(Type.ARRAY),
     impact: critiquedFieldSchema(Type.ARRAY),
+    overallQuality: {
+      type: Type.OBJECT,
+      properties: {
+        rating: { type: Type.STRING, enum: ['Strong', 'Adequate', 'Weak'] },
+        rationale: { type: Type.ARRAY, items: { type: Type.STRING } },
+      },
+      required: ['rating', 'rationale'],
+    },
   },
   required: [
     'organization',
@@ -122,6 +134,7 @@ const critiqueModelSchema: Schema = {
     'mediumTermOutcomes',
     'longTermOutcomes',
     'impact',
+    'overallQuality',
   ],
 };
 
@@ -181,15 +194,22 @@ async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
 
 export async function extractLogicModelOnServer(
   apiKey: string,
-  input: string | string[]
+  input: string | string[],
+  options?: { textHint?: string }
 ): Promise<LogicModel> {
   const ai = new GoogleGenAI({ apiKey });
   const isVision = Array.isArray(input);
   const prompt = getAiExtractionPrompt(isVision);
+  const textHint = options?.textHint?.trim();
 
   let contents: unknown;
   if (isVision) {
     const parts: unknown[] = [{ text: prompt }];
+    if (textHint) {
+      parts.push({
+        text: `\n\nTEXT-LAYER HINT (use to fill impactStatement when page 1 has a labeled Impact Statement; images remain authoritative for the grid):\n---\n${textHint}\n---`,
+      });
+    }
     for (const base64Image of input) {
       parts.push({
         inlineData: { mimeType: 'image/jpeg', data: base64Image },
@@ -207,12 +227,14 @@ export async function extractLogicModelOnServer(
       config: {
         responseMimeType: 'application/json',
         responseSchema: extractModelSchema,
-        temperature: 0.2,
+        temperature: 0.1,
       },
     })
   );
 
-  return parseLogicModelResponse(response.text);
+  return normalizeExtractedLogicModel(parseLogicModelResponse(response.text), {
+    sourceText: textHint || (typeof input === 'string' ? input : undefined),
+  });
 }
 
 export async function critiqueLogicModelOnServer(
@@ -240,5 +262,7 @@ export async function critiqueLogicModelOnServer(
     })
   );
 
-  return parseLogicModelResponse(response.text);
+  return sanitizeAbsentDomainCritiques(
+    parseLogicModelResponse(response.text, { requireOverallQuality: true })
+  );
 }

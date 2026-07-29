@@ -23,7 +23,7 @@ export const convertPdfToImages = async (file: File): Promise<string[]> => {
 
     for (let i = 1; i <= pageCount; i++) {
       const page = await pdf.getPage(i);
-      const viewport = page.getViewport({ scale: 2.0 }); // High scale for better text recognition
+      const viewport = page.getViewport({ scale: 2.5 }); // Higher scale for dense multi-column grids
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
       
@@ -32,7 +32,7 @@ export const convertPdfToImages = async (file: File): Promise<string[]> => {
 
       if (context) {
         await page.render({ canvasContext: context, canvas, viewport }).promise;
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
         images.push(dataUrl.split(',')[1]);
       }
     }
@@ -296,6 +296,31 @@ export const convertPptxToImages = async (file: File): Promise<string[]> => {
   } catch (error) {
     console.error('PPTX Image Conversion Error:', error);
     throw new Error('Failed to convert PowerPoint slides to images.');
+  }
+};
+
+/** First N pages of PDF text — recovers page-1 Impact Statement after vision extract. */
+export const extractPdfFrontMatterText = async (
+  file: File,
+  maxPages = 2
+): Promise<string> => {
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+    const pageCount = Math.min(pdf.numPages, maxPages);
+    let fullText = '';
+    for (let i = 1; i <= pageCount; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: { str?: string }) => (typeof item.str === 'string' ? item.str : ''))
+        .join(' ');
+      fullText += `\n\n## Page ${i}\n\n${pageText}`;
+    }
+    return fullText;
+  } catch (error) {
+    console.error('PDF front-matter text extraction error:', error);
+    return '';
   }
 };
 

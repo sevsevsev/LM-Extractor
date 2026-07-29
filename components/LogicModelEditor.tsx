@@ -1,5 +1,10 @@
-import React from 'react';
-import { LogicModel, LogicModelGroup } from '../types';
+import React, { useEffect, useState } from 'react';
+import { LogicModel, LogicModelGroup, QualityRating } from '../types';
+import {
+  groupedDomainHasContent,
+  sanitizeAbsentDomainCritiques,
+  stringDomainHasContent,
+} from '../shared/domainPresence';
 
 interface LogicModelEditorProps {
   model: LogicModel;
@@ -8,13 +13,26 @@ interface LogicModelEditorProps {
   isAnalyzing: boolean;
 }
 
+const RATING_OPTIONS: QualityRating[] = ['Strong', 'Adequate', 'Weak'];
+
+const ratingBadgeClass = (rating?: string) =>
+  rating === 'Strong' || rating === 'Adequate'
+    ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+    : rating === 'Weak'
+      ? 'bg-amber-100 text-amber-900 border-amber-200'
+      : 'bg-slate-100 text-slate-600 border-slate-200';
+
+
 const EditableTextSection: React.FC<{
   title: string;
-  field: 'mission' | 'targetPopulation';
+  field: 'mission' | 'targetPopulation' | 'impactStatement';
   model: LogicModel;
   onUpdate: (updatedModel: LogicModel) => void;
 }> = ({ title, field, model, onUpdate }) => {
-  const fieldData = model[field] as { content: string, critique: string, rating?: string };
+  const fieldData =
+    field === 'impactStatement'
+      ? (model.impactStatement ?? { content: '', critique: '', rating: undefined })
+      : (model[field] as { content: string; critique: string; rating?: string });
   const content = fieldData.content;
 
   const isPassing = fieldData.rating === 'Strong' || fieldData.rating === 'Adequate';
@@ -34,10 +52,17 @@ const EditableTextSection: React.FC<{
       };
 
   const handleChange = (newText: string) => {
-    onUpdate({
-      ...model,
-      [field]: { ...fieldData, content: newText }
-    });
+    if (field === 'impactStatement') {
+      onUpdate({
+        ...model,
+        impactStatement: { ...fieldData, content: newText },
+      });
+    } else {
+      onUpdate({
+        ...model,
+        [field]: { ...fieldData, content: newText },
+      });
+    }
   };
 
   const needsAttention = fieldData.rating === 'Weak' || !fieldData.rating;
@@ -283,18 +308,124 @@ const EditableGroupSection: React.FC<{
 };
 
 const LogicModelEditor: React.FC<LogicModelEditorProps> = ({ model, onUpdate, onReAnalyze, isAnalyzing }) => {
+  const [showOptionalMission, setShowOptionalMission] = useState(() =>
+    stringDomainHasContent(model.mission.content)
+  );
+  const [showOptionalMediumTerm, setShowOptionalMediumTerm] = useState(() =>
+    groupedDomainHasContent(model.mediumTermOutcomes.content)
+  );
+  const [showOptionalImpact, setShowOptionalImpact] = useState(() =>
+    groupedDomainHasContent(model.impact.content)
+  );
+
+  useEffect(() => {
+    if (stringDomainHasContent(model.mission.content)) setShowOptionalMission(true);
+  }, [model.mission.content]);
+
+  useEffect(() => {
+    if (groupedDomainHasContent(model.mediumTermOutcomes.content)) setShowOptionalMediumTerm(true);
+  }, [model.mediumTermOutcomes.content]);
+
+  useEffect(() => {
+    if (groupedDomainHasContent(model.impact.content)) setShowOptionalImpact(true);
+  }, [model.impact.content]);
+
+  useEffect(() => {
+    const sanitized = sanitizeAbsentDomainCritiques(model);
+    const rationaleChanged =
+      JSON.stringify(sanitized.overallQuality?.rationale ?? []) !==
+      JSON.stringify(model.overallQuality?.rationale ?? []);
+    const optionalCritiqueCleared =
+      sanitized.mission.critique !== model.mission.critique ||
+      sanitized.mediumTermOutcomes.critique !== model.mediumTermOutcomes.critique ||
+      sanitized.impact.critique !== model.impact.critique;
+    if (rationaleChanged || optionalCritiqueCleared) {
+      onUpdate(sanitized);
+    }
+  }, [model, onUpdate]);
+
   const ratingSummary: Array<{ label: string; rating?: string }> = [
-    { label: 'Mission', rating: model.mission.rating },
-    { label: 'Target Population', rating: model.targetPopulation.rating },
-    { label: 'Inputs', rating: model.inputs.rating },
-    { label: 'Activities', rating: model.activities.rating },
-    { label: 'Outputs', rating: model.outputs.rating },
-    { label: 'Short-Term', rating: model.shortTermOutcomes.rating },
-    { label: 'Medium-Term', rating: model.mediumTermOutcomes.rating },
-    { label: 'Long-Term', rating: model.longTermOutcomes.rating },
-    { label: 'Impact', rating: model.impact.rating },
+    ...(model.impactStatement?.content?.trim()
+      ? [{ label: 'Impact Statement', rating: model.impactStatement.rating }]
+      : []),
+    ...(stringDomainHasContent(model.mission.content)
+      ? [{ label: 'Mission', rating: model.mission.rating }]
+      : []),
+    ...(stringDomainHasContent(model.targetPopulation.content)
+      ? [{ label: 'Target Population', rating: model.targetPopulation.rating }]
+      : []),
+    ...(groupedDomainHasContent(model.inputs.content)
+      ? [{ label: 'Inputs', rating: model.inputs.rating }]
+      : []),
+    ...(groupedDomainHasContent(model.activities.content)
+      ? [{ label: 'Activities', rating: model.activities.rating }]
+      : []),
+    ...(groupedDomainHasContent(model.outputs.content)
+      ? [{ label: 'Outputs', rating: model.outputs.rating }]
+      : []),
+    ...(groupedDomainHasContent(model.shortTermOutcomes.content)
+      ? [{ label: 'Short-Term', rating: model.shortTermOutcomes.rating }]
+      : []),
+    ...(groupedDomainHasContent(model.mediumTermOutcomes.content)
+      ? [{ label: 'Medium-Term', rating: model.mediumTermOutcomes.rating }]
+      : []),
+    ...(groupedDomainHasContent(model.longTermOutcomes.content)
+      ? [{ label: 'Long-Term', rating: model.longTermOutcomes.rating }]
+      : []),
+    ...(groupedDomainHasContent(model.impact.content)
+      ? [{ label: 'Impact', rating: model.impact.rating }]
+      : []),
   ];
   const weakCount = ratingSummary.filter(r => r.rating === 'Weak' || !r.rating).length;
+  const overall = model.overallQuality;
+  const overallTone = ratingBadgeClass(overall?.rating);
+
+  const updateOverallRating = (rating: QualityRating) => {
+    onUpdate({
+      ...model,
+      overallQuality: {
+        rating,
+        rationale: overall?.rationale?.length ? overall.rationale : ['', ''],
+      },
+    });
+  };
+
+  const updateRationaleBullet = (index: number, text: string) => {
+    const bullets = [...(overall?.rationale || ['', ''])];
+    while (bullets.length < 2) bullets.push('');
+    bullets[index] = text;
+    onUpdate({
+      ...model,
+      overallQuality: {
+        rating: overall?.rating || 'Adequate',
+        rationale: bullets,
+      },
+    });
+  };
+
+  const addRationaleBullet = () => {
+    const bullets = [...(overall?.rationale || [])];
+    if (bullets.length >= 4) return;
+    bullets.push('');
+    onUpdate({
+      ...model,
+      overallQuality: {
+        rating: overall?.rating || 'Adequate',
+        rationale: bullets,
+      },
+    });
+  };
+
+  const removeRationaleBullet = (index: number) => {
+    const bullets = (overall?.rationale || []).filter((_, i) => i !== index);
+    onUpdate({
+      ...model,
+      overallQuality: {
+        rating: overall?.rating || 'Adequate',
+        rationale: bullets.length >= 2 ? bullets : [...bullets, ''].slice(0, 2),
+      },
+    });
+  };
 
   return (
     <div className={`bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden ${isAnalyzing ? 'opacity-90' : ''}`}>
@@ -317,18 +448,16 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({ model, onUpdate, on
         </button>
       </div>
 
-      <div className="px-6 py-3 bg-slate-50 border-b border-slate-200">
+      <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 space-y-2">
         <div className="flex flex-wrap items-center gap-2">
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${overallTone}`}>
+            Overall{overall?.rating ? `: ${overall.rating}` : ': Unrated'}
+          </span>
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mr-1">
             {weakCount > 0 ? `${weakCount} section${weakCount === 1 ? '' : 's'} need attention` : 'All sections rated Strong or Adequate'}
           </span>
           {ratingSummary.map(item => {
-            const tone =
-              item.rating === 'Strong' || item.rating === 'Adequate'
-                ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                : item.rating === 'Weak'
-                  ? 'bg-amber-100 text-amber-900 border-amber-200'
-                  : 'bg-slate-100 text-slate-600 border-slate-200';
+            const tone = ratingBadgeClass(item.rating);
             return (
               <span
                 key={item.label}
@@ -345,7 +474,7 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({ model, onUpdate, on
       
       <fieldset disabled={isAnalyzing} className="p-8 border-0 m-0 min-w-0 disabled:opacity-70">
         <legend className="sr-only">Logic model fields</legend>
-        <div className="grid grid-cols-2 gap-6 mb-10 bg-slate-50 p-6 rounded-lg border border-slate-100">
+        <div className="grid grid-cols-2 gap-6 mb-6 bg-slate-50 p-6 rounded-lg border border-slate-100">
            <div>
               <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Organization</label>
               <input 
@@ -366,6 +495,70 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({ model, onUpdate, on
            </div>
         </div>
 
+        <div className={`mb-10 border rounded-lg p-5 ${overall?.rating === 'Weak' || !overall?.rating ? 'bg-amber-50 border-amber-100' : 'bg-emerald-50 border-emerald-100'}`}>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-slate-700">Overall quality</h4>
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-600">
+              <span className="sr-only">Overall rating</span>
+              <select
+                className="border border-slate-300 rounded-md px-2 py-1 bg-white text-sm font-bold"
+                value={overall?.rating || ''}
+                onChange={e => {
+                  const v = e.target.value as QualityRating;
+                  if (RATING_OPTIONS.includes(v)) updateOverallRating(v);
+                }}
+              >
+                <option value="" disabled>
+                  Unrated
+                </option>
+                {RATING_OPTIONS.map(r => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <p className="text-[11px] text-slate-500 mb-3">
+            Why this rating (2–4 bullets). Re-Analyze refreshes overall quality from AI.
+          </p>
+          <ul className="space-y-2">
+            {(overall?.rationale?.length ? overall.rationale : ['', '']).map((bullet, i) => (
+              <li key={i} className="flex gap-2 items-start">
+                <span className="text-slate-400 text-xs mt-2.5" aria-hidden="true">
+                  •
+                </span>
+                <input
+                  type="text"
+                  className="flex-1 text-sm border border-slate-200 rounded-md px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                  value={bullet}
+                  onChange={e => updateRationaleBullet(i, e.target.value)}
+                  placeholder={`Rationale bullet ${i + 1}`}
+                />
+                {(overall?.rationale?.length || 0) > 2 ? (
+                  <button
+                    type="button"
+                    className="text-xs text-slate-400 hover:text-red-600 px-1 py-2"
+                    onClick={() => removeRationaleBullet(i)}
+                    aria-label={`Remove rationale bullet ${i + 1}`}
+                  >
+                    ×
+                  </button>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+          {(overall?.rationale?.length || 0) < 4 ? (
+            <button
+              type="button"
+              onClick={addRationaleBullet}
+              className="mt-3 text-xs font-bold text-blue-600 hover:text-blue-800"
+            >
+              + Add rationale bullet
+            </button>
+          ) : null}
+        </div>
+
         {/* PROGRAM CONTEXT SECTION */}
         <div className="relative py-4 mb-8">
            <div className="absolute inset-0 flex items-center" aria-hidden="true">
@@ -376,7 +569,23 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({ model, onUpdate, on
            </div>
         </div>
 
-        <EditableTextSection title="Mission / Overview" field="mission" model={model} onUpdate={onUpdate} />
+        {model.impactStatement?.content?.trim() ? (
+          <EditableTextSection title="Impact Statement" field="impactStatement" model={model} onUpdate={onUpdate} />
+        ) : null}
+        {showOptionalMission ? (
+          <EditableTextSection title="Mission / Overview" field="mission" model={model} onUpdate={onUpdate} />
+        ) : (
+          <p className="text-xs text-slate-500 mb-6">
+            Mission not in source.{' '}
+            <button
+              type="button"
+              className="font-bold text-blue-600 hover:text-blue-800"
+              onClick={() => setShowOptionalMission(true)}
+            >
+              Add mission (optional)
+            </button>
+          </p>
+        )}
         <EditableTextSection title="Target Population" field="targetPopulation" model={model} onUpdate={onUpdate} />
         
         {/* LOGIC MODEL COLUMNS */}
@@ -404,9 +613,35 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({ model, onUpdate, on
         </div>
 
         <EditableGroupSection title="Short-Term Outcomes" field="shortTermOutcomes" model={model} onUpdate={onUpdate} />
-        <EditableGroupSection title="Medium-Term Outcomes" field="mediumTermOutcomes" model={model} onUpdate={onUpdate} />
+        {showOptionalMediumTerm ? (
+          <EditableGroupSection title="Medium-Term Outcomes" field="mediumTermOutcomes" model={model} onUpdate={onUpdate} />
+        ) : (
+          <p className="text-xs text-slate-500 mb-6">
+            No medium-term outcomes in source.{' '}
+            <button
+              type="button"
+              className="font-bold text-blue-600 hover:text-blue-800"
+              onClick={() => setShowOptionalMediumTerm(true)}
+            >
+              Add medium-term section (optional)
+            </button>
+          </p>
+        )}
         <EditableGroupSection title="Long-Term Outcomes" field="longTermOutcomes" model={model} onUpdate={onUpdate} />
-        <EditableGroupSection title="Impact" field="impact" model={model} onUpdate={onUpdate} />
+        {showOptionalImpact ? (
+          <EditableGroupSection title="Impact" field="impact" model={model} onUpdate={onUpdate} />
+        ) : (
+          <p className="text-xs text-slate-500 mb-6">
+            No impact column in source.{' '}
+            <button
+              type="button"
+              className="font-bold text-blue-600 hover:text-blue-800"
+              onClick={() => setShowOptionalImpact(true)}
+            >
+              Add impact section (optional)
+            </button>
+          </p>
+        )}
       </fieldset>
     </div>
   );

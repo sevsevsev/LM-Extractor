@@ -10,13 +10,13 @@ Living plan. Updated **2026-07-24** after team agent review (@product, @pattern-
 
 | Phase | Status | Focus | Exit criteria |
 |-------|--------|--------|----------------|
-| Stabilize → Quality (local MVP) | **Done** | Extract → critique → edit → CSV/PDF; server Gemini; brand; errors/retry | Acceptance criteria in `current-prd.md` met |
-| **0 — Feature freeze** | **Active** | No new capability work | Owner agrees validation-first; OUT list unchanged |
-| **1 — Real-doc validation** | **Next** | 5–10 real SDP logic models; fill friction log | Top 1–2 pains ranked; “no feature needed” is a valid outcome |
-| **2 — Colleague onboarding** | Ready | Short runbook + one guided solo run | Colleague completes one real doc alone; ≤2 clarifying questions |
-| **3 — Product decide** | Blocked on 1–2 | Answer open PRD question with evidence | (a) park features 30–60 days, or (b) scope **one** enhancement with IN/OUT/AC |
-| **4 — Single scoped enhancement** | Parked | Only if Phase 3 chose (b) | AC met; re-validate on ≥3 more real docs |
-| Auth / cloud / Vercel team host | **Deferred** | See `phase-2-cloud.md` | Explicit PRD amendment only |
+| Stabilize → Quality (local MVP) | **Done** | Extract → critique → edit → CSV/PDF; server Gemini | MVP AC in `current-prd.md` |
+| **0 — Feature freeze (speculative)** | Soft | No *unscoped* capability work | Owner-scoped items may proceed |
+| **1 — Real-doc validation** | Parallel | 5–10 real SDP LMs; friction log | Top pains ranked |
+| **2 — Colleague onboarding** | Ready | Short runbook | Colleague solo success |
+| **4a — Export for coding** | **Done** | Coder-shaped CSV button | `export-for-coding.md` AC |
+| **4b — Overall LM quality** | **Done** | S/A/W + rationale; rubric doc | `lm-quality-rubric.md` AC |
+| **Multi-column extract fidelity** | **Implemented** | Prompt + impactStatement + fixture tests | Re-run YouthMoves PDF; commit snapshot |
 
 ---
 
@@ -24,8 +24,9 @@ Living plan. Updated **2026-07-24** after team agent review (@product, @pattern-
 
 - **Users:** owner + one colleague (ingest/extract/edit/export).
 - **Host:** local first (`npm run dev` / `npm start`). Private Vercel optional/experimental only.
-- **Pipeline:** Extractor export must match Qualitative Coding Tool input. LM Feedback = separate utility. Priority = Extract + Code (possible later unify). See `pipeline-context.md`.
-- **Next step:** (1) lock coding handoff schema, (2) Phase 1 real-doc validation + Phase 2 runbook — not Entry/Feedback/DB/platform.
+- **Pipeline:** Full LM for DB; Export for coding + overall S/A/W+rationale **scoped**. Rubric tweakable in `lm-quality-rubric.md`. See `pipeline-context.md`.
+- **Next step:** Implement 4a/4b per `tech-overall-quality-and-coding-export.md`; continue Phase 1 validation in parallel.
+- **Discovery (not scoped to build):** bulk ~200 + walk-away + Sheets marriage — see `bulk-ingest-sheets-discovery.md`.
 
 ### Clarifying questions (answer during/after Phase 1)
 
@@ -65,7 +66,8 @@ Living plan. Updated **2026-07-24** after team agent review (@product, @pattern-
 | Surface vision→text fallback in UI | Silent quality drops on real docs | S–M |
 | Critique “stale after edits” affordance | People export without re-analyze | S |
 | Prompt / schema tuning | Ratings or buckets consistently wrong | S–M |
-| **CSV export ↔ Coding Tool contract** | Schema known / import fails | S–M — **priority once schema locked** |
+| **CSV export ↔ Coding Tool contract** | Schema known — need `outcome_text` map + outcome-domain filter | S–M — **ready to scope** |
+| **Overall LM quality field + prompt** | Owner wants model-level assessment + useful item critiques | M — design with `@lm-quality` / `@critique-prompt` first |
 | PDF export shape tweaks | Human handoff mismatch (not coding path) | S–M |
 | Session save/load (JSON models) | Lost work on refresh / long sessions | M |
 | Side-by-side source preview | “I can’t find what the AI saw” | M–L |

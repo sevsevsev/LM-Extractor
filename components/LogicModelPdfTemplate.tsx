@@ -197,12 +197,18 @@ export const LogicModelPdfTemplate = forwardRef<HTMLDivElement, Props>(({ model,
                   <h3 className="text-sm font-bold uppercase mb-2" style={{ color: BRAND_PRIMARY }}>Mission & Who We Serve</h3>
                   
                   {/* Dynamic Rendering of Context Sections */}
-                  {(!model.mission.content && !model.targetPopulation.content) ? (
+                  {(!model.impactStatement?.content?.trim() &&
+                    !model.mission.content &&
+                    !model.targetPopulation.content) ? (
                      <p className="text-xs text-slate-400 italic">No mission or context details extracted.</p>
                   ) : (
                      <div className="space-y-4">
-                         <ContextText title="Mission / Overview" text={model.mission.content} />
-                         <ContextText title="Target Population" text={model.targetPopulation.content} />
+                         {model.mission.content?.trim() ? (
+                           <ContextText title="Mission / Overview" text={model.mission.content} />
+                         ) : null}
+                         {model.targetPopulation.content?.trim() ? (
+                           <ContextText title="Target Population" text={model.targetPopulation.content} />
+                         ) : null}
                      </div>
                   )}
 
@@ -210,14 +216,13 @@ export const LogicModelPdfTemplate = forwardRef<HTMLDivElement, Props>(({ model,
 
                <div className="w-2/5 p-4 rounded text-white flex flex-col justify-center shadow-sm" style={{ backgroundColor: BRAND_PRIMARY }}>
                   <h3 className="text-sm font-bold uppercase mb-2" style={{ color: BRAND_HIGHLIGHT }}>Impact Statement</h3>
-                  {model.impact.content.map((g, i) => (
-                    <div key={i} className="mb-2 last:mb-0">
-                       <p className="text-sm italic font-medium leading-snug text-white">
-                         "{g.items.map(item => item.text).join(' ')}"
-                       </p>
-                    </div>
-                  ))}
-                  {model.impact.content.length === 0 && <p className="text-sm italic opacity-50">No impact statement defined.</p>}
+                  {model.impactStatement?.content?.trim() ? (
+                    <p className="text-sm italic font-medium leading-snug text-white">
+                      &ldquo;{model.impactStatement.content}&rdquo;
+                    </p>
+                  ) : (
+                    <p className="text-sm italic opacity-50">No impact statement defined.</p>
+                  )}
                </div>
             </div>
           )}

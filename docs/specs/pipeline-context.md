@@ -1,51 +1,48 @@
 # Pipeline context — Logic Model intake & coding
 
-Status: Active product context (from flowchart + owner decisions 2026-07-24)  
-Source: `LM Input, Intake and Coding Flow` flowchart + owner clarification.
+Status: Active product context (updated 2026-07-24)  
+Sources: intake flowchart; owner clarifications; sibling repo `Qualitative Outcomes Coder`.
 
 ## System map (boxes)
 
 | Box | Role | Relationship to this repo |
 |-----|------|---------------------------|
-| **LM Extraction Tool** | Read existing LM → extract → flat file | **This app** |
+| **LM Extraction Tool** | Read existing LM → extract **all** domains → quality assess → flat files | **This app** |
 | **LM Entry App** | Guided Q&A → draft LM from scratch | Out of scope (separate) |
-| **LM Feedback Module** | Feedback for a **program representative** drafting/refining their own LM | **Separate utility** — not this app’s critique pass |
-| **Outcomes Table** (flat) | Handoff surface into coding | Target consumer of Extractor export |
-| **Qualitative Coding Tool** | Split multi-outcome strings → atomic outcomes; code via codebook | **Priority sibling**; export must match its input |
-| **Outcomes Codebook** | Coding vocabulary | Owned by coding workflow |
-| **Coded Outcomes → Human QA** | QA + revise prompt/codebook | Downstream of coding |
-| **Unpivot → Partnerships DB** | Warehouse / ERD | Downstream; not Extractor |
+| **LM Feedback Module** | Feedback for a **program representative** drafting their own LM | **Separate utility** ≠ Extractor critique |
+| **Qualitative Outcomes Coder** | CSV in → atomize → codebook code → human review → coded CSV | **Priority sibling** (`../Qualitative Outcomes Coder`) |
+| **Outcomes Codebook** | Coding vocabulary (Youth Development / Accelerate Philly, …) | Owned by coder |
+| **Coded Outcomes → Human QA** | QA + revise prompt/codebook | Downstream of coder |
+| **Unpivot → Partnerships DB** | Warehouse / ERD — **all** LM domains, not outcomes-only | Downstream consumer of full extract |
 
 ## Closed decisions
 
-1. **Extractor export must mirror what the Qualitative Coding Tool expects** (flat-file contract is the integration surface).
-2. **LM Feedback Module ≠ Extractor critique.** Critique here is operator QA while extracting; Feedback is a program-facing drafting aid.
-3. **Near-term priority:** Extraction Tool + Qualitative Coding Tool (not Entry, not Feedback, not DB).
-4. **Possible later unification** of Extraction + Coding into one app — parked until both handoff contracts and workflows are proven separately.
+1. **Extract everything** — full LM for DB, not outcomes-only.
+2. **Two exports:** full CSV (DB/archive + all quality fields) + **Export for coding** (`export-for-coding.md`).
+3. **Overall quality:** single Strong/Adequate/Weak + rationale bullets; living doc `lm-quality-rubric.md` (tweakable).
+4. **Item assessments:** store **all** for now; change later via rubric changelog if too noisy.
+5. **LM Feedback Module** ≠ Extractor critique.
+6. **Priority:** Extraction + Qualitative Outcomes Coder; unify later only after handoffs work.
+7. **Coder intake:** requires `outcome_text` (aliases). Extractor `Content` must be mapped in the coding export.
 
-## IN / OUT for *this* repo (Extractor)
+## Sibling intake contract (Qualitative Outcomes Coder)
+
+**Required:** `outcome_text` | `outcome` | `outcomes` | `objective` | `goal`  
+**Optional:** `row_id`, `organization`, `program`, `partner_id`, `program_id`, `group` (+ pass-through cols)  
+**Path:** `C:\Users\stucker\Documents\GitHub\Qualitative Outcomes Coder`
+
+Handoff: use **Export for coding** (no manual rename once shipped).
+
+## IN / OUT for *this* repo
 
 ### IN
-- Extract → edit → export a flat file shaped for the Coding Tool
-- Operator-facing critique/re-critique as extraction quality aid (may or may not appear in the coding handoff file — TBD by schema)
-- Branded PDF as optional human-readable artifact (not the coding contract unless coding explicitly needs it)
+- Full-domain extract + edit + domain/item critique + overall quality
+- Full CSV + Export for coding + optional PDF
 
 ### OUT
-- LM Entry App
-- LM Feedback Module (program-rep product)
-- Codebook authoring / qualitative coding UI
-- Human QA of *codes*
-- Unpivot / Partnerships Database / ERD
-- Unifying Extract + Coding into one app (future PRD only)
+- LM Entry · LM Feedback · codebook/coding UI · Partnerships DB · unify Extract+Coding
 
-## Current Extractor CSV (as-built — may need to change)
-
-Columns today: `Organization`, `Program`, `Domain`, `Group`, `Content`, `Domain Critique`, `Domain Rating`, `Item Critique`, `Item Rating`.
-
-Rows include Mission, Target Population, Inputs, Activities, Outputs, Short/Medium/Long-Term Outcomes, Impact — not outcomes-only.
-
-**Open:** whether Coding wants this full LM dump, outcomes-only rows, and/or without critique columns.
-
-## Next product gate
-
-Lock a **Coding Tool input contract** (columns + which domains + multi-outcome string rules) before changing export. Until then, treat “CSV/PDF export shape tweaks” on the roadmap as **unparked priority** once the contract exists — still one scoped change, not a platform rewrite.
+## Specs
+- Rubric: `lm-quality-rubric.md`
+- Coding export: `export-for-coding.md`
+- Tech: `tech-overall-quality-and-coding-export.md`

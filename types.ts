@@ -1,7 +1,9 @@
+export type QualityRating = 'Strong' | 'Adequate' | 'Weak';
+
 export interface LogicModelItem {
   text: string;
   critique?: string;
-  rating?: 'Strong' | 'Adequate' | 'Weak';
+  rating?: QualityRating;
 }
 
 export interface LogicModelGroup {
@@ -12,12 +14,20 @@ export interface LogicModelGroup {
 export interface LogicModelField<T> {
   content: T;
   critique?: string;
-  rating?: 'Strong' | 'Adequate' | 'Weak';
+  rating?: QualityRating;
+}
+
+/** Model-level qualitative assessment — see docs/specs/lm-quality-rubric.md */
+export interface OverallQuality {
+  rating: QualityRating;
+  rationale: string[];
 }
 
 export interface LogicModel {
   organization: string;
   program: string;
+  /** Explicit labeled Impact Statement in source — optional; see docs/specs/tech-multi-column-extract.md */
+  impactStatement?: LogicModelField<string>;
   mission: LogicModelField<string>;
   targetPopulation: LogicModelField<string>;
   inputs: LogicModelField<LogicModelGroup[]>;
@@ -27,6 +37,7 @@ export interface LogicModel {
   mediumTermOutcomes: LogicModelField<LogicModelGroup[]>;
   longTermOutcomes: LogicModelField<LogicModelGroup[]>;
   impact: LogicModelField<LogicModelGroup[]>;
+  overallQuality?: OverallQuality;
 }
 
 export interface ProcessingFile {
