@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ProcessingFile, LogicModel } from './types';
 import FileUpload from './components/FileUpload';
 import LogicModelEditor from './components/LogicModelEditor';
-import { LogicModelPdfTemplate } from './components/LogicModelPdfTemplate';
+import { LogicModelPdfTemplate, PDF_PAGE_WIDTH_PX } from './components/LogicModelPdfTemplate';
 import { extractLogicModel, critiqueLogicModel } from './services/geminiService';
 import { countCodingExportRows, downloadCodingExportCsv } from './services/codingExport';
 import { normalizeExtractedLogicModel } from './shared/extractNormalize';
@@ -45,6 +45,8 @@ const friendlyError = (error: unknown): string => {
   return message;
 };
 
+const PREVIEW_GUTTER_PX = 32;
+
 const createFileId = () =>
   typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
@@ -57,6 +59,8 @@ const App: React.FC = () => {
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const processingRef = useRef(false);
+  const previewViewportRef = useRef<HTMLDivElement>(null);
+  const [previewScale, setPreviewScale] = useState(1);
 
   const filesWithResults = files.filter(f => !!f.result);
   const exportReadyFiles = filesWithResults.filter(
@@ -346,6 +350,25 @@ const App: React.FC = () => {
     }
   };
 
+  // The template is a fixed 1400px wide, so scale it down to whatever the modal allows.
+  // Without this the page overflows a centred flex container and clips on both sides.
+  useEffect(() => {
+    if (!previewFileId) return;
+    const viewport = previewViewportRef.current;
+    if (!viewport) return;
+
+    const updateScale = () => {
+      const available = viewport.clientWidth - PREVIEW_GUTTER_PX * 2;
+      if (available <= 0) return;
+      setPreviewScale(Math.min(1, available / PDF_PAGE_WIDTH_PX));
+    };
+
+    updateScale();
+    const observer = new ResizeObserver(updateScale);
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, [previewFileId]);
+
   useEffect(() => {
     if (!previewFileId) return;
 
@@ -614,8 +637,13 @@ const App: React.FC = () => {
                 </button>
               </div>
             </div>
-            <div className="flex-1 overflow-auto bg-gray-200 p-8 flex justify-center">
-              <div className="shadow-lg transform scale-90 origin-top">
+            <div
+              ref={previewViewportRef}
+              className="flex-1 overflow-auto bg-gray-200"
+              style={{ padding: PREVIEW_GUTTER_PX }}
+            >
+              {/* zoom (unlike transform) shrinks the layout box, so the page stays scrollable. */}
+              <div className="mx-auto w-fit shadow-lg" style={{ zoom: previewScale }}>
                 <LogicModelPdfTemplate model={modelForExport(currentPreviewFile.result)} />
               </div>
             </div>

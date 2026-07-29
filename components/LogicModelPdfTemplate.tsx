@@ -9,8 +9,25 @@ interface Props {
 
 const { primary: BRAND_PRIMARY, secondary: BRAND_SECONDARY, accent: BRAND_ACCENT, highlight: BRAND_HIGHLIGHT, mutedBg: BRAND_MUTED_BG } = brand.colors;
 
+/**
+ * html2canvas 1.4.1 only parses rgb()/hsl(), but Tailwind v4 emits oklch() for its
+ * numbered palette, which throws during capture. Colours inside this template are
+ * therefore declared as hex. Tailwind's shadows, bg-white and text-white already
+ * resolve to rgb/rgba, so those utilities remain safe to use.
+ */
+const PDF_COLORS = {
+  pageText: '#0f172a',
+  bodyText: '#1e293b',
+  contextText: '#475569',
+  sectionLabel: '#64748b',
+  faintText: '#94a3b8',
+  gridBorder: '#d1d5db',
+  subtleBorder: '#e5e7eb',
+};
+
 // Layout Constants (Estimated pixels)
-const PAGE_WIDTH_PX = 1400;
+export const PDF_PAGE_WIDTH_PX = 1400;
+const PDF_PAGE_HEIGHT_PX = 990; // Matches A4 landscape ratio (297mm x 210mm)
 const CHARS_PER_LINE = 35; // Conservative wrapping estimate
 const LINE_HEIGHT_PX = 18; // 11px font + padding
 const GROUP_HEADER_PX = 32; // Height of group title
@@ -103,7 +120,10 @@ const paginateModel = (model: LogicModel): PageContent[] => {
 };
 
 const ColumnRender: React.FC<{ groups: LogicModelGroup[], isContinuation?: boolean }> = ({ groups, isContinuation }) => (
-  <div className="flex-1 flex flex-col min-w-0 border-r last:border-r-0 border-gray-300">
+  <div
+    className="flex-1 flex flex-col min-w-0 border-r last:border-r-0"
+    style={{ borderColor: PDF_COLORS.gridBorder }}
+  >
     <div style={{ backgroundColor: BRAND_MUTED_BG }} className="flex-grow p-3 space-y-4">
       {groups.length === 0 && isContinuation && (
         <div className="h-full w-full opacity-0"></div>
@@ -111,13 +131,16 @@ const ColumnRender: React.FC<{ groups: LogicModelGroup[], isContinuation?: boole
       {groups.map((g, i) => (
         <div key={i}>
           {g.name !== 'General' && (
-             <h4 style={{ color: BRAND_SECONDARY }} className="text-[11px] font-bold uppercase mb-1 border-b border-gray-300 pb-0.5 mt-1">
+             <h4
+               style={{ color: BRAND_SECONDARY, borderColor: PDF_COLORS.gridBorder }}
+               className="text-[11px] font-bold uppercase mb-1 border-b pb-0.5 mt-1"
+             >
                {g.name}
              </h4>
           )}
           <ul className="list-disc pl-4 space-y-1">
             {g.items.map((item, idx) => (
-              <li key={idx} className="text-[11px] leading-snug text-slate-800">
+              <li key={idx} className="text-[11px] leading-snug" style={{ color: PDF_COLORS.bodyText }}>
                 {item.text}
               </li>
             ))}
@@ -133,9 +156,19 @@ const ContextText: React.FC<{ title: string; text: string }> = ({ title, text })
 
     return (
         <div className="mb-4 last:mb-0">
-             <h4 className="text-[11px] font-bold uppercase mb-1 text-slate-500 border-b border-gray-200">{title}</h4>
+             <h4
+               className="text-[11px] font-bold uppercase mb-1 border-b"
+               style={{ color: PDF_COLORS.sectionLabel, borderColor: PDF_COLORS.subtleBorder }}
+             >
+               {title}
+             </h4>
              <div className="space-y-2">
-                 <p className="text-xs text-slate-600 leading-snug whitespace-pre-wrap">{text}</p>
+                 <p
+                   className="text-xs leading-snug whitespace-pre-wrap"
+                   style={{ color: PDF_COLORS.contextText }}
+                 >
+                   {text}
+                 </p>
              </div>
         </div>
     );
@@ -149,10 +182,11 @@ export const LogicModelPdfTemplate = forwardRef<HTMLDivElement, Props>(({ model,
       {pages.map((page, index) => (
         <div 
           key={index}
-          className="pdf-page bg-white font-brand text-slate-900 relative mb-8"
+          className="pdf-page bg-white font-brand relative mb-8"
           style={{ 
-            width: '1400px', 
-            height: '990px', // Fixed A4 Landscape ratio (297mm x 210mm)
+            width: `${PDF_PAGE_WIDTH_PX}px`,
+            height: `${PDF_PAGE_HEIGHT_PX}px`,
+            color: PDF_COLORS.pageText,
             padding: '40px',
             boxSizing: 'border-box',
             display: 'flex',
@@ -165,7 +199,11 @@ export const LogicModelPdfTemplate = forwardRef<HTMLDivElement, Props>(({ model,
             <div className="flex justify-center items-center border-b-4 pb-4 mb-6 flex-shrink-0" style={{ borderColor: BRAND_ACCENT }}>
               <div className="text-center w-full max-w-4xl">
                 <h1 className="text-3xl font-bold uppercase tracking-tight" style={{ color: BRAND_PRIMARY }}>
-                  {model.program || 'PROGRAM NAME'} <span className="text-slate-400 font-light mx-2">|</span> LOGIC MODEL
+                  {model.program || 'PROGRAM NAME'}{' '}
+                  <span className="font-light mx-2" style={{ color: PDF_COLORS.faintText }}>
+                    |
+                  </span>{' '}
+                  LOGIC MODEL
                 </h1>
                 <h2 className="text-lg font-medium" style={{ color: BRAND_SECONDARY }}>
                   {model.organization || 'Organization Name'}
@@ -179,12 +217,18 @@ export const LogicModelPdfTemplate = forwardRef<HTMLDivElement, Props>(({ model,
                 <div className="w-1/4"></div>
                 
                 <div className="text-center w-2/4">
-                    <h1 className="text-xl font-bold uppercase tracking-tight text-slate-400">
+                    <h1
+                      className="text-xl font-bold uppercase tracking-tight"
+                      style={{ color: PDF_COLORS.faintText }}
+                    >
                         {model.program} <span className="text-sm font-normal italic">(Continued)</span>
                     </h1>
                 </div>
                 
-                <div className="text-xs text-slate-400 font-bold w-1/4 text-right">
+                <div
+                  className="text-xs font-bold w-1/4 text-right"
+                  style={{ color: PDF_COLORS.faintText }}
+                >
                     Page {index + 1}
                 </div>
             </div>
@@ -200,7 +244,9 @@ export const LogicModelPdfTemplate = forwardRef<HTMLDivElement, Props>(({ model,
                   {(!model.impactStatement?.content?.trim() &&
                     !model.mission.content &&
                     !model.targetPopulation.content) ? (
-                     <p className="text-xs text-slate-400 italic">No mission or context details extracted.</p>
+                     <p className="text-xs italic" style={{ color: PDF_COLORS.faintText }}>
+                       No mission or context details extracted.
+                     </p>
                   ) : (
                      <div className="space-y-4">
                          {model.mission.content?.trim() ? (
@@ -230,7 +276,11 @@ export const LogicModelPdfTemplate = forwardRef<HTMLDivElement, Props>(({ model,
           {/* --- COLUMN HEADERS (Repeated on every page) --- */}
           <div className="flex items-stretch flex-shrink-0">
              {['Resources (Inputs)', 'Activities', 'Outputs', 'Short-Term Outcomes', 'Medium-Term Outcomes', 'Long-Term Outcomes'].map((title, i) => (
-                <div key={i} className="flex-1 min-w-0 border-r last:border-r-0 border-gray-300">
+                <div
+                  key={i}
+                  className="flex-1 min-w-0 border-r last:border-r-0"
+                  style={{ borderColor: PDF_COLORS.gridBorder }}
+                >
                     <div style={{ backgroundColor: BRAND_PRIMARY }} className="p-2 text-center h-full flex items-center justify-center">
                       <h3 className="text-white text-[10px] font-bold uppercase tracking-wider leading-tight">{title}</h3>
                     </div>
@@ -239,7 +289,10 @@ export const LogicModelPdfTemplate = forwardRef<HTMLDivElement, Props>(({ model,
           </div>
 
           {/* --- MAIN GRID CONTENT --- */}
-          <div className="flex items-stretch border border-t-0 border-gray-300 rounded-b overflow-hidden shadow-sm flex-grow">
+          <div
+            className="flex items-stretch border border-t-0 rounded-b overflow-hidden shadow-sm flex-grow"
+            style={{ borderColor: PDF_COLORS.gridBorder }}
+          >
              <ColumnRender groups={page.columns.inputs} isContinuation={index > 0} />
              <ColumnRender groups={page.columns.activities} isContinuation={index > 0} />
              <ColumnRender groups={page.columns.outputs} isContinuation={index > 0} />
