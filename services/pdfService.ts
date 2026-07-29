@@ -2,6 +2,19 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import JSZip from 'jszip';
 
+/**
+ * html2canvas parses the cloned document's root and body background before it renders
+ * anything, regardless of the backgroundColor option. Tailwind v4 sets those with
+ * oklch(), which the 1.4.1 colour parser throws on, so overwrite them with plain hex.
+ * Patching the clone keeps the visible page unchanged during capture.
+ */
+const neutralizeClonedRootBackground = (clonedDocument: Document): void => {
+  clonedDocument.documentElement.style.backgroundColor = '#ffffff';
+  if (clonedDocument.body) {
+    clonedDocument.body.style.backgroundColor = '#ffffff';
+  }
+};
+
 export const generatePdfFromElement = async (
   elementId: string,
   _filename: string
@@ -37,6 +50,7 @@ export const generatePdfFromElement = async (
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
+        onclone: neutralizeClonedRootBackground,
       });
 
       const imgData = canvas.toDataURL('image/jpeg', 0.95);
