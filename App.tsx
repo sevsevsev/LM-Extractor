@@ -116,6 +116,7 @@ const App: React.FC = () => {
         let inputForGemini: string | string[];
         let textHint: string | undefined;
         let conversionWarnings: string[] = [];
+        let lowLegibility = false;
         const fileName = pendingFile.file.name.toLowerCase();
 
         try {
@@ -133,6 +134,7 @@ const App: React.FC = () => {
             ]);
             inputForGemini = pdfResult.images;
             conversionWarnings = pdfResult.warnings;
+            lowLegibility = pdfResult.lowLegibility;
             textHint = frontMatter || undefined;
           } else if (fileName.endsWith('.docx')) {
             inputForGemini = await convertDocxToImages(pendingFile.file);
@@ -164,7 +166,7 @@ const App: React.FC = () => {
           )
         );
         const extractedResult = normalizeExtractedLogicModel(
-          await extractLogicModel(inputForGemini, { textHint }),
+          await extractLogicModel(inputForGemini, { textHint, lowLegibility }),
           { sourceText: textHint }
         );
 

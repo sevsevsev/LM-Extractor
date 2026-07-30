@@ -15,6 +15,8 @@ const MAX_VISION_PAGES = 15;
 export interface PdfConversionResult {
   images: string[];
   warnings: string[];
+  /** True when a page is a flattened low-resolution raster — extraction should flag risky tokens. */
+  lowLegibility: boolean;
 }
 
 // --- Rendering tuning (see docs/specs/extraction-provenance-and-color.md) ---
@@ -26,6 +28,13 @@ const CONTENT_PAD_FRAC = 0.01; // padding around the detected content box
 const TEXT_DOMINANT_MIN_CHARS = 40; // fewer real characters ⇒ page is essentially an image
 const LEGIBILITY_FLOOR_PX = 1150; // image-page content narrower than this ⇒ warn the user
 const ENABLE_COLUMN_TILING = true;
+/**
+ * A very tall, narrow column tile buries small print. Split such tiles into vertical bands so each
+ * crop is closer to square, which materially improves reading of the densest column (e.g. Resources).
+ */
+const MAX_TILE_ASPECT = 3.0;
+const MAX_TILE_BANDS = 3;
+const TILE_BAND_OVERLAP_FRAC = 0.04; // overlap so a box split across the seam stays readable once
 
 /** JPEG quality tiers then global scale multipliers, tried in order until payload fits. */
 const QUALITY_TIERS = [0.95, 0.85, 0.78, 0.72];
@@ -190,6 +199,28 @@ function cropCanvas(
   return out;
 }
 
+/**
+ * Split an over-tall column tile into top→bottom bands (with slight overlap) so the densest
+ * small print gets a larger share of the model's attention. Returns the tile unchanged when short.
+ */
+function splitTallTile(tile: HTMLCanvasElement): HTMLCanvasElement[] {
+  const aspect = tile.height / Math.max(1, tile.width);
+  if (aspect <= MAX_TILE_ASPECT) return [tile];
+
+  const bands = Math.min(MAX_TILE_BANDS, Math.ceil(aspect / MAX_TILE_ASPECT));
+  const bandHeight = tile.height / bands;
+  const overlap = bandHeight * TILE_BAND_OVERLAP_FRAC;
+
+  const out: HTMLCanvasElement[] = [];
+  for (let i = 0; i < bands; i++) {
+    const y0 = Math.max(0, i * bandHeight - (i > 0 ? overlap : 0));
+    const y1 = Math.min(tile.height, (i + 1) * bandHeight + (i < bands - 1 ? overlap : 0));
+    const slice = cropCanvas(tile, 0, y0, tile.width, y1 - y0);
+    if (slice) out.push(slice);
+  }
+  return out.length ? out : [tile];
+}
+
 /** Render one page (cropped to content) plus optional per-column tiles for grid pages. */
 async function renderAnalyzedPage(
   page: Awaited<ReturnType<Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>['getPage']>>,
@@ -236,7 +267,10 @@ async function renderAnalyzedPage(
       const bx = contentX0 + band.start * contentWidth;
       const bw = (band.end - band.start) * contentWidth;
       const tile = cropCanvas(contentCanvas, bx - contentX0, 0, bw, contentCanvas.height);
-      if (tile) tiles.push(encodeCanvas(tile, quality));
+      if (!tile) continue;
+      for (const sub of splitTallTile(tile)) {
+        tiles.push(encodeCanvas(sub, quality));
+      }
     }
     if (tiles.length >= 3) return tiles;
   }
@@ -274,8 +308,12 @@ async function convertPdfWithAnalysis(
   }
 
   // Legibility warning for flattened-raster pages that came out small.
+  let lowLegibility = false;
   for (const a of analyses) {
     if (!a.imageDominant || !a.bboxFrac) continue;
+    // A flattened page is inherently risky: rendering above its native raster resolution
+    // interpolates rather than recovering detail, so always signal the extractor.
+    lowLegibility = true;
     const scale = Math.min(MAX_SCALE, Math.max(1, IMAGE_DOMINANT_SCALE * usedScaleFactor));
     const contentPx = (a.bboxFrac.x1 - a.bboxFrac.x0) * a.pageWidthPt * scale;
     if (contentPx < LEGIBILITY_FLOOR_PX) {
@@ -285,7 +323,7 @@ async function convertPdfWithAnalysis(
     }
   }
 
-  return { images, warnings };
+  return { images, warnings, lowLegibility };
 }
 
 /** Legacy tier renderer — used only when the analysis pipeline throws. */
@@ -338,11 +376,16 @@ export const convertPdfToImages = async (file: File): Promise<PdfConversionResul
 
     try {
       const result = await convertPdfWithAnalysis(pdf, pageCount);
-      return { images: result.images, warnings: [...warnings, ...result.warnings] };
+      return {
+        images: result.images,
+        warnings: [...warnings, ...result.warnings],
+        lowLegibility: result.lowLegibility,
+      };
     } catch (analysisError) {
       console.warn('Analysis render failed; falling back to tier rendering:', analysisError);
       const images = await convertPdfWithLegacyTiers(pdf, pageCount);
-      return { images, warnings };
+      // Fallback skipped analysis, so assume the worst and let extraction flag risky tokens.
+      return { images, warnings, lowLegibility: true };
     }
   } catch (error) {
     console.error('PDF Image Conversion Error:', error);

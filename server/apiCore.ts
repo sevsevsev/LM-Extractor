@@ -41,15 +41,17 @@ export async function handleExtractRequest(rawBody: unknown): Promise<ApiResult>
   if (!apiKey) return missingKeyResult();
 
   try {
-    const { images, text, textHint } = parseJsonBody(rawBody) as {
+    const { images, text, textHint, lowLegibility } = parseJsonBody(rawBody) as {
       images?: string[];
       text?: string;
       textHint?: string;
+      lowLegibility?: boolean;
     };
 
     if (Array.isArray(images) && images.length > 0) {
       const model = await extractLogicModelOnServer(apiKey, images, {
         textHint: typeof textHint === 'string' ? textHint : undefined,
+        lowLegibility: lowLegibility === true,
       });
       return { status: 200, body: { model } };
     }
