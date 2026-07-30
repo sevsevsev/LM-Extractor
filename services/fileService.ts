@@ -19,12 +19,12 @@ export interface PdfConversionResult {
 
 // --- Rendering tuning (see docs/specs/extraction-provenance-and-color.md) ---
 const BASE_SCALE = 2.5; // text-layer pages render fine here
-const IMAGE_DOMINANT_SCALE = 3.2; // flattened-raster pages need more pixels per glyph
-const MAX_SCALE = 4.0;
+const IMAGE_DOMINANT_SCALE = 3.6; // flattened-raster pages need more pixels per glyph (proper-noun/number fidelity)
+const MAX_SCALE = 4.5;
 const PROBE_SCALE = 1.25; // cheap pass to find the content box + column gutters
 const CONTENT_PAD_FRAC = 0.01; // padding around the detected content box
 const TEXT_DOMINANT_MIN_CHARS = 40; // fewer real characters ⇒ page is essentially an image
-const LEGIBILITY_FLOOR_PX = 1000; // image-page content narrower than this ⇒ warn the user
+const LEGIBILITY_FLOOR_PX = 1150; // image-page content narrower than this ⇒ warn the user
 const ENABLE_COLUMN_TILING = true;
 
 /** JPEG quality tiers then global scale multipliers, tried in order until payload fits. */
