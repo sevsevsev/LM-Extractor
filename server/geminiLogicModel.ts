@@ -208,11 +208,11 @@ async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
 export async function extractLogicModelOnServer(
   apiKey: string,
   input: string | string[],
-  options?: { textHint?: string }
+  options?: { textHint?: string; lowLegibility?: boolean }
 ): Promise<LogicModel> {
   const ai = new GoogleGenAI({ apiKey });
   const isVision = Array.isArray(input);
-  const prompt = getAiExtractionPrompt(isVision);
+  const prompt = getAiExtractionPrompt(isVision, { lowLegibility: options?.lowLegibility });
   const textHint = options?.textHint?.trim();
 
   let contents: unknown;

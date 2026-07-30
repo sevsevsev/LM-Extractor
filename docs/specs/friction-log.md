@@ -95,9 +95,78 @@ kind the needs-review flag is meant to catch, hence the prompt push toward verba
 
 ---
 
+## Session 3
+
+```
+Date:                     2026-07-30
+Operator:                 owner
+File name:                Oxford Circle CCDA Logic Model submission.pdf + logic_models_granular CSV
+Format:                   PDF source vs granular CSV export (best review pairing — see note below)
+Host mode:                hosted (Vercel), post session-2 fix
+Method:                   CSV diffed against source rendered at scale 4.5 and cropped per column.
+
+--- Quality (1–5) ---
+Extraction fidelity:      2  (structure right, Resources column largely wrong)
+Critique usefulness:      3
+Overall "would use again": 3
+
+--- What happened ---
+Stage that hurt most:     extract (small-print transcription + colour capture)
+Session-2 fixes CONFIRMED working:
+                          "Sustained use of" → "Sustained reduction of" (polarity rule works);
+                          "targeted students in K-2" → "referred students of all grade bands";
+                          "Family Community Services" → "Catholic Community Services";
+                          grouping still correct (Resources buckets only in Inputs, rest "General");
+                          clipped TF-CBT box flagged Needs Review = Yes.
+Still wrong (source → CSV):
+                          "(Joseph J. Peter Institute)" → "(St. Christopher's, Peter's Place)"  [persistent fabrication]
+                          "Shared classroom-sized space" → "Space: classroom-based, Mother's Room, FRC"
+                          "Modified Second Step SEL curriculum" → "SEL curriculum"
+                          "Arts & crafts supplies" → "Therapy curriculum"
+                          "School Bilingual Counseling Assistants" → "Bilingual Interpreting Assistants"
+                          "1-year donation" → "Grant duration"
+                          "Master-level Social Workers on staff" → "Master-level SEL Educators"
+                          "Multi-lingual staff" → "Bilingual staff"
+                          "4-6 Parent Cafe Facilitators" → "4-6 Parent Group Facilitators"
+                          "how they present themselves" → "how to regulate themselves"
+                          "problem-solving steps" → "problem-solving"
+Colour capture WRONG:     Source varies colour box-by-box within a column (orange = student-focused,
+                          purple = family-focused, yellow = all Resources). CSV recorded ONE colour per
+                          column: Activities all "blue" (actually purple/orange), Resources blank
+                          (actually yellow), all outcomes "orange". The cross-cutting axis was lost.
+Flagging under-fires:     Needs Review = Yes on 1 of 45 rows despite ~11 misreads; Source Note empty.
+Error text (verbatim):    n/a (silent low-fidelity extraction)
+
+--- Root causes ---
+#1 Page 2's embedded raster is ~1211 px wide (~142 DPI). Rendering above native resolution interpolates
+   and recovers no detail, so scale bumps alone cannot fix the Resources column.   | cause: doc-quality
+#2 verbatim/sourceNote were left to model discretion; it rewrites small print fluently
+   and reports confidence.                                                          | cause: prompt
+#3 Nothing told the model colour is per-box; it inferred a column-level colour.     | cause: prompt
+
+--- Fix shipped (this session) ---
+- constants.ts: new low-legibility prompt block (renderer-triggered) that makes verbatim:false the
+  DEFAULT for proper nouns/numbers/durations; per-box colour rule + uniform-column self-check;
+  two new failure-mode bullets (colour stamping, fluent rewrites of small text).
+- fileService.ts: PdfConversionResult gains `lowLegibility`; tall column tiles are split into up to 3
+  overlapping vertical bands (MAX_TILE_ASPECT) so the densest column gets more attention.
+- lowLegibility threaded App.tsx → geminiService → apiCore → geminiLogicModel → prompt.
+- Fixture updated with the 11 verified source strings + 14 forbidden fabrications.
+
+--- Notes ---
+Best review pairing: **source PDF + granular CSV**. This session found ~11 discrepancies quickly;
+the session-2 branded-PDF comparison found 4 and took longer (branded PDF is monochrome and
+carries no provenance). Reserve the branded PDF for layout/print bugs only.
+Open question: at ~142 DPI the Resources bullets may be beyond reliable OCR — if flagging still
+under-fires, next lever is native embedded-image extraction (no re-compression) or per-box tiling.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
 |---|------|--------|------------|-------|-------------|
 | 1 | 2026-07-30 | PDF | extract | prompt + doc-quality | N |
 | 2 | 2026-07-30 | PDF | extract (OCR) | doc-quality + prompt | N |
+| 3 | 2026-07-30 | PDF + CSV | extract (small print + colour) | doc-quality + prompt | N |

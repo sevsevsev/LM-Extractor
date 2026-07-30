@@ -1,5 +1,29 @@
-export const getAiExtractionPrompt = (isVision: boolean): string => {
+export interface ExtractionPromptOptions {
+  /** Renderer detected a flattened, low-resolution raster page — bias hard toward flagging. */
+  lowLegibility?: boolean;
+}
+
+export const getAiExtractionPrompt = (
+  isVision: boolean,
+  options?: ExtractionPromptOptions
+): string => {
+    const lowLegibilityBlock = options?.lowLegibility
+      ? `
+    **⚠ LOW-RESOLUTION SOURCE (renderer-detected) — FLAGGING IS MANDATORY**:
+    This document contains at least one **flattened, low-resolution image page**. At this resolution you
+    **cannot** reliably read small text, so confident-looking guesses are the main risk.
+    - **Default \`verbatim\` to \`false\`** for any item that contains a proper noun (organization, person,
+      institution, curriculum, or program name), a number/quantity, or a duration. Only set
+      \`verbatim: true\` when the glyphs are genuinely unambiguous at this resolution.
+    - Add a short \`sourceNote\` on every flagged item (e.g. "low-resolution source — verify name").
+    - **Prefer a partial transcription over a complete-looking guess.** If a bullet is only half legible,
+      transcribe the legible half and flag it; do not produce a fluent phrase you cannot actually read.
+    - Never "repair" an odd-looking phrase into a more idiomatic one. Odd wording is usually the real wording.
+`
+      : '';
+
     return `Role: You are an expert Logic Model Analyst extracting structured JSON from ${isVision ? "visual document images" : "text content"}.
+${lowLegibilityBlock}
 
     **GOAL**: High-fidelity **spatial** extraction. No critiques. **Column headers and row bands beat semantics.** Never reclassify an item because it "sounds like" an outcome or output.
 
@@ -108,6 +132,12 @@ export const getAiExtractionPrompt = (isVision: boolean): string => {
       Services". If you cannot read a proper noun, flag \`verbatim: false\` — never swap in a name you recognise.
     - **Flipping outcome direction.** e.g. "Sustained reduction in trauma-related behaviors" → "Sustained use
       of…", or "referred students of all grade bands" → "targeted students in K-2". Copy polarity/scope words verbatim.
+    - **Stamping one colour per column.** Reporting every Activities box as the same colour when the source
+      alternates (e.g. orange vs purple boxes). Read \`fillColor\` box by box, or leave it out.
+    - **Fluent rewrites of small text.** e.g. "Arts & crafts supplies" → "Therapy curriculum",
+      "1-year donation" → "Grant duration", "Multi-lingual staff" → "Bilingual staff",
+      "how they present themselves" → "how to regulate themselves". If the box is small and you are
+      reconstructing rather than reading, transcribe what you can and set \`verbatim: false\`.
     - **Treating colour as a horizontal track.** Colour marks some cross-cutting categorization (author-defined,
       often unlabeled); it does not create per-row groups. Capture colour in \`fillColor\`/\`borderColor\` instead.
     - **Guessing clipped text.** If a box is cut off (e.g. "…for students of all"), transcribe what is visible
@@ -151,6 +181,13 @@ export const getAiExtractionPrompt = (isVision: boolean): string => {
     - For every item in a visibly coloured box, record the dominant fill colour in \`fillColor\` as a plain
       colour name ("orange", "purple", "red", "yellow", "blue", "green", etc.) or hex. Just report the colour
       you see — do **not** guess what the colour stands for.
+    - **Colour is per BOX, not per column (CRITICAL).** Look at each box individually. Adjacent boxes in the
+      *same* column very often have *different* colours — that is exactly the signal worth capturing. Do
+      **not** infer one colour for a whole column and stamp it on every item.
+    - **Self-check before answering:** if every item in a multi-item column came out the same colour, you
+      almost certainly guessed at the column level instead of reading each box — go back and re-read the
+      individual boxes. Likewise, do not copy a *column header's* colour onto the items beneath it; headers
+      are usually styled differently from the content boxes.
     - If a box has a **border/outline in a different colour** than its fill, record that colour in
       \`borderColor\`. A contrasting border usually marks a second category — capture it, do not ignore it.
     - **Legend/key**: Only if the document **explicitly shows a colour key/legend** (text that maps colours to

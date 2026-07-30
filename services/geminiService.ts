@@ -56,10 +56,10 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 
 export const extractLogicModel = async (
   input: string | string[],
-  options?: { textHint?: string }
+  options?: { textHint?: string; lowLegibility?: boolean }
 ): Promise<LogicModel> => {
   const body = Array.isArray(input)
-    ? { images: input, textHint: options?.textHint }
+    ? { images: input, textHint: options?.textHint, lowLegibility: options?.lowLegibility }
     : { text: input };
   const data = await postJson<{ model: LogicModel }>('/api/gemini/extract', body);
   return data.model;

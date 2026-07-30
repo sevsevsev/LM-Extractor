@@ -4,14 +4,21 @@
     "organization": "Oxford Circle Christian Community Development Association",
     "programContains": "Carnell",
     "source": "Oxford Circle CCDA - Carnell FRC extraction failure calibration",
-    "version": "2026-07-30",
+    "version": "2026-07-30b",
     "notes": [
       "Page 2 is a flattened raster (no text layer); page 1 has a labeled IMPACT STATEMENT.",
       "The only sub-headings in the source are the four Resources buckets — no horizontal tracks.",
-      "Boxes are colour-coded with NO visible legend (colours seen: orange, purple, red);",
+      "Boxes are colour-coded with NO visible legend; colour varies BOX BY BOX within a column",
+      "(orange and purple appear in the same column) — a single colour stamped on a whole column is a bug.",
       "meaning is author-defined (likely population) but must not be inferred; some boxes carry a contrasting border = a second category.",
+      "Verified source strings (session 3, high-res render): 'Part-time Therapist (Joseph J. Peter Institute)',",
+      "'4-6 Parent Cafe Facilitators (Catholic Community Services)', 'Shared classroom-sized space',",
+      "'Modified Second Step SEL curriculum', 'Arts & crafts supplies', 'Language Line',",
+      "'School Bilingual Counseling Assistants', '1-year donation', 'Master-level Social Workers on staff',",
+      "'Multi-lingual staff', 'Increased awareness of emotions and how they present themselves'.",
       "Regression guards against: (1) copying Resources sub-headings into other columns,",
-      "(2) fabricating partners/roles, (3) reversing outcome direction, (4) completing clipped text."
+      "(2) fabricating partners/roles, (3) reversing outcome direction, (4) completing clipped text,",
+      "(5) fluent rewrites of small print in the Resources column."
     ]
   },
   "mustHaveGroups": {
@@ -51,16 +58,50 @@
     },
     {
       "domain": "mediumTermOutcomes",
-      "contentContains": "reduction in trauma-related behaviors",
+      "contentContains": "reduction",
       "mustNotBeIn": ["outputs"]
+    },
+    {
+      "domain": "inputs",
+      "contentContains": "Joseph J. Peter Institute",
+      "mustNotBeIn": ["activities", "outputs"]
+    },
+    {
+      "domain": "inputs",
+      "contentContains": "Arts & crafts supplies",
+      "mustNotBeIn": ["activities", "outputs"]
+    },
+    {
+      "domain": "inputs",
+      "contentContains": "Multi-lingual staff",
+      "mustNotBeIn": ["activities", "outputs"]
+    },
+    {
+      "domain": "inputs",
+      "contentContains": "Social Workers",
+      "mustNotBeIn": ["activities", "outputs"]
+    },
+    {
+      "domain": "shortTermOutcomes",
+      "contentContains": "how they present themselves",
+      "mustNotBeIn": ["mediumTermOutcomes", "longTermOutcomes"]
     }
   ],
   "mustNotContainAnywhere": [
-    "St. Christopher's Hospital",
+    "St. Christopher's",
+    "Peter's Place",
     "classroom-based Behavioral Therapy Specialists",
     "prosocial behaviors",
     "green bands",
-    "1-year practicum"
+    "1-year practicum",
+    "Sustained use of trauma-related behaviors",
+    "targeted students in K-2",
+    "how to regulate themselves",
+    "Therapy curriculum",
+    "Grant duration",
+    "Master-level SEL Educators",
+    "Bilingual Interpreting Assistants",
+    "Mother's Room"
   ],
   "impactStatement": {
     "required": true,
