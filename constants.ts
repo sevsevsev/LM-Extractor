@@ -63,7 +63,19 @@ export const getAiExtractionPrompt = (isVision: boolean): string => {
        what is legible — do **not** guess the missing part. Flag such items with \`verbatim: false\` and a
        short \`sourceNote\` (e.g. "text appears clipped in source" or "low legibility — verify"). When an item
        is a faithful, confident transcription, set \`verbatim: true\`.
-    4. **Assign by position**: A bullet belongs to the column whose header sits **directly above** it (same vertical lane / x-band).
+    4. **Proper nouns & numbers — never auto-complete from memory (CRITICAL)**: Organization, person,
+       program, and institution names, plus specific numbers, are the highest-risk tokens. If one is not
+       **clearly legible**, transcribe your best *literal* reading of the glyphs and set \`verbatim: false\`
+       with a \`sourceNote\` naming the uncertain token (e.g. "institution name low-legibility — verify").
+       **Never replace an unclear name with a more familiar real-world one** — e.g. do not turn an unclear
+       "Joseph J. Peter Institute" into "St. Christopher's" or "Peter's Place". A recognizable name you
+       *inferred* instead of *read* is a fabrication. Do not split one name across two items or merge two.
+    5. **Never flip direction / polarity words**: Copy words like "reduction / decrease / reduced" vs
+       "increase / increased / use / more / sustained" **exactly** — they define an outcome's meaning.
+       "Sustained reduction in trauma-related behaviors" must never become "Sustained use of…". If the
+       direction word is not clearly legible, keep your literal reading and set \`verbatim: false\`; never
+       normalize toward whichever direction "sounds right".
+    6. **Assign by position**: A bullet belongs to the column whose header sits **directly above** it (same vertical lane / x-band).
 
     **HEADER EXTRACTION**:
     - **Organization**: From logos, titles, footers; infer if unlabeled but clear.
@@ -91,6 +103,11 @@ export const getAiExtractionPrompt = (isVision: boolean): string => {
       in the Resources column. Those labels are Resources-only; other columns are almost always "General".
     - **Inventing content to match a fabricated group.** e.g. adding "St. Christopher's Hospital" or
       "classroom-based Behavioral Therapy Specialists" that are not in the source. Transcribe only what is there.
+    - **Substituting a familiar name for an unclear one.** e.g. reading an unclear "Joseph J. Peter Institute"
+      as "St. Christopher's" / "Peter's Place", or turning "Catholic Community Services" into "Family Community
+      Services". If you cannot read a proper noun, flag \`verbatim: false\` — never swap in a name you recognise.
+    - **Flipping outcome direction.** e.g. "Sustained reduction in trauma-related behaviors" → "Sustained use
+      of…", or "referred students of all grade bands" → "targeted students in K-2". Copy polarity/scope words verbatim.
     - **Treating colour as a horizontal track.** Colour marks some cross-cutting categorization (author-defined,
       often unlabeled); it does not create per-row groups. Capture colour in \`fillColor\`/\`borderColor\` instead.
     - **Guessing clipped text.** If a box is cut off (e.g. "…for students of all"), transcribe what is visible
