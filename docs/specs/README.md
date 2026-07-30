@@ -6,7 +6,9 @@
 - **[export-for-coding.md](./export-for-coding.md)** — coding CSV button scope
 - **[tech-overall-quality-and-coding-export.md](./tech-overall-quality-and-coding-export.md)** — implementer blueprint
 - **[roadmap.md](./roadmap.md)** — living roadmap + agent check-ins
-- **[friction-log-template.md](./friction-log-template.md)** — real-doc validation notes
+- **[friction-log-template.md](./friction-log-template.md)** — real-doc validation template
+- **[friction-log.md](./friction-log.md)** — populated running validation log
+- **[extraction-provenance-and-color.md](./extraction-provenance-and-color.md)** — provenance flags, colour axis, raster legibility + column tiling (2026-07-30)
 - **[phase-2-cloud.md](./phase-2-cloud.md)** — draft only (auth/cloud) — not approved
 - **[multi-column-extract-patterns.md](./multi-column-extract-patterns.md)** — @pattern-analyst pattern benchmark (Phase 1 ✓)
 - **[tech-multi-column-extract.md](./tech-multi-column-extract.md)** — @architect implementer spec (Phase 2 ✓)

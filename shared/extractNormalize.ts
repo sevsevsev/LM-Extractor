@@ -137,12 +137,22 @@ function removeItemFromGroups(groups: LogicModelGroup[], text: string): void {
   }
 }
 
-function addOutputItem(model: LogicModel, text: string, groupName: string): void {
+/** Copy provenance/colour metadata (everything except critique/rating) onto a moved item. */
+function cloneItemProvenance(item: LogicModelItem): LogicModelItem {
+  const next: LogicModelItem = { text: item.text };
+  if (typeof item.verbatim === 'boolean') next.verbatim = item.verbatim;
+  if (item.sourceNote?.trim()) next.sourceNote = item.sourceNote;
+  if (item.fillColor?.trim()) next.fillColor = item.fillColor;
+  if (item.borderColor?.trim()) next.borderColor = item.borderColor;
+  return next;
+}
+
+function addOutputItem(model: LogicModel, item: LogicModelItem, groupName: string): void {
   const groups = getGroups(model.outputs);
   const g = findGroup(groups, groupName);
-  const n = norm(text);
-  if (!g.items.some(item => norm(item.text) === n)) {
-    g.items.push({ text });
+  const n = norm(item.text);
+  if (!g.items.some(existing => norm(existing.text) === n)) {
+    g.items.push(cloneItemProvenance(item));
   }
   setGroups(model.outputs, groups.filter(x => x.items.length > 0 || x.name === groupName));
 }
@@ -152,26 +162,26 @@ function rebucketObviousOutputs(model: LogicModel): void {
   for (const domain of OUTCOME_DOMAINS) {
     const field = model[domain];
     const groups = getGroups(field);
-    const toMove: { text: string; group: string }[] = [];
+    const toMove: { item: LogicModelItem; group: string }[] = [];
 
     for (const g of groups) {
       for (const item of g.items) {
         if (item.text && isOutputLikeText(item.text)) {
-          toMove.push({ text: item.text, group: inferOutputGroup(item.text) });
+          toMove.push({ item: cloneItemProvenance(item), group: inferOutputGroup(item.text) });
         }
       }
     }
 
-    for (const { text } of toMove) {
-      for (const g of groups) removeItemFromGroups([g], text);
+    for (const { item } of toMove) {
+      for (const g of groups) removeItemFromGroups([g], item.text);
     }
     setGroups(
       field,
       groups.filter(g => g.items.length > 0)
     );
 
-    for (const { text, group } of toMove) {
-      addOutputItem(model, text, group);
+    for (const { item, group } of toMove) {
+      addOutputItem(model, item, group);
     }
   }
 }
@@ -182,7 +192,7 @@ function consolidateImpactIntoLongTerm(model: LogicModel): void {
   const items: LogicModelItem[] = [];
   for (const g of impactGroups) {
     for (const item of g.items) {
-      if (item.text?.trim()) items.push({ text: item.text });
+      if (item.text?.trim()) items.push(cloneItemProvenance(item));
     }
   }
   if (items.length === 0) return;

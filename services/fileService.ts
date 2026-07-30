@@ -5,15 +5,33 @@ import { renderAsync } from 'docx-preview';
 import html2canvas from 'html2canvas';
 import JSZip from 'jszip';
 import TurndownService from 'turndown';
+import { findColumnBands } from './columnDetect';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 const MAX_VISION_PAGES = 15;
 
-/**
- * Serverless hosts (Vercel) cap request bodies near 4.5MB, while local Express allows 40MB.
- * Render at descending quality tiers until the base64 payload fits the budget.
- */
+/** Result of PDF→image conversion, plus non-blocking fidelity warnings for the UI. */
+export interface PdfConversionResult {
+  images: string[];
+  warnings: string[];
+}
+
+// --- Rendering tuning (see docs/specs/extraction-provenance-and-color.md) ---
+const BASE_SCALE = 2.5; // text-layer pages render fine here
+const IMAGE_DOMINANT_SCALE = 3.2; // flattened-raster pages need more pixels per glyph
+const MAX_SCALE = 4.0;
+const PROBE_SCALE = 1.25; // cheap pass to find the content box + column gutters
+const CONTENT_PAD_FRAC = 0.01; // padding around the detected content box
+const TEXT_DOMINANT_MIN_CHARS = 40; // fewer real characters ⇒ page is essentially an image
+const LEGIBILITY_FLOOR_PX = 1000; // image-page content narrower than this ⇒ warn the user
+const ENABLE_COLUMN_TILING = true;
+
+/** JPEG quality tiers then global scale multipliers, tried in order until payload fits. */
+const QUALITY_TIERS = [0.95, 0.85, 0.78, 0.72];
+const GLOBAL_SCALE_FACTORS = [1, 0.8, 0.65, 0.5];
+
+/** Legacy fallback tiers used only if the analysis pipeline throws. */
 const RENDER_TIERS: { scale: number; quality: number }[] = [
   { scale: 2.5, quality: 0.92 },
   { scale: 2.0, quality: 0.85 },
@@ -28,6 +46,249 @@ const isLocalHost = (): boolean =>
 const totalPayloadBytes = (images: string[]): number =>
   images.reduce((sum, img) => sum + img.length, 0);
 
+interface Box {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+interface PageAnalysis {
+  pageNumber: number;
+  pageWidthPt: number;
+  imageDominant: boolean;
+  /** Content bounding box as fractions [0..1] of the page, or null when not detected. */
+  bboxFrac: Box | null;
+  /** Column band boundaries as fractions of the cropped content width, or null. */
+  columnFracs: { start: number; end: number }[] | null;
+}
+
+/** Detect the ink bounding box + per-column ink profile from a rendered canvas. */
+function analyzeCanvasPixels(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number
+): { bbox: Box | null; inkProfile: number[] } {
+  const ink = new Array(width).fill(0);
+  let x0 = width;
+  let y0 = height;
+  let x1 = -1;
+  let y1 = -1;
+
+  const stepY = Math.max(1, Math.floor(height / 1000));
+  let sampledRows = 0;
+
+  for (let y = 0; y < height; y += stepY) {
+    sampledRows++;
+    const rowOff = y * width * 4;
+    for (let x = 0; x < width; x++) {
+      const o = rowOff + x * 4;
+      const a = data[o + 3];
+      // Treat near-white / transparent as background.
+      if (a > 10 && (data[o] < 245 || data[o + 1] < 245 || data[o + 2] < 245)) {
+        ink[x]++;
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+        if (y < y0) y0 = y;
+        if (y > y1) y1 = y;
+      }
+    }
+  }
+
+  const inkProfile = ink.map(c => c / Math.max(1, sampledRows));
+  const bbox = x1 >= x0 && y1 >= y0 ? { x0, y0, x1: x1 + 1, y1: y1 + 1 } : null;
+  return { bbox, inkProfile };
+}
+
+/** Cheap probe render → content box (fractional) + column bands + image-dominance flag. */
+async function analyzePdfPage(
+  page: Awaited<ReturnType<Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>['getPage']>>,
+  pageNumber: number
+): Promise<PageAnalysis> {
+  const baseViewport = page.getViewport({ scale: 1 });
+  const pageWidthPt = baseViewport.width;
+
+  let textChars = 0;
+  try {
+    const textContent = await page.getTextContent();
+    textChars = textContent.items.reduce(
+      (sum, item) => sum + ('str' in item && typeof item.str === 'string' ? item.str.trim().length : 0),
+      0
+    );
+  } catch {
+    textChars = 0;
+  }
+  const imageDominant = textChars < TEXT_DOMINANT_MIN_CHARS;
+
+  const viewport = page.getViewport({ scale: PROBE_SCALE });
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.ceil(viewport.width);
+  canvas.height = Math.ceil(viewport.height);
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) {
+    return { pageNumber, pageWidthPt, imageDominant, bboxFrac: null, columnFracs: null };
+  }
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  await page.render({ canvasContext: ctx, canvas, viewport }).promise;
+
+  const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const { bbox, inkProfile } = analyzeCanvasPixels(data, canvas.width, canvas.height);
+
+  let bboxFrac: Box | null = null;
+  if (bbox) {
+    const pad = CONTENT_PAD_FRAC;
+    bboxFrac = {
+      x0: Math.max(0, bbox.x0 / canvas.width - pad),
+      y0: Math.max(0, bbox.y0 / canvas.height - pad),
+      x1: Math.min(1, bbox.x1 / canvas.width + pad),
+      y1: Math.min(1, bbox.y1 / canvas.height + pad),
+    };
+  }
+
+  // Column bands: only meaningful for wide, image-dominant grid pages.
+  let columnFracs: { start: number; end: number }[] | null = null;
+  if (ENABLE_COLUMN_TILING && imageDominant && bbox) {
+    const cropX0 = bbox.x0;
+    const cropX1 = bbox.x1;
+    const cropWidth = cropX1 - cropX0;
+    const aspect = (bbox.x1 - bbox.x0) / Math.max(1, bbox.y1 - bbox.y0);
+    if (cropWidth > 40 && aspect > 0.7) {
+      const cropped = inkProfile.slice(cropX0, cropX1);
+      const bands = findColumnBands(cropped);
+      if (bands.length >= 3) {
+        columnFracs = bands.map(b => ({ start: b.start / cropWidth, end: b.end / cropWidth }));
+      }
+    }
+  }
+
+  return { pageNumber, pageWidthPt, imageDominant, bboxFrac, columnFracs };
+}
+
+function encodeCanvas(canvas: HTMLCanvasElement, quality: number): string {
+  return canvas.toDataURL('image/jpeg', quality).split(',')[1];
+}
+
+/** Draw a sub-rectangle of a source canvas onto a fresh canvas and return it. */
+function cropCanvas(
+  source: HTMLCanvasElement,
+  sx: number,
+  sy: number,
+  sw: number,
+  sh: number
+): HTMLCanvasElement | null {
+  const w = Math.max(1, Math.round(sw));
+  const h = Math.max(1, Math.round(sh));
+  const out = document.createElement('canvas');
+  out.width = w;
+  out.height = h;
+  const ctx = out.getContext('2d');
+  if (!ctx) return null;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(source, Math.round(sx), Math.round(sy), w, h, 0, 0, w, h);
+  return out;
+}
+
+/** Render one page (cropped to content) plus optional per-column tiles for grid pages. */
+async function renderAnalyzedPage(
+  page: Awaited<ReturnType<Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>['getPage']>>,
+  analysis: PageAnalysis,
+  scaleFactor: number,
+  quality: number
+): Promise<string[]> {
+  const targetScale = analysis.imageDominant ? IMAGE_DOMINANT_SCALE : BASE_SCALE;
+  const scale = Math.min(MAX_SCALE, Math.max(1, targetScale * scaleFactor));
+
+  const viewport = page.getViewport({ scale });
+  const fullCanvas = document.createElement('canvas');
+  fullCanvas.width = Math.ceil(viewport.width);
+  fullCanvas.height = Math.ceil(viewport.height);
+  const ctx = fullCanvas.getContext('2d');
+  if (!ctx) return [];
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, fullCanvas.width, fullCanvas.height);
+  await page.render({ canvasContext: ctx, canvas: fullCanvas, viewport }).promise;
+
+  // Crop to the detected content box to stop spending pixels on white margins.
+  const bbox = analysis.bboxFrac;
+  let contentCanvas: HTMLCanvasElement = fullCanvas;
+  let contentX0 = 0;
+  let contentWidth = fullCanvas.width;
+  if (bbox && (bbox.x1 - bbox.x0) * (bbox.y1 - bbox.y0) < 0.93) {
+    const sx = bbox.x0 * fullCanvas.width;
+    const sy = bbox.y0 * fullCanvas.height;
+    const sw = (bbox.x1 - bbox.x0) * fullCanvas.width;
+    const sh = (bbox.y1 - bbox.y0) * fullCanvas.height;
+    const cropped = cropCanvas(fullCanvas, sx, sy, sw, sh);
+    if (cropped) {
+      contentCanvas = cropped;
+      contentX0 = sx;
+      contentWidth = cropped.width;
+    }
+  }
+
+  // When we confidently found columns on an image-only grid, send zoomed per-column
+  // tiles INSTEAD of the whole page: max legibility, clear column identity, no double-count.
+  if (analysis.columnFracs && analysis.columnFracs.length >= 3) {
+    const tiles: string[] = [];
+    for (const band of analysis.columnFracs) {
+      const bx = contentX0 + band.start * contentWidth;
+      const bw = (band.end - band.start) * contentWidth;
+      const tile = cropCanvas(contentCanvas, bx - contentX0, 0, bw, contentCanvas.height);
+      if (tile) tiles.push(encodeCanvas(tile, quality));
+    }
+    if (tiles.length >= 3) return tiles;
+  }
+
+  return [encodeCanvas(contentCanvas, quality)];
+}
+
+async function convertPdfWithAnalysis(
+  pdf: Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>,
+  pageCount: number
+): Promise<PdfConversionResult> {
+  const warnings: string[] = [];
+  const budgetBytes = isLocalHost() ? Number.POSITIVE_INFINITY : 3_800_000;
+
+  const pages = [];
+  const analyses: PageAnalysis[] = [];
+  for (let i = 1; i <= pageCount; i++) {
+    const page = await pdf.getPage(i);
+    pages.push(page);
+    analyses.push(await analyzePdfPage(page, i));
+  }
+
+  let images: string[] = [];
+  let usedScaleFactor = 1;
+  outer: for (const scaleFactor of GLOBAL_SCALE_FACTORS) {
+    for (const quality of QUALITY_TIERS) {
+      const rendered: string[] = [];
+      for (let i = 0; i < pages.length; i++) {
+        rendered.push(...(await renderAnalyzedPage(pages[i], analyses[i], scaleFactor, quality)));
+      }
+      images = rendered;
+      usedScaleFactor = scaleFactor;
+      if (totalPayloadBytes(rendered) <= budgetBytes) break outer;
+    }
+  }
+
+  // Legibility warning for flattened-raster pages that came out small.
+  for (const a of analyses) {
+    if (!a.imageDominant || !a.bboxFrac) continue;
+    const scale = Math.min(MAX_SCALE, Math.max(1, IMAGE_DOMINANT_SCALE * usedScaleFactor));
+    const contentPx = (a.bboxFrac.x1 - a.bboxFrac.x0) * a.pageWidthPt * scale;
+    if (contentPx < LEGIBILITY_FLOOR_PX) {
+      warnings.push(
+        `Page ${a.pageNumber} of this document is a flattened image at low resolution, so small text may be misread. Verify the extracted wording against the original.`
+      );
+    }
+  }
+
+  return { images, warnings };
+}
+
+/** Legacy tier renderer — used only when the analysis pipeline throws. */
 const renderPdfAtTier = async (
   pdf: Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>,
   pageCount: number,
@@ -39,41 +300,50 @@ const renderPdfAtTier = async (
     const viewport = page.getViewport({ scale: tier.scale });
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
-
     canvas.height = viewport.height;
     canvas.width = viewport.width;
-
     if (context) {
       await page.render({ canvasContext: context, canvas, viewport }).promise;
-      const dataUrl = canvas.toDataURL('image/jpeg', tier.quality);
-      images.push(dataUrl.split(',')[1]);
+      images.push(encodeCanvas(canvas, tier.quality));
     }
   }
   return images;
 };
 
-export const convertPdfToImages = async (file: File): Promise<string[]> => {
+async function convertPdfWithLegacyTiers(
+  pdf: Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>,
+  pageCount: number
+): Promise<string[]> {
+  const budgetBytes = isLocalHost() ? Number.POSITIVE_INFINITY : 3_800_000;
+  let images: string[] = [];
+  for (const tier of RENDER_TIERS) {
+    images = await renderPdfAtTier(pdf, pageCount, tier);
+    if (totalPayloadBytes(images) <= budgetBytes) return images;
+  }
+  return images;
+}
+
+export const convertPdfToImages = async (file: File): Promise<PdfConversionResult> => {
   try {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
     const pageCount = Math.min(pdf.numPages, MAX_VISION_PAGES);
 
+    const warnings: string[] = [];
     if (pdf.numPages > MAX_VISION_PAGES) {
-      console.warn(`PDF has ${pdf.numPages} pages; processing first ${MAX_VISION_PAGES} only.`);
-    }
-
-    // Local Express accepts large bodies, so keep maximum fidelity there.
-    const budgetBytes = isLocalHost() ? Number.POSITIVE_INFINITY : 3_800_000;
-
-    let images: string[] = [];
-    for (const tier of RENDER_TIERS) {
-      images = await renderPdfAtTier(pdf, pageCount, tier);
-      if (totalPayloadBytes(images) <= budgetBytes) return images;
-      console.warn(
-        `Render tier scale=${tier.scale} produced ${(totalPayloadBytes(images) / 1e6).toFixed(1)}MB; retrying smaller.`
+      warnings.push(
+        `This document has ${pdf.numPages} pages; only the first ${MAX_VISION_PAGES} were analyzed.`
       );
     }
-    return images;
+
+    try {
+      const result = await convertPdfWithAnalysis(pdf, pageCount);
+      return { images: result.images, warnings: [...warnings, ...result.warnings] };
+    } catch (analysisError) {
+      console.warn('Analysis render failed; falling back to tier rendering:', analysisError);
+      const images = await convertPdfWithLegacyTiers(pdf, pageCount);
+      return { images, warnings };
+    }
   } catch (error) {
     console.error('PDF Image Conversion Error:', error);
     throw new Error('Failed to convert PDF to images for analysis.');

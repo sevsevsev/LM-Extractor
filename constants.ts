@@ -19,6 +19,12 @@ export const getAiExtractionPrompt = (isVision: boolean): string => {
 
     Mentally (or privately) build a layout map. Do **not** skip this phase.
 
+    0. **Image set**
+       You may receive multiple images for one document: full pages and/or **zoomed single-column crops**
+       (each crop is one column, top-to-bottom, including that column's header, given left→right). Treat
+       every image as part of the **same** document. Do **not** count an item twice if it appears in more
+       than one image (e.g. both a full page and a column crop of that page).
+
     1. **Page roles**
        - Which page(s) have overview prose (Impact Statement / Mission)?
        - Which page(s) have the multi-column logic-model **grid**?
@@ -28,10 +34,18 @@ export const getAiExtractionPrompt = (isVision: boolean): string => {
        Resources/Inputs | Activities | Outputs | Short-Term Outcomes | Medium-Term Outcomes | Long-Term Outcomes | (optional) Impact
        Record **exactly** which headers exist. If the rightmost header is **"Long-Term Outcomes"** and there is **no** column titled **"Impact"**, then there is **no Impact column**.
 
-    3. **Row / track inventory (top → bottom)**
-       List horizontal band labels that align across Activities → Outputs → outcome columns
-       (e.g., "YouthMoves at FLC", "Summer Intensive", "Student Produced Concert").
-       Color-coded rows or shaded strips count as track bands even without a bold title in every cell.
+    3. **Row / track inventory (top → bottom) — ONLY IF REAL**
+       A "track" is a horizontal band with the **same label** that lines up across MULTIPLE columns
+       (e.g., "YouthMoves at FLC", "Summer Intensive", "Student Produced Concert" appearing in
+       Activities AND Outputs AND outcomes at the same vertical row).
+       - **Most logic models have NO tracks.** If you cannot point to a repeated band label that spans
+         several columns, there are **no tracks** — do not invent them.
+       - **Colour is NOT proof of a track.** Boxes are often colour-coded by a *cross-cutting* dimension
+         (e.g. population: students vs. parents vs. staff) that runs **vertically within a column**, not by
+         horizontal row. Never turn a colour into a track band. Capture colour separately (see COLOUR CODING).
+       - A sub-heading that appears in **one column only** (e.g. resource buckets inside the Resources
+         column) is that column's internal grouping — it is **NOT** a track and must never be copied into
+         other columns.
 
     4. **Only after** headers and tracks are identified, extract cell bullets into the matching domain + group.
 
@@ -40,8 +54,16 @@ export const getAiExtractionPrompt = (isVision: boolean): string => {
 
     **EXTRACTION RULES**:
     1. **Granularity**: Every bullet / distinct idea = separate item string.
-    2. **Verbatim**: Keep wording close to source; do not summarize.
-    3. **Assign by position**: A bullet belongs to the column whose header sits **directly above** it (same vertical lane / x-band).
+    2. **Transcribe, do not invent (CRITICAL)**: Copy wording as close to the source as possible; do not
+       summarize, rephrase, or "improve" it. **Never add items, partner names, organizations, numbers, or
+       details that are not visibly present in the source.** If you are unsure whether something is there,
+       leave it out. Inventing plausible-sounding content is the worst possible error.
+    3. **Legibility & clipped text**: If text is too small/blurry to read confidently, or a box is visibly
+       **cut off / clipped** (text runs to the edge and stops mid-word or mid-phrase), transcribe exactly
+       what is legible — do **not** guess the missing part. Flag such items with \`verbatim: false\` and a
+       short \`sourceNote\` (e.g. "text appears clipped in source" or "low legibility — verify"). When an item
+       is a faithful, confident transcription, set \`verbatim: true\`.
+    4. **Assign by position**: A bullet belongs to the column whose header sits **directly above** it (same vertical lane / x-band).
 
     **HEADER EXTRACTION**:
     - **Organization**: From logos, titles, footers; infer if unlabeled but clear.
@@ -64,24 +86,68 @@ export const getAiExtractionPrompt = (isVision: boolean): string => {
     6. **Impact Statement ≠ Long-Term column ≠ Impact column.** Three different things.
 
     **KNOWN FAILURE MODES TO AVOID** (seen on dense PPT→PDF grids):
-    - Putting Summer-track Outputs (e.g. "Attendance is maintained…", "Implementation 2…", "Interaction with master teachers") into Medium-Term Outcomes.
-    - Putting Concert-track Outputs (e.g. "Student choreography…", "Implementation of FLC Dance…") into Long-Term Outcomes.
+    - **Copying Resources-column sub-headings into other columns.** e.g. tagging Activities/Outputs/Outcomes
+      items with "Frontline Staff", "Partners", or "Behavioral & Mental Health" because those labels appeared
+      in the Resources column. Those labels are Resources-only; other columns are almost always "General".
+    - **Inventing content to match a fabricated group.** e.g. adding "St. Christopher's Hospital" or
+      "classroom-based Behavioral Therapy Specialists" that are not in the source. Transcribe only what is there.
+    - **Treating colour as a horizontal track.** Colour marks some cross-cutting categorization (author-defined,
+      often unlabeled); it does not create per-row groups. Capture colour in \`fillColor\`/\`borderColor\` instead.
+    - **Guessing clipped text.** If a box is cut off (e.g. "…for students of all"), transcribe what is visible
+      and flag \`verbatim: false\` — never complete the sentence yourself.
+    - Putting Summer-track Outputs (e.g. "Attendance is maintained…", "Implementation 2…") into Medium-Term
+      Outcomes — but only when genuine tracks exist; otherwise keep Outputs in Outputs under "General".
     - Putting Long-Term Outcomes column items into \`impact\` when no Impact column exists.
-    - Collapsing track groups to "General" for Outputs/outcomes while Activities kept track names — **reuse the same track names** across aligned columns.
+    - Reusing track names across columns when there is **no** real repeated band — prefer "General".
     - Copying page-1 Impact Statement into \`mission\` instead of \`impactStatement\`.
     - **Omitting** page-1 Impact Statement entirely because attention stayed on the page-2 grid.
 
-    **HORIZONTAL TRACK BANDS**:
-    1. Detect track labels / color bands (e.g., FLC, Summer Intensive, Student Produced Concert).
-    2. For \`activities\`, \`outputs\`, \`shortTermOutcomes\`, \`mediumTermOutcomes\`, \`longTermOutcomes\` (and \`impact\` if present): set \`Group.name\` to that track label for horizontally aligned cells.
-    3. Same visual row → same \`Group.name\` across those domains. Use "General" only when the source has no tracks.
-    4. Inputs may still use Human/Financial/Material/Knowledge resource buckets.
+    **GROUPING GATE (READ BEFORE NAMING ANY GROUP)**:
+    \`Group.name\` describes how items are grouped **inside a single column**. Choosing group names wrong
+    is a top failure mode, so apply these rules strictly:
+    1. **Default is "General".** If a column shows a flat list of boxes with no visible sub-heading or
+       repeated band label inside that column, every item in that column goes in one group named "General".
+       "General" is the normal, expected outcome — not a fallback of last resort.
+    2. **A group name must be VISIBLE in that same column.** Only use a non-"General" name when that exact
+       label physically appears within that column (a sub-heading above the items, or a repeated track band).
+    3. **NEVER carry a label across columns unless it is a real track** (see Phase A step 3): the same band
+       label must physically repeat in each column at the same row. Absent that, do not reuse names.
+    4. **NEVER copy a Resources-column sub-heading** (e.g. "Frontline Staff", "Partners",
+       "Material & Financial Resources", "Knowledge Resources") into Activities, Outputs, or any Outcomes
+       column. Those are internal to the Resources column only.
+    5. **Do not rename or merge labels.** Use the label exactly as written; never substitute a different
+       heading (e.g. do not relabel "Material & Financial Resources" as "Behavioral & Mental Health").
+    6. When unsure whether a label is a real in-column grouping, prefer "General".
 
     **INPUTS (when grouping resources)**:
-    Categorize into: "Human Resources", "Financial Resources", "Material Resources", "Knowledge Resources".
-    Participants/beneficiaries are usually target population, not inputs — but if the source lists them under Resources/Human, extract as shown in the Resources column.
+    Use the resource sub-headings **exactly as they appear in the Resources column** (e.g. "Frontline Staff",
+    "Partners", "Material & Financial Resources", "Knowledge Resources"). If the column has no sub-headings,
+    fall back to the canonical buckets: "Human Resources", "Financial Resources", "Material Resources",
+    "Knowledge Resources". Participants/beneficiaries are usually target population, not inputs — but if the
+    source lists them under Resources, extract them as shown in the Resources column.
 
-    **WORKED LAYOUT EXAMPLE** (illustrative — match YOUR document's actual headers):
+    **COLOUR CODING (capture, never interpret, never reclassify)**:
+    Many logic models colour-code their boxes. Colour encodes **some author-defined categorization** — it
+    could be population served, program component/strategy, priority or phase, funding stream, or something
+    else entirely. **Do not assume it means population.** It is a cross-cutting dimension, NOT the logic-model
+    column and NOT (by itself) a horizontal track.
+    - For every item in a visibly coloured box, record the dominant fill colour in \`fillColor\` as a plain
+      colour name ("orange", "purple", "red", "yellow", "blue", "green", etc.) or hex. Just report the colour
+      you see — do **not** guess what the colour stands for.
+    - If a box has a **border/outline in a different colour** than its fill, record that colour in
+      \`borderColor\`. A contrasting border usually marks a second category — capture it, do not ignore it.
+    - **Legend/key**: Only if the document **explicitly shows a colour key/legend** (text that maps colours to
+      meanings), copy that mapping verbatim into the top-level \`colorLegend\` string
+      (e.g. "Orange = students; Purple = families; Red = staff"). **If there is no visible legend, leave
+      \`colorLegend\` empty and do NOT invent a meaning** — the raw colours are still worth capturing so a
+      human can interpret them later.
+    - **Colour must never change an item's column or its group.** Assign the column strictly by position
+      (the header above it), then attach colour as metadata.
+    - Only fill \`fillColor\`/\`borderColor\` when colour coding is actually present; leave them out for
+      plain/uncoloured layouts.
+
+    **WORKED LAYOUT EXAMPLE** (illustrative — match YOUR document's actual headers; **only** applies when a
+    real repeated track band exists across columns, which is uncommon — otherwise every group is "General"):
     If headers L→R are: Resources | Activities | Outputs | Short-Term Outcomes | Medium-Term Outcomes | Long-Term Outcomes
     then for track "Summer Intensive":
     - Outputs cell bullets → \`outputs\` / group "Summer Intensive"
@@ -91,6 +157,13 @@ export const getAiExtractionPrompt = (isVision: boolean): string => {
     - \`impact.content\` = []  (no Impact column header)
 
     ---
+    **ITEM SHAPE** — each item is an object:
+    { "text": "verbatim item text",
+      "verbatim": true | false,          // false when paraphrased / low-legibility / clipped
+      "sourceNote": "why to verify",     // optional; include only when verbatim is false
+      "fillColor": "orange",             // optional; the box fill colour you SEE (not its meaning)
+      "borderColor": "red" }             // optional; only when the border differs from the fill
+
     **OUTPUT FORMAT** (JSON only — no critique/rating fields):
     {
       "organization": "...",
@@ -98,14 +171,17 @@ export const getAiExtractionPrompt = (isVision: boolean): string => {
       "impactStatement": { "content": "..." },
       "mission": { "content": "" },
       "targetPopulation": { "content": "..." },
-      "inputs": { "content": [{ "name": "Human Resources", "items": [{ "text": "..." }] }] },
-      "activities": { "content": [{ "name": "Track name", "items": [{ "text": "..." }] }] },
-      "outputs": { "content": [{ "name": "Track name", "items": [{ "text": "..." }] }] },
-      "shortTermOutcomes": { "content": [{ "name": "Track name", "items": [{ "text": "..." }] }] },
-      "mediumTermOutcomes": { "content": [{ "name": "Track name", "items": [{ "text": "..." }] }] },
-      "longTermOutcomes": { "content": [{ "name": "General", "items": [{ "text": "..." }] }] },
-      "impact": { "content": [] }
+      "inputs": { "content": [{ "name": "Frontline Staff", "items": [{ "text": "...", "verbatim": true }] }] },
+      "activities": { "content": [{ "name": "General", "items": [{ "text": "...", "verbatim": true, "fillColor": "orange" }] }] },
+      "outputs": { "content": [{ "name": "General", "items": [{ "text": "...", "verbatim": true }] }] },
+      "shortTermOutcomes": { "content": [{ "name": "General", "items": [{ "text": "...", "verbatim": true }] }] },
+      "mediumTermOutcomes": { "content": [{ "name": "General", "items": [{ "text": "...", "verbatim": true }] }] },
+      "longTermOutcomes": { "content": [{ "name": "General", "items": [{ "text": "...", "verbatim": true }] }] },
+      "impact": { "content": [] },
+      "colorLegend": ""
     }
+    Group names above are examples only — use "General" unless a real in-column label/track is visible.
+    Set \`colorLegend\` only when the document shows an explicit colour key; otherwise leave it "".
     Include \`impactStatement\` when labeled; omit the key when not labeled. Prefer empty \`impact.content\` over inventing Impact items.
     `;
 };
@@ -132,6 +208,13 @@ export const getAiCritiquePrompt = (): string => {
     - If content appears misplaced (e.g., output language in Short-Term Outcomes), flag it in the domain/item critique and rate Weak — do **not** silently relocate items.
     - When column assignment may be ambiguous, add: "Verify column alignment in source document."
     - Extract owns column/track fidelity; your job is to assess quality of the document **as extracted**.
+
+    **PRESERVE PROVENANCE (required)**:
+    - Do not change item \`text\`. Copy each item's \`verbatim\`, \`sourceNote\`, \`fillColor\`, and \`borderColor\`
+      fields through **unchanged** — never add, remove, or alter them. Also copy the top-level \`colorLegend\`
+      string through unchanged.
+    - If an item has \`verbatim: false\` or a \`sourceNote\`, you may note in its item critique that the source
+      wording should be verified, but keep those provenance fields intact.
 
     **FIELD DISAMBIGUATION**:
     - Critique \`impactStatement\`, \`mission\`, and grid \`impact\` **separately** only when each has content.

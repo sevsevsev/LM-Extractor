@@ -1,0 +1,74 @@
+{
+  "meta": {
+    "fixtureId": "oxford-circle-carnell-frc",
+    "organization": "Oxford Circle Christian Community Development Association",
+    "programContains": "Carnell",
+    "source": "Oxford Circle CCDA - Carnell FRC extraction failure calibration",
+    "version": "2026-07-30",
+    "notes": [
+      "Page 2 is a flattened raster (no text layer); page 1 has a labeled IMPACT STATEMENT.",
+      "The only sub-headings in the source are the four Resources buckets — no horizontal tracks.",
+      "Boxes are colour-coded with NO visible legend (colours seen: orange, purple, red);",
+      "meaning is author-defined (likely population) but must not be inferred; some boxes carry a contrasting border = a second category.",
+      "Regression guards against: (1) copying Resources sub-headings into other columns,",
+      "(2) fabricating partners/roles, (3) reversing outcome direction, (4) completing clipped text."
+    ]
+  },
+  "mustHaveGroups": {
+    "activities": ["General"],
+    "outputs": ["General"],
+    "shortTermOutcomes": ["General"],
+    "mediumTermOutcomes": ["General"],
+    "longTermOutcomes": ["General"]
+  },
+  "groupsMustBeGeneralOnly": [
+    "activities",
+    "outputs",
+    "shortTermOutcomes",
+    "mediumTermOutcomes",
+    "longTermOutcomes"
+  ],
+  "placements": [
+    {
+      "domain": "inputs",
+      "contentContains": "Language Line",
+      "mustNotBeIn": ["activities", "outputs"]
+    },
+    {
+      "domain": "inputs",
+      "contentContains": "Volunteer ELL Instructor",
+      "mustNotBeIn": ["activities", "outputs"]
+    },
+    {
+      "domain": "inputs",
+      "contentContains": "1-year donation",
+      "mustNotBeIn": ["activities", "outputs"]
+    },
+    {
+      "domain": "activities",
+      "contentContains": "Trauma-focused Cognitive Behavioral Therapy",
+      "mustNotBeIn": ["inputs", "shortTermOutcomes"]
+    },
+    {
+      "domain": "mediumTermOutcomes",
+      "contentContains": "reduction in trauma-related behaviors",
+      "mustNotBeIn": ["outputs"]
+    }
+  ],
+  "mustNotContainAnywhere": [
+    "St. Christopher's Hospital",
+    "classroom-based Behavioral Therapy Specialists",
+    "prosocial behaviors",
+    "green bands",
+    "1-year practicum"
+  ],
+  "impactStatement": {
+    "required": true,
+    "contentContains": ["Carnell Elementary", "emotional regulation"],
+    "mustNotBeIn": ["mission", "shortTermOutcomes", "mediumTermOutcomes", "longTermOutcomes"],
+    "mustNotDuplicate": "mission"
+  },
+  "regression": {
+    "domainsMustRemainNonEmpty": ["inputs", "activities", "outputs", "shortTermOutcomes", "longTermOutcomes"]
+  }
+}

@@ -59,6 +59,7 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 - Store all item assessments for now; revisit via rubric changelog if too noisy.
 - LM Feedback ≠ Extractor critique.
 - **Structure-aware extract (2026-07-28):** Presence-first — omit empty domains in export; critique ignores absent domains; missing Mission does not penalize overall quality. See `structure-aware-extract.md`.
+- **Extraction fidelity fix (2026-07-30):** Evidence-gated fix from real-doc friction (Oxford Circle CCDA). Per-item provenance (`verbatim`/`sourceNote`) surfaces low-confidence/clipped transcriptions; per-item colour (`fillColor`/`borderColor`) captures the population axis as metadata (never re-buckets); prompt stops treating colour/Resources sub-headings as tracks ("General" is the default); raster pages are cropped + rendered larger with a legibility warning, and dense grids can be sent as per-column tiles. Additive optional fields only. See `extraction-provenance-and-color.md`.
 
 ## Open product questions
 - After first real-doc sessions (`friction-log-template.md`): other friction beyond the two scoped items?
