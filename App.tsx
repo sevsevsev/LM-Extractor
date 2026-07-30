@@ -115,6 +115,7 @@ const App: React.FC = () => {
 
         let inputForGemini: string | string[];
         let textHint: string | undefined;
+        let conversionWarnings: string[] = [];
         const fileName = pendingFile.file.name.toLowerCase();
 
         try {
@@ -126,11 +127,12 @@ const App: React.FC = () => {
           } = await import('./services/fileService');
 
           if (fileName.endsWith('.pdf')) {
-            const [images, frontMatter] = await Promise.all([
+            const [pdfResult, frontMatter] = await Promise.all([
               convertPdfToImages(pendingFile.file),
               extractPdfFrontMatterText(pendingFile.file, 2),
             ]);
-            inputForGemini = images;
+            inputForGemini = pdfResult.images;
+            conversionWarnings = pdfResult.warnings;
             textHint = frontMatter || undefined;
           } else if (fileName.endsWith('.docx')) {
             inputForGemini = await convertDocxToImages(pendingFile.file);
@@ -144,12 +146,20 @@ const App: React.FC = () => {
           const { convertFileToMarkdown } = await import('./services/fileService');
           inputForGemini = await convertFileToMarkdown(pendingFile.file);
           textHint = typeof inputForGemini === 'string' ? inputForGemini : undefined;
+          conversionWarnings = [
+            "Couldn't read this document as images, so it was analyzed as plain text. Layout-based grouping may be less accurate — verify the results.",
+          ];
         }
 
         setFiles(prev =>
           prev.map(f =>
             f.id === fileId
-              ? { ...f, status: 'extracting', progressMsg: 'Extracting logic model structure...' }
+              ? {
+                  ...f,
+                  status: 'extracting',
+                  progressMsg: 'Extracting logic model structure...',
+                  warnings: conversionWarnings.length ? conversionWarnings : undefined,
+                }
               : f
           )
         );
@@ -250,6 +260,11 @@ const App: React.FC = () => {
       'Domain Rating',
       'Item Critique',
       'Item Rating',
+      'Needs Review',
+      'Source Note',
+      'Fill Color',
+      'Border Color',
+      'Color Legend',
       'Overall Rating',
       'Overall Rationale',
     ];
@@ -267,6 +282,11 @@ const App: React.FC = () => {
       r.domainRating,
       r.itemCritique,
       r.itemRating,
+      r.needsReview,
+      r.sourceNote,
+      r.fillColor,
+      r.borderColor,
+      r.colorLegend,
       r.overallRating,
       r.overallRationale,
     ]);
@@ -535,6 +555,22 @@ const App: React.FC = () => {
                       </button>
                     </div>
                   </div>
+
+                  {file.warnings && file.warnings.length > 0 && (
+                    <div
+                      className="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-3"
+                      role="status"
+                    >
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1">
+                        Fidelity notice
+                      </p>
+                      <ul className="text-sm space-y-1 list-disc pl-5">
+                        {file.warnings.map((w, i) => (
+                          <li key={i}>{w}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                   {file.error && (
                     <div

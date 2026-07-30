@@ -5,15 +5,22 @@ import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import {
   assertFixture,
+  assertGroupsGeneralOnly,
+  assertNotContainedAnywhere,
   assertPlacement,
   domainContainsSubstring,
 } from './extractPlacement.ts';
 import type { LogicModel } from '../types.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const FIXTURE_DIR = path.join(__dirname, '..', 'fixtures', 'performance-garage-youthmoves');
+const FIXTURES_ROOT = path.join(__dirname, '..', 'fixtures');
+const FIXTURE_DIR = path.join(FIXTURES_ROOT, 'performance-garage-youthmoves');
 const EXPECTED_PATH = path.join(FIXTURE_DIR, 'expected-domains.json');
 const SNAPSHOT_PATH = path.join(FIXTURE_DIR, 'extract-snapshot.json');
+
+const OXFORD_DIR = path.join(FIXTURES_ROOT, 'oxford-circle-carnell-frc');
+const OXFORD_EXPECTED = path.join(OXFORD_DIR, 'expected-domains.json');
+const OXFORD_SNAPSHOT = path.join(OXFORD_DIR, 'extract-snapshot.json');
 
 const misplacedModel: LogicModel = {
   organization: 'Org',
@@ -85,4 +92,43 @@ test('extract-snapshot.json passes fixture when present', () => {
   const model = JSON.parse(fs.readFileSync(SNAPSHOT_PATH, 'utf8')) as LogicModel;
   const fixture = JSON.parse(fs.readFileSync(EXPECTED_PATH, 'utf8'));
   assert.doesNotThrow(() => assertFixture(model, fixture));
+});
+
+test('oxford circle expected-domains.json loads with regression guards', () => {
+  const fixture = JSON.parse(fs.readFileSync(OXFORD_EXPECTED, 'utf8'));
+  assert.ok(Array.isArray(fixture.placements) && fixture.placements.length >= 4);
+  assert.ok(Array.isArray(fixture.mustNotContainAnywhere) && fixture.mustNotContainAnywhere.length >= 3);
+  assert.ok(Array.isArray(fixture.groupsMustBeGeneralOnly));
+});
+
+test('oxford circle snapshot passes fixture when present', () => {
+  if (!fs.existsSync(OXFORD_SNAPSHOT)) {
+    console.log('skip: no oxford-circle extract-snapshot.json — run live extract and commit snapshot');
+    return;
+  }
+  const model = JSON.parse(fs.readFileSync(OXFORD_SNAPSHOT, 'utf8')) as LogicModel;
+  const fixture = JSON.parse(fs.readFileSync(OXFORD_EXPECTED, 'utf8'));
+  assert.doesNotThrow(() => assertFixture(model, fixture));
+});
+
+test('assertNotContainedAnywhere catches fabricated content', () => {
+  const withFabrication: LogicModel = {
+    ...misplacedModel,
+    inputs: { content: [{ name: 'Partners', items: [{ text: "St. Christopher's Hospital" }] }] },
+  };
+  assert.throws(() => assertNotContainedAnywhere(withFabrication, "St. Christopher's Hospital"), /Fabrication/);
+  assert.doesNotThrow(() => assertNotContainedAnywhere(misplacedModel, "St. Christopher's Hospital"));
+});
+
+test('assertGroupsGeneralOnly rejects a copied resource sub-heading', () => {
+  const withFalseTrack: LogicModel = {
+    ...misplacedModel,
+    outputs: { content: [{ name: 'Frontline Staff', items: [{ text: 'No. of students served' }] }] },
+  };
+  assert.throws(() => assertGroupsGeneralOnly(withFalseTrack, 'outputs'), /Grouping check/);
+  const general: LogicModel = {
+    ...misplacedModel,
+    outputs: { content: [{ name: 'General', items: [{ text: 'No. of students served' }] }] },
+  };
+  assert.doesNotThrow(() => assertGroupsGeneralOnly(general, 'outputs'));
 });

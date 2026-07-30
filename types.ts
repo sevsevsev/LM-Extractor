@@ -4,6 +4,22 @@ export interface LogicModelItem {
   text: string;
   critique?: string;
   rating?: QualityRating;
+  /**
+   * Provenance flags — see docs/specs/extraction-provenance-and-color.md.
+   * `verbatim: false` means the wording was paraphrased, reconstructed, or read from
+   * low-legibility / clipped source and should be verified against the original.
+   */
+  verbatim?: boolean;
+  /** Short note on any transcription uncertainty (e.g. "source text appears clipped"). */
+  sourceNote?: string;
+  /**
+   * Model-reported box fill colour (name or hex) when items are visually colour-coded.
+   * Colour is a secondary categorization axis whose meaning is author-defined and may be unknown;
+   * it is metadata only and must never change column assignment.
+   */
+  fillColor?: string;
+  /** Model-reported border colour when it differs from the fill (often a second category marker). */
+  borderColor?: string;
 }
 
 export interface LogicModelGroup {
@@ -37,6 +53,12 @@ export interface LogicModel {
   mediumTermOutcomes: LogicModelField<LogicModelGroup[]>;
   longTermOutcomes: LogicModelField<LogicModelGroup[]>;
   impact: LogicModelField<LogicModelGroup[]>;
+  /**
+   * Free-text capture of a colour key/legend when the source document explicitly provides one
+   * (e.g. "Orange = students; Purple = families"). Empty/absent when no legend is shown — colours
+   * are then recorded per item without an inferred meaning. See docs/specs/extraction-provenance-and-color.md.
+   */
+  colorLegend?: string;
   overallQuality?: OverallQuality;
 }
 
@@ -47,4 +69,6 @@ export interface ProcessingFile {
   progressMsg?: string;
   error?: string;
   result?: LogicModel;
+  /** Non-blocking fidelity warnings from document conversion (e.g. low source resolution). */
+  warnings?: string[];
 }

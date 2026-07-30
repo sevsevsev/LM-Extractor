@@ -4,6 +4,7 @@ import type { LogicModel } from '../types';
 import { parseLogicModelResponse } from '../shared/logicModelValidate.js';
 import { normalizeExtractedLogicModel } from '../shared/extractNormalize.js';
 import { sanitizeAbsentDomainCritiques } from '../shared/domainPresence.js';
+import { reconcileProvenance } from '../shared/provenance.js';
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 500;
@@ -11,7 +12,13 @@ const MODEL_ID = 'gemini-2.5-flash';
 
 const baseItemSchema: Schema = {
   type: Type.OBJECT,
-  properties: { text: { type: Type.STRING } },
+  properties: {
+    text: { type: Type.STRING },
+    verbatim: { type: Type.BOOLEAN },
+    sourceNote: { type: Type.STRING },
+    fillColor: { type: Type.STRING },
+    borderColor: { type: Type.STRING },
+  },
   required: ['text'],
 };
 
@@ -50,6 +57,7 @@ const extractModelSchema: Schema = {
     mediumTermOutcomes: baseFieldSchema(Type.ARRAY),
     longTermOutcomes: baseFieldSchema(Type.ARRAY),
     impact: baseFieldSchema(Type.ARRAY),
+    colorLegend: { type: Type.STRING },
   },
   required: [
     'organization',
@@ -72,6 +80,10 @@ const critiquedItemSchema: Schema = {
     text: { type: Type.STRING },
     critique: { type: Type.STRING },
     rating: { type: Type.STRING, enum: ['Strong', 'Adequate', 'Weak'] },
+    verbatim: { type: Type.BOOLEAN },
+    sourceNote: { type: Type.STRING },
+    fillColor: { type: Type.STRING },
+    borderColor: { type: Type.STRING },
   },
   required: ['text', 'critique', 'rating'],
 };
@@ -113,6 +125,7 @@ const critiqueModelSchema: Schema = {
     mediumTermOutcomes: critiquedFieldSchema(Type.ARRAY),
     longTermOutcomes: critiquedFieldSchema(Type.ARRAY),
     impact: critiquedFieldSchema(Type.ARRAY),
+    colorLegend: { type: Type.STRING },
     overallQuality: {
       type: Type.OBJECT,
       properties: {
@@ -243,6 +256,20 @@ export async function critiqueLogicModelOnServer(
 ): Promise<LogicModel> {
   const ai = new GoogleGenAI({ apiKey });
   const prompt = getAiCritiquePrompt();
+
+  // Keep the pre-critique model so provenance/colour fields survive even if the
+  // critique response drops those optional properties.
+  let sourceModel: LogicModel | undefined;
+  if (typeof model === 'string') {
+    try {
+      sourceModel = JSON.parse(model) as LogicModel;
+    } catch {
+      sourceModel = undefined;
+    }
+  } else {
+    sourceModel = model;
+  }
+
   const contents = [
     { text: prompt },
     {
@@ -262,7 +289,7 @@ export async function critiqueLogicModelOnServer(
     })
   );
 
-  return sanitizeAbsentDomainCritiques(
-    parseLogicModelResponse(response.text, { requireOverallQuality: true })
-  );
+  const critiqued = parseLogicModelResponse(response.text, { requireOverallQuality: true });
+  if (sourceModel) reconcileProvenance(critiqued, sourceModel);
+  return sanitizeAbsentDomainCritiques(critiqued);
 }

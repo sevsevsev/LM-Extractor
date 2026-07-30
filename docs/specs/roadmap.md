@@ -17,6 +17,7 @@ Living plan. Updated **2026-07-24** after team agent review (@product, @pattern-
 | **4a — Export for coding** | **Done** | Coder-shaped CSV button | `export-for-coding.md` AC |
 | **4b — Overall LM quality** | **Done** | S/A/W + rationale; rubric doc | `lm-quality-rubric.md` AC |
 | **Multi-column extract fidelity** | **Implemented** | Prompt + impactStatement + fixture tests | Re-run YouthMoves PDF; commit snapshot |
+| **Raster/provenance/colour fidelity** | **Implemented** | Provenance + colour fields; raster crop/upscale + column tiling; prompt anti-fabrication | Re-run Oxford Circle PDF; commit snapshot (`fixtures/oxford-circle-carnell-frc/`) |
 
 ---
 
@@ -63,9 +64,9 @@ Living plan. Updated **2026-07-24** after team agent review (@product, @pattern-
 | Confirm before file **Remove** | Accidental wipe in sessions | S |
 | Queue position / elapsed “still working” | “Is it stuck?” dominates | S–M |
 | Timeout / 429 clearer UX (`AbortSignal`) | Long hangs or opaque rate limits | M |
-| Surface vision→text fallback in UI | Silent quality drops on real docs | S–M |
+| Surface vision→text fallback in UI | Silent quality drops on real docs | S–M — **addressed 2026-07-30** (fidelity notice banner) |
 | Critique “stale after edits” affordance | People export without re-analyze | S |
-| Prompt / schema tuning | Ratings or buckets consistently wrong | S–M |
+| Prompt / schema tuning | Ratings or buckets consistently wrong | S–M — **addressed 2026-07-30** (`extraction-provenance-and-color.md`) |
 | **CSV export ↔ Coding Tool contract** | Schema known — need `outcome_text` map + outcome-domain filter | S–M — **ready to scope** |
 | **Overall LM quality field + prompt** | Owner wants model-level assessment + useful item critiques | M — design with `@lm-quality` / `@critique-prompt` first |
 | PDF export shape tweaks | Human handoff mismatch (not coding path) | S–M |

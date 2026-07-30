@@ -126,6 +126,11 @@ export interface GranularExportRow {
   domainRating: string;
   itemCritique: string;
   itemRating: string;
+  needsReview: string;
+  sourceNote: string;
+  fillColor: string;
+  borderColor: string;
+  colorLegend: string;
   overallRating: string;
   overallRationale: string;
 }
@@ -137,6 +142,7 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
   for (const m of models) {
     const overallRating = m.overallQuality?.rating || '';
     const overallRationale = (m.overallQuality?.rationale || []).filter(Boolean).join(' | ');
+    const colorLegend = m.colorLegend?.trim() || '';
 
     const pushStringField = (
       domain: string,
@@ -153,6 +159,11 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
         domainRating: field.rating || '',
         itemCritique: '',
         itemRating: '',
+        needsReview: '',
+        sourceNote: '',
+        fillColor: '',
+        borderColor: '',
+        colorLegend,
         overallRating,
         overallRationale,
       });
@@ -167,6 +178,7 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
         for (const item of g.items) {
           const text = item.text?.trim();
           if (!text) continue;
+          const flaggedForReview = item.verbatim === false || Boolean(item.sourceNote?.trim());
           rows.push({
             organization: m.organization,
             program: m.program,
@@ -177,6 +189,11 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
             domainRating: field.rating || '',
             itemCritique: item.critique || '',
             itemRating: item.rating || '',
+            needsReview: flaggedForReview ? 'Yes' : '',
+            sourceNote: item.sourceNote?.trim() || '',
+            fillColor: item.fillColor?.trim() || '',
+            borderColor: item.borderColor?.trim() || '',
+            colorLegend,
             overallRating,
             overallRationale,
           });

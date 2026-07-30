@@ -26,6 +26,7 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
     if (!(f.status === 'editing' || f.status === 'completed') || !f.result) continue;
     const m = f.result;
 
+    const colorLegend = m.colorLegend?.trim() || '';
     for (const { domain, field } of DOMAIN_FIELDS) {
       const groups = (m[field] as { content: LogicModelGroup[] }).content || [];
       groups.forEach((g, gi) => {
@@ -33,6 +34,10 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
           const text = (item.text || '').trim();
           if (!text) return;
           const rowId = `${f.id}-${field}-${gi}-${ii}`;
+          const color = [item.fillColor?.trim(), item.borderColor?.trim() ? `border:${item.borderColor.trim()}` : '']
+            .filter(Boolean)
+            .join(' ');
+          const needsReview = item.verbatim === false || Boolean(item.sourceNote?.trim()) ? 'Yes' : '';
           rows.push([
             rowId,
             m.organization || '',
@@ -40,6 +45,9 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
             g.name || 'General',
             domain,
             text,
+            color,
+            needsReview,
+            colorLegend,
           ]);
         });
       });
@@ -53,7 +61,17 @@ export function buildCodingExportCsv(files: ProcessingFile[]): string | null {
   const rows = buildCodingExportRows(files);
   if (rows.length === 0) return null;
 
-  const headers = ['row_id', 'organization', 'program', 'group', 'domain', 'outcome_text'];
+  const headers = [
+    'row_id',
+    'organization',
+    'program',
+    'group',
+    'domain',
+    'outcome_text',
+    'color_coding',
+    'needs_review',
+    'color_legend',
+  ];
   const escape = (c: string) => `"${String(c).replace(/"/g, '""')}"`;
   return [headers.map(escape).join(','), ...rows.map(row => row.map(escape).join(','))].join('\n');
 }

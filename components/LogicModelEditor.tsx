@@ -5,6 +5,43 @@ import {
   sanitizeAbsentDomainCritiques,
   stringDomainHasContent,
 } from '../shared/domainPresence';
+import { itemNeedsReview } from '../shared/provenance';
+
+/** Approximate CSS colour for a model-reported colour name, for the editor swatch. */
+const COLOR_SWATCH: Record<string, string> = {
+  orange: '#f4923b',
+  purple: '#7c6bf0',
+  red: '#ef5350',
+  yellow: '#f6d743',
+  blue: '#5b8def',
+  green: '#4caf7d',
+  gray: '#9ca3af',
+  grey: '#9ca3af',
+  white: '#f8fafc',
+  black: '#1f2937',
+};
+
+const swatchColor = (value?: string): string | undefined => {
+  if (!value) return undefined;
+  const key = value.trim().toLowerCase();
+  if (COLOR_SWATCH[key]) return COLOR_SWATCH[key];
+  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(key)) return key;
+  return undefined;
+};
+
+const ColorSwatch: React.FC<{ label: string; value: string }> = ({ label, value }) => {
+  const css = swatchColor(value);
+  return (
+    <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide text-slate-500">
+      <span
+        className="inline-block w-3 h-3 rounded-sm border border-slate-300"
+        style={css ? { backgroundColor: css } : undefined}
+        aria-hidden="true"
+      />
+      {label}: {value}
+    </span>
+  );
+};
 
 interface LogicModelEditorProps {
   model: LogicModel;
@@ -166,6 +203,21 @@ const EditableGroupSection: React.FC<{
     });
   };
 
+  const markItemReviewed = (groupIndex: number, itemIndex: number) => {
+    const newGroups = groups.map((group, i) => {
+      if (i !== groupIndex) return group;
+      return {
+        ...group,
+        items: group.items.map((item, j) => {
+          if (j !== itemIndex) return item;
+          const { sourceNote: _drop, ...rest } = item;
+          return { ...rest, verbatim: true };
+        }),
+      };
+    });
+    onUpdate({ ...model, [field]: { ...fieldData, content: newGroups } });
+  };
+
   const addItemToGroup = (groupIndex: number) => {
     const newGroups = groups.map((group, i) =>
       i === groupIndex
@@ -241,11 +293,16 @@ const EditableGroupSection: React.FC<{
                  const itemCritiqueStyles = isItemPassing
                     ? "bg-emerald-50 text-emerald-800 border-emerald-100"
                     : "bg-amber-50 text-amber-800 border-amber-100";
+                 const needsReview = itemNeedsReview(item);
+                 const hasColor = Boolean(item.fillColor?.trim() || item.borderColor?.trim());
                  return (
-                   <div key={itemIdx} className="flex flex-col space-y-2 pl-2 border-l-2 border-slate-200">
+                   <div
+                     key={itemIdx}
+                     className={`flex flex-col space-y-2 pl-2 border-l-2 ${needsReview ? 'border-amber-400' : 'border-slate-200'}`}
+                   >
                      <div className="flex items-start justify-between space-x-2">
                        <textarea
-                         className="flex-grow min-h-[60px] p-2 text-sm border border-gray-200 bg-white rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all leading-relaxed"
+                         className={`flex-grow min-h-[60px] p-2 text-sm border bg-white rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all leading-relaxed ${needsReview ? 'border-amber-300' : 'border-gray-200'}`}
                          value={item.text}
                          onChange={(e) => handleItemTextChange(idx, itemIdx, e.target.value)}
                          placeholder="Enter item details..."
@@ -259,6 +316,32 @@ const EditableGroupSection: React.FC<{
                          Remove
                        </button>
                      </div>
+                     {(needsReview || hasColor) && (
+                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                         {needsReview && (
+                           <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded border bg-amber-100 text-amber-900 border-amber-300">
+                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3" aria-hidden="true">
+                               <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                             </svg>
+                             Verify against source
+                           </span>
+                         )}
+                         {item.fillColor?.trim() && <ColorSwatch label="Fill" value={item.fillColor} />}
+                         {item.borderColor?.trim() && <ColorSwatch label="Border" value={item.borderColor} />}
+                         {needsReview && (
+                           <button
+                             type="button"
+                             onClick={() => markItemReviewed(idx, itemIdx)}
+                             className="text-[10px] font-bold text-blue-600 hover:text-blue-800"
+                           >
+                             Mark reviewed
+                           </button>
+                         )}
+                       </div>
+                     )}
+                     {item.sourceNote?.trim() && (
+                       <p className="text-[11px] text-amber-800 italic">{item.sourceNote}</p>
+                     )}
                      {item.critique && (
                        <div className={`text-xs p-2 rounded border ${itemCritiqueStyles} flex items-start space-x-2`}>
                          <strong className="uppercase text-[9px] mt-0.5 tracking-wider">{item.rating}:</strong>
@@ -587,7 +670,19 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({ model, onUpdate, on
           </p>
         )}
         <EditableTextSection title="Target Population" field="targetPopulation" model={model} onUpdate={onUpdate} />
-        
+
+        {model.colorLegend?.trim() && (
+          <div
+            className="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-3"
+            role="note"
+          >
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+              Colour key (from source)
+            </p>
+            <p className="text-sm text-slate-700 whitespace-pre-line">{model.colorLegend.trim()}</p>
+          </div>
+        )}
+
         {/* LOGIC MODEL COLUMNS */}
         <div className="relative py-4 mb-8">
            <div className="absolute inset-0 flex items-center" aria-hidden="true">

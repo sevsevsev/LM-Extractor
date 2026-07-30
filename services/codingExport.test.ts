@@ -47,7 +47,38 @@ test('coding export CSV has coder headers', () => {
   const csv = buildCodingExportCsv([fakeFile('f1', sampleModel())]);
   assert.ok(csv);
   const header = csv!.split('\n')[0];
-  assert.equal(header, '"row_id","organization","program","group","domain","outcome_text"');
+  assert.equal(
+    header,
+    '"row_id","organization","program","group","domain","outcome_text","color_coding","needs_review","color_legend"'
+  );
+});
+
+test('coding export carries colour coding, needs-review flag, and legend', () => {
+  const model = sampleModel({
+    colorLegend: 'Orange = students; Purple = families',
+    shortTermOutcomes: {
+      content: [
+        {
+          name: 'General',
+          items: [
+            { text: 'Increased awareness', fillColor: 'orange', borderColor: 'red' },
+            { text: 'Clipped item', verbatim: false, sourceNote: 'text appears clipped' },
+          ],
+        },
+      ],
+    },
+    mediumTermOutcomes: { content: [] },
+    longTermOutcomes: { content: [] },
+  });
+  const rows = buildCodingExportRows([fakeFile('f1', model)]);
+  const colored = rows.find(r => r[5] === 'Increased awareness');
+  const flagged = rows.find(r => r[5] === 'Clipped item');
+  assert.ok(colored);
+  assert.equal(colored![6], 'orange border:red');
+  assert.equal(colored![7], '');
+  assert.equal(colored![8], 'Orange = students; Purple = families');
+  assert.ok(flagged);
+  assert.equal(flagged![7], 'Yes');
 });
 
 test('coding export returns null when no outcome text', () => {

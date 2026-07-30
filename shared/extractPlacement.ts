@@ -33,6 +33,10 @@ export interface ExtractFixture {
   meta?: Record<string, unknown>;
   mustHaveGroups?: Partial<Record<LogicModelDomain, string[]>>;
   placements?: PlacementExpectation[];
+  /** Substrings that must not appear in ANY domain — catches fabricated content. */
+  mustNotContainAnywhere?: string[];
+  /** Domains whose only grouping should be "General" (no false tracks copied in). */
+  groupsMustBeGeneralOnly?: LogicModelDomain[];
   impactStatement?: {
     required?: boolean;
     contentContains?: string[];
@@ -47,6 +51,19 @@ export interface ExtractFixture {
     domainsMustRemainNonEmpty?: LogicModelDomain[];
   };
 }
+
+const ALL_DOMAINS: LogicModelDomain[] = [
+  'impactStatement',
+  'mission',
+  'targetPopulation',
+  'inputs',
+  'activities',
+  'outputs',
+  'shortTermOutcomes',
+  'mediumTermOutcomes',
+  'longTermOutcomes',
+  'impact',
+];
 
 function norm(s: string): string {
   return s.toLowerCase().replace(/\s+/g, ' ').trim();
@@ -153,10 +170,37 @@ function assertImpactStatement(model: LogicModel, spec: NonNullable<ExtractFixtu
   }
 }
 
+/** Fail if a (usually fabricated) substring appears in any domain. */
+export function assertNotContainedAnywhere(model: LogicModel, needle: string): void {
+  for (const d of ALL_DOMAINS) {
+    if (domainContainsSubstring(model, d, needle)) {
+      throw new Error(`Fabrication check: "${needle}" must not appear anywhere but was found in ${d}`);
+    }
+  }
+}
+
+/** Fail if a domain uses any non-"General" group (false taxonomy carried across columns). */
+export function assertGroupsGeneralOnly(model: LogicModel, domain: LogicModelDomain): void {
+  const badGroups = groupedContent(model, domain).filter(
+    g => g.items.some(i => i.text?.trim()) && norm(g.name || 'General') !== 'general'
+  );
+  if (badGroups.length > 0) {
+    throw new Error(
+      `Grouping check: ${domain} should use only "General" but has [${badGroups.map(g => g.name).join(', ')}]`
+    );
+  }
+}
+
 export function assertFixture(model: LogicModel, fixture: ExtractFixture): void {
   assertMustHaveGroups(model, fixture);
   for (const p of fixture.placements ?? []) {
     assertPlacement(model, p);
+  }
+  for (const needle of fixture.mustNotContainAnywhere ?? []) {
+    assertNotContainedAnywhere(model, needle);
+  }
+  for (const d of fixture.groupsMustBeGeneralOnly ?? []) {
+    assertGroupsGeneralOnly(model, d);
   }
   if (fixture.impactStatement) assertImpactStatement(model, fixture.impactStatement);
   for (const d of fixture.regression?.domainsMustRemainNonEmpty ?? []) {
