@@ -23,8 +23,14 @@ interface PdfRenderResult {
 }
 
 // --- Rendering tuning (see docs/specs/extraction-provenance-and-color.md) ---
-const BASE_SCALE = 2.5; // text-layer pages render fine here
-const IMAGE_DOMINANT_SCALE = 3.6; // flattened-raster pages need more pixels per glyph (proper-noun/number fidelity)
+const BASE_SCALE = 2.5; // text-layer (vector) pages — memory-efficient default
+/**
+ * Flattened-raster / scanned pages (no usable pdf.js text layer) need denser pixels so the
+ * VLM can resolve small print. Prefer MAX_SCALE; budget softening may reduce this but never
+ * below IMAGE_DOMINANT_MIN_SCALE (vector pages may go lower via GLOBAL_SCALE_FACTORS).
+ */
+const IMAGE_DOMINANT_SCALE = 4.5;
+const IMAGE_DOMINANT_MIN_SCALE = 3.2;
 const MAX_SCALE = 4.5;
 const PROBE_SCALE = 1.25; // cheap pass to find the content box + column gutters
 const CONTENT_PAD_FRAC = 0.01; // padding around the detected content box
@@ -181,6 +187,19 @@ function encodeCanvas(canvas: HTMLCanvasElement, quality: number): string {
   return canvas.toDataURL('image/jpeg', quality).split(',')[1];
 }
 
+/**
+ * Per-page viewport scale: textless (flattened-raster) pages stay at high DPI; vector pages
+ * use BASE_SCALE. Global budget `scaleFactor` softens both, but raster pages never drop below
+ * IMAGE_DOMINANT_MIN_SCALE so Track-B-only docs keep usable glyph density.
+ */
+function resolvePageScale(analysis: PageAnalysis, scaleFactor: number): number {
+  if (analysis.imageDominant) {
+    const softened = IMAGE_DOMINANT_SCALE * scaleFactor;
+    return Math.min(MAX_SCALE, Math.max(IMAGE_DOMINANT_MIN_SCALE, softened));
+  }
+  return Math.min(MAX_SCALE, Math.max(1, BASE_SCALE * scaleFactor));
+}
+
 /** Draw a sub-rectangle of a source canvas onto a fresh canvas and return it. */
 function cropCanvas(
   source: HTMLCanvasElement,
@@ -231,8 +250,7 @@ async function renderAnalyzedPage(
   scaleFactor: number,
   quality: number
 ): Promise<string[]> {
-  const targetScale = analysis.imageDominant ? IMAGE_DOMINANT_SCALE : BASE_SCALE;
-  const scale = Math.min(MAX_SCALE, Math.max(1, targetScale * scaleFactor));
+  const scale = resolvePageScale(analysis, scaleFactor);
 
   const viewport = page.getViewport({ scale });
   const fullCanvas = document.createElement('canvas');
@@ -317,7 +335,7 @@ async function convertPdfWithAnalysis(
     // A flattened page is inherently risky: rendering above its native raster resolution
     // interpolates rather than recovering detail, so always signal the extractor.
     lowLegibility = true;
-    const scale = Math.min(MAX_SCALE, Math.max(1, IMAGE_DOMINANT_SCALE * usedScaleFactor));
+    const scale = resolvePageScale(a, usedScaleFactor);
     const contentPx = (a.bboxFrac.x1 - a.bboxFrac.x0) * a.pageWidthPt * scale;
     if (contentPx < LEGIBILITY_FLOOR_PX) {
       warnings.push(
