@@ -27,6 +27,13 @@ export interface LogicModelItem {
   mappedBy?: 'auto' | 'user';
   /** Optional human note when assigning/remapping domains. */
   mappingNote?: string;
+  /**
+   * 1-based document page/slide index into session `sourcePreviewImages` / `DocumentBundle.previewImages`.
+   * Immutable after extract (edits/remaps must not clear). See `source-review-v1.md`.
+   */
+  sourcePage?: number;
+  /** 1-based column band when known (e.g. from column tiling); omit when unknown. */
+  sourceColumn?: number;
 }
 
 export type LayoutFamily =
@@ -107,13 +114,29 @@ export interface LogicModel {
   mappingCorrections?: MappingCorrectionEvent[];
 }
 
+/** Locates one extract JPEG within the source document (1-based page / column). */
+export interface SourceImageRef {
+  page: number;
+  column?: number;
+}
+
 /**
  * Dual-track handoff from format adapters → Gemini extract.
  * Track A = `textTrack` (Markdown / structural text); Track B = `images` (page rasters).
  */
 export interface DocumentBundle {
-  /** Base64 JPEGs for Track B / vision (no data-URL prefix). */
+  /** Base64 JPEGs for Track B / vision (no data-URL prefix). May be full pages or column tiles. */
   images: string[];
+  /**
+   * Parallel to `images` when known — document page (and optional column) for each extract JPEG.
+   * Used to label images for Gemini so `sourcePage` / `sourceColumn` on items refer to real pages.
+   */
+  imageRefs?: SourceImageRef[];
+  /**
+   * One JPEG per document page/slide for in-app source review (content crop).
+   * Empty/omitted for text-only bundles. Indexes match 1-based `sourcePage` on items.
+   */
+  previewImages?: string[];
   /** Markdown or structural text for Track A / text-layer hints / fallback. */
   textTrack: string;
   /** Non-blocking fidelity notes (e.g. low resolution, truncated pages). */
@@ -142,4 +165,11 @@ export interface ProcessingFile {
   warnings?: string[];
   /** User dismissed the mismatch / unmapped review banner for this file. */
   mismatchBannerDismissed?: boolean;
+  /**
+   * Session-only page rasters for side-by-side source review (from `DocumentBundle.previewImages`).
+   * Cleared on Remove. Not exported.
+   */
+  sourcePreviewImages?: string[];
+  /** User collapsed the source pane for this file (session). */
+  sourcePaneCollapsed?: boolean;
 }

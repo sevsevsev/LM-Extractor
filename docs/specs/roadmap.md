@@ -1,6 +1,6 @@
 # Roadmap — Logic Model Extractor
 
-Living plan. Updated **2026-07-24** after team agent review (@product, @pattern-analyst, @architect, @critic).
+Living plan. Updated **2026-07-31** (source review v1 scoped).
 
 **Stance:** Local MVP is done. Do not lock new features until real-doc friction is logged. Auth/cloud stay deferred.
 
@@ -18,6 +18,8 @@ Living plan. Updated **2026-07-24** after team agent review (@product, @pattern-
 | **4b — Overall LM quality** | **Done** | S/A/W + rationale; rubric doc | `lm-quality-rubric.md` AC |
 | **Multi-column extract fidelity** | **Implemented** | Prompt + impactStatement + fixture tests | Re-run YouthMoves PDF; commit snapshot |
 | **Raster/provenance/colour fidelity** | **Implemented** | Provenance + colour fields; raster crop/upscale + column tiling; prompt anti-fabrication | Re-run Oxford Circle PDF; commit snapshot (`fixtures/oxford-circle-carnell-frc/`) |
+| **Source-aware mapping v1** | **Implemented (local)** | Source sections metadata + synonym remap; unmapped + dropdown/note; mismatch banner; correction export; stopped destructive Impact/YouthMoves rebucket | Re-run mismatched + Oxford docs; tune thresholds from correction CSV |
+| **Source review v1** | **Implemented (local)** | Side-by-side source page rasters + soft item→page/column anchors; no bboxes | AC in `source-review-v1.md`; validate in next 3 real-doc sessions |
 
 ---
 
@@ -71,7 +73,9 @@ Living plan. Updated **2026-07-24** after team agent review (@product, @pattern-
 | **Overall LM quality field + prompt** | Owner wants model-level assessment + useful item critiques | M — design with `@lm-quality` / `@critique-prompt` first |
 | PDF export shape tweaks | Human handoff mismatch (not coding path) | S–M |
 | Session save/load (JSON models) | Lost work on refresh / long sessions | M |
-| Side-by-side source preview | “I can’t find what the AI saw” | M–L |
+| Side-by-side source preview | “I can’t find what the AI saw” | M–L — **unparked / scoped 2026-07-31** → `source-review-v1.md` |
+| L→R review board (cross-domain adjacency) | Validation can’t see causal/thematic links across stacked domains | M — after source review v1; see UX notes in chat / `source-review-v1.md` OUT |
+| Item bounding-box highlight on source | Page jump still insufficient in friction log | M–L — Tier 2 after source-review v1 evidence |
 | Batch queue controls (pause / priority) | Regular multi-file backlog pain | M |
 | Jump-to-Weak review ritual UI | Scroll/abandon of editor | M |
 | Custom brand beyond `config/brand.ts` | Non-SDP / multi-program need | M |

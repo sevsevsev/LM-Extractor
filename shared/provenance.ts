@@ -1,11 +1,13 @@
 import type { LogicModel, LogicModelGroup, LogicModelItem } from '../types';
 
-/** Provenance / colour fields carried on each item independent of critique. */
+/** Provenance / colour / source-location fields carried on each item independent of critique. */
 export interface ItemProvenance {
   verbatim?: boolean;
   sourceNote?: string;
   fillColor?: string;
   borderColor?: string;
+  sourcePage?: number;
+  sourceColumn?: number;
 }
 
 const GROUPED_DOMAINS: (keyof LogicModel)[] = [
@@ -16,6 +18,7 @@ const GROUPED_DOMAINS: (keyof LogicModel)[] = [
   'mediumTermOutcomes',
   'longTermOutcomes',
   'impact',
+  'unmapped',
 ];
 
 function normText(s: string): string {
@@ -28,6 +31,10 @@ function pickProvenance(item: LogicModelItem): ItemProvenance {
   if (item.sourceNote?.trim()) p.sourceNote = item.sourceNote;
   if (item.fillColor?.trim()) p.fillColor = item.fillColor;
   if (item.borderColor?.trim()) p.borderColor = item.borderColor;
+  if (typeof item.sourcePage === 'number' && item.sourcePage >= 1) p.sourcePage = item.sourcePage;
+  if (typeof item.sourceColumn === 'number' && item.sourceColumn >= 1) {
+    p.sourceColumn = item.sourceColumn;
+  }
   return p;
 }
 
@@ -36,7 +43,9 @@ function hasAnyProvenance(p: ItemProvenance): boolean {
     typeof p.verbatim === 'boolean' ||
     Boolean(p.sourceNote) ||
     Boolean(p.fillColor) ||
-    Boolean(p.borderColor)
+    Boolean(p.borderColor) ||
+    typeof p.sourcePage === 'number' ||
+    typeof p.sourceColumn === 'number'
   );
 }
 
@@ -78,6 +87,12 @@ export function reconcileProvenance(target: LogicModel, source: LogicModel): Log
       if (!item.sourceNote?.trim() && p.sourceNote) item.sourceNote = p.sourceNote;
       if (!item.fillColor?.trim() && p.fillColor) item.fillColor = p.fillColor;
       if (!item.borderColor?.trim() && p.borderColor) item.borderColor = p.borderColor;
+      if (typeof item.sourcePage !== 'number' && typeof p.sourcePage === 'number') {
+        item.sourcePage = p.sourcePage;
+      }
+      if (typeof item.sourceColumn !== 'number' && typeof p.sourceColumn === 'number') {
+        item.sourceColumn = p.sourceColumn;
+      }
     }
   });
 

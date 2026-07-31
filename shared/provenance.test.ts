@@ -63,6 +63,33 @@ test('restores provenance/colour dropped by the critique pass', () => {
   assert.equal(critiqued.colorLegend, 'Orange = students; Purple = families');
 });
 
+test('restores sourcePage/sourceColumn dropped by critique', () => {
+  const source = model({
+    activities: {
+      content: [
+        {
+          name: 'General',
+          items: [{ text: 'Workshops', sourcePage: 2, sourceColumn: 3 }],
+        },
+      ],
+    },
+  });
+  const critiqued = model({
+    activities: {
+      content: [
+        {
+          name: 'General',
+          items: [{ text: 'Workshops', critique: 'ok', rating: 'Adequate' }],
+        },
+      ],
+    },
+  });
+  reconcileProvenance(critiqued, source);
+  const item = critiqued.activities.content[0].items[0];
+  assert.equal(item.sourcePage, 2);
+  assert.equal(item.sourceColumn, 3);
+});
+
 test('does not overwrite provenance the critique kept', () => {
   const source = model({
     outputs: { content: [{ name: 'General', items: [{ text: 'A', fillColor: 'orange' }] }] },

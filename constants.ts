@@ -229,7 +229,13 @@ ${
     ---
     **ITEM SHAPE** (strict LogicModel schema — no extra keys):
     { "text": "verbatim item text", "verbatim": true | false, "sourceNote": "why to verify",
-      "fillColor": "blue", "borderColor": "red" }
+      "fillColor": "blue", "borderColor": "red",
+      "sourcePage": 2, "sourceColumn": 3 }
+
+    **SOURCE LOCATION (when images are labeled with page/column)**:
+    - Set \`sourcePage\` to the **document page number** from the image label (1-based), not the image ordinal.
+    - Set \`sourceColumn\` only when the label includes a column index (column crops) or the item clearly sits in that grid column.
+    - Prefer **omit** \`sourcePage\` / \`sourceColumn\` over guessing.
 
     **UNMAPPED + LAYOUT**:
     - \`unmapped\` only for clearly non-standard labeled sections (Assumptions, External Factors, etc.).
@@ -282,9 +288,9 @@ export const getAiCritiquePrompt = (): string => {
     - Extract owns column/track fidelity; your job is to assess quality of the document **as extracted**.
 
     **PRESERVE PROVENANCE (required)**:
-    - Do not change item \`text\`. Copy each item's \`verbatim\`, \`sourceNote\`, \`fillColor\`, and \`borderColor\`
-      fields through **unchanged** — never add, remove, or alter them. Also copy the top-level \`colorLegend\`
-      string through unchanged.
+    - Do not change item \`text\`. Copy each item's \`verbatim\`, \`sourceNote\`, \`fillColor\`, \`borderColor\`,
+      \`sourcePage\`, and \`sourceColumn\` fields through **unchanged** — never add, remove, or alter them.
+      Also copy the top-level \`colorLegend\` string through unchanged.
     - If an item has \`verbatim: false\` or a \`sourceNote\`, you may note in its item critique that the source
       wording should be verified, but keep those provenance fields intact.
 

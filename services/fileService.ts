@@ -9,6 +9,7 @@ import { findColumnBands } from './columnDetect';
 import {
   DocumentBundle,
   LOW_LEGIBILITY_WARNING,
+  type SourceImageRef,
 } from '../types';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
@@ -18,6 +19,8 @@ const MAX_VISION_PAGES = 15;
 /** Internal PDF render result before assembling DocumentBundle. */
 interface PdfRenderResult {
   images: string[];
+  imageRefs: SourceImageRef[];
+  previewImages: string[];
   warnings: string[];
   lowLegibility: boolean;
 }
@@ -243,13 +246,20 @@ function splitTallTile(tile: HTMLCanvasElement): HTMLCanvasElement[] {
   return out.length ? out : [tile];
 }
 
+/** One page’s extract tiles + a single preview JPEG for the source pane. */
+interface PageRenderResult {
+  extractImages: string[];
+  imageRefs: SourceImageRef[];
+  previewImage: string;
+}
+
 /** Render one page (cropped to content) plus optional per-column tiles for grid pages. */
 async function renderAnalyzedPage(
   page: Awaited<ReturnType<Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>['getPage']>>,
   analysis: PageAnalysis,
   scaleFactor: number,
   quality: number
-): Promise<string[]> {
+): Promise<PageRenderResult> {
   const scale = resolvePageScale(analysis, scaleFactor);
 
   const viewport = page.getViewport({ scale });
@@ -257,7 +267,9 @@ async function renderAnalyzedPage(
   fullCanvas.width = Math.ceil(viewport.width);
   fullCanvas.height = Math.ceil(viewport.height);
   const ctx = fullCanvas.getContext('2d');
-  if (!ctx) return [];
+  if (!ctx) {
+    return { extractImages: [], imageRefs: [], previewImage: '' };
+  }
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, fullCanvas.width, fullCanvas.height);
   await page.render({ canvasContext: ctx, canvas: fullCanvas, viewport }).promise;
@@ -280,23 +292,37 @@ async function renderAnalyzedPage(
     }
   }
 
+  const previewImage = encodeCanvas(contentCanvas, quality);
+  const pageNum = analysis.pageNumber;
+
   // When we confidently found columns on an image-only grid, send zoomed per-column
   // tiles INSTEAD of the whole page: max legibility, clear column identity, no double-count.
+  // Source review still uses previewImage (full content crop).
   if (analysis.columnFracs && analysis.columnFracs.length >= 3) {
     const tiles: string[] = [];
+    const refs: SourceImageRef[] = [];
+    let columnIndex = 0;
     for (const band of analysis.columnFracs) {
+      columnIndex += 1;
       const bx = contentX0 + band.start * contentWidth;
       const bw = (band.end - band.start) * contentWidth;
       const tile = cropCanvas(contentCanvas, bx - contentX0, 0, bw, contentCanvas.height);
       if (!tile) continue;
       for (const sub of splitTallTile(tile)) {
         tiles.push(encodeCanvas(sub, quality));
+        refs.push({ page: pageNum, column: columnIndex });
       }
     }
-    if (tiles.length >= 3) return tiles;
+    if (tiles.length >= 3) {
+      return { extractImages: tiles, imageRefs: refs, previewImage };
+    }
   }
 
-  return [encodeCanvas(contentCanvas, quality)];
+  return {
+    extractImages: [previewImage],
+    imageRefs: [{ page: pageNum }],
+    previewImage,
+  };
 }
 
 async function convertPdfWithAnalysis(
@@ -315,14 +341,23 @@ async function convertPdfWithAnalysis(
   }
 
   let images: string[] = [];
+  let imageRefs: SourceImageRef[] = [];
+  let previewImages: string[] = [];
   let usedScaleFactor = 1;
   outer: for (const scaleFactor of GLOBAL_SCALE_FACTORS) {
     for (const quality of QUALITY_TIERS) {
       const rendered: string[] = [];
+      const refs: SourceImageRef[] = [];
+      const previews: string[] = [];
       for (let i = 0; i < pages.length; i++) {
-        rendered.push(...(await renderAnalyzedPage(pages[i], analyses[i], scaleFactor, quality)));
+        const pageResult = await renderAnalyzedPage(pages[i], analyses[i], scaleFactor, quality);
+        rendered.push(...pageResult.extractImages);
+        refs.push(...pageResult.imageRefs);
+        if (pageResult.previewImage) previews.push(pageResult.previewImage);
       }
       images = rendered;
+      imageRefs = refs;
+      previewImages = previews;
       usedScaleFactor = scaleFactor;
       if (totalPayloadBytes(rendered) <= budgetBytes) break outer;
     }
@@ -344,7 +379,7 @@ async function convertPdfWithAnalysis(
     }
   }
 
-  return { images, warnings, lowLegibility };
+  return { images, imageRefs, previewImages, warnings, lowLegibility };
 }
 
 /** Legacy tier renderer — used only when the analysis pipeline throws. */
@@ -404,14 +439,28 @@ function assemblePdfBundle(
   images: string[],
   warnings: string[],
   lowLegibility: boolean,
-  textTrack: string
+  textTrack: string,
+  previewImages?: string[],
+  imageRefs?: SourceImageRef[]
 ): DocumentBundle {
   const mergedWarnings = [...warnings];
   if (lowLegibility && !mergedWarnings.some(w => w.includes('flattened-raster'))) {
     mergedWarnings.push(LOW_LEGIBILITY_WARNING);
   }
+  const previews =
+    previewImages && previewImages.length > 0
+      ? previewImages
+      : images.length > 0
+        ? images
+        : undefined;
+  const refs =
+    imageRefs && imageRefs.length === images.length
+      ? imageRefs
+      : images.map((_, i) => ({ page: i + 1 }));
   return {
     images,
+    imageRefs: images.length ? refs : undefined,
+    previewImages: previews,
     textTrack,
     warnings: mergedWarnings,
     sourceFormat: 'pdf',
@@ -440,7 +489,9 @@ export const convertPdfToImages = async (file: File): Promise<DocumentBundle> =>
         result.images,
         [...warnings, ...result.warnings],
         result.lowLegibility,
-        textTrack
+        textTrack,
+        result.previewImages,
+        result.imageRefs
       );
     } catch (analysisError) {
       console.warn('Analysis render failed; falling back to tier rendering:', analysisError);
@@ -627,6 +678,8 @@ export const convertDocxToImages = async (file: File): Promise<DocumentBundle> =
 
     const bundle: DocumentBundle = {
       images: vision.images,
+      previewImages: vision.images.length ? vision.images : undefined,
+      imageRefs: vision.images.map((_, i) => ({ page: i + 1 })),
       textTrack,
       warnings: vision.warnings,
       sourceFormat: 'docx',
@@ -754,6 +807,8 @@ export const convertPptxToImages = async (file: File): Promise<DocumentBundle> =
 
     const bundle: DocumentBundle = {
       images: pdfBundle.images,
+      previewImages: pdfBundle.previewImages,
+      imageRefs: pdfBundle.imageRefs,
       textTrack: textTrack || pdfBundle.textTrack,
       warnings,
       sourceFormat: 'pptx',
@@ -861,6 +916,8 @@ export const textOnlyDocumentBundle = (
   warnings: string[] = []
 ): DocumentBundle => ({
   images: [],
+  previewImages: [],
+  imageRefs: [],
   textTrack,
   warnings,
   sourceFormat,

@@ -22,6 +22,8 @@ const baseItemSchema: Schema = {
     sourceNote: { type: Type.STRING },
     fillColor: { type: Type.STRING },
     borderColor: { type: Type.STRING },
+    sourcePage: { type: Type.NUMBER },
+    sourceColumn: { type: Type.NUMBER },
   },
   required: ['text'],
 };
@@ -93,6 +95,8 @@ const critiquedItemSchema: Schema = {
     sourceNote: { type: Type.STRING },
     fillColor: { type: Type.STRING },
     borderColor: { type: Type.STRING },
+    sourcePage: { type: Type.NUMBER },
+    sourceColumn: { type: Type.NUMBER },
   },
   required: ['text', 'critique', 'rating'],
 };
@@ -242,7 +246,16 @@ export async function extractLogicModelOnServer(
           `column position, fillColor/borderColor, and visual layout.\n---\n${textTrack}\n---`,
       });
     }
-    for (const base64Image of images) {
+    for (let i = 0; i < images.length; i++) {
+      const base64Image = images[i];
+      const ref = bundle.imageRefs?.[i];
+      const label =
+        ref && typeof ref.page === 'number'
+          ? ref.column != null
+            ? `TRACK B image ${i + 1} of ${images.length}: document page ${ref.page}, column ${ref.column} (left→right).`
+            : `TRACK B image ${i + 1} of ${images.length}: document page ${ref.page}.`
+          : `TRACK B image ${i + 1} of ${images.length}.`;
+      parts.push({ text: label });
       parts.push({
         inlineData: { mimeType: 'image/jpeg', data: base64Image },
       });
