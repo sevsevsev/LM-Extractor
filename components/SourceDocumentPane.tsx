@@ -16,9 +16,16 @@ interface SourceDocumentPaneProps {
   textOnly?: boolean;
 }
 
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 4;
+const ZOOM_STEP = 0.25;
+
 /**
  * Session source review pane — page rasters from DocumentBundle.previewImages.
  * See docs/specs/source-review-v1.md.
+ *
+ * Zoom uses width % of the scroll viewport (not CSS `zoom`/`max-w-full`), so
+ * 100% = fit pane width and higher values actually enlarge and scroll.
  */
 const SourceDocumentPane: React.FC<SourceDocumentPaneProps> = ({
   images,
@@ -36,6 +43,11 @@ const SourceDocumentPane: React.FC<SourceDocumentPaneProps> = ({
       setPageIndex(focus.page - 1);
     }
   }, [focus, pageCount]);
+
+  // Reset zoom when flipping pages so a huge zoom on page 1 doesn't strand page 2.
+  useEffect(() => {
+    setZoom(1);
+  }, [pageIndex]);
 
   if (collapsed) {
     return (
@@ -89,9 +101,16 @@ const SourceDocumentPane: React.FC<SourceDocumentPaneProps> = ({
           .join(' · ')
       : null;
 
+  const bumpZoom = (delta: number) => {
+    setZoom(z => {
+      const next = Math.round((z + delta) * 100) / 100;
+      return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next));
+    });
+  };
+
   return (
     <aside
-      className="flex h-full min-h-[20rem] flex-col rounded-lg border border-slate-200 bg-white shadow-sm lg:sticky lg:top-4 lg:max-h-[calc(100vh-6rem)]"
+      className="flex h-full min-h-[28rem] flex-col rounded-lg border border-slate-200 bg-white shadow-sm lg:sticky lg:top-4 lg:h-[calc(100vh-5.5rem)] lg:max-h-[calc(100vh-5.5rem)]"
       aria-label="Source document"
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-3 py-2">
@@ -122,20 +141,26 @@ const SourceDocumentPane: React.FC<SourceDocumentPaneProps> = ({
           <button
             type="button"
             className="rounded px-2 py-1 text-xs font-bold text-slate-600 hover:bg-slate-200 disabled:opacity-40"
-            disabled={zoom <= 0.5}
-            onClick={() => setZoom(z => Math.max(0.5, Math.round((z - 0.25) * 100) / 100))}
+            disabled={zoom <= MIN_ZOOM}
+            onClick={() => bumpZoom(-ZOOM_STEP)}
             aria-label="Zoom out"
           >
             −
           </button>
-          <span className="min-w-[2.75rem] text-center text-[10px] font-semibold text-slate-500">
+          <button
+            type="button"
+            className="min-w-[2.75rem] rounded px-1 py-1 text-center text-[10px] font-semibold text-slate-600 hover:bg-slate-200"
+            onClick={() => setZoom(1)}
+            title="Reset to fit width"
+            aria-label="Reset zoom to fit width"
+          >
             {Math.round(zoom * 100)}%
-          </span>
+          </button>
           <button
             type="button"
             className="rounded px-2 py-1 text-xs font-bold text-slate-600 hover:bg-slate-200 disabled:opacity-40"
-            disabled={zoom >= 2}
-            onClick={() => setZoom(z => Math.min(2, Math.round((z + 0.25) * 100) / 100))}
+            disabled={zoom >= MAX_ZOOM}
+            onClick={() => bumpZoom(ZOOM_STEP)}
             aria-label="Zoom in"
           >
             +
@@ -157,14 +182,14 @@ const SourceDocumentPane: React.FC<SourceDocumentPaneProps> = ({
       )}
 
       <div className="min-h-0 flex-1 overflow-auto bg-slate-100 p-2">
-        <div className="mx-auto w-fit origin-top" style={{ zoom }}>
-          <img
-            src={src}
-            alt={`Source page ${pageNum} of ${pageCount}`}
-            className="block max-w-full shadow-md"
-            draggable={false}
-          />
-        </div>
+        {/* Width % is of this scrollport — 100% = fit pane; >100% enlarges and scrolls. */}
+        <img
+          src={src}
+          alt={`Source page ${pageNum} of ${pageCount}`}
+          className="block h-auto shadow-md"
+          style={{ width: `${zoom * 100}%`, maxWidth: 'none' }}
+          draggable={false}
+        />
       </div>
     </aside>
   );
