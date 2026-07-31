@@ -1,4 +1,4 @@
-import { LogicModel } from '../types';
+import { DocumentBundle, LogicModel } from '../types';
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 500;
@@ -54,14 +54,8 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
   throw lastError instanceof Error ? lastError : new Error('Gemini request failed.');
 }
 
-export const extractLogicModel = async (
-  input: string | string[],
-  options?: { textHint?: string; lowLegibility?: boolean }
-): Promise<LogicModel> => {
-  const body = Array.isArray(input)
-    ? { images: input, textHint: options?.textHint, lowLegibility: options?.lowLegibility }
-    : { text: input };
-  const data = await postJson<{ model: LogicModel }>('/api/gemini/extract', body);
+export const extractLogicModel = async (bundle: DocumentBundle): Promise<LogicModel> => {
+  const data = await postJson<{ model: LogicModel }>('/api/gemini/extract', bundle);
   return data.model;
 };
 

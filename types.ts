@@ -20,6 +20,49 @@ export interface LogicModelItem {
   fillColor?: string;
   /** Model-reported border colour when it differs from the fill (often a second category marker). */
   borderColor?: string;
+  /** Author section / column label from source when known. See docs/specs/source-aware-mapping-v1.md */
+  sourceSection?: string;
+  sourceHeader?: string;
+  mappingConfidence?: 'synonym' | 'spatial' | 'subbucket' | 'user' | 'unmapped';
+  mappedBy?: 'auto' | 'user';
+  /** Optional human note when assigning/remapping domains. */
+  mappingNote?: string;
+  /**
+   * 1-based document page/slide index into session `sourcePreviewImages` / `DocumentBundle.previewImages`.
+   * Immutable after extract (edits/remaps must not clear). See `source-review-v1.md`.
+   */
+  sourcePage?: number;
+  /** 1-based column band when known (e.g. from column tiling); omit when unknown. */
+  sourceColumn?: number;
+}
+
+export type LayoutFamily =
+  | 'vertical_columns'
+  | 'horizontal_rows'
+  | 'diagram'
+  | 'prose_sections'
+  | 'unknown';
+
+/** Append-only log of human mapping actions for iterative ingestion improvement. */
+export interface MappingCorrectionEvent {
+  at: string;
+  fileId: string;
+  action:
+    | 'assign_domain'
+    | 'remap_domain'
+    | 'return_unmapped'
+    | 'dismiss_mismatch_banner'
+    | 'note_edit';
+  itemKey: string;
+  itemText: string;
+  fromDomain: string | null;
+  toDomain: string | null;
+  sourceSection?: string;
+  sourceHeader?: string;
+  note?: string;
+  autoSuggestedDomain?: string | null;
+  mismatchScore?: number;
+  layoutFamily?: string;
 }
 
 export interface LogicModelGroup {
@@ -60,6 +103,55 @@ export interface LogicModel {
    */
   colorLegend?: string;
   overallQuality?: OverallQuality;
+  /**
+   * Items whose source header did not synonym-map (or were returned by the user).
+   * Not a Gemini-required field — filled by source-aware mapping / human assignment.
+   */
+  unmapped?: LogicModelField<LogicModelGroup[]>;
+  /** Coarse layout hint when known; defaults to vertical_columns after mapping pass. */
+  layoutFamily?: LayoutFamily;
+  /** Session correction log for offline review / synonym iteration. */
+  mappingCorrections?: MappingCorrectionEvent[];
+}
+
+/** Locates one extract JPEG within the source document (1-based page / column). */
+export interface SourceImageRef {
+  page: number;
+  column?: number;
+}
+
+/**
+ * Dual-track handoff from format adapters → Gemini extract.
+ * Track A = `textTrack` (Markdown / structural text); Track B = `images` (page rasters).
+ */
+export interface DocumentBundle {
+  /** Base64 JPEGs for Track B / vision (no data-URL prefix). May be full pages or column tiles. */
+  images: string[];
+  /**
+   * Parallel to `images` when known — document page (and optional column) for each extract JPEG.
+   * Used to label images for Gemini so `sourcePage` / `sourceColumn` on items refer to real pages.
+   */
+  imageRefs?: SourceImageRef[];
+  /**
+   * One JPEG per document page/slide for in-app source review (content crop).
+   * Empty/omitted for text-only bundles. Indexes match 1-based `sourcePage` on items.
+   */
+  previewImages?: string[];
+  /** Markdown or structural text for Track A / text-layer hints / fallback. */
+  textTrack: string;
+  /** Non-blocking fidelity notes (e.g. low resolution, truncated pages). */
+  warnings: string[];
+  sourceFormat: 'pdf' | 'docx' | 'pptx';
+}
+
+/** Canonical warning when image-dominant / flattened pages are present (drives extract prompt). */
+export const LOW_LEGIBILITY_WARNING =
+  'Source includes flattened-raster page(s); small text may be misread.';
+
+export function bundleImpliesLowLegibility(bundle: Pick<DocumentBundle, 'warnings'>): boolean {
+  return bundle.warnings.some(
+    w => w.includes('flattened-raster') || /low resolution/i.test(w)
+  );
 }
 
 export interface ProcessingFile {
@@ -71,4 +163,13 @@ export interface ProcessingFile {
   result?: LogicModel;
   /** Non-blocking fidelity warnings from document conversion (e.g. low source resolution). */
   warnings?: string[];
+  /** User dismissed the mismatch / unmapped review banner for this file. */
+  mismatchBannerDismissed?: boolean;
+  /**
+   * Session-only page rasters for side-by-side source review (from `DocumentBundle.previewImages`).
+   * Cleared on Remove. Not exported.
+   */
+  sourcePreviewImages?: string[];
+  /** User collapsed the source pane for this file (session). */
+  sourcePaneCollapsed?: boolean;
 }

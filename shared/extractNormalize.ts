@@ -1,5 +1,6 @@
-import type { LogicModel, LogicModelGroup, LogicModelItem } from '../types';
+import type { LogicModel, LogicModelGroup } from '../types';
 import { harvestImpactStatementFromPlainText } from './impactStatementHarvest.js';
+import { applySourceAwareMapping } from './sourceMapping.js';
 
 type GroupedDomain =
   | 'outputs'
@@ -20,7 +21,7 @@ const OUTCOME_DOMAINS: GroupedDomain[] = [
   'impact',
 ];
 
-/** Text patterns that usually indicate Outputs column content, not outcomes. */
+/** Text patterns that usually indicate Outputs column content, not outcomes. Kept for tests/diagnostics. */
 const OUTPUT_TEXT_PATTERNS: RegExp[] = [
   /attendance\s+(is\s+)?maintained/i,
   /attendance\s+at\s+\d/i,
@@ -31,7 +32,7 @@ const OUTPUT_TEXT_PATTERNS: RegExp[] = [
   /student\s+choreography\s+driven/i,
 ];
 
-/** Substring → track group hint when rebucketing outputs (YouthMoves-style tracks). */
+/** @deprecated Fixture-era track hints — no longer used to rebucket; retained for test helpers. */
 const OUTPUT_TRACK_HINTS: { pattern: RegExp; group: string }[] = [
   { pattern: /attendance\s+at\s+90/i, group: 'YouthMoves at FLC' },
   { pattern: /implementation\s+5/i, group: 'YouthMoves at FLC' },
@@ -61,7 +62,6 @@ function inferOutputGroup(text: string): string {
 function looksLikeImpactStatementProse(text: string): boolean {
   const t = norm(text);
   if (t.length < 80) return false;
-  // Labeled Impact Statement blocks are usually overview prose, not a short mission line.
   const signals =
     /through\s+sustained\s+participation/.test(t) ||
     /will\s+experience\s+an\s+affirming/.test(t) ||
@@ -121,92 +121,11 @@ function setGroups(field: { content: LogicModelGroup[] }, groups: LogicModelGrou
   field.content = groups;
 }
 
-function findGroup(groups: LogicModelGroup[], name: string): LogicModelGroup {
-  let g = groups.find(x => x.name === name);
-  if (!g) {
-    g = { name, items: [] };
-    groups.push(g);
-  }
-  return g;
-}
-
 function removeItemFromGroups(groups: LogicModelGroup[], text: string): void {
   const n = norm(text);
   for (const g of groups) {
     g.items = g.items.filter(item => norm(item.text) !== n);
   }
-}
-
-/** Copy provenance/colour metadata (everything except critique/rating) onto a moved item. */
-function cloneItemProvenance(item: LogicModelItem): LogicModelItem {
-  const next: LogicModelItem = { text: item.text };
-  if (typeof item.verbatim === 'boolean') next.verbatim = item.verbatim;
-  if (item.sourceNote?.trim()) next.sourceNote = item.sourceNote;
-  if (item.fillColor?.trim()) next.fillColor = item.fillColor;
-  if (item.borderColor?.trim()) next.borderColor = item.borderColor;
-  return next;
-}
-
-function addOutputItem(model: LogicModel, item: LogicModelItem, groupName: string): void {
-  const groups = getGroups(model.outputs);
-  const g = findGroup(groups, groupName);
-  const n = norm(item.text);
-  if (!g.items.some(existing => norm(existing.text) === n)) {
-    g.items.push(cloneItemProvenance(item));
-  }
-  setGroups(model.outputs, groups.filter(x => x.items.length > 0 || x.name === groupName));
-}
-
-/** Move obvious output-shaped items from outcome domains back to outputs. */
-function rebucketObviousOutputs(model: LogicModel): void {
-  for (const domain of OUTCOME_DOMAINS) {
-    const field = model[domain];
-    const groups = getGroups(field);
-    const toMove: { item: LogicModelItem; group: string }[] = [];
-
-    for (const g of groups) {
-      for (const item of g.items) {
-        if (item.text && isOutputLikeText(item.text)) {
-          toMove.push({ item: cloneItemProvenance(item), group: inferOutputGroup(item.text) });
-        }
-      }
-    }
-
-    for (const { item } of toMove) {
-      for (const g of groups) removeItemFromGroups([g], item.text);
-    }
-    setGroups(
-      field,
-      groups.filter(g => g.items.length > 0)
-    );
-
-    for (const { item, group } of toMove) {
-      addOutputItem(model, item, group);
-    }
-  }
-}
-
-/** When model invents an Impact column, move those items to longTermOutcomes. */
-function consolidateImpactIntoLongTerm(model: LogicModel): void {
-  const impactGroups = getGroups(model.impact);
-  const items: LogicModelItem[] = [];
-  for (const g of impactGroups) {
-    for (const item of g.items) {
-      if (item.text?.trim()) items.push(cloneItemProvenance(item));
-    }
-  }
-  if (items.length === 0) return;
-
-  const ltGroups = getGroups(model.longTermOutcomes);
-  const ltGeneral = findGroup(ltGroups, 'General');
-  for (const item of items) {
-    const n = norm(item.text);
-    if (!ltGeneral.items.some(i => norm(i.text) === n)) {
-      ltGeneral.items.push(item);
-    }
-  }
-  setGroups(model.longTermOutcomes, ltGroups);
-  setGroups(model.impact, []);
 }
 
 /** Fill impactStatement from PDF/text layer when vision omitted it entirely. */
@@ -219,7 +138,6 @@ function fillMissingImpactStatementFromSourceText(model: LogicModel, sourceText?
 
   model.impactStatement = { content: harvested };
 
-  // Remove duplicate if harvest matches something still sitting in mission/outcomes.
   if (norm(model.mission?.content ?? '') === norm(harvested)) {
     model.mission = { ...model.mission, content: '' };
   }
@@ -235,8 +153,9 @@ function fillMissingImpactStatementFromSourceText(model: LogicModel, sourceText?
 }
 
 /**
- * Post-extract fixes for common vision mis-bucketing on multi-column grid LMs.
- * Does not call Gemini; safe to run after every extract.
+ * Post-extract fixes that preserve source fidelity.
+ * Does NOT force YouthMoves-style output rebucketing or clear a real Impact column.
+ * Source-aware synonym annotation/remap runs after presence recoveries.
  */
 export function normalizeExtractedLogicModel(
   model: LogicModel,
@@ -244,9 +163,8 @@ export function normalizeExtractedLogicModel(
 ): LogicModel {
   fillMissingImpactStatementFromSourceText(model, options?.sourceText);
   promoteImpactStatementFromMission(model);
-  rebucketObviousOutputs(model);
   promoteImpactStatementFromGroupedDomains(model);
-  consolidateImpactIntoLongTerm(model);
+  applySourceAwareMapping(model);
   return model;
 }
 

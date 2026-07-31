@@ -2,6 +2,7 @@
 export interface FnRequest {
   method?: string;
   body?: unknown;
+  query?: Record<string, string | string[] | undefined>;
 }
 
 export interface FnResponse {

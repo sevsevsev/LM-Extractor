@@ -1,14 +1,19 @@
 export interface ExtractionPromptOptions {
   /** Renderer detected a flattened, low-resolution raster page — bias hard toward flagging. */
   lowLegibility?: boolean;
+  /**
+   * Dual-track DocumentBundle: page/slide JPEGs (Track B) plus structural Markdown/text (Track A).
+   * When true with vision, the prompt teaches how to fuse both inputs.
+   */
+  hasTextTrack?: boolean;
 }
 
 export const getAiExtractionPrompt = (
   isVision: boolean,
   options?: ExtractionPromptOptions
 ): string => {
-    const lowLegibilityBlock = options?.lowLegibility
-      ? `
+  const lowLegibilityBlock = options?.lowLegibility
+    ? `
     **⚠ LOW-RESOLUTION SOURCE (renderer-detected) — FLAGGING IS MANDATORY**:
     This document contains at least one **flattened, low-resolution image page**. At this resolution you
     **cannot** reliably read small text, so confident-looking guesses are the main risk.
@@ -20,12 +25,78 @@ export const getAiExtractionPrompt = (
       transcribe the legible half and flag it; do not produce a fluent phrase you cannot actually read.
     - Never "repair" an odd-looking phrase into a more idiomatic one. Odd wording is usually the real wording.
 `
-      : '';
+    : '';
 
-    return `Role: You are an expert Logic Model Analyst extracting structured JSON from ${isVision ? "visual document images" : "text content"}.
+  const hasTextTrack = Boolean(options?.hasTextTrack);
+
+  const dualTrackBlock =
+    isVision && hasTextTrack
+      ? `
+    ---
+    ## DUAL-TRACK INPUT (DocumentBundle) — READ BEFORE EXTRACTING
+
+    You receive **two complementary tracks** of the **same** document. Fuse them; do not pick only one.
+
+    ### Track A — Structural text / Markdown (\`textTrack\`)
+    Appears in a labeled **TRACK A** block in this message (headings, lists, bold markers, slide/page prose).
+    **Rely on Track A for:**
+    - **Exact string matching** — prefer Track A wording for item \`text\` when it matches what you see on the page
+      (especially Impact Statement, Mission, headers, and long prose). Copy strings; do not "improve" them.
+    - **Hierarchical structure** — Markdown headings (\`#\` / \`##\` / \`###\`), list nesting, and \`**bold**\` /
+      \`*italic*\` markers indicate section labels, group names, and emphasis. Use those labels when they align
+      with a visible column/section in the images.
+    - **Completeness check** — if Track A lists a bullet or labeled section that is hard to read in the images,
+      still extract it (set \`verbatim: false\` + \`sourceNote\` when the image is unclear).
+
+    ### Track B — Page / slide images (\`images\`)
+    JPEG rasters (full pages, slides, and/or zoomed column crops).
+    **Rely on Track B for visual semantics that text alone cannot provide:**
+    - **Spatial layout** — column lanes, row bands, which bullet sits under which header (position still wins).
+    - **Cell / box fill colour** — if a cell or box has a coloured fill (e.g. blue, orange, purple), record it in
+      that item's \`fillColor\` metadata (plain colour name or hex). Example: blue fill → \`"fillColor": "blue"\`.
+      Colour never changes column assignment.
+    - **Border colour** — if the outline differs from the fill, record \`borderColor\`.
+    - **Colour legend** — if a key is visible on the page, copy it into top-level \`colorLegend\`; otherwise leave "".
+    - **Visual emphasis** — text that is **visually bold**, heavier weight, or clearly header-styled on the page
+      is a **key entity**: prefer it as a column/section header, \`Group.name\`, or high-salience item label —
+      never invent a new JSON field for bold. If Track A marks the same phrase with \`**bold**\`, treat that as
+      confirming emphasis.
+    - **Charts, icons, colour blocks, and table grid lines** — use images when Track A omits them.
+
+    ### Conflict resolution
+    1. **Wording:** Track A exact strings win when they clearly refer to the same visible cell/bullet as Track B.
+    2. **Column / domain assignment:** Track B spatial position (header above the cell) wins over Track A order alone.
+    3. **Colour / bold / layout chrome:** Track B only — Track A has no reliable colour.
+    4. **Never fabricate** to reconcile tracks. If tracks disagree and you cannot resolve, transcribe the clearer
+       source, set \`verbatim: false\`, and note the conflict briefly in \`sourceNote\`.
+`
+      : isVision
+        ? `
+    ---
+    ## VISION INPUT
+    You receive page/slide images only (no separate text track). Extract from what is visible. For coloured
+    boxes, set \`fillColor\` / \`borderColor\`. Treat visually bold/header-styled text as key entities (headers or
+    group names), not as a new schema field.
+`
+        : `
+    ---
+    ## TEXT-ONLY INPUT (Track A)
+    You receive structural document text / Markdown only (no page images). Extract from headings, lists, and
+    emphasis in the text. Leave \`fillColor\` / \`borderColor\` / \`colorLegend\` empty unless the text explicitly
+    states a colour key. Bold Markdown (\`**…**\`) marks key entities / headers.
+`;
+
+  const roleSource = isVision
+    ? hasTextTrack
+      ? 'a dual-track DocumentBundle (page images + structural Markdown/text)'
+      : 'visual document images'
+    : 'text content';
+
+  return `Role: You are an expert Logic Model Analyst extracting structured JSON from ${roleSource}.
 ${lowLegibilityBlock}
+${dualTrackBlock}
 
-    **GOAL**: High-fidelity **spatial** extraction. No critiques. **Column headers and row bands beat semantics.** Never reclassify an item because it "sounds like" an outcome or output.
+    **GOAL**: High-fidelity **spatial** extraction. No critiques. **Column headers and row bands beat semantics.** Never reclassify an item because it "sounds like" an outcome or output. Output **only** the LogicModel JSON schema — no critique/rating fields and no extra keys.
 
     ---
     ## PRESENCE-FIRST (DO NOT FORCE A FULL TEMPLATE)
@@ -43,12 +114,18 @@ ${lowLegibilityBlock}
 
     Mentally (or privately) build a layout map. Do **not** skip this phase.
 
-    0. **Image set**
-       You may receive multiple images for one document: full pages and/or **zoomed single-column crops**
+    0. **Image set / tracks**
+       You may receive multiple images for one document: full pages, slides, and/or **zoomed single-column crops**
        (each crop is one column, top-to-bottom, including that column's header, given left→right). Treat
        every image as part of the **same** document. Do **not** count an item twice if it appears in more
        than one image (e.g. both a full page and a column crop of that page).
-
+${
+    isVision && hasTextTrack
+      ? `       When Track A is present, skim it for heading inventory and exact strings, then map those labels onto
+       Track B column positions. Do not assign domains from Track A reading order alone.
+`
+      : ''
+  }
     1. **Page roles**
        - Which page(s) have overview prose (Impact Statement / Mission)?
        - Which page(s) have the multi-column logic-model **grid**?
@@ -57,7 +134,7 @@ ${lowLegibilityBlock}
        List every visible grid column header in order. Typical set:
        Resources/Inputs | Activities | Outputs | Short-Term Outcomes | Medium-Term Outcomes | Long-Term Outcomes | (optional) Impact
        Record **exactly** which headers exist. If the rightmost header is **"Long-Term Outcomes"** and there is **no** column titled **"Impact"**, then there is **no Impact column**.
-
+${hasTextTrack ? '       Cross-check header strings against Track A headings when present.\n' : ''}
     3. **Row / track inventory (top → bottom) — ONLY IF REAL**
        A "track" is a horizontal band with the **same label** that lines up across MULTIPLE columns
        (e.g., "YouthMoves at FLC", "Summer Intensive", "Student Produced Concert" appearing in
@@ -79,146 +156,92 @@ ${lowLegibilityBlock}
     **EXTRACTION RULES**:
     1. **Granularity**: Every bullet / distinct idea = separate item string.
     2. **Transcribe, do not invent (CRITICAL)**: Copy wording as close to the source as possible; do not
-       summarize, rephrase, or "improve" it. **Never add items, partner names, organizations, numbers, or
-       details that are not visibly present in the source.** If you are unsure whether something is there,
+       summarize, rephrase, or "improve" it.${
+         hasTextTrack
+           ? ' Prefer Track A exact strings when they match the same visible cell.'
+           : ''
+       } **Never add items, partner names, organizations, numbers, or
+       details that are not present in the source.** If you are unsure whether something is there,
        leave it out. Inventing plausible-sounding content is the worst possible error.
     3. **Legibility & clipped text**: If text is too small/blurry to read confidently, or a box is visibly
-       **cut off / clipped** (text runs to the edge and stops mid-word or mid-phrase), transcribe exactly
-       what is legible — do **not** guess the missing part. Flag such items with \`verbatim: false\` and a
-       short \`sourceNote\` (e.g. "text appears clipped in source" or "low legibility — verify"). When an item
-       is a faithful, confident transcription, set \`verbatim: true\`.
-    4. **Proper nouns & numbers — never auto-complete from memory (CRITICAL)**: Organization, person,
-       program, and institution names, plus specific numbers, are the highest-risk tokens. If one is not
-       **clearly legible**, transcribe your best *literal* reading of the glyphs and set \`verbatim: false\`
-       with a \`sourceNote\` naming the uncertain token (e.g. "institution name low-legibility — verify").
-       **Never replace an unclear name with a more familiar real-world one** — e.g. do not turn an unclear
-       "Joseph J. Peter Institute" into "St. Christopher's" or "Peter's Place". A recognizable name you
-       *inferred* instead of *read* is a fabrication. Do not split one name across two items or merge two.
-    5. **Never flip direction / polarity words**: Copy words like "reduction / decrease / reduced" vs
-       "increase / increased / use / more / sustained" **exactly** — they define an outcome's meaning.
-       "Sustained reduction in trauma-related behaviors" must never become "Sustained use of…". If the
-       direction word is not clearly legible, keep your literal reading and set \`verbatim: false\`; never
-       normalize toward whichever direction "sounds right".
-    6. **Assign by position**: A bullet belongs to the column whose header sits **directly above** it (same vertical lane / x-band).
+       **cut off / clipped**, transcribe exactly what is legible${
+         hasTextTrack ? ' (or the matching Track A string if reliable)' : ''
+       } — do **not** guess the missing part. Flag with \`verbatim: false\` and a short \`sourceNote\`.
+       When an item is a faithful, confident transcription, set \`verbatim: true\`.
+    4. **Proper nouns & numbers — never auto-complete from memory (CRITICAL)**: If a name/number is not
+       **clearly legible**, transcribe your best *literal* reading and set \`verbatim: false\` with a
+       \`sourceNote\`. **Never replace an unclear name with a more familiar real-world one.**
+    5. **Never flip direction / polarity words**: Copy "reduction / decrease" vs "increase / use / more"
+       **exactly**. If unclear, keep your literal reading and set \`verbatim: false\`.
+    6. **Assign by position**: A bullet belongs to the column whose header sits **directly above** it.
 
     **HEADER EXTRACTION**:
     - **Organization**: From logos, titles, footers; infer if unlabeled but clear.
     - **Program**: Specific program/initiative name.
 
     **CONTEXT & OVERVIEW (NOT GRID COLUMNS)**:
-    - **\`impactStatement\`** — **CRITICAL when labeled.** Extract ONLY when an explicit heading exists: "Impact Statement", "Intended Impact", or clear equivalent **outside** the outcomes grid (often **page 1**). Put that prose in \`impactStatement.content\`. Do **NOT** put it in \`mission\`, \`impact\`, or outcome domains.
-    - **Whitespace trap (common PPT→PDF):** The labeled Impact Statement box may have a large empty region under the header with the body text near the **bottom** of the box. Still extract that bottom prose — do not skip page 1 because the grid is denser on page 2.
-    - Always finish reading overview pages **before** filling the multi-column grid. If page 1 says IMPACT STATEMENT, \`impactStatement\` must be non-empty.
-    - **\`mission\`** — Optional. "Mission", "Purpose", or "Program Overview" when **distinct** from Impact Statement. Use \`""\` if absent. Never copy Impact Statement text into \`mission\`.
-    - **When both exist** — populate both separately.
+    - **\`impactStatement\`** — **CRITICAL when labeled.** Extract ONLY when an explicit heading exists outside
+      the outcomes grid (often **page 1**). Put that prose in \`impactStatement.content\`.${
+        hasTextTrack
+          ? ' Track A often preserves this prose more reliably than a dense grid image — use it.'
+          : ''
+      }
+    - **Whitespace trap (common PPT→PDF):** Body text may sit near the **bottom** of a large empty box — still extract it.
+    - Always finish overview pages **before** the multi-column grid. If page 1 says IMPACT STATEMENT, \`impactStatement\` must be non-empty.
+    - **\`mission\`** — Optional and distinct from Impact Statement; use \`""\` if absent.
     - **\`targetPopulation\`** — Who is served.
 
     **COLUMN FIDELITY (HARD RULES)**:
-    1. **Outputs column → \`outputs\` only.** Attendance %, curriculum units implemented, interactions with artists/teachers under the Outputs header stay in \`outputs\` for **every** track row (including Summer and Concert rows). Never move them to Short-/Medium-/Long-Term Outcomes.
-    2. **Do not read across columns.** Even if a sentence wraps or a cell is adjacent to outcomes, stay in the vertical lane of the header above.
+    1. **Outputs column → \`outputs\` only.** Never move Outputs bullets into outcome domains.
+    2. **Do not read across columns.** Stay in the vertical lane of the header above.
     3. **Short-Term / Medium-Term / Long-Term columns** → only items under those headers.
-    4. **Long-Term Outcomes column → \`longTermOutcomes\`.** If the grid's rightmost (or labeled) column is **"Long-Term Outcomes"** (or "Long Term Outcomes"), put **all** boxes/bullets in that column into \`longTermOutcomes\` — including career, leadership, educational attainment, graduate/tour language.
-    5. **Impact grid column → \`impact\` ONLY if a column header literally says "Impact"** (or "Ultimate Impact" as a **column** title). If there is **no** Impact column header, set \`impact.content\` to \`[]\`. Do **not** invent an Impact domain by moving Long-Term Outcomes boxes into \`impact\`.
+    4. **Long-Term Outcomes column → \`longTermOutcomes\`.**
+    5. **Impact grid column → \`impact\` ONLY if a column header literally says "Impact"**. Otherwise \`impact.content\` = \`[]\`.
     6. **Impact Statement ≠ Long-Term column ≠ Impact column.** Three different things.
 
-    **KNOWN FAILURE MODES TO AVOID** (seen on dense PPT→PDF grids):
-    - **Copying Resources-column sub-headings into other columns.** e.g. tagging Activities/Outputs/Outcomes
-      items with "Frontline Staff", "Partners", or "Behavioral & Mental Health" because those labels appeared
-      in the Resources column. Those labels are Resources-only; other columns are almost always "General".
-    - **Inventing content to match a fabricated group.** e.g. adding "St. Christopher's Hospital" or
-      "classroom-based Behavioral Therapy Specialists" that are not in the source. Transcribe only what is there.
-    - **Substituting a familiar name for an unclear one.** e.g. reading an unclear "Joseph J. Peter Institute"
-      as "St. Christopher's" / "Peter's Place", or turning "Catholic Community Services" into "Family Community
-      Services". If you cannot read a proper noun, flag \`verbatim: false\` — never swap in a name you recognise.
-    - **Flipping outcome direction.** e.g. "Sustained reduction in trauma-related behaviors" → "Sustained use
-      of…", or "referred students of all grade bands" → "targeted students in K-2". Copy polarity/scope words verbatim.
-    - **Stamping one colour per column.** Reporting every Activities box as the same colour when the source
-      alternates (e.g. orange vs purple boxes). Read \`fillColor\` box by box, or leave it out.
-    - **Fluent rewrites of small text.** e.g. "Arts & crafts supplies" → "Therapy curriculum",
-      "1-year donation" → "Grant duration", "Multi-lingual staff" → "Bilingual staff",
-      "how they present themselves" → "how to regulate themselves". If the box is small and you are
-      reconstructing rather than reading, transcribe what you can and set \`verbatim: false\`.
-    - **Treating colour as a horizontal track.** Colour marks some cross-cutting categorization (author-defined,
-      often unlabeled); it does not create per-row groups. Capture colour in \`fillColor\`/\`borderColor\` instead.
-    - **Guessing clipped text.** If a box is cut off (e.g. "…for students of all"), transcribe what is visible
-      and flag \`verbatim: false\` — never complete the sentence yourself.
-    - Putting Summer-track Outputs (e.g. "Attendance is maintained…", "Implementation 2…") into Medium-Term
-      Outcomes — but only when genuine tracks exist; otherwise keep Outputs in Outputs under "General".
-    - Putting Long-Term Outcomes column items into \`impact\` when no Impact column exists.
-    - Reusing track names across columns when there is **no** real repeated band — prefer "General".
-    - Copying page-1 Impact Statement into \`mission\` instead of \`impactStatement\`.
-    - **Omitting** page-1 Impact Statement entirely because attention stayed on the page-2 grid.
+    **KNOWN FAILURE MODES TO AVOID**:
+    - Copying Resources-column sub-headings into other columns; inventing content; swapping familiar names.
+    - Flipping outcome direction; fluent rewrites of small text; stamping one colour per column.
+    - Treating colour as a horizontal track; guessing clipped text; omitting page-1 Impact Statement.
+${
+    hasTextTrack
+      ? '    - **Ignoring Track A** for exact wording or **ignoring Track B** for colour/layout — both are required when supplied.\n'
+      : ''
+  }
+    **GROUPING GATE**:
+    1. **Default is "General"** when no in-column sub-heading/track is visible.
+    2. A group name must be **VISIBLE in that same column** (including visually bold / Track A \`**bold**\` labels).
+    3. NEVER carry a label across columns unless it is a real repeated track band.
+    4. NEVER copy Resources-column sub-headings into other columns.
+    5. Do not rename or merge labels; when unsure, prefer "General".
 
-    **GROUPING GATE (READ BEFORE NAMING ANY GROUP)**:
-    \`Group.name\` describes how items are grouped **inside a single column**. Choosing group names wrong
-    is a top failure mode, so apply these rules strictly:
-    1. **Default is "General".** If a column shows a flat list of boxes with no visible sub-heading or
-       repeated band label inside that column, every item in that column goes in one group named "General".
-       "General" is the normal, expected outcome — not a fallback of last resort.
-    2. **A group name must be VISIBLE in that same column.** Only use a non-"General" name when that exact
-       label physically appears within that column (a sub-heading above the items, or a repeated track band).
-    3. **NEVER carry a label across columns unless it is a real track** (see Phase A step 3): the same band
-       label must physically repeat in each column at the same row. Absent that, do not reuse names.
-    4. **NEVER copy a Resources-column sub-heading** (e.g. "Frontline Staff", "Partners",
-       "Material & Financial Resources", "Knowledge Resources") into Activities, Outputs, or any Outcomes
-       column. Those are internal to the Resources column only.
-    5. **Do not rename or merge labels.** Use the label exactly as written; never substitute a different
-       heading (e.g. do not relabel "Material & Financial Resources" as "Behavioral & Mental Health").
-    6. When unsure whether a label is a real in-column grouping, prefer "General".
+    **INPUTS**: Use Resources sub-headings exactly as shown; otherwise Human / Financial / Material / Knowledge Resources.
 
-    **INPUTS (when grouping resources)**:
-    Use the resource sub-headings **exactly as they appear in the Resources column** (e.g. "Frontline Staff",
-    "Partners", "Material & Financial Resources", "Knowledge Resources"). If the column has no sub-headings,
-    fall back to the canonical buckets: "Human Resources", "Financial Resources", "Material Resources",
-    "Knowledge Resources". Participants/beneficiaries are usually target population, not inputs — but if the
-    source lists them under Resources, extract them as shown in the Resources column.
+    **COLOUR CODING (capture, never interpret, never reclassify)**${isVision ? ' — **Track B / images only**' : ''}:
+    - Record per-box \`fillColor\` (e.g. blue fill → \`"fillColor": "blue"\`) and differing \`borderColor\`.
+    - Colour is per BOX, not per column. Never let colour change column/group assignment.
+    - Copy an explicit colour key into \`colorLegend\` only when visible; otherwise leave "".
 
-    **COLOUR CODING (capture, never interpret, never reclassify)**:
-    Many logic models colour-code their boxes. Colour encodes **some author-defined categorization** — it
-    could be population served, program component/strategy, priority or phase, funding stream, or something
-    else entirely. **Do not assume it means population.** It is a cross-cutting dimension, NOT the logic-model
-    column and NOT (by itself) a horizontal track.
-    - For every item in a visibly coloured box, record the dominant fill colour in \`fillColor\` as a plain
-      colour name ("orange", "purple", "red", "yellow", "blue", "green", etc.) or hex. Just report the colour
-      you see — do **not** guess what the colour stands for.
-    - **Colour is per BOX, not per column (CRITICAL).** Look at each box individually. Adjacent boxes in the
-      *same* column very often have *different* colours — that is exactly the signal worth capturing. Do
-      **not** infer one colour for a whole column and stamp it on every item.
-    - **Self-check before answering:** if every item in a multi-item column came out the same colour, you
-      almost certainly guessed at the column level instead of reading each box — go back and re-read the
-      individual boxes. Likewise, do not copy a *column header's* colour onto the items beneath it; headers
-      are usually styled differently from the content boxes.
-    - If a box has a **border/outline in a different colour** than its fill, record that colour in
-      \`borderColor\`. A contrasting border usually marks a second category — capture it, do not ignore it.
-    - **Legend/key**: Only if the document **explicitly shows a colour key/legend** (text that maps colours to
-      meanings), copy that mapping verbatim into the top-level \`colorLegend\` string
-      (e.g. "Orange = students; Purple = families; Red = staff"). **If there is no visible legend, leave
-      \`colorLegend\` empty and do NOT invent a meaning** — the raw colours are still worth capturing so a
-      human can interpret them later.
-    - **Colour must never change an item's column or its group.** Assign the column strictly by position
-      (the header above it), then attach colour as metadata.
-    - Only fill \`fillColor\`/\`borderColor\` when colour coding is actually present; leave them out for
-      plain/uncoloured layouts.
-
-    **WORKED LAYOUT EXAMPLE** (illustrative — match YOUR document's actual headers; **only** applies when a
-    real repeated track band exists across columns, which is uncommon — otherwise every group is "General"):
-    If headers L→R are: Resources | Activities | Outputs | Short-Term Outcomes | Medium-Term Outcomes | Long-Term Outcomes
-    then for track "Summer Intensive":
-    - Outputs cell bullets → \`outputs\` / group "Summer Intensive"
-    - Short-Term cell bullets → \`shortTermOutcomes\` / group "Summer Intensive"
-    - Medium-Term cell bullets → \`mediumTermOutcomes\` / group "Summer Intensive"
-    - Long-Term column boxes → \`longTermOutcomes\` (tracks if aligned; else General)
-    - \`impact.content\` = []  (no Impact column header)
+    **VISUAL EMPHASIS (bold / key entities)**:
+    - Visually bold/header-styled text is a key entity → map to \`Group.name\`, headers, or item \`text\` only.
+    - Do **not** add schema properties for bold/italic. Track A \`**bold**\` confirms emphasis.
 
     ---
-    **ITEM SHAPE** — each item is an object:
-    { "text": "verbatim item text",
-      "verbatim": true | false,          // false when paraphrased / low-legibility / clipped
-      "sourceNote": "why to verify",     // optional; include only when verbatim is false
-      "fillColor": "orange",             // optional; the box fill colour you SEE (not its meaning)
-      "borderColor": "red" }             // optional; only when the border differs from the fill
+    **ITEM SHAPE** (strict LogicModel schema — no extra keys):
+    { "text": "verbatim item text", "verbatim": true | false, "sourceNote": "why to verify",
+      "fillColor": "blue", "borderColor": "red",
+      "sourcePage": 2, "sourceColumn": 3 }
 
-    **OUTPUT FORMAT** (JSON only — no critique/rating fields):
+    **SOURCE LOCATION (when images are labeled with page/column)**:
+    - Set \`sourcePage\` to the **document page number** from the image label (1-based), not the image ordinal.
+    - Set \`sourceColumn\` only when the label includes a column index (column crops) or the item clearly sits in that grid column.
+    - Prefer **omit** \`sourcePage\` / \`sourceColumn\` over guessing.
+
+    **UNMAPPED + LAYOUT**:
+    - \`unmapped\` only for clearly non-standard labeled sections (Assumptions, External Factors, etc.).
+    - \`layoutFamily\`: \`vertical_columns\` | \`horizontal_rows\` | \`diagram\` | \`prose_sections\` | \`unknown\`.
+
+    **OUTPUT FORMAT** (JSON only — LogicModel schema; no critique/rating fields; no extra keys):
     {
       "organization": "...",
       "program": "...",
@@ -232,13 +255,14 @@ ${lowLegibilityBlock}
       "mediumTermOutcomes": { "content": [{ "name": "General", "items": [{ "text": "...", "verbatim": true }] }] },
       "longTermOutcomes": { "content": [{ "name": "General", "items": [{ "text": "...", "verbatim": true }] }] },
       "impact": { "content": [] },
+      "unmapped": { "content": [] },
+      "layoutFamily": "vertical_columns",
       "colorLegend": ""
     }
-    Group names above are examples only — use "General" unless a real in-column label/track is visible.
-    Set \`colorLegend\` only when the document shows an explicit colour key; otherwise leave it "".
-    Include \`impactStatement\` when labeled; omit the key when not labeled. Prefer empty \`impact.content\` over inventing Impact items.
+    Use "General" unless a real in-column label/track is visible. Prefer empty \`impact.content\` over inventing Impact items.
     `;
 };
+
 
 export const getAiCritiquePrompt = (): string => {
     return `Role: You are an expert Logic Model Analyst. Your task is to ruthlessly critique the provided logic model JSON and point out deficiencies based on strict logic model guidance.
@@ -264,9 +288,9 @@ export const getAiCritiquePrompt = (): string => {
     - Extract owns column/track fidelity; your job is to assess quality of the document **as extracted**.
 
     **PRESERVE PROVENANCE (required)**:
-    - Do not change item \`text\`. Copy each item's \`verbatim\`, \`sourceNote\`, \`fillColor\`, and \`borderColor\`
-      fields through **unchanged** — never add, remove, or alter them. Also copy the top-level \`colorLegend\`
-      string through unchanged.
+    - Do not change item \`text\`. Copy each item's \`verbatim\`, \`sourceNote\`, \`fillColor\`, \`borderColor\`,
+      \`sourcePage\`, and \`sourceColumn\` fields through **unchanged** — never add, remove, or alter them.
+      Also copy the top-level \`colorLegend\` string through unchanged.
     - If an item has \`verbatim: false\` or a \`sourceNote\`, you may note in its item critique that the source
       wording should be verified, but keep those provenance fields intact.
 

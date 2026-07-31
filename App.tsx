@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ProcessingFile, LogicModel } from './types';
+import { ProcessingFile, LogicModel, DocumentBundle } from './types';
 import FileUpload from './components/FileUpload';
 import LogicModelEditor from './components/LogicModelEditor';
+import SourceDocumentPane, { type SourceFocus } from './components/SourceDocumentPane';
 import { LogicModelPdfTemplate, PDF_PAGE_WIDTH_PX } from './components/LogicModelPdfTemplate';
 import { extractLogicModel, critiqueLogicModel } from './services/geminiService';
 import { countCodingExportRows, downloadCodingExportCsv } from './services/codingExport';
 import { normalizeExtractedLogicModel } from './shared/extractNormalize';
 import { buildGranularExportRows, sanitizeAbsentDomainCritiques } from './shared/domainPresence';
 import { brand } from './config/brand';
+import { shouldSuggestMismatch } from './shared/sourceMapping';
 
 function modelForExport(model: LogicModel): LogicModel {
   return sanitizeAbsentDomainCritiques(
@@ -61,6 +63,10 @@ const App: React.FC = () => {
   const processingRef = useRef(false);
   const previewViewportRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState(1);
+  /** Per-file source pane focus (page jump from item select). */
+  const [sourceFocusByFileId, setSourceFocusByFileId] = useState<Record<string, SourceFocus | null>>(
+    {}
+  );
 
   const filesWithResults = files.filter(f => !!f.result);
   const exportReadyFiles = filesWithResults.filter(
@@ -82,16 +88,33 @@ const App: React.FC = () => {
     setFiles(prev => prev.filter(f => f.id !== fileId));
     if (previewFileId === fileId) setPreviewFileId(null);
     if (reAnalyzingId === fileId) setReAnalyzingId(null);
+    setSourceFocusByFileId(prev => {
+      const next = { ...prev };
+      delete next[fileId];
+      return next;
+    });
   };
 
   const retryFile = (fileId: string) => {
     setFiles(prev =>
       prev.map(f =>
         f.id === fileId
-          ? { ...f, status: 'pending', error: undefined, progressMsg: undefined }
+          ? {
+              ...f,
+              status: 'pending',
+              error: undefined,
+              progressMsg: undefined,
+              sourcePreviewImages: undefined,
+              sourcePaneCollapsed: undefined,
+            }
           : f
       )
     );
+    setSourceFocusByFileId(prev => {
+      const next = { ...prev };
+      delete next[fileId];
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -113,10 +136,7 @@ const App: React.FC = () => {
           )
         );
 
-        let inputForGemini: string | string[];
-        let textHint: string | undefined;
-        let conversionWarnings: string[] = [];
-        let lowLegibility = false;
+        let bundle: DocumentBundle;
         const fileName = pendingFile.file.name.toLowerCase();
 
         try {
@@ -124,33 +144,32 @@ const App: React.FC = () => {
             convertPdfToImages,
             convertDocxToImages,
             convertPptxToImages,
-            extractPdfFrontMatterText,
           } = await import('./services/fileService');
 
           if (fileName.endsWith('.pdf')) {
-            const [pdfResult, frontMatter] = await Promise.all([
-              convertPdfToImages(pendingFile.file),
-              extractPdfFrontMatterText(pendingFile.file, 2),
-            ]);
-            inputForGemini = pdfResult.images;
-            conversionWarnings = pdfResult.warnings;
-            lowLegibility = pdfResult.lowLegibility;
-            textHint = frontMatter || undefined;
+            bundle = await convertPdfToImages(pendingFile.file);
           } else if (fileName.endsWith('.docx')) {
-            inputForGemini = await convertDocxToImages(pendingFile.file);
+            bundle = await convertDocxToImages(pendingFile.file);
           } else if (fileName.endsWith('.pptx')) {
-            inputForGemini = await convertPptxToImages(pendingFile.file);
+            bundle = await convertPptxToImages(pendingFile.file);
           } else {
             throw new Error('Unsupported format for vision');
           }
         } catch (visionError) {
           console.warn('Vision processing failed, falling back to text extraction:', visionError);
-          const { convertFileToMarkdown } = await import('./services/fileService');
-          inputForGemini = await convertFileToMarkdown(pendingFile.file);
-          textHint = typeof inputForGemini === 'string' ? inputForGemini : undefined;
-          conversionWarnings = [
-            "Couldn't read this document as images, so it was analyzed as plain text. Layout-based grouping may be less accurate — verify the results.",
-          ];
+          const {
+            convertFileToMarkdown,
+            sourceFormatFromFileName,
+            textOnlyDocumentBundle,
+          } = await import('./services/fileService');
+          const textTrack = await convertFileToMarkdown(pendingFile.file);
+          bundle = textOnlyDocumentBundle(
+            textTrack,
+            sourceFormatFromFileName(pendingFile.file.name),
+            [
+              "Couldn't read this document as images, so it was analyzed as plain text. Layout-based grouping may be less accurate — verify the results.",
+            ]
+          );
         }
 
         setFiles(prev =>
@@ -160,15 +179,24 @@ const App: React.FC = () => {
                   ...f,
                   status: 'extracting',
                   progressMsg: 'Extracting logic model structure...',
-                  warnings: conversionWarnings.length ? conversionWarnings : undefined,
+                  warnings: bundle.warnings.length ? bundle.warnings : undefined,
+                  // Keep page previews for side-by-side review; do not upload them to Gemini.
+                  sourcePreviewImages:
+                    bundle.previewImages && bundle.previewImages.length > 0
+                      ? bundle.previewImages
+                      : undefined,
+                  sourcePaneCollapsed: false,
                 }
               : f
           )
         );
-        const extractedResult = normalizeExtractedLogicModel(
-          await extractLogicModel(inputForGemini, { textHint, lowLegibility }),
-          { sourceText: textHint }
-        );
+        const extractBundle: DocumentBundle = {
+          ...bundle,
+          previewImages: undefined,
+        };
+        const extractedResult = normalizeExtractedLogicModel(await extractLogicModel(extractBundle), {
+          sourceText: bundle.textTrack || undefined,
+        });
 
         setFiles(prev =>
           prev.map(f =>
@@ -184,7 +212,16 @@ const App: React.FC = () => {
         setFiles(prev =>
           prev.map(f =>
             f.id === fileId
-              ? { ...f, status: 'editing', result: finalResult, progressMsg: undefined, error: undefined }
+              ? {
+                  ...f,
+                  status: 'editing',
+                  result: finalResult,
+                  progressMsg: undefined,
+                  error: undefined,
+                  // Auto-open source when mismatch review is suggested.
+                  sourcePaneCollapsed:
+                    shouldSuggestMismatch(finalResult) ? false : f.sourcePaneCollapsed,
+                }
               : f
           )
         );
@@ -267,8 +304,13 @@ const App: React.FC = () => {
       'Fill Color',
       'Border Color',
       'Color Legend',
+      'Source Header',
+      'Mapped By',
+      'Mapping Confidence',
+      'Mapping Note',
       'Overall Rating',
       'Overall Rationale',
+      'Mapping Corrections JSON',
     ];
 
     const exportRows = buildGranularExportRows(
@@ -289,8 +331,13 @@ const App: React.FC = () => {
       r.fillColor,
       r.borderColor,
       r.colorLegend,
+      r.sourceHeader,
+      r.mappedBy,
+      r.mappingConfidence,
+      r.mappingNote,
       r.overallRating,
       r.overallRationale,
+      r.mappingCorrectionsJson,
     ]);
 
     const csvContent = [
@@ -489,7 +536,7 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <section className="text-center space-y-3 max-w-3xl mx-auto">
           <h2 className="text-3xl font-bold text-slate-900 leading-tight">Extract & Refine Your Program Data</h2>
           <p className="text-slate-600">
@@ -536,7 +583,7 @@ const App: React.FC = () => {
                             onClick={() => setPreviewFileId(file.id)}
                             className="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded transition-colors"
                           >
-                            Preview PDF
+                            Preview branded PDF
                           </button>
                           <button
                             type="button"
@@ -611,12 +658,78 @@ const App: React.FC = () => {
                   )}
 
                   {showEditor && file.result && (
-                    <LogicModelEditor
-                      model={file.result}
-                      onUpdate={updated => updateModel(file.id, updated)}
-                      onReAnalyze={() => reAnalyzeModel(file.id)}
-                      isAnalyzing={reAnalyzingId === file.id}
-                    />
+                    <div
+                      className={`grid gap-4 ${
+                        file.sourcePaneCollapsed
+                          ? 'grid-cols-1'
+                          : 'grid-cols-1 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] xl:grid-cols-[minmax(0,28rem)_minmax(0,1fr)]'
+                      }`}
+                    >
+                      <div className={file.sourcePaneCollapsed ? '' : 'order-2 lg:order-1'}>
+                        <SourceDocumentPane
+                          images={file.sourcePreviewImages ?? []}
+                          textOnly={!file.sourcePreviewImages?.length}
+                          collapsed={Boolean(file.sourcePaneCollapsed)}
+                          focus={sourceFocusByFileId[file.id]}
+                          onCollapsedChange={collapsed =>
+                            setFiles(prev =>
+                              prev.map(f =>
+                                f.id === file.id ? { ...f, sourcePaneCollapsed: collapsed } : f
+                              )
+                            )
+                          }
+                        />
+                      </div>
+                      <div className={file.sourcePaneCollapsed ? '' : 'order-1 lg:order-2 min-w-0'}>
+                        <LogicModelEditor
+                          model={file.result}
+                          onUpdate={updated => updateModel(file.id, updated)}
+                          onReAnalyze={() => reAnalyzeModel(file.id)}
+                          isAnalyzing={reAnalyzingId === file.id}
+                          mismatchBannerDismissed={file.mismatchBannerDismissed}
+                          onDismissMismatchBanner={() =>
+                            setFiles(prev =>
+                              prev.map(f =>
+                                f.id === file.id ? { ...f, mismatchBannerDismissed: true } : f
+                              )
+                            )
+                          }
+                          onFocusSource={anchor => {
+                            setFiles(prev =>
+                              prev.map(f =>
+                                f.id === file.id ? { ...f, sourcePaneCollapsed: false } : f
+                              )
+                            );
+                            const pageCount = file.sourcePreviewImages?.length ?? 0;
+                            if (
+                              typeof anchor.sourcePage === 'number' &&
+                              anchor.sourcePage >= 1 &&
+                              (pageCount === 0 || anchor.sourcePage <= pageCount)
+                            ) {
+                              setSourceFocusByFileId(prev => ({
+                                ...prev,
+                                [file.id]: {
+                                  page: Math.round(anchor.sourcePage!),
+                                  column:
+                                    typeof anchor.sourceColumn === 'number'
+                                      ? Math.round(anchor.sourceColumn)
+                                      : undefined,
+                                  note: anchor.needsReview ? 'Verify against source' : undefined,
+                                },
+                              }));
+                            } else {
+                              setSourceFocusByFileId(prev => ({
+                                ...prev,
+                                [file.id]: {
+                                  page: sourceFocusByFileId[file.id]?.page ?? 1,
+                                  note: 'Page unknown — browse source manually',
+                                },
+                              }));
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
                   )}
 
                   {showPipelineSpinner && (
@@ -654,7 +767,7 @@ const App: React.FC = () => {
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden">
             <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50">
               <h3 id="pdf-preview-title" className="font-bold text-lg text-slate-800">
-                Print Preview: {currentPreviewFile.result.program}
+                Branded PDF preview: {currentPreviewFile.result.program}
               </h3>
               <div className="flex space-x-2">
                 <button

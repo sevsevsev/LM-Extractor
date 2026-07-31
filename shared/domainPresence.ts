@@ -131,8 +131,13 @@ export interface GranularExportRow {
   fillColor: string;
   borderColor: string;
   colorLegend: string;
+  sourceHeader: string;
+  mappedBy: string;
+  mappingConfidence: string;
+  mappingNote: string;
   overallRating: string;
   overallRationale: string;
+  mappingCorrectionsJson: string;
 }
 
 /** Build full CSV rows — omit domains with no content (presence-first export). */
@@ -143,6 +148,9 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
     const overallRating = m.overallQuality?.rating || '';
     const overallRationale = (m.overallQuality?.rationale || []).filter(Boolean).join(' | ');
     const colorLegend = m.colorLegend?.trim() || '';
+    const mappingCorrectionsJson = m.mappingCorrections?.length
+      ? JSON.stringify(m.mappingCorrections)
+      : '';
 
     const pushStringField = (
       domain: string,
@@ -164,8 +172,13 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
         fillColor: '',
         borderColor: '',
         colorLegend,
+        sourceHeader: '',
+        mappedBy: '',
+        mappingConfidence: '',
+        mappingNote: '',
         overallRating,
         overallRationale,
+        mappingCorrectionsJson,
       });
     };
 
@@ -194,8 +207,13 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
             fillColor: item.fillColor?.trim() || '',
             borderColor: item.borderColor?.trim() || '',
             colorLegend,
+            sourceHeader: item.sourceHeader?.trim() || g.name || '',
+            mappedBy: item.mappedBy || '',
+            mappingConfidence: item.mappingConfidence || '',
+            mappingNote: item.mappingNote?.trim() || '',
             overallRating,
             overallRationale,
+            mappingCorrectionsJson,
           });
         }
       }
@@ -213,6 +231,7 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
     pushField('Medium-Term Outcomes', m.mediumTermOutcomes);
     pushField('Long-Term Outcomes', m.longTermOutcomes);
     pushField('Impact', m.impact);
+    if (m.unmapped) pushField('Unmapped', m.unmapped);
   }
 
   return rows;

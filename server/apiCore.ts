@@ -1,4 +1,4 @@
-import type { LogicModel } from '../types';
+import type { DocumentBundle, LogicModel } from '../types';
 import { critiqueLogicModelOnServer, extractLogicModelOnServer } from './geminiLogicModel.js';
 
 export interface ApiResult {
@@ -36,32 +36,53 @@ function errorResult(error: unknown): ApiResult {
   return { status: 500, body: { error: message } };
 }
 
+function isSourceFormat(value: unknown): value is DocumentBundle['sourceFormat'] {
+  return value === 'pdf' || value === 'docx' || value === 'pptx';
+}
+
+/** Normalize request body into a DocumentBundle (dual-track extract contract). */
+export function parseDocumentBundle(rawBody: unknown): DocumentBundle | null {
+  const body = parseJsonBody(rawBody);
+
+  // Preferred: full DocumentBundle
+  if (isSourceFormat(body.sourceFormat)) {
+    const images = Array.isArray(body.images)
+      ? body.images.filter((img): img is string => typeof img === 'string' && img.length > 0)
+      : [];
+    const textTrack = typeof body.textTrack === 'string' ? body.textTrack : '';
+    const warnings = Array.isArray(body.warnings)
+      ? body.warnings.filter((w): w is string => typeof w === 'string')
+      : [];
+    if (images.length === 0 && !textTrack.trim()) return null;
+    return {
+      images,
+      textTrack,
+      warnings,
+      sourceFormat: body.sourceFormat,
+    };
+  }
+
+  return null;
+}
+
 export async function handleExtractRequest(rawBody: unknown): Promise<ApiResult> {
   const apiKey = getApiKey();
   if (!apiKey) return missingKeyResult();
 
   try {
-    const { images, text, textHint, lowLegibility } = parseJsonBody(rawBody) as {
-      images?: string[];
-      text?: string;
-      textHint?: string;
-      lowLegibility?: boolean;
-    };
-
-    if (Array.isArray(images) && images.length > 0) {
-      const model = await extractLogicModelOnServer(apiKey, images, {
-        textHint: typeof textHint === 'string' ? textHint : undefined,
-        lowLegibility: lowLegibility === true,
-      });
-      return { status: 200, body: { model } };
+    const bundle = parseDocumentBundle(rawBody);
+    if (!bundle) {
+      return {
+        status: 400,
+        body: {
+          error:
+            'Request must include a DocumentBundle with sourceFormat and images[] and/or textTrack.',
+        },
+      };
     }
 
-    if (typeof text === 'string' && text.trim()) {
-      const model = await extractLogicModelOnServer(apiKey, text);
-      return { status: 200, body: { model } };
-    }
-
-    return { status: 400, body: { error: 'Request must include images[] or text.' } };
+    const model = await extractLogicModelOnServer(apiKey, bundle);
+    return { status: 200, body: { model } };
   } catch (error) {
     return errorResult(error);
   }

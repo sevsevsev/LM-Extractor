@@ -6,6 +6,8 @@ import {
   stringDomainHasContent,
 } from '../shared/domainPresence';
 import { itemNeedsReview } from '../shared/provenance';
+import { CANONICAL_DOMAIN_OPTIONS, type CanonicalGroupedDomain } from '../shared/domainSynonyms';
+import { reassignItemDomain, shouldSuggestMismatch, appendCorrection } from '../shared/sourceMapping';
 
 /** Approximate CSS colour for a model-reported colour name, for the editor swatch. */
 const COLOR_SWATCH: Record<string, string> = {
@@ -48,7 +50,103 @@ interface LogicModelEditorProps {
   onUpdate: (updatedModel: LogicModel) => void;
   onReAnalyze: () => void;
   isAnalyzing: boolean;
+  mismatchBannerDismissed?: boolean;
+  onDismissMismatchBanner?: () => void;
+  /** Jump source pane to this item’s page/column when user focuses or clicks “Show in source”. */
+  onFocusSource?: (anchor: {
+    sourcePage?: number;
+    sourceColumn?: number;
+    needsReview?: boolean;
+  }) => void;
 }
+
+const DomainAssignControls: React.FC<{
+  currentDomain: CanonicalGroupedDomain | 'unmapped';
+  groupIndex: number;
+  itemIndex: number;
+  item: { mappingNote?: string; sourceHeader?: string };
+  model: LogicModel;
+  onUpdate: (updatedModel: LogicModel) => void;
+}> = ({ currentDomain, groupIndex, itemIndex, item, model, onUpdate }) => {
+  const [note, setNote] = useState(item.mappingNote || '');
+  const selectValue = currentDomain === 'unmapped' ? '' : currentDomain;
+
+  return (
+    <div className="flex flex-wrap items-end gap-2 pt-1">
+      <label className="flex flex-col gap-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+        Assign domain
+        <select
+          className="text-sm font-normal normal-case tracking-normal border border-slate-200 rounded-md px-2 py-1 bg-white min-w-[11rem]"
+          value={selectValue}
+          onChange={e => {
+            const raw = e.target.value;
+            const toDomain: CanonicalGroupedDomain | 'unmapped' = raw === '' ? 'unmapped' : (raw as CanonicalGroupedDomain);
+            if (toDomain === currentDomain) return;
+            const { model: next } = reassignItemDomain(model, {
+              fromDomain: currentDomain,
+              fromGroupIndex: groupIndex,
+              itemIndex,
+              toDomain,
+              note,
+            });
+            onUpdate(next);
+          }}
+        >
+          {CANONICAL_DOMAIN_OPTIONS.map(opt => (
+            <option key={opt.label} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex flex-col gap-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500 flex-grow min-w-[12rem]">
+        Mapping note
+        <input
+          type="text"
+          className="text-sm font-normal normal-case tracking-normal border border-slate-200 rounded-md px-2 py-1 bg-white"
+          value={note}
+          placeholder="Optional — why this domain?"
+          onChange={e => setNote(e.target.value)}
+          onBlur={() => {
+            const trimmed = note.trim();
+            if (trimmed === (item.mappingNote || '').trim()) return;
+            // Persist note on the item without moving domains.
+            const fieldKey = currentDomain;
+            const field = fieldKey === 'unmapped' ? model.unmapped ?? { content: [] } : model[fieldKey];
+            const groups = (field.content || []).map((g, gi) => {
+              if (gi !== groupIndex) return g;
+              return {
+                ...g,
+                items: g.items.map((it, ii) =>
+                  ii === itemIndex ? { ...it, mappingNote: trimmed || undefined } : it
+                ),
+              };
+            });
+            let next: LogicModel =
+              fieldKey === 'unmapped'
+                ? { ...model, unmapped: { ...field, content: groups } }
+                : { ...model, [fieldKey]: { ...field, content: groups } };
+            next = appendCorrection(next, {
+              fileId: '',
+              action: 'note_edit',
+              itemKey: `${item.sourceHeader || ''}|note|${itemIndex}`,
+              itemText: '',
+              fromDomain: currentDomain === 'unmapped' ? null : currentDomain,
+              toDomain: currentDomain === 'unmapped' ? null : currentDomain,
+              sourceHeader: item.sourceHeader,
+              note: trimmed || undefined,
+              layoutFamily: model.layoutFamily,
+            });
+            onUpdate(next);
+          }}
+        />
+      </label>
+      {item.sourceHeader?.trim() && (
+        <span className="text-[10px] text-slate-400 pb-1">Source: {item.sourceHeader}</span>
+      )}
+    </div>
+  );
+};
 
 const RATING_OPTIONS: QualityRating[] = ['Strong', 'Adequate', 'Weak'];
 
@@ -152,12 +250,16 @@ const EditableTextSection: React.FC<{
 
 const EditableGroupSection: React.FC<{
   title: string;
-  field: keyof LogicModel;
+  field: CanonicalGroupedDomain | 'unmapped';
   model: LogicModel;
   onUpdate: (updatedModel: LogicModel) => void;
-}> = ({ title, field, model, onUpdate }) => {
-  const fieldData = model[field] as { content: LogicModelGroup[], critique: string, rating?: string };
-  const groups = fieldData.content;
+  onFocusSource?: LogicModelEditorProps['onFocusSource'];
+}> = ({ title, field, model, onUpdate, onFocusSource }) => {
+  const fieldData =
+    field === 'unmapped'
+      ? model.unmapped ?? { content: [] as LogicModelGroup[], critique: '', rating: undefined }
+      : (model[field] as { content: LogicModelGroup[]; critique?: string; rating?: string });
+  const groups = fieldData.content || [];
 
   // Determine styling based on rating
   // Green for Strong/Adequate, Amber for Weak or missing
@@ -299,6 +401,13 @@ const EditableGroupSection: React.FC<{
                    <div
                      key={itemIdx}
                      className={`flex flex-col space-y-2 pl-2 border-l-2 ${needsReview ? 'border-amber-400' : 'border-slate-200'}`}
+                     onFocusCapture={() =>
+                       onFocusSource?.({
+                         sourcePage: item.sourcePage,
+                         sourceColumn: item.sourceColumn,
+                         needsReview,
+                       })
+                     }
                    >
                      <div className="flex items-start justify-between space-x-2">
                        <textarea
@@ -316,8 +425,7 @@ const EditableGroupSection: React.FC<{
                          Remove
                        </button>
                      </div>
-                     {(needsReview || hasColor) && (
-                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                          {needsReview && (
                            <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded border bg-amber-100 text-amber-900 border-amber-300">
                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3" aria-hidden="true">
@@ -326,8 +434,23 @@ const EditableGroupSection: React.FC<{
                              Verify against source
                            </span>
                          )}
-                         {item.fillColor?.trim() && <ColorSwatch label="Fill" value={item.fillColor} />}
-                         {item.borderColor?.trim() && <ColorSwatch label="Border" value={item.borderColor} />}
+                         {hasColor && item.fillColor?.trim() && <ColorSwatch label="Fill" value={item.fillColor} />}
+                         {hasColor && item.borderColor?.trim() && <ColorSwatch label="Border" value={item.borderColor} />}
+                         {onFocusSource && (
+                           <button
+                             type="button"
+                             onClick={() =>
+                               onFocusSource({
+                                 sourcePage: item.sourcePage,
+                                 sourceColumn: item.sourceColumn,
+                                 needsReview,
+                               })
+                             }
+                             className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800"
+                           >
+                             Show in source
+                           </button>
+                         )}
                          {needsReview && (
                            <button
                              type="button"
@@ -337,11 +460,24 @@ const EditableGroupSection: React.FC<{
                              Mark reviewed
                            </button>
                          )}
-                       </div>
-                     )}
+                     </div>
                      {item.sourceNote?.trim() && (
                        <p className="text-[11px] text-amber-800 italic">{item.sourceNote}</p>
                      )}
+                     {typeof item.sourcePage === 'number' && (
+                       <p className="text-[10px] text-slate-500">
+                         Source: page {item.sourcePage}
+                         {typeof item.sourceColumn === 'number' ? ` · column ${item.sourceColumn}` : ''}
+                       </p>
+                     )}
+                     <DomainAssignControls
+                       currentDomain={field}
+                       groupIndex={idx}
+                       itemIndex={itemIdx}
+                       item={item}
+                       model={model}
+                       onUpdate={onUpdate}
+                     />
                      {item.critique && (
                        <div className={`text-xs p-2 rounded border ${itemCritiqueStyles} flex items-start space-x-2`}>
                          <strong className="uppercase text-[9px] mt-0.5 tracking-wider">{item.rating}:</strong>
@@ -390,7 +526,15 @@ const EditableGroupSection: React.FC<{
   );
 };
 
-const LogicModelEditor: React.FC<LogicModelEditorProps> = ({ model, onUpdate, onReAnalyze, isAnalyzing }) => {
+const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
+  model,
+  onUpdate,
+  onReAnalyze,
+  isAnalyzing,
+  mismatchBannerDismissed,
+  onDismissMismatchBanner,
+  onFocusSource,
+}) => {
   const [showOptionalMission, setShowOptionalMission] = useState(() =>
     stringDomainHasContent(model.mission.content)
   );
@@ -683,6 +827,56 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({ model, onUpdate, on
           </div>
         )}
 
+        {!mismatchBannerDismissed && shouldSuggestMismatch(model) && (
+          <div
+            className="mb-6 rounded-lg border border-indigo-200 bg-indigo-50 p-3 flex flex-wrap items-start justify-between gap-3"
+            role="status"
+            id="unmapped-mismatch-banner"
+          >
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 mb-1">
+                Mapping review suggested
+              </p>
+              <p className="text-sm text-indigo-950">
+                Significant layout or label mismatch detected. Review unmapped items and assign domains
+                with the dropdown — leave empty when there is no clear home.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <a
+                href="#unmapped-section"
+                className="text-xs font-bold text-indigo-800 hover:text-indigo-950 underline"
+              >
+                Review unmapped
+              </a>
+              <button
+                type="button"
+                className="text-xs font-bold text-indigo-600 hover:text-indigo-900"
+                onClick={() => {
+                  onUpdate(
+                    appendCorrection(model, {
+                      fileId: '',
+                      action: 'dismiss_mismatch_banner',
+                      itemKey: 'banner',
+                      itemText: '',
+                      fromDomain: null,
+                      toDomain: null,
+                      layoutFamily: model.layoutFamily,
+                    })
+                  );
+                  onDismissMismatchBanner?.();
+                }}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div id="unmapped-section">
+          <EditableGroupSection title="Unmapped (from source)" field="unmapped" model={model} onUpdate={onUpdate} onFocusSource={onFocusSource} />
+        </div>
+
         {/* LOGIC MODEL COLUMNS */}
         <div className="relative py-4 mb-8">
            <div className="absolute inset-0 flex items-center" aria-hidden="true">
@@ -693,9 +887,9 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({ model, onUpdate, on
            </div>
         </div>
 
-        <EditableGroupSection title="Inputs" field="inputs" model={model} onUpdate={onUpdate} />
-        <EditableGroupSection title="Activities" field="activities" model={model} onUpdate={onUpdate} />
-        <EditableGroupSection title="Outputs" field="outputs" model={model} onUpdate={onUpdate} />
+        <EditableGroupSection title="Inputs" field="inputs" model={model} onUpdate={onUpdate} onFocusSource={onFocusSource} />
+        <EditableGroupSection title="Activities" field="activities" model={model} onUpdate={onUpdate} onFocusSource={onFocusSource} />
+        <EditableGroupSection title="Outputs" field="outputs" model={model} onUpdate={onUpdate} onFocusSource={onFocusSource} />
         
         {/* OUTCOMES SECTION */}
         <div className="relative py-4 mb-8">
@@ -707,9 +901,9 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({ model, onUpdate, on
            </div>
         </div>
 
-        <EditableGroupSection title="Short-Term Outcomes" field="shortTermOutcomes" model={model} onUpdate={onUpdate} />
+        <EditableGroupSection title="Short-Term Outcomes" field="shortTermOutcomes" model={model} onUpdate={onUpdate} onFocusSource={onFocusSource} />
         {showOptionalMediumTerm ? (
-          <EditableGroupSection title="Medium-Term Outcomes" field="mediumTermOutcomes" model={model} onUpdate={onUpdate} />
+          <EditableGroupSection title="Medium-Term Outcomes" field="mediumTermOutcomes" model={model} onUpdate={onUpdate} onFocusSource={onFocusSource} />
         ) : (
           <p className="text-xs text-slate-500 mb-6">
             No medium-term outcomes in source.{' '}
@@ -722,9 +916,9 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({ model, onUpdate, on
             </button>
           </p>
         )}
-        <EditableGroupSection title="Long-Term Outcomes" field="longTermOutcomes" model={model} onUpdate={onUpdate} />
+        <EditableGroupSection title="Long-Term Outcomes" field="longTermOutcomes" model={model} onUpdate={onUpdate} onFocusSource={onFocusSource} />
         {showOptionalImpact ? (
-          <EditableGroupSection title="Impact" field="impact" model={model} onUpdate={onUpdate} />
+          <EditableGroupSection title="Impact" field="impact" model={model} onUpdate={onUpdate} onFocusSource={onFocusSource} />
         ) : (
           <p className="text-xs text-slate-500 mb-6">
             No impact column in source.{' '}

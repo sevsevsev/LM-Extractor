@@ -68,26 +68,23 @@ test('promotes Impact Statement prose from mission', () => {
   assert.equal(m.mission.content, '');
 });
 
-test('rebuckets Summer outputs from medium-term to outputs', () => {
+test('does not force rebucket Summer-shaped text from medium-term (spatial trust)', () => {
   const m = normalizeExtractedLogicModel(structuredClone(youthMovesMisparse));
-  const outputTexts = m.outputs.content.flatMap(g => g.items.map(i => i.text));
-  assert.ok(outputTexts.some(t => /Attendance is maintained/.test(t)));
-  assert.ok(outputTexts.some(t => /Implementation 2/.test(t)));
-  assert.ok(!m.mediumTermOutcomes.content.some(g => g.items.some(i => /Attendance is maintained/.test(i.text))));
+  assert.ok(
+    m.mediumTermOutcomes.content.some(g => g.items.some(i => /Attendance is maintained/.test(i.text)))
+  );
 });
 
-test('rebuckets Concert outputs from long-term to outputs', () => {
+test('does not force rebucket Concert-shaped text from long-term (spatial trust)', () => {
   const m = normalizeExtractedLogicModel(structuredClone(youthMovesMisparse));
-  const outputTexts = m.outputs.content.flatMap(g => g.items.map(i => i.text));
-  assert.ok(outputTexts.some(t => /Student choreography/.test(t)));
-  assert.ok(!m.longTermOutcomes.content.some(g => g.items.some(i => /Student choreography/.test(i.text))));
+  assert.ok(
+    m.longTermOutcomes.content.some(g => g.items.some(i => /Student choreography/.test(i.text)))
+  );
 });
 
-test('consolidates invented impact column into long-term outcomes', () => {
+test('preserves Impact column items (does not consolidate into long-term)', () => {
   const m = normalizeExtractedLogicModel(structuredClone(youthMovesMisparse));
-  assert.equal(m.impact.content.length, 0);
-  const lt = m.longTermOutcomes.content.flatMap(g => g.items.map(i => i.text)).join(' ');
-  assert.ok(lt.includes('Sustain careers'));
+  assert.ok(m.impact.content.some(g => g.items.some(i => /Sustain careers/.test(i.text))));
 });
 
 test('isOutputLikeText helper', () => {

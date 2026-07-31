@@ -1,6 +1,10 @@
 import { GoogleGenAI, Type, Schema } from '@google/genai';
 import { getAiExtractionPrompt, getAiCritiquePrompt } from '../constants.js';
-import type { LogicModel } from '../types';
+import {
+  bundleImpliesLowLegibility,
+  type DocumentBundle,
+  type LogicModel,
+} from '../types.js';
 import { parseLogicModelResponse } from '../shared/logicModelValidate.js';
 import { normalizeExtractedLogicModel } from '../shared/extractNormalize.js';
 import { sanitizeAbsentDomainCritiques } from '../shared/domainPresence.js';
@@ -18,6 +22,8 @@ const baseItemSchema: Schema = {
     sourceNote: { type: Type.STRING },
     fillColor: { type: Type.STRING },
     borderColor: { type: Type.STRING },
+    sourcePage: { type: Type.NUMBER },
+    sourceColumn: { type: Type.NUMBER },
   },
   required: ['text'],
 };
@@ -58,6 +64,11 @@ const extractModelSchema: Schema = {
     longTermOutcomes: baseFieldSchema(Type.ARRAY),
     impact: baseFieldSchema(Type.ARRAY),
     colorLegend: { type: Type.STRING },
+    unmapped: baseFieldSchema(Type.ARRAY),
+    layoutFamily: {
+      type: Type.STRING,
+      enum: ['vertical_columns', 'horizontal_rows', 'diagram', 'prose_sections', 'unknown'],
+    },
   },
   required: [
     'organization',
@@ -84,6 +95,8 @@ const critiquedItemSchema: Schema = {
     sourceNote: { type: Type.STRING },
     fillColor: { type: Type.STRING },
     borderColor: { type: Type.STRING },
+    sourcePage: { type: Type.NUMBER },
+    sourceColumn: { type: Type.NUMBER },
   },
   required: ['text', 'critique', 'rating'],
 };
@@ -126,6 +139,11 @@ const critiqueModelSchema: Schema = {
     longTermOutcomes: critiquedFieldSchema(Type.ARRAY),
     impact: critiquedFieldSchema(Type.ARRAY),
     colorLegend: { type: Type.STRING },
+    unmapped: critiquedFieldSchema(Type.ARRAY),
+    layoutFamily: {
+      type: Type.STRING,
+      enum: ['vertical_columns', 'horizontal_rows', 'diagram', 'prose_sections', 'unknown'],
+    },
     overallQuality: {
       type: Type.OBJECT,
       properties: {
@@ -207,30 +225,57 @@ async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
 
 export async function extractLogicModelOnServer(
   apiKey: string,
-  input: string | string[],
-  options?: { textHint?: string; lowLegibility?: boolean }
+  bundle: DocumentBundle
 ): Promise<LogicModel> {
   const ai = new GoogleGenAI({ apiKey });
-  const isVision = Array.isArray(input);
-  const prompt = getAiExtractionPrompt(isVision, { lowLegibility: options?.lowLegibility });
-  const textHint = options?.textHint?.trim();
+  const images = Array.isArray(bundle.images) ? bundle.images.filter(Boolean) : [];
+  const textTrack = typeof bundle.textTrack === 'string' ? bundle.textTrack.trim() : '';
+  const isVision = images.length > 0;
+  const lowLegibility = bundleImpliesLowLegibility(bundle);
+  const hasTextTrack = textTrack.length > 0;
+  const prompt = getAiExtractionPrompt(isVision, { lowLegibility, hasTextTrack });
 
   let contents: unknown;
   if (isVision) {
     const parts: unknown[] = [{ text: prompt }];
-    if (textHint) {
+    if (hasTextTrack) {
       parts.push({
-        text: `\n\nTEXT-LAYER HINT (use to fill impactStatement when page 1 has a labeled Impact Statement; images remain authoritative for the grid):\n---\n${textHint}\n---`,
+        text:
+          `\n\nTRACK A — STRUCTURAL TEXT / MARKDOWN (exact strings + hierarchy; fuse with Track B images below):\n` +
+          `Use for verbatim wording, headings, lists, and bold/emphasis. Images remain authoritative for ` +
+          `column position, fillColor/borderColor, and visual layout.\n---\n${textTrack}\n---`,
       });
     }
-    for (const base64Image of input) {
+    for (let i = 0; i < images.length; i++) {
+      const base64Image = images[i];
+      const ref = bundle.imageRefs?.[i];
+      const label =
+        ref && typeof ref.page === 'number'
+          ? ref.column != null
+            ? `TRACK B image ${i + 1} of ${images.length}: document page ${ref.page}, column ${ref.column} (left→right).`
+            : `TRACK B image ${i + 1} of ${images.length}: document page ${ref.page}.`
+          : `TRACK B image ${i + 1} of ${images.length}.`;
+      parts.push({ text: label });
       parts.push({
         inlineData: { mimeType: 'image/jpeg', data: base64Image },
       });
     }
+    if (hasTextTrack) {
+      parts.push({
+        text: '\nTRACK B — The JPEG parts above are page/slide (and optional column-crop) images for visual semantics.',
+      });
+    }
     contents = { parts };
   } else {
-    contents = [{ text: prompt }, { text: `\n\nDocument Content:\n---\n${input}\n---` }];
+    if (!hasTextTrack) {
+      throw new Error('DocumentBundle must include images[] or a non-empty textTrack.');
+    }
+    contents = [
+      { text: prompt },
+      {
+        text: `\n\nTRACK A — DOCUMENT CONTENT (text-only DocumentBundle):\n---\n${textTrack}\n---`,
+      },
+    ];
   }
 
   const response = await withRetry(() =>
@@ -246,7 +291,7 @@ export async function extractLogicModelOnServer(
   );
 
   return normalizeExtractedLogicModel(parseLogicModelResponse(response.text), {
-    sourceText: textHint || (typeof input === 'string' ? input : undefined),
+    sourceText: textTrack || undefined,
   });
 }
 

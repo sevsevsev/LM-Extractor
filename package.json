@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.31.0",
+    "@matbee/libreoffice-converter": "^2.7.2",
     "docx-preview": "^0.4.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
