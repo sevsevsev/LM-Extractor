@@ -662,7 +662,7 @@ const App: React.FC = () => {
                       className={`grid gap-4 ${
                         file.sourcePaneCollapsed
                           ? 'grid-cols-1'
-                          : 'grid-cols-1 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] xl:grid-cols-[minmax(0,28rem)_minmax(0,1fr)]'
+                          : 'grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]'
                       }`}
                     >
                       <div className={file.sourcePaneCollapsed ? '' : 'order-2 lg:order-1'}>
