@@ -1,6 +1,7 @@
 import { handleExtractRequest } from '../../server/apiCore.js';
 import type { FnRequest, FnResponse } from '../../server/fnTypes.js';
 
+/** POST body: DocumentBundle (`images`, `textTrack`, `warnings`, `sourceFormat`). */
 export default async function handler(req: FnRequest, res: FnResponse): Promise<void> {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');

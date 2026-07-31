@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ProcessingFile, LogicModel } from './types';
+import { ProcessingFile, LogicModel, DocumentBundle } from './types';
 import FileUpload from './components/FileUpload';
 import LogicModelEditor from './components/LogicModelEditor';
 import { LogicModelPdfTemplate, PDF_PAGE_WIDTH_PX } from './components/LogicModelPdfTemplate';
@@ -113,10 +113,7 @@ const App: React.FC = () => {
           )
         );
 
-        let inputForGemini: string | string[];
-        let textHint: string | undefined;
-        let conversionWarnings: string[] = [];
-        let lowLegibility = false;
+        let bundle: DocumentBundle;
         const fileName = pendingFile.file.name.toLowerCase();
 
         try {
@@ -124,33 +121,32 @@ const App: React.FC = () => {
             convertPdfToImages,
             convertDocxToImages,
             convertPptxToImages,
-            extractPdfFrontMatterText,
           } = await import('./services/fileService');
 
           if (fileName.endsWith('.pdf')) {
-            const [pdfResult, frontMatter] = await Promise.all([
-              convertPdfToImages(pendingFile.file),
-              extractPdfFrontMatterText(pendingFile.file, 2),
-            ]);
-            inputForGemini = pdfResult.images;
-            conversionWarnings = pdfResult.warnings;
-            lowLegibility = pdfResult.lowLegibility;
-            textHint = frontMatter || undefined;
+            bundle = await convertPdfToImages(pendingFile.file);
           } else if (fileName.endsWith('.docx')) {
-            inputForGemini = await convertDocxToImages(pendingFile.file);
+            bundle = await convertDocxToImages(pendingFile.file);
           } else if (fileName.endsWith('.pptx')) {
-            inputForGemini = await convertPptxToImages(pendingFile.file);
+            bundle = await convertPptxToImages(pendingFile.file);
           } else {
             throw new Error('Unsupported format for vision');
           }
         } catch (visionError) {
           console.warn('Vision processing failed, falling back to text extraction:', visionError);
-          const { convertFileToMarkdown } = await import('./services/fileService');
-          inputForGemini = await convertFileToMarkdown(pendingFile.file);
-          textHint = typeof inputForGemini === 'string' ? inputForGemini : undefined;
-          conversionWarnings = [
-            "Couldn't read this document as images, so it was analyzed as plain text. Layout-based grouping may be less accurate — verify the results.",
-          ];
+          const {
+            convertFileToMarkdown,
+            sourceFormatFromFileName,
+            textOnlyDocumentBundle,
+          } = await import('./services/fileService');
+          const textTrack = await convertFileToMarkdown(pendingFile.file);
+          bundle = textOnlyDocumentBundle(
+            textTrack,
+            sourceFormatFromFileName(pendingFile.file.name),
+            [
+              "Couldn't read this document as images, so it was analyzed as plain text. Layout-based grouping may be less accurate — verify the results.",
+            ]
+          );
         }
 
         setFiles(prev =>
@@ -160,15 +156,14 @@ const App: React.FC = () => {
                   ...f,
                   status: 'extracting',
                   progressMsg: 'Extracting logic model structure...',
-                  warnings: conversionWarnings.length ? conversionWarnings : undefined,
+                  warnings: bundle.warnings.length ? bundle.warnings : undefined,
                 }
               : f
           )
         );
-        const extractedResult = normalizeExtractedLogicModel(
-          await extractLogicModel(inputForGemini, { textHint, lowLegibility }),
-          { sourceText: textHint }
-        );
+        const extractedResult = normalizeExtractedLogicModel(await extractLogicModel(bundle), {
+          sourceText: bundle.textTrack || undefined,
+        });
 
         setFiles(prev =>
           prev.map(f =>
@@ -267,8 +262,13 @@ const App: React.FC = () => {
       'Fill Color',
       'Border Color',
       'Color Legend',
+      'Source Header',
+      'Mapped By',
+      'Mapping Confidence',
+      'Mapping Note',
       'Overall Rating',
       'Overall Rationale',
+      'Mapping Corrections JSON',
     ];
 
     const exportRows = buildGranularExportRows(
@@ -289,8 +289,13 @@ const App: React.FC = () => {
       r.fillColor,
       r.borderColor,
       r.colorLegend,
+      r.sourceHeader,
+      r.mappedBy,
+      r.mappingConfidence,
+      r.mappingNote,
       r.overallRating,
       r.overallRationale,
+      r.mappingCorrectionsJson,
     ]);
 
     const csvContent = [
@@ -616,6 +621,14 @@ const App: React.FC = () => {
                       onUpdate={updated => updateModel(file.id, updated)}
                       onReAnalyze={() => reAnalyzeModel(file.id)}
                       isAnalyzing={reAnalyzingId === file.id}
+                      mismatchBannerDismissed={file.mismatchBannerDismissed}
+                      onDismissMismatchBanner={() =>
+                        setFiles(prev =>
+                          prev.map(f =>
+                            f.id === file.id ? { ...f, mismatchBannerDismissed: true } : f
+                          )
+                        )
+                      }
                     />
                   )}
 

@@ -4,6 +4,11 @@ import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { config as loadDotenv } from 'dotenv';
 import { handleCritiqueRequest, handleExtractRequest } from './server/apiCore.js';
+import { handlePptxToPdfRequest } from './server/pptxConvertApi.js';
+import {
+  getLibreOfficePackageRoot,
+  getLibreOfficeWasmPath,
+} from './server/libreOfficeConverter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,16 +19,54 @@ const port = Number(process.env.PORT || 3011);
 const apiKey = (process.env.GEMINI_API_KEY || '').trim();
 const isProd = process.env.NODE_ENV === 'production';
 const distPath = path.join(__dirname, 'dist');
+const wasmPath = getLibreOfficeWasmPath();
+const loPkgRoot = getLibreOfficePackageRoot();
 
 if (!apiKey) {
   console.warn('Warning: GEMINI_API_KEY is not set in .env.local');
 }
 
 const app = express();
+
+// PPTX→PDF must run before JSON body parser (raw binary upload).
+app.post(
+  '/api/convert/pptx-to-pdf',
+  express.raw({ type: () => true, limit: '80mb' }),
+  async (req, res) => {
+    const filename =
+      typeof req.query.filename === 'string' && req.query.filename.trim()
+        ? req.query.filename.trim()
+        : 'presentation.pptx';
+    const result = await handlePptxToPdfRequest(req.body, filename);
+    res.status(result.status).json(result.body);
+  }
+);
+
 app.use(express.json({ limit: '40mb' }));
 
+// LibreOffice WASM assets for optional browser WorkerBrowserConverter fallback.
+app.use(
+  '/wasm',
+  express.static(wasmPath, {
+    setHeaders(res) {
+      res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    },
+  })
+);
+app.get('/libreoffice/browser.worker.global.js', (_req, res) => {
+  res.type('application/javascript');
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+  res.sendFile(path.join(loPkgRoot, 'dist', 'browser.worker.global.js'));
+});
+
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, configured: Boolean(apiKey), mode: isProd ? 'production' : 'development' });
+  res.json({
+    ok: true,
+    configured: Boolean(apiKey),
+    mode: isProd ? 'production' : 'development',
+    libreOfficeWasm: existsSync(path.join(wasmPath, 'soffice.wasm')),
+  });
 });
 
 app.post('/api/gemini/extract', async (req, res) => {
@@ -43,7 +86,7 @@ if (isProd) {
   }
   app.use(express.static(distPath));
   app.get('/{*path}', (req, res, next) => {
-    if (req.path.startsWith('/api')) {
+    if (req.path.startsWith('/api') || req.path.startsWith('/wasm') || req.path.startsWith('/libreoffice')) {
       next();
       return;
     }
@@ -53,6 +96,7 @@ if (isProd) {
 
 const server = app.listen(port, () => {
   console.log(`API server listening on http://localhost:${port} (${isProd ? 'production' : 'development'})`);
+  console.log(`LibreOffice WASM path: ${wasmPath}`);
 });
 
 server.on('error', (err: NodeJS.ErrnoException) => {
