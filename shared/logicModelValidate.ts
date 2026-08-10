@@ -1,4 +1,5 @@
 import type { LogicModel, OverallQuality, QualityRating } from '../types';
+import { parseExtractionFidelityFields } from './extractionFidelity.js';
 
 export const REQUIRED_LOGIC_MODEL_KEYS: (keyof LogicModel)[] = [
   'organization',
@@ -67,6 +68,8 @@ export function validateLogicModel(
   } else {
     delete model.overallQuality;
   }
+
+  parseExtractionFidelityFields(model);
 
   return parsed as LogicModel;
 }

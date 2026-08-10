@@ -11,6 +11,8 @@
 - **[extraction-provenance-and-color.md](./extraction-provenance-and-color.md)** — provenance flags, colour axis, raster legibility + column tiling (2026-07-30)
 - **[source-aware-mapping-v1.md](./source-aware-mapping-v1.md)** — source sections, synonym map, unmapped UI, mismatch suggest, correction capture (scoped 2026-07-31)
 - **[source-review-v1.md](./source-review-v1.md)** — side-by-side source rasters + item→page anchors for validation (scoped 2026-07-31)
+- **[extraction-confidence-v1.md](./extraction-confidence-v1.md)** — extraction status/confidence + abstention; fidelity banner; soft coding gate (scoped 2026-08-10)
+- **[tech-extraction-confidence-v1.md](./tech-extraction-confidence-v1.md)** — implementer blueprint for extraction confidence v1
 - **[tech-source-review-v1.md](./tech-source-review-v1.md)** — implementer blueprint for source review v1
 - **[phase-2-cloud.md](./phase-2-cloud.md)** — draft only (auth/cloud) — not approved
 - **[multi-column-extract-patterns.md](./multi-column-extract-patterns.md)** — @pattern-analyst pattern benchmark (Phase 1 ✓)

@@ -1,5 +1,16 @@
 export type QualityRating = 'Strong' | 'Adequate' | 'Weak';
 
+/** Document-level extraction fidelity — not LM document quality (`overallQuality`). */
+export type ExtractionStatus = 'ok' | 'partial' | 'abstained';
+export type ExtractionConfidence = 'high' | 'medium' | 'low';
+
+export interface ExtractionFidelity {
+  status: ExtractionStatus;
+  confidence: ExtractionConfidence;
+  /** 0–4 plain-language reasons; empty when ok + high with nothing to note */
+  blockers: string[];
+}
+
 export interface LogicModelItem {
   text: string;
   critique?: string;
@@ -112,6 +123,13 @@ export interface LogicModel {
   layoutFamily?: LayoutFamily;
   /** Session correction log for offline review / synonym iteration. */
   mappingCorrections?: MappingCorrectionEvent[];
+  /**
+   * Extraction fidelity (separate from overallQuality). See `extraction-confidence-v1.md`.
+   * Flat fields for Gemini schema / CSV; use helpers in `shared/extractionFidelity.ts`.
+   */
+  extractionStatus?: ExtractionStatus;
+  extractionConfidence?: ExtractionConfidence;
+  extractionBlockers?: string[];
 }
 
 /** Locates one extract JPEG within the source document (1-based page / column). */
@@ -165,6 +183,18 @@ export interface ProcessingFile {
   warnings?: string[];
   /** User dismissed the mismatch / unmapped review banner for this file. */
   mismatchBannerDismissed?: boolean;
+  /** Session: user dismissed the extraction-fidelity banner for this file. */
+  fidelityBannerDismissed?: boolean;
+  /**
+   * Session: user confirmed coding export despite partial/low fidelity.
+   * Reset on re-extract / Retry.
+   */
+  codingExportFidelityAck?: boolean;
+  /**
+   * When extract abstains: structured blockers for the error panel.
+   * `status` is `error`; `result` stays undefined (not editable).
+   */
+  extractionBlockers?: string[];
   /**
    * Session-only page rasters for side-by-side source review (from `DocumentBundle.previewImages`).
    * Cleared on Remove. Not exported.

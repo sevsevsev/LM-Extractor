@@ -137,6 +137,9 @@ export interface GranularExportRow {
   mappingNote: string;
   overallRating: string;
   overallRationale: string;
+  extractionStatus: string;
+  extractionConfidence: string;
+  extractionBlockers: string;
   mappingCorrectionsJson: string;
 }
 
@@ -148,6 +151,9 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
     const overallRating = m.overallQuality?.rating || '';
     const overallRationale = (m.overallQuality?.rationale || []).filter(Boolean).join(' | ');
     const colorLegend = m.colorLegend?.trim() || '';
+    const extractionStatus = m.extractionStatus || '';
+    const extractionConfidence = m.extractionConfidence || '';
+    const extractionBlockers = (m.extractionBlockers || []).filter(Boolean).join(' | ');
     const mappingCorrectionsJson = m.mappingCorrections?.length
       ? JSON.stringify(m.mappingCorrections)
       : '';
@@ -178,6 +184,9 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
         mappingNote: '',
         overallRating,
         overallRationale,
+        extractionStatus,
+        extractionConfidence,
+        extractionBlockers,
         mappingCorrectionsJson,
       });
     };
@@ -213,6 +222,9 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
             mappingNote: item.mappingNote?.trim() || '',
             overallRating,
             overallRationale,
+            extractionStatus,
+            extractionConfidence,
+            extractionBlockers,
             mappingCorrectionsJson,
           });
         }

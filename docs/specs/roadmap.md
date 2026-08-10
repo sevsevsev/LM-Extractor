@@ -1,8 +1,8 @@
 # Roadmap — Logic Model Extractor
 
-Living plan. Updated **2026-07-31** (source review v1 scoped).
+Living plan. Updated **2026-08-10** (extraction confidence + abstention v1 scoped).
 
-**Stance:** Local MVP is done. Do not lock new features until real-doc friction is logged. Auth/cloud stay deferred.
+**Stance:** Local MVP is done. Do not lock new features until real-doc friction is logged. Auth/cloud stay deferred. Owner-scoped items may proceed.
 
 ---
 
@@ -20,6 +20,7 @@ Living plan. Updated **2026-07-31** (source review v1 scoped).
 | **Raster/provenance/colour fidelity** | **Implemented** | Provenance + colour fields; raster crop/upscale + column tiling; prompt anti-fabrication | Re-run Oxford Circle PDF; commit snapshot (`fixtures/oxford-circle-carnell-frc/`) |
 | **Source-aware mapping v1** | **Implemented (local)** | Source sections metadata + synonym remap; unmapped + dropdown/note; mismatch banner; correction export; stopped destructive Impact/YouthMoves rebucket | Re-run mismatched + Oxford docs; tune thresholds from correction CSV |
 | **Source review v1** | **Implemented (local)** | Side-by-side source page rasters + soft item→page/column anchors; no bboxes | AC in `source-review-v1.md`; validate in next 3 real-doc sessions |
+| **Extraction confidence + abstention v1** | **Implemented (local)** | Document `ok`/`partial`/`abstained` + categorical confidence rollup; fidelity banner; soft-gate coding export; separate from Overall quality | AC in `extraction-confidence-v1.md`; validate on next 3–5 real docs |
 
 ---
 
@@ -74,6 +75,7 @@ Living plan. Updated **2026-07-31** (source review v1 scoped).
 | PDF export shape tweaks | Human handoff mismatch (not coding path) | S–M |
 | Session save/load (JSON models) | Lost work on refresh / long sessions | M |
 | Side-by-side source preview | “I can’t find what the AI saw” | M–L — **unparked / scoped 2026-07-31** → `source-review-v1.md` |
+| Extraction confidence / abstain | Silent fluent invention; fidelity ≠ LM quality | M — **unparked / scoped 2026-08-10** → `extraction-confidence-v1.md` |
 | L→R review board (cross-domain adjacency) | Validation can’t see causal/thematic links across stacked domains | M — after source review v1; see UX notes in chat / `source-review-v1.md` OUT |
 | Item bounding-box highlight on source | Page jump still insufficient in friction log | M–L — Tier 2 after source-review v1 evidence |
 | Batch queue controls (pause / priority) | Regular multi-file backlog pain | M |

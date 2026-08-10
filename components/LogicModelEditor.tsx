@@ -8,6 +8,7 @@ import {
 import { itemNeedsReview } from '../shared/provenance';
 import { CANONICAL_DOMAIN_OPTIONS, type CanonicalGroupedDomain } from '../shared/domainSynonyms';
 import { reassignItemDomain, shouldSuggestMismatch, appendCorrection } from '../shared/sourceMapping';
+import { shouldShowFidelityBanner } from '../shared/extractionFidelity';
 
 /** Approximate CSS colour for a model-reported colour name, for the editor swatch. */
 const COLOR_SWATCH: Record<string, string> = {
@@ -52,6 +53,9 @@ interface LogicModelEditorProps {
   isAnalyzing: boolean;
   mismatchBannerDismissed?: boolean;
   onDismissMismatchBanner?: () => void;
+  fidelityBannerDismissed?: boolean;
+  onDismissFidelityBanner?: () => void;
+  onOpenSourceForFidelity?: () => void;
   /** Jump source pane to this item’s page/column when user focuses or clicks “Show in source”. */
   onFocusSource?: (anchor: {
     sourcePage?: number;
@@ -533,6 +537,9 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
   isAnalyzing,
   mismatchBannerDismissed,
   onDismissMismatchBanner,
+  fidelityBannerDismissed,
+  onDismissFidelityBanner,
+  onOpenSourceForFidelity,
   onFocusSource,
 }) => {
   const [showOptionalMission, setShowOptionalMission] = useState(() =>
@@ -746,6 +753,9 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
               </select>
             </label>
           </div>
+          <p className="text-[11px] text-slate-500 mb-1">
+            Rates the logic model document — not how faithfully it was extracted.
+          </p>
           <p className="text-[11px] text-slate-500 mb-3">
             Why this rating (2–4 bullets). Re-Analyze refreshes overall quality from AI.
           </p>
@@ -826,6 +836,58 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
             <p className="text-sm text-slate-700 whitespace-pre-line">{model.colorLegend.trim()}</p>
           </div>
         )}
+
+        {!fidelityBannerDismissed && shouldShowFidelityBanner(model) && (
+          <div
+            className="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-3 flex flex-wrap items-start justify-between gap-3"
+            role="status"
+            id="extraction-fidelity-banner"
+          >
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800 mb-1">
+                Extraction fidelity — {model.extractionStatus || 'unknown'}
+                {model.extractionConfidence ? ` · ${model.extractionConfidence} confidence` : ''}
+              </p>
+              <p className="text-sm text-amber-950 mb-2">
+                Capture quality may need verification before coding export. This is separate from
+                Overall quality above.
+              </p>
+              {model.extractionBlockers && model.extractionBlockers.length > 0 && (
+                <ul className="text-sm text-amber-950 list-disc pl-5 space-y-0.5">
+                  {model.extractionBlockers.map((b, i) => (
+                    <li key={i}>{b}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <a
+                href="#needs-review-hint"
+                className="text-xs font-bold text-amber-900 hover:text-amber-950 underline"
+              >
+                Review flagged items
+              </a>
+              <button
+                type="button"
+                className="text-xs font-bold text-amber-900 hover:text-amber-950 underline"
+                onClick={() => onOpenSourceForFidelity?.()}
+              >
+                Show source
+              </button>
+              <button
+                type="button"
+                className="text-xs font-bold text-amber-700 hover:text-amber-950"
+                onClick={() => onDismissFidelityBanner?.()}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+
+        <p id="needs-review-hint" className="sr-only">
+          Items marked verify against source need human review.
+        </p>
 
         {!mismatchBannerDismissed && shouldSuggestMismatch(model) && (
           <div

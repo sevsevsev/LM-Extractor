@@ -241,6 +241,31 @@ ${
     - \`unmapped\` only for clearly non-standard labeled sections (Assumptions, External Factors, etc.).
     - \`layoutFamily\`: \`vertical_columns\` | \`horizontal_rows\` | \`diagram\` | \`prose_sections\` | \`unknown\`.
 
+    ---
+    ## EXTRACTION FIDELITY STATUS (REQUIRED — NOT DOCUMENT QUALITY)
+
+    Set document-level extraction fidelity fields. These are **not** logic-model quality ratings.
+
+    - \`extractionStatus\`: \`ok\` | \`partial\` | \`abstained\`
+    - \`extractionBlockers\`: 0–4 short plain-language reasons (why partial/abstained, or empty when ok)
+    - \`extractionConfidence\` may be omitted (server rollup will set it)
+
+    **Abstain** (\`extractionStatus: "abstained"\`) when any of:
+    - The document is not a logic model (or has no extractable LM layout).
+    - The grid / core structure is largely illegible and text track cannot salvage it.
+    - You cannot establish a column/header inventory with any confidence.
+    When abstaining: leave domain contents empty (or minimal), list blockers, and do **not** invent items to look complete.
+
+    **Partial** when (and not abstaining):
+    - Overview recoverable but the multi-column grid is weak/incomplete.
+    - Many items must be \`verbatim: false\`.
+    - Layout is unmappable / \`layoutFamily: "unknown"\` with uncertain coverage.
+    - You could not cover all clearly visible content.
+
+    **Ok** when core visible domains are populated with mostly confident verbatim transcriptions.
+
+    Prefer empty domains and honest flags over fluent invention. Never use critique/quality language here.
+
     **OUTPUT FORMAT** (JSON only — LogicModel schema; no critique/rating fields; no extra keys):
     {
       "organization": "...",
@@ -257,7 +282,9 @@ ${
       "impact": { "content": [] },
       "unmapped": { "content": [] },
       "layoutFamily": "vertical_columns",
-      "colorLegend": ""
+      "colorLegend": "",
+      "extractionStatus": "ok",
+      "extractionBlockers": []
     }
     Use "General" unless a real in-column label/track is visible. Prefer empty \`impact.content\` over inventing Impact items.
     `;

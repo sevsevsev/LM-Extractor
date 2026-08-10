@@ -1,4 +1,5 @@
 import type { LogicModel, LogicModelGroup, LogicModelItem } from '../types';
+import { reconcileExtractionFidelityFields } from './extractionFidelity.js';
 
 /** Provenance / colour / source-location fields carried on each item independent of critique. */
 export interface ItemProvenance {
@@ -74,6 +75,8 @@ export function reconcileProvenance(target: LogicModel, source: LogicModel): Log
   if (!target.colorLegend?.trim() && source.colorLegend?.trim()) {
     target.colorLegend = source.colorLegend;
   }
+
+  reconcileExtractionFidelityFields(target, source);
 
   if (byText.size === 0) return target;
 

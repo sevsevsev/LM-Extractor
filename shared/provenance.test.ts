@@ -101,6 +101,28 @@ test('does not overwrite provenance the critique kept', () => {
   assert.equal(critiqued.outputs.content[0].items[0].fillColor, 'purple');
 });
 
+test('restores extraction fidelity fields dropped by critique', () => {
+  const source = model({
+    extractionStatus: 'partial',
+    extractionConfidence: 'medium',
+    extractionBlockers: ['Layout family unknown'],
+    activities: {
+      content: [{ name: 'General', items: [{ text: 'Workshops', verbatim: true }] }],
+    },
+  });
+  const critiqued = model({
+    activities: {
+      content: [
+        { name: 'General', items: [{ text: 'Workshops', critique: 'ok', rating: 'Adequate' }] },
+      ],
+    },
+  });
+  reconcileProvenance(critiqued, source);
+  assert.equal(critiqued.extractionStatus, 'partial');
+  assert.equal(critiqued.extractionConfidence, 'medium');
+  assert.deepEqual(critiqued.extractionBlockers, ['Layout family unknown']);
+});
+
 test('itemNeedsReview flags non-verbatim and noted items', () => {
   assert.equal(itemNeedsReview({ text: 'x', verbatim: false }), true);
   assert.equal(itemNeedsReview({ text: 'x', sourceNote: 'clipped' }), true);

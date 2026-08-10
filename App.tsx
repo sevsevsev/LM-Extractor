@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ProcessingFile, LogicModel, DocumentBundle } from './types';
+import { ProcessingFile, LogicModel, DocumentBundle, bundleImpliesLowLegibility } from './types';
 import FileUpload from './components/FileUpload';
 import LogicModelEditor from './components/LogicModelEditor';
 import SourceDocumentPane, { type SourceFocus } from './components/SourceDocumentPane';
@@ -10,10 +10,16 @@ import { normalizeExtractedLogicModel } from './shared/extractNormalize';
 import { buildGranularExportRows, sanitizeAbsentDomainCritiques } from './shared/domainPresence';
 import { brand } from './config/brand';
 import { shouldSuggestMismatch } from './shared/sourceMapping';
+import {
+  formatAbstainMessage,
+  shouldSoftGateCodingExport,
+} from './shared/extractionFidelity';
 
-function modelForExport(model: LogicModel): LogicModel {
+function modelForExport(model: LogicModel, warnings?: string[]): LogicModel {
   return sanitizeAbsentDomainCritiques(
-    normalizeExtractedLogicModel(structuredClone(model))
+    normalizeExtractedLogicModel(structuredClone(model), {
+      lowLegibility: bundleImpliesLowLegibility({ warnings: warnings ?? [] }),
+    })
   );
 }
 
@@ -106,6 +112,10 @@ const App: React.FC = () => {
               progressMsg: undefined,
               sourcePreviewImages: undefined,
               sourcePaneCollapsed: undefined,
+              extractionBlockers: undefined,
+              fidelityBannerDismissed: undefined,
+              codingExportFidelityAck: undefined,
+              mismatchBannerDismissed: undefined,
             }
           : f
       )
@@ -194,9 +204,30 @@ const App: React.FC = () => {
           ...bundle,
           previewImages: undefined,
         };
+        const lowLegibility = bundleImpliesLowLegibility(bundle);
         const extractedResult = normalizeExtractedLogicModel(await extractLogicModel(extractBundle), {
           sourceText: bundle.textTrack || undefined,
+          lowLegibility,
         });
+
+        if (extractedResult.extractionStatus === 'abstained') {
+          const blockers = extractedResult.extractionBlockers ?? [];
+          setFiles(prev =>
+            prev.map(f =>
+              f.id === fileId
+                ? {
+                    ...f,
+                    status: 'error',
+                    error: formatAbstainMessage(blockers),
+                    extractionBlockers: blockers.length ? blockers : ['Model abstained from extraction'],
+                    result: undefined,
+                    progressMsg: undefined,
+                  }
+                : f
+            )
+          );
+          return;
+        }
 
         setFiles(prev =>
           prev.map(f =>
@@ -209,6 +240,11 @@ const App: React.FC = () => {
           await critiqueLogicModel(extractedResult)
         );
 
+        const fidelityNeedsReview =
+          finalResult.extractionStatus === 'partial' ||
+          finalResult.extractionConfidence === 'low' ||
+          finalResult.extractionConfidence === 'medium';
+
         setFiles(prev =>
           prev.map(f =>
             f.id === fileId
@@ -218,9 +254,12 @@ const App: React.FC = () => {
                   result: finalResult,
                   progressMsg: undefined,
                   error: undefined,
-                  // Auto-open source when mismatch review is suggested.
+                  extractionBlockers: undefined,
+                  // Auto-open source when mismatch or non-high fidelity.
                   sourcePaneCollapsed:
-                    shouldSuggestMismatch(finalResult) ? false : f.sourcePaneCollapsed,
+                    shouldSuggestMismatch(finalResult) || fidelityNeedsReview
+                      ? false
+                      : f.sourcePaneCollapsed,
                 }
               : f
           )
@@ -310,11 +349,14 @@ const App: React.FC = () => {
       'Mapping Note',
       'Overall Rating',
       'Overall Rationale',
+      'Extraction Status',
+      'Extraction Confidence',
+      'Extraction Blockers',
       'Mapping Corrections JSON',
     ];
 
     const exportRows = buildGranularExportRows(
-      completed.map(f => modelForExport(f.result!))
+      completed.map(f => modelForExport(f.result!, f.warnings))
     );
     const rows = exportRows.map(r => [
       r.organization,
@@ -337,6 +379,9 @@ const App: React.FC = () => {
       r.mappingNote,
       r.overallRating,
       r.overallRationale,
+      r.extractionStatus,
+      r.extractionConfidence,
+      r.extractionBlockers,
       r.mappingCorrectionsJson,
     ]);
 
@@ -355,6 +400,21 @@ const App: React.FC = () => {
   };
 
   const handleExportForCoding = () => {
+    const gated = exportReadyFiles.filter(
+      f => f.result && shouldSoftGateCodingExport(f.result) && !f.codingExportFidelityAck
+    );
+    if (gated.length > 0) {
+      const confirmed = window.confirm(
+        gated.length === 1
+          ? 'Extraction fidelity is partial or low for this file. Export for coding anyway?'
+          : `Extraction fidelity is partial or low for ${gated.length} files. Export for coding anyway?`
+      );
+      if (!confirmed) return;
+      const gatedIds = new Set(gated.map(g => g.id));
+      setFiles(prev =>
+        prev.map(f => (gatedIds.has(f.id) ? { ...f, codingExportFidelityAck: true } : f))
+      );
+    }
     const result = downloadCodingExportCsv(files);
     if (result.ok === false) {
       alert(result.reason);
@@ -623,11 +683,20 @@ const App: React.FC = () => {
 
                   {file.error && (
                     <div
-                      className="bg-red-50 border border-red-200 text-red-900 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                      className="bg-red-50 border border-red-200 text-red-900 rounded-lg p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3"
                       role="alert"
                     >
-                      <p className="text-sm font-medium">{file.error}</p>
-                      <div className="flex space-x-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">{file.error}</p>
+                        {file.extractionBlockers && file.extractionBlockers.length > 0 && (
+                          <ul className="mt-2 text-sm list-disc pl-5 space-y-1 text-red-800">
+                            {file.extractionBlockers.map((b, i) => (
+                              <li key={i}>{b}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                      <div className="flex space-x-2 shrink-0">
                         {(file.status === 'error' || !file.result) && (
                           <button
                             type="button"
@@ -694,6 +763,21 @@ const App: React.FC = () => {
                               )
                             )
                           }
+                          fidelityBannerDismissed={file.fidelityBannerDismissed}
+                          onDismissFidelityBanner={() =>
+                            setFiles(prev =>
+                              prev.map(f =>
+                                f.id === file.id ? { ...f, fidelityBannerDismissed: true } : f
+                              )
+                            )
+                          }
+                          onOpenSourceForFidelity={() =>
+                            setFiles(prev =>
+                              prev.map(f =>
+                                f.id === file.id ? { ...f, sourcePaneCollapsed: false } : f
+                              )
+                            )
+                          }
                           onFocusSource={anchor => {
                             setFiles(prev =>
                               prev.map(f =>
@@ -749,7 +833,7 @@ const App: React.FC = () => {
 
       <div style={{ position: 'absolute', top: -10000, left: -10000, pointerEvents: 'none' }} aria-hidden="true">
         {filesWithResults.map(f => (
-          <LogicModelPdfTemplate key={f.id} id={`pdf-template-${f.id}`} model={modelForExport(f.result!)} />
+          <LogicModelPdfTemplate key={f.id} id={`pdf-template-${f.id}`} model={modelForExport(f.result!, f.warnings)} />
         ))}
       </div>
 
@@ -795,7 +879,7 @@ const App: React.FC = () => {
             >
               {/* zoom (unlike transform) shrinks the layout box, so the page stays scrollable. */}
               <div className="mx-auto w-fit shadow-lg" style={{ zoom: previewScale }}>
-                <LogicModelPdfTemplate model={modelForExport(currentPreviewFile.result)} />
+                <LogicModelPdfTemplate model={modelForExport(currentPreviewFile.result, currentPreviewFile.warnings)} />
               </div>
             </div>
           </div>

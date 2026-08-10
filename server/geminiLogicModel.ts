@@ -69,6 +69,15 @@ const extractModelSchema: Schema = {
       type: Type.STRING,
       enum: ['vertical_columns', 'horizontal_rows', 'diagram', 'prose_sections', 'unknown'],
     },
+    extractionStatus: {
+      type: Type.STRING,
+      enum: ['ok', 'partial', 'abstained'],
+    },
+    extractionConfidence: {
+      type: Type.STRING,
+      enum: ['high', 'medium', 'low'],
+    },
+    extractionBlockers: { type: Type.ARRAY, items: { type: Type.STRING } },
   },
   required: [
     'organization',
@@ -144,6 +153,15 @@ const critiqueModelSchema: Schema = {
       type: Type.STRING,
       enum: ['vertical_columns', 'horizontal_rows', 'diagram', 'prose_sections', 'unknown'],
     },
+    extractionStatus: {
+      type: Type.STRING,
+      enum: ['ok', 'partial', 'abstained'],
+    },
+    extractionConfidence: {
+      type: Type.STRING,
+      enum: ['high', 'medium', 'low'],
+    },
+    extractionBlockers: { type: Type.ARRAY, items: { type: Type.STRING } },
     overallQuality: {
       type: Type.OBJECT,
       properties: {
@@ -292,6 +310,7 @@ export async function extractLogicModelOnServer(
 
   return normalizeExtractedLogicModel(parseLogicModelResponse(response.text), {
     sourceText: textTrack || undefined,
+    lowLegibility,
   });
 }
 

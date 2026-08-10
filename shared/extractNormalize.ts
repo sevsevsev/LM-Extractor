@@ -1,6 +1,7 @@
 import type { LogicModel, LogicModelGroup } from '../types';
 import { harvestImpactStatementFromPlainText } from './impactStatementHarvest.js';
 import { applySourceAwareMapping } from './sourceMapping.js';
+import { reconcileExtractionFidelity } from './extractionFidelity.js';
 
 type GroupedDomain =
   | 'outputs'
@@ -12,6 +13,8 @@ type GroupedDomain =
 export interface NormalizeExtractOptions {
   /** PDF/DOCX text layer used to recover labeled Impact Statement when vision drops it. */
   sourceText?: string;
+  /** From DocumentBundle warnings — drives extraction fidelity rollup. */
+  lowLegibility?: boolean;
 }
 
 const OUTCOME_DOMAINS: GroupedDomain[] = [
@@ -165,6 +168,7 @@ export function normalizeExtractedLogicModel(
   promoteImpactStatementFromMission(model);
   promoteImpactStatementFromGroupedDomains(model);
   applySourceAwareMapping(model);
+  reconcileExtractionFidelity(model, { lowLegibility: options?.lowLegibility });
   return model;
 }
 

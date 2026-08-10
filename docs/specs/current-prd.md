@@ -1,7 +1,7 @@
 # Current PRD — Logic Model Extractor (SDP Edition)
 
 Status: Active local MVP (2-person) + scoped enhancements  
-Last updated: 2026-07-31
+Last updated: 2026-08-10
 
 ## Problem
 Program staff receive logic models in heterogeneous formats (PDF, Word, PowerPoint). Manual transcription into a consistent structure is slow, and quality review against logic-model guidance is inconsistent.
@@ -32,12 +32,16 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 ## In scope (scoped — owner 2026-07-31)
 3. **Source review v1** — side-by-side source page rasters + soft item→page (optional column) anchors for validation; no bounding boxes. See `source-review-v1.md`.
 
+## In scope (scoped — owner 2026-08-10)
+4. **Extraction confidence + abstention v1** — document-level `ok` / `partial` / `abstained` + categorical confidence + blockers; deterministic rollup from provenance/mismatch/legibility; fidelity banner; soft-gate coding export on partial/low. **Separate from** Overall LM quality (S/A/W). See `extraction-confidence-v1.md`. **Implemented (local).**
+
 ## Out of scope (until explicitly scoped)
 - Authentication / multi-user accounts / public cloud / Vercel team host
 - Cloud storage or shared workspaces / multi-tenant white-label
 - LM Entry App / LM Feedback Module / coding UI in this repo
 - Partnerships DB implementation / unify Extract+Coding
 - Multi-dimension overall scores (beyond single S/A/W + rationale)
+- Numeric extraction “accuracy %” / calibrated probabilities; always-on dual extract; verify-pass Gemini (deferred follow-up in `extraction-confidence-v1.md`)
 - Suppressing “noisy” item critiques in storage (policy may change later in rubric doc)
 - Full automated CI suite expansion
 
@@ -59,6 +63,11 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 11. Image-backed extracts show source page rasters beside the editor; text-only extracts show a graceful message (`source-review-v1.md`).
 12. Item select / “Show in source” navigates to `sourcePage` when present; branded Print Preview remains distinct from source.
 
+## Acceptance criteria (extraction confidence v1 — implemented)
+13. Successful extracts expose `extractionStatus` ∈ {ok, partial, abstained} (abstained = unsuccessful UX), `extractionConfidence` ∈ {high, medium, low}, and blockers; rollup rules in `extraction-confidence-v1.md`.
+14. Fidelity banner is distinct from mismatch banner and from Overall quality; coding export soft-gates on partial/low; full CSV includes fidelity fields.
+15. `overallQuality` remains document quality only (not extraction fidelity).
+
 ## Closed product decisions
 - PDF recommended for fidelity; 2-person local host; no auth/cloud priority.
 - Full-domain extract for DB; coding gets a **separate** outcomes CSV.
@@ -69,6 +78,7 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 - **Extraction fidelity fix (2026-07-30):** Evidence-gated fix from real-doc friction (Oxford Circle CCDA). Per-item provenance (`verbatim`/`sourceNote`) surfaces low-confidence/clipped transcriptions; per-item colour (`fillColor`/`borderColor`) captures the population axis as metadata (never re-buckets); prompt stops treating colour/Resources sub-headings as tracks ("General" is the default); raster pages are cropped + rendered larger with a legibility warning, and dense grids can be sent as per-column tiles. Additive optional fields only. See `extraction-provenance-and-color.md`.
 - **Source-aware mapping (2026-07-31):** Capture source sections faithfully; synonym auto-map into standard domains without inventing/forcing; unmapped bucket + domain dropdown + short note; suggest mismatch review when ≥30% unmapped (or related thresholds); log user mapping corrections for iterative improvement. Full split Translate mode deferred. See `source-aware-mapping-v1.md`.
 - **Source review v1 (2026-07-31):** Unpark side-by-side source preview for validation friction. Session-retained page rasters beside editor; soft `sourcePage` / optional `sourceColumn` jump; no item bboxes; text-only extracts degrade with a message. L→R review board and bbox Tier 2 deferred pending evidence. See `source-review-v1.md`.
+- **Extraction confidence + abstention v1 (2026-08-10):** Fidelity is separate from Overall quality. Document status `ok`/`partial`/`abstained` + categorical confidence from model + deterministic rollup; fidelity banner; soft-gate coding export; no numeric % or second Gemini pass in v1. See `extraction-confidence-v1.md`.
 
 ## Open product questions
 - After first real-doc sessions (`friction-log-template.md`): other friction beyond the two scoped items?
@@ -76,6 +86,7 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 - Colleague handoff: full end-to-end alone, or review/export only?
 - Tune mismatch thresholds after 3–5 docs using correction exports (`source-aware-mapping-v1.md`).
 - Source review: source pane default left vs right; auto-open when mismatch banner shows (`source-review-v1.md`).
+- Extraction confidence: **closed 2026-08-10** — confirm dialog for coding soft-gate; banner + CSV columns; critique always runs on partial (`extraction-confidence-v1.md`).
 
 ## Specs
 - Pipeline: `pipeline-context.md`
@@ -83,6 +94,8 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 - Structure-aware extract: `structure-aware-extract.md`
 - Source-aware mapping (v1): `source-aware-mapping-v1.md`
 - Source review (v1): `source-review-v1.md`
+- Extraction confidence (v1): `extraction-confidence-v1.md`
+- Tech (extraction confidence): `tech-extraction-confidence-v1.md`
 - Coding export: `export-for-coding.md`
 - Tech: `tech-overall-quality-and-coding-export.md`
 - Roadmap: `roadmap.md`
