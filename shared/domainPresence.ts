@@ -108,6 +108,8 @@ export function sanitizeAbsentDomainCritiques(model: LogicModel): LogicModel {
 
   clearAbsentGroupedDomainCritique(m.mediumTermOutcomes);
   clearAbsentGroupedDomainCritique(m.impact);
+  // Unmapped is a mapping bucket, not an LM quality domain — never rate an empty one.
+  if (m.unmapped) clearAbsentGroupedDomainCritique(m.unmapped);
 
   if (m.overallQuality) {
     m.overallQuality.rationale = ensureMinRationale(filterAbsentDomainRationaleBullets(m));

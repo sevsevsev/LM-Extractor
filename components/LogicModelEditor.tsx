@@ -945,7 +945,19 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
         )}
 
         <div id="unmapped-section">
-          <EditableGroupSection title="Unmapped (from source)" field="unmapped" model={model} onUpdate={onUpdate} onFocusSource={onFocusSource} />
+          {groupedDomainHasContent(model.unmapped?.content) ? (
+            <EditableGroupSection
+              title="Unmapped (from source)"
+              field="unmapped"
+              model={model}
+              onUpdate={onUpdate}
+              onFocusSource={onFocusSource}
+            />
+          ) : (
+            <p className="sr-only">
+              No unmapped items — all source sections mapped to standard domains or were absent.
+            </p>
+          )}
         </div>
 
         {/* LOGIC MODEL COLUMNS */}

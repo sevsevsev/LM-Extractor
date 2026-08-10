@@ -302,11 +302,14 @@ export const getAiCritiquePrompt = (): string => {
       - \`mediumTermOutcomes\` with no items (source had no Medium-Term column)
       - \`impact\` with no items (source had no Impact column)
       - \`impactStatement\` when absent/empty
+      - \`unmapped\` with no items (nothing left to assign — empty Unmapped is normal, not a flaw)
     - For skipped domains: leave \`critique\` as \`""\` and **omit** \`rating\` (do not rate Weak for "missing" optional sections).
     - **Missing Mission is NOT a flaw** — never cite absent Mission in overall rationale; never lower overall quality solely because Mission is empty.
     - **Empty grid Impact is NOT a flaw** — when \`impact\` has no items (no Impact column in source), never cite empty Impact section/column in overall rationale; never lower overall quality for it. This is different from a labeled **Impact Statement** when that block exists.
+    - **Empty Unmapped is NOT a flaw** — never rate or critique empty \`unmapped\`; never cite it in overall rationale.
     - **Progression checks apply only to present outcome horizons** — do not require short→medium→long if Medium-Term was not in the source.
     - Still critique **present** domains rigorously (inputs, outputs, outcomes that have items, labeled Impact Statement, etc.).
+    - When \`unmapped\` **has** items: you may note that headers need human domain assignment; do not invent placement. Rating may be Adequate/Weak based on volume of unresolved mapping — never Weak solely because the bucket exists.
 
     **CRITICAL — EVALUATE AS PLACED (DO NOT RE-BUCKET)**:
     - Critique items **where they already sit** in the input JSON. Never move items between domains in your output.

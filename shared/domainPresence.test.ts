@@ -75,6 +75,32 @@ test('sanitizeAbsentDomainCritiques clears mission and optional grouped critique
   assert.ok((m.overallQuality?.rationale.length ?? 0) >= 2);
 });
 
+test('sanitizeAbsentDomainCritiques clears empty unmapped Weak ratings', () => {
+  const m = sanitizeAbsentDomainCritiques({
+    ...baseModel(),
+    unmapped: {
+      content: [],
+      critique: 'No specific suggestions for this section.',
+      rating: 'Weak',
+    },
+  });
+  assert.equal(m.unmapped?.rating, undefined);
+  assert.equal(m.unmapped?.critique, '');
+});
+
+test('sanitizeAbsentDomainCritiques keeps unmapped critique when items exist', () => {
+  const m = sanitizeAbsentDomainCritiques({
+    ...baseModel(),
+    unmapped: {
+      content: [{ name: 'Assumptions', items: [{ text: 'Funding uncertain' }] }],
+      critique: 'Assign these headers to domains.',
+      rating: 'Adequate',
+    },
+  });
+  assert.equal(m.unmapped?.rating, 'Adequate');
+  assert.match(m.unmapped?.critique || '', /Assign/);
+});
+
 test('buildGranularExportRows omits empty mission and empty grouped domains', () => {
   const rows = buildGranularExportRows([baseModel()]);
   const domains = rows.map(r => r.domain);
