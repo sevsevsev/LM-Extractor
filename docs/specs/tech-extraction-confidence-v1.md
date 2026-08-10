@@ -68,9 +68,9 @@ Confidence is **authoritative from deterministic rollup** after status reconcili
 convert → extractLogicModel(bundle)
        → normalizeExtractedLogicModel(..., { sourceText, lowLegibility })
        → reconcileExtractionFidelity  // inside normalize or immediately after
-       → if status === 'abstained':
+       → if shouldHardStopExtraction (status abstained OR confidence low):
             set file status 'error'
-            error = formatAbstainMessage(blockers)
+            error = formatHardStopMessage(blockers)
             extractionBlockers = blockers
             result = undefined
             STOP (no critique)
@@ -78,7 +78,7 @@ convert → extractLogicModel(bundle)
             critiqueLogicModel(...)
             reconcileProvenance (includes fidelity fields)
             status 'editing'
-            auto-open source pane when mismatch OR confidence !== 'high' (optional; at least when partial/low)
+            auto-open source pane when mismatch OR confidence === 'medium'
 ```
 
 ### Server vs client abstain
@@ -110,26 +110,19 @@ Inputs: `LogicModel`, `{ lowLegibility: boolean }`.
 
 | Result | Conditions |
 |--------|------------|
-| `low` | status `abstained` **or** (status `partial` and (`L` or (`N >= 6` and `V_f/N >= 0.40`))) **or** (`L` and `N >= 6` and `V_f/N >= 0.25`) |
-| `medium` | not low, and any of: status `partial`; `N >= 6` and `V_f/N >= 0.15`; `M`; `U_unk`; `L` and `V_f >= 1` |
+| `low` | status `abstained` **or** (`L` and `N >= 6`) **or** (status `partial` and (`L` or (`N >= 6` and `V_f/N >= 0.40`))) **or** no content |
+| `medium` | not low, and any of: status `partial`; `N >= 6` and `V_f/N >= 0.15`; `M`; `U_unk` |
 | `high` | else; if `N < 6`, only `high` when status `ok` and not `L` |
 
-7. **Blockers** — build 0–4 strings from firing conditions (stable phrasing for tests), merge with model-supplied blockers (dedupe, cap 4). Examples:
-   - “Low-resolution source — many items need verification”
-   - “Share of items flagged non-verbatim is high”
-   - “Layout/label mismatch — review unmapped items”
-   - “Layout family unknown”
-   - Model text when abstaining
-
-Write `extractionStatus`, `extractionConfidence`, `extractionBlockers` onto the model.
-
-Export helper:
+Hard-stop when `shouldHardStopExtraction` (`abstained` or `low`). Soft-gate coding when `partial` or `medium`.
 
 ```ts
-shouldSoftGateCodingExport(model: LogicModel): boolean
-// true when status === 'partial' || confidence === 'low'
-```
+shouldHardStopExtraction(model: LogicModel): boolean
+// true when status === 'abstained' || confidence === 'low'
 
+shouldSoftGateCodingExport(model: LogicModel): boolean
+// true when status === 'partial' || confidence === 'medium'
+```
 ## Gemini extract schema additions
 
 ```ts

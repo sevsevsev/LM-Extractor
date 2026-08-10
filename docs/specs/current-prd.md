@@ -64,9 +64,10 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 12. Item select / “Show in source” navigates to `sourcePage` when present; branded Print Preview remains distinct from source.
 
 ## Acceptance criteria (extraction confidence v1 — implemented)
-13. Successful extracts expose `extractionStatus` ∈ {ok, partial, abstained} (abstained = unsuccessful UX), `extractionConfidence` ∈ {high, medium, low}, and blockers; rollup rules in `extraction-confidence-v1.md`.
-14. Fidelity banner is distinct from mismatch banner and from Overall quality; coding export soft-gates on partial/low; full CSV includes fidelity fields.
+13. Successful extracts expose `extractionStatus` ∈ {ok, partial, abstained} and `extractionConfidence` ∈ {high, medium, low}; **`low` or `abstained` hard-stops** (no critique/editor). Rollup rules in `extraction-confidence-v1.md`.
+14. Fidelity banner for proceed-with-caution `partial`/`medium`; coding export soft-gates on those; full CSV includes fidelity fields.
 15. `overallQuality` remains document quality only (not extraction fidelity).
+16. Dense low-legibility grids (\(L\) ∧ \(N \ge 6\)) force `low` even when the model under-flags verbatim (Oxford Circle–class).
 
 ## Closed product decisions
 - PDF recommended for fidelity; 2-person local host; no auth/cloud priority.

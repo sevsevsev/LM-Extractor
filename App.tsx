@@ -11,7 +11,8 @@ import { buildGranularExportRows, sanitizeAbsentDomainCritiques } from './shared
 import { brand } from './config/brand';
 import { shouldSuggestMismatch } from './shared/sourceMapping';
 import {
-  formatAbstainMessage,
+  formatHardStopMessage,
+  shouldHardStopExtraction,
   shouldSoftGateCodingExport,
 } from './shared/extractionFidelity';
 
@@ -195,7 +196,8 @@ const App: React.FC = () => {
                     bundle.previewImages && bundle.previewImages.length > 0
                       ? bundle.previewImages
                       : undefined,
-                  sourcePaneCollapsed: false,
+                  // Editor-primary: source stays hidden until mismatch/fidelity or explicit show.
+                  sourcePaneCollapsed: true,
                 }
               : f
           )
@@ -210,7 +212,7 @@ const App: React.FC = () => {
           lowLegibility,
         });
 
-        if (extractedResult.extractionStatus === 'abstained') {
+        if (shouldHardStopExtraction(extractedResult)) {
           const blockers = extractedResult.extractionBlockers ?? [];
           setFiles(prev =>
             prev.map(f =>
@@ -218,8 +220,10 @@ const App: React.FC = () => {
                 ? {
                     ...f,
                     status: 'error',
-                    error: formatAbstainMessage(blockers),
-                    extractionBlockers: blockers.length ? blockers : ['Model abstained from extraction'],
+                    error: formatHardStopMessage(blockers),
+                    extractionBlockers: blockers.length
+                      ? blockers
+                      : ['Source could not be read reliably enough to continue'],
                     result: undefined,
                     progressMsg: undefined,
                   }
@@ -242,7 +246,6 @@ const App: React.FC = () => {
 
         const fidelityNeedsReview =
           finalResult.extractionStatus === 'partial' ||
-          finalResult.extractionConfidence === 'low' ||
           finalResult.extractionConfidence === 'medium';
 
         setFiles(prev =>
@@ -255,7 +258,7 @@ const App: React.FC = () => {
                   progressMsg: undefined,
                   error: undefined,
                   extractionBlockers: undefined,
-                  // Auto-open source when mismatch or non-high fidelity.
+                  // Auto-open source when mismatch or medium fidelity.
                   sourcePaneCollapsed:
                     shouldSuggestMismatch(finalResult) || fidelityNeedsReview
                       ? false
@@ -406,8 +409,8 @@ const App: React.FC = () => {
     if (gated.length > 0) {
       const confirmed = window.confirm(
         gated.length === 1
-          ? 'Extraction fidelity is partial or low for this file. Export for coding anyway?'
-          : `Extraction fidelity is partial or low for ${gated.length} files. Export for coding anyway?`
+          ? 'Extraction fidelity is partial — export for coding anyway?'
+          : `Extraction fidelity is partial for ${gated.length} files. Export for coding anyway?`
       );
       if (!confirmed) return;
       const gatedIds = new Set(gated.map(g => g.id));
@@ -729,16 +732,22 @@ const App: React.FC = () => {
                   {showEditor && file.result && (
                     <div
                       className={`grid gap-4 ${
-                        file.sourcePaneCollapsed
+                        file.sourcePaneCollapsed !== false
                           ? 'grid-cols-1'
                           : 'grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]'
                       }`}
                     >
-                      <div className={file.sourcePaneCollapsed ? '' : 'order-2 lg:order-1'}>
+                      <div
+                        className={
+                          file.sourcePaneCollapsed !== false
+                            ? ''
+                            : 'order-2 lg:order-1 lg:self-start'
+                        }
+                      >
                         <SourceDocumentPane
                           images={file.sourcePreviewImages ?? []}
                           textOnly={!file.sourcePreviewImages?.length}
-                          collapsed={Boolean(file.sourcePaneCollapsed)}
+                          collapsed={file.sourcePaneCollapsed !== false}
                           focus={sourceFocusByFileId[file.id]}
                           onCollapsedChange={collapsed =>
                             setFiles(prev =>
@@ -749,7 +758,13 @@ const App: React.FC = () => {
                           }
                         />
                       </div>
-                      <div className={file.sourcePaneCollapsed ? '' : 'order-1 lg:order-2 min-w-0'}>
+                      <div
+                        className={
+                          file.sourcePaneCollapsed !== false
+                            ? 'min-w-0'
+                            : 'order-1 lg:order-2 min-w-0'
+                        }
+                      >
                         <LogicModelEditor
                           model={file.result}
                           onUpdate={updated => updateModel(file.id, updated)}
@@ -778,12 +793,25 @@ const App: React.FC = () => {
                               )
                             )
                           }
-                          onFocusSource={anchor => {
-                            setFiles(prev =>
-                              prev.map(f =>
-                                f.id === file.id ? { ...f, sourcePaneCollapsed: false } : f
-                              )
-                            );
+                          onFocusSource={(anchor, options) => {
+                            const wantOpen = options?.open === true;
+                            const alreadyOpen = file.sourcePaneCollapsed === false;
+                            // Quiet sync only when pane is already visible; expand only on explicit open.
+                            if (!wantOpen && !alreadyOpen) return;
+
+                            const preserveEl =
+                              wantOpen && document.activeElement instanceof HTMLElement
+                                ? document.activeElement
+                                : null;
+
+                            if (wantOpen && !alreadyOpen) {
+                              setFiles(prev =>
+                                prev.map(f =>
+                                  f.id === file.id ? { ...f, sourcePaneCollapsed: false } : f
+                                )
+                              );
+                            }
+
                             const pageCount = file.sourcePreviewImages?.length ?? 0;
                             if (
                               typeof anchor.sourcePage === 'number' &&
@@ -809,6 +837,17 @@ const App: React.FC = () => {
                                   note: 'Page unknown — browse source manually',
                                 },
                               }));
+                            }
+
+                            if (preserveEl) {
+                              requestAnimationFrame(() => {
+                                requestAnimationFrame(() => {
+                                  preserveEl.scrollIntoView({
+                                    block: 'nearest',
+                                    inline: 'nearest',
+                                  });
+                                });
+                              });
                             }
                           }}
                         />

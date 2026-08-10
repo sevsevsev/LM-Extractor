@@ -27,6 +27,9 @@ export const FIDELITY_BLOCKERS = {
   unknownLayout: 'Layout family unknown',
   noContent: 'No logic-model content recovered',
   lowLegibilityPartial: 'Low-resolution source with uncertain transcriptions',
+  /** Flattened / low-DPI dense grids (Oxford Circle–class) — do not trust fluent OCR. */
+  lowLegibilityDense:
+    'Low-resolution dense grid — transcription is not reliable enough to continue',
 } as const;
 
 export function isExtractionStatus(value: unknown): value is ExtractionStatus {
@@ -184,6 +187,7 @@ export function reconcileExtractionFidelity(
       M ||
       Uunk ||
       (L && Vf >= 1) ||
+      (L && N >= 6) ||
       modelBlockers.length > 0 ||
       noContent
     ) {
@@ -198,7 +202,10 @@ export function reconcileExtractionFidelity(
   for (const b of modelBlockers) pushBlocker(blockers, seen, b);
 
   if (noContent) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.noContent);
-  if (L && (Vf >= 1 || status === 'partial')) {
+  // Dense low-legibility grids (e.g. Oxford Circle) — force stop even if the model under-flags verbatim.
+  if (L && N >= 6) {
+    pushBlocker(blockers, seen, FIDELITY_BLOCKERS.lowLegibilityDense);
+  } else if (L && (Vf >= 1 || status === 'partial')) {
     pushBlocker(
       blockers,
       seen,
@@ -216,6 +223,7 @@ export function reconcileExtractionFidelity(
   let confidence: ExtractionConfidence;
   if (
     status === 'abstained' ||
+    (L && N >= 6) ||
     (status === 'partial' && (L || (N >= 6 && ratio >= 0.4))) ||
     (L && N >= 6 && ratio >= 0.25) ||
     noContent
@@ -243,29 +251,39 @@ export function reconcileExtractionFidelity(
   return applyExtractionFidelity(model, { status, confidence, blockers });
 }
 
+/** Stop pipeline (no critique / editor) when capture is not trustworthy enough. */
+export function shouldHardStopExtraction(model: LogicModel): boolean {
+  return model.extractionStatus === 'abstained' || model.extractionConfidence === 'low';
+}
+
 export function shouldSoftGateCodingExport(model: LogicModel): boolean {
-  const status = model.extractionStatus;
-  const confidence = model.extractionConfidence;
-  return status === 'partial' || confidence === 'low';
+  // `low` hard-stops before edit; soft-gate covers proceed-with-caution partial/medium.
+  return model.extractionStatus === 'partial' || model.extractionConfidence === 'medium';
 }
 
 export function shouldShowFidelityBanner(model: LogicModel): boolean {
+  if (shouldHardStopExtraction(model)) return false;
   const status = model.extractionStatus;
   const confidence = model.extractionConfidence;
   if (status === 'partial') return true;
-  if (confidence && confidence !== 'high') return true;
+  if (confidence === 'medium') return true;
   return false;
 }
 
-export function formatAbstainMessage(blockers: string[]): string {
+export function formatHardStopMessage(blockers: string[]): string {
   const list = normalizeBlockers(blockers);
   if (list.length === 0) {
-    return 'Extraction abstained — the model could not reliably extract a logic model from this document.';
+    return 'Extraction stopped — the source could not be read reliably enough to continue.';
   }
   if (list.length === 1) {
-    return `Extraction abstained: ${list[0]}`;
+    return `Extraction stopped: ${list[0]}`;
   }
-  return `Extraction abstained: ${list[0]} (${list.length - 1} more reason${list.length > 2 ? 's' : ''})`;
+  return `Extraction stopped: ${list[0]} (${list.length - 1} more reason${list.length > 2 ? 's' : ''})`;
+}
+
+/** @deprecated Prefer formatHardStopMessage — kept for callers that only handle abstain. */
+export function formatAbstainMessage(blockers: string[]): string {
+  return formatHardStopMessage(blockers);
 }
 
 /** Restore document-level fidelity fields if critique dropped them. */

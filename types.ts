@@ -201,5 +201,6 @@ export interface ProcessingFile {
    */
   sourcePreviewImages?: string[];
   /** User collapsed the source pane for this file (session). */
+  /** When true (or undefined treated as collapsed in UI), source preview is hidden. Default collapsed. */
   sourcePaneCollapsed?: boolean;
 }

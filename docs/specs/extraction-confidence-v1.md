@@ -57,9 +57,9 @@ Additive fields on the extracted model (names illustrative for architect — pro
 
 **Ok when:** none of the above; core visible domains populated with mostly verbatim items.
 
-On **abstained**: treat like a processing failure for the happy path — human-readable blockers, Retry / Remove; do **not** present a fake full LM as “editing ready.” Critique is skipped. (Architect: map to `error` status or a dedicated terminal state — product requires no silent empty success.)
+On **abstained** or **`extractionConfidence === 'low'`**: hard-stop — human-readable blockers, Retry / Remove; do **not** present a fake full LM as “editing ready.” Critique and editor are skipped. (Architect: map to `error` status — product requires no silent empty/junk success.)
 
-On **partial**: continue to editor + critique as today; fidelity banner mandatory; source review encouraged.
+On **partial** with **`medium`** (or `ok`/`high`): continue to editor + critique; fidelity banner when partial/medium; source review encouraged.
 
 ### B. Deterministic confidence rollup (no second Gemini call)
 
@@ -74,9 +74,11 @@ Let:
 
 | Confidence | When (defaults) |
 |------------|-----------------|
-| **low** | `extractionStatus === 'abstained'` **or** (`extractionStatus === 'partial'` and (\(L\) or \(V_f / N \ge 0.40\) with \(N \ge 6\))) **or** (\(L\) and \(V_f / N \ge 0.25\) with \(N \ge 6\)) |
-| **medium** | Not low, and any of: `partial`; \(V_f / N \ge 0.15\) with \(N \ge 6\); \(M\); \(U_{unk}\); \(L\) with any \(V_f \ge 1\) |
-| **high** | `ok` and none of the medium/low triggers; if \(N < 6\), allow **high** only when status is `ok` and not \(L\) (small docs: don’t over-penalize) |
+| **low** (hard-stop) | `abstained` **or** \(L\) and \(N \ge 6\) (Oxford-class dense low-DPI grids) **or** (`partial` and (\(L\) or \(V_f / N \ge 0.40\) with \(N \ge 6\))) **or** no recoverable content |
+| **medium** (proceed + banner) | Not low, and any of: `partial`; \(V_f / N \ge 0.15\) with \(N \ge 6\); \(M\); \(U_{unk}\) |
+| **high** | `ok` and none of the medium/low triggers; if \(N < 6\), allow **high** only when status is `ok` and not \(L\) |
+
+**Hard-stop policy (owner 2026-08-10):** Do not run critique or open the editor when confidence is `low` or status is `abstained`. Prefer stopping over asking the operator to rewrite a fluent-but-wrong extract (Oxford Circle failure mode).
 
 Blockers should name the firing conditions in plain language (e.g. “Low-resolution source — many items need verification”).
 
@@ -94,10 +96,10 @@ Blockers should name the firing conditions in plain language (e.g. “Low-resolu
 
 | Export | Behavior (v1 default) |
 |--------|------------------------|
-| **Export for coding** | Soft-block when `extractionStatus === 'partial'` **or** `extractionConfidence === 'low'`: confirm dialog (“Extraction fidelity is partial/low — export for coding anyway?”) or require acknowledgment checkbox once per file/session. |
+| **Export for coding** | Soft-block when `extractionStatus === 'partial'` or `extractionConfidence === 'medium'` (confirm dialog). `low` never reaches export — hard-stopped after extract. |
 | **Full granular CSV** | Always available when a model exists (operators need archive/debug); include new fidelity columns. |
 | **Branded PDF** | Same as full CSV — available; no hard block in v1. |
-| **Abstained** | No model exports (nothing successful to export). |
+| **Hard-stopped (`low` / `abstained`)** | No model exports (nothing successful to export). |
 
 ### E. Prompt / pipeline behavior
 
@@ -127,21 +129,22 @@ Reuse conversion warnings already produced:
 
 ## Acceptance criteria
 
-1. After extract, every successful (`ok` / `partial`) model has `extractionStatus`, `extractionConfidence`, and blockers consistent with the rollup rules (model + normalize reconciled).
-2. Model (or normalize) can produce `abstained` with human-readable blockers; user sees failure-style UI with Retry / Remove; critique and exports do not run as a successful edit session.
-3. `partial` or `low` shows a fidelity banner distinct from mismatch and from Overall quality; banner lists reasons and points to verification / source review.
-4. `overallQuality` remains document quality only; UI copy does not equate it with extraction confidence.
-5. Export for coding soft-gates on `partial` or `low` (confirm or acknowledge); full CSV still exportable and includes fidelity fields.
+1. After extract, every successful (`ok` / `partial` with `high`/`medium`) model has `extractionStatus`, `extractionConfidence`, and blockers consistent with the rollup rules (model + normalize reconciled).
+2. Model (or normalize) can produce `abstained` or `low` confidence; user sees failure-style UI with blockers and Retry / Remove; critique and exports do not run as a successful edit session.
+3. `partial`/`medium` shows a fidelity banner distinct from mismatch and from Overall quality; banner lists reasons and points to verification / source review.
+4. `overallQuality` remains document quality only; UI copy does not equate it with extraction fidelity.
+5. Export for coding soft-gates on `partial`/`medium` (confirm); full CSV still exportable and includes fidelity fields. `low` is hard-stopped before edit.
 6. No new npm packages; Gemini key remains server-side only.
 7. Rollup thresholds are documented here and tunable without a product re-scope (friction-log note after 3–5 docs).
+8. Dense low-legibility grids (\(L\) and \(N \ge 6\)) force `low` even if the model under-flags `verbatim` (Oxford Circle–class).
 
 ## Open product questions (closed 2026-08-10)
 
-Owner confirmed **defaults fine**:
+Owner confirmed **defaults fine**, then tightened hard-stop (2026-08-10):
 
-1. **Coding export gate:** confirm dialog.
+1. **Coding export gate:** confirm dialog (for proceed-with-caution only).
 2. **Colleague handoff:** in-app banner + CSV fidelity columns.
-3. **Critique on partial / low:** always run critique on partial extracts.
+3. **Critique:** runs on `partial`/`medium` only — **`low` / `abstained` hard-stop** (no critique/editor).
 
 ## Follow-ups (not v1)
 
@@ -162,5 +165,6 @@ Owner confirmed **defaults fine**:
 
 - Fidelity is a **separate** product surface from Overall quality.
 - v1 = status + categorical confidence + blockers + rollup + banner + soft coding gate — **not** a second model pass.
-- Soft-gate coding export; do not hard-block full CSV/PDF.
-- Abstain is a first-class unsuccessful outcome, not an empty Strong/Weak LM.
+- Soft-gate coding export on `partial`/`medium`; hard-stop on `low`/`abstained`; do not hard-block full CSV/PDF for successful edits.
+- Abstain / low is a first-class unsuccessful outcome, not an empty Strong/Weak LM.
+- Dense low-legibility + \(N \ge 6\) → `low` (owner 2026-08-10, Oxford Circle).

@@ -56,12 +56,18 @@ interface LogicModelEditorProps {
   fidelityBannerDismissed?: boolean;
   onDismissFidelityBanner?: () => void;
   onOpenSourceForFidelity?: () => void;
-  /** Jump source pane to this item’s page/column when user focuses or clicks “Show in source”. */
-  onFocusSource?: (anchor: {
-    sourcePage?: number;
-    sourceColumn?: number;
-    needsReview?: boolean;
-  }) => void;
+  /**
+   * Jump source pane to this item’s page/column.
+   * Pass `{ open: true }` from “Show in source” to expand the pane; omit to sync only when already open.
+   */
+  onFocusSource?: (
+    anchor: {
+      sourcePage?: number;
+      sourceColumn?: number;
+      needsReview?: boolean;
+    },
+    options?: { open?: boolean }
+  ) => void;
 }
 
 const DomainAssignControls: React.FC<{
@@ -444,11 +450,14 @@ const EditableGroupSection: React.FC<{
                            <button
                              type="button"
                              onClick={() =>
-                               onFocusSource({
-                                 sourcePage: item.sourcePage,
-                                 sourceColumn: item.sourceColumn,
-                                 needsReview,
-                               })
+                               onFocusSource(
+                                 {
+                                   sourcePage: item.sourcePage,
+                                   sourceColumn: item.sourceColumn,
+                                   needsReview,
+                                 },
+                                 { open: true }
+                               )
                              }
                              className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800"
                            >

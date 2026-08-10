@@ -110,7 +110,7 @@ const SourceDocumentPane: React.FC<SourceDocumentPaneProps> = ({
 
   return (
     <aside
-      className="flex h-full min-h-[28rem] flex-col rounded-lg border border-slate-200 bg-white shadow-sm lg:sticky lg:top-4 lg:h-[calc(100vh-5.5rem)] lg:max-h-[calc(100vh-5.5rem)]"
+      className="flex w-full flex-col rounded-lg border border-slate-200 bg-white shadow-sm max-lg:h-[min(70vh,28rem)] lg:sticky lg:top-4 lg:h-[calc(100vh-5.5rem)] lg:max-h-[calc(100vh-5.5rem)]"
       aria-label="Source document"
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-3 py-2">

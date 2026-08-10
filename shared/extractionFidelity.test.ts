@@ -4,8 +4,9 @@ import type { LogicModel, LogicModelGroup, LogicModelItem } from '../types';
 import {
   FIDELITY_BLOCKERS,
   countExtractionItems,
-  formatAbstainMessage,
+  formatHardStopMessage,
   reconcileExtractionFidelity,
+  shouldHardStopExtraction,
   shouldShowFidelityBanner,
   shouldSoftGateCodingExport,
 } from './extractionFidelity.js';
@@ -68,7 +69,7 @@ test('V_f/N >= 0.15 upgrades ok → partial and medium', () => {
   assert.equal(shouldShowFidelityBanner(model), true);
 });
 
-test('V_f/N >= 0.40 on partial → low', () => {
+test('V_f/N >= 0.40 on partial → low hard-stop', () => {
   const model = baseModel({
     activities: { content: groups(manyItems(10, 5)) }, // 0.50
   });
@@ -76,17 +77,17 @@ test('V_f/N >= 0.40 on partial → low', () => {
   assert.equal(model.extractionStatus, 'partial');
   assert.equal(model.extractionConfidence, 'low');
   assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.highNonVerbatim));
+  assert.equal(shouldHardStopExtraction(model), true);
 });
 
-test('low legibility + non-verbatim → at least medium', () => {
+test('small low-legibility extract with non-verbatim → low hard-stop', () => {
   const model = baseModel({
     activities: { content: groups([item('A', false), item('B', true), item('C', true)]) },
   });
   reconcileExtractionFidelity(model, { lowLegibility: true });
   assert.equal(model.extractionStatus, 'partial');
-  assert.ok(
-    model.extractionConfidence === 'medium' || model.extractionConfidence === 'low'
-  );
+  assert.equal(model.extractionConfidence, 'low');
+  assert.equal(shouldHardStopExtraction(model), true);
 });
 
 test('L + high non-verbatim share → low', () => {
@@ -95,7 +96,8 @@ test('L + high non-verbatim share → low', () => {
   });
   reconcileExtractionFidelity(model, { lowLegibility: true });
   assert.equal(model.extractionConfidence, 'low');
-  assert.ok(model.extractionBlockers?.some(b => /low-resolution/i.test(b)));
+  assert.ok(model.extractionBlockers?.some(b => /low-resolution|dense grid/i.test(b)));
+  assert.equal(shouldHardStopExtraction(model), true);
 });
 
 test('mismatch true → partial upgrade + medium', () => {
@@ -141,6 +143,7 @@ test('abstained sticky with low confidence', () => {
   assert.equal(model.extractionConfidence, 'low');
   assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.abstained));
   assert.ok(model.extractionBlockers?.includes('Not a logic model'));
+  assert.equal(shouldHardStopExtraction(model), true);
 });
 
 test('never downgrade partial → ok when signals clear', () => {
@@ -151,6 +154,7 @@ test('never downgrade partial → ok when signals clear', () => {
   reconcileExtractionFidelity(model, { lowLegibility: false });
   assert.equal(model.extractionStatus, 'partial');
   assert.equal(shouldSoftGateCodingExport(model), true);
+  assert.equal(shouldHardStopExtraction(model), false);
 });
 
 test('no content → partial + low + blocker', () => {
@@ -159,20 +163,34 @@ test('no content → partial + low + blocker', () => {
   assert.equal(model.extractionStatus, 'partial');
   assert.equal(model.extractionConfidence, 'low');
   assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.noContent));
+  assert.equal(shouldHardStopExtraction(model), true);
 });
 
-test('shouldSoftGateCodingExport true for low even if status ok', () => {
+test('shouldHardStopExtraction on low even if status ok', () => {
   const model = baseModel({
     extractionStatus: 'ok',
     extractionConfidence: 'low',
     activities: { content: groups(manyItems(3, 0)) },
   });
-  assert.equal(shouldSoftGateCodingExport(model), true);
+  assert.equal(shouldHardStopExtraction(model), true);
+  assert.equal(shouldSoftGateCodingExport(model), false);
 });
 
-test('formatAbstainMessage', () => {
-  assert.match(formatAbstainMessage([]), /abstained/i);
-  assert.match(formatAbstainMessage(['Illegible grid']), /Illegible grid/);
+test('dense low-legibility grid forces low even when all verbatim (Oxford-class)', () => {
+  const model = baseModel({
+    activities: { content: groups(manyItems(10, 0)) },
+  });
+  reconcileExtractionFidelity(model, { lowLegibility: true });
+  assert.equal(model.extractionStatus, 'partial');
+  assert.equal(model.extractionConfidence, 'low');
+  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.lowLegibilityDense));
+  assert.equal(shouldHardStopExtraction(model), true);
+  assert.equal(shouldShowFidelityBanner(model), false); // never reaches editor
+});
+
+test('formatHardStopMessage', () => {
+  assert.match(formatHardStopMessage([]), /stopped/i);
+  assert.match(formatHardStopMessage(['Illegible grid']), /Illegible grid/);
 });
 
 test('countExtractionItems includes unmapped', () => {
