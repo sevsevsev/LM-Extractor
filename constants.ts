@@ -219,8 +219,10 @@ ${
 
     **COLOUR CODING (capture, never interpret, never reclassify)**${isVision ? ' — **Track B / images only**' : ''}:
     - Record per-box \`fillColor\` (e.g. blue fill → \`"fillColor": "blue"\`) and differing \`borderColor\`.
-    - Colour is per BOX, not per column. Never let colour change column/group assignment.
-    - Copy an explicit colour key into \`colorLegend\` only when visible; otherwise leave "".
+    - Colour is per BOX, not per column. Never stamp one colour on every item in a column when fills actually vary.
+    - Never let colour change column or group assignment. Never name a population/group from colour when no key is printed.
+    - A single shared fill on every box is often decorative — still record it; leave \`colorLegend\` "".
+    - Copy an explicit colour key into \`colorLegend\` only when a key is visible on the page; otherwise leave "".
 
     **VISUAL EMPHASIS (bold / key entities)**:
     - Visually bold/header-styled text is a key entity → map to \`Group.name\`, headers, or item \`text\` only.

@@ -51,11 +51,11 @@ const SourceDocumentPane: React.FC<SourceDocumentPaneProps> = ({
 
   if (collapsed) {
     return (
-      <div className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Source document</p>
+      <div className="flex items-center justify-between gap-2 rounded-md border border-gray-200 bg-white px-3 py-2">
+        <p className="text-xs font-bold uppercase tracking-wider text-brand-gray">Source document</p>
         <button
           type="button"
-          className="text-xs font-bold text-blue-600 hover:text-blue-800"
+          className="text-xs font-bold text-brand-blue hover:text-brand-navy"
           onClick={() => onCollapsedChange(false)}
         >
           Show source
@@ -67,14 +67,14 @@ const SourceDocumentPane: React.FC<SourceDocumentPaneProps> = ({
   if (textOnly || pageCount === 0) {
     return (
       <aside
-        className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+        className="rounded-md border border-gray-200 bg-white p-4"
         aria-label="Source document"
       >
         <div className="mb-3 flex items-center justify-between gap-2">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Source document</h3>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-brand-gray">Source document</h3>
           <button
             type="button"
-            className="text-xs font-bold text-slate-500 hover:text-slate-800"
+            className="text-xs font-bold text-brand-gray hover:text-brand-navy"
             onClick={() => onCollapsedChange(true)}
           >
             Hide
@@ -110,11 +110,11 @@ const SourceDocumentPane: React.FC<SourceDocumentPaneProps> = ({
 
   return (
     <aside
-      className="flex w-full flex-col rounded-lg border border-slate-200 bg-white shadow-sm max-lg:h-[min(70vh,28rem)] lg:sticky lg:top-4 lg:h-[calc(100vh-5.5rem)] lg:max-h-[calc(100vh-5.5rem)]"
+      className="flex w-full flex-col rounded-md border border-gray-200 bg-white max-lg:h-[min(70vh,28rem)] lg:sticky lg:top-4 lg:h-[calc(100vh-5.5rem)] lg:max-h-[calc(100vh-5.5rem)]"
       aria-label="Source document"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-3 py-2">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Source document</h3>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 bg-brand-muted px-3 py-2">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-brand-gray">Source document</h3>
         <div className="flex flex-wrap items-center gap-1">
           <button
             type="button"

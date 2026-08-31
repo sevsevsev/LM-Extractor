@@ -596,26 +596,25 @@ const App: React.FC = () => {
   const showPipelineSpinner = !!file && isPipelineBusy(file.status) && !file.result;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-20 relative">
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
-        <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center space-x-3 min-w-0">
-            <div className="bg-indigo-600 text-white p-1.5 rounded-lg shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-              </svg>
-            </div>
-            <h1 className="text-xl font-bold text-slate-800">
-              {brand.productName}{' '}
-              <span className="text-xs font-normal text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full ml-2">
-                {brand.editionLabel}
-              </span>
+    <div className="min-h-screen bg-brand-muted text-brand-navy pb-20 relative">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
+        <div className="h-0.5 bg-brand-accent" aria-hidden="true" />
+        <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <img
+              src={brand.logoSrc}
+              alt={brand.logoAlt}
+              className="h-12 w-auto object-contain shrink-0"
+            />
+            <div className="hidden sm:block w-px h-9 bg-gray-200 shrink-0" aria-hidden="true" />
+            <h1 className="headline text-[13px] text-brand-navy leading-snug">
+              {brand.productName}
             </h1>
           </div>
           {files.length > 0 && (
-            <p className="text-xs font-bold text-slate-600 flex items-center gap-2" aria-live="polite">
+            <p className="text-xs font-bold text-brand-gray flex items-center gap-2" aria-live="polite">
               {isProcessing && (
-                <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500 animate-pulse" aria-hidden="true" />
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-brand-accent animate-pulse" aria-hidden="true" />
               )}
               <span>{formatSessionStatus(sessionCounts)}</span>
             </p>
@@ -625,17 +624,17 @@ const App: React.FC = () => {
               type="button"
               onClick={handleBatchDownloadPdf}
               disabled={isGeneratingPdf || exportReadyCount === 0}
-              className="bg-white border border-gray-300 text-slate-700 px-3 py-2 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50 flex items-center space-x-2"
+              className="border border-brand-navy text-brand-navy px-3 py-2 rounded-md text-sm font-bold hover:bg-brand-muted transition-colors disabled:opacity-50 flex items-center space-x-2"
             >
               {isGeneratingPdf ? (
-                <div className="animate-spin h-3 w-3 border-2 border-slate-400 border-t-transparent rounded-full" aria-hidden="true" />
+                <div className="animate-spin h-3 w-3 border-2 border-brand-navy/40 border-t-brand-navy rounded-full" aria-hidden="true" />
               ) : null}
               <span>{zipLabel}</span>
             </button>
             <button
               type="button"
               onClick={handleExportForCoding}
-              className="bg-white border border-indigo-300 text-indigo-800 px-3 py-2 rounded-lg text-sm font-bold hover:bg-indigo-50 transition-colors shadow-sm disabled:opacity-50"
+              className="border border-brand-blue text-brand-navy px-3 py-2 rounded-md text-sm font-bold hover:bg-brand-muted transition-colors disabled:opacity-50"
               disabled={codingExportRowCount === 0}
               title={
                 codingExportRowCount === 0
@@ -648,7 +647,7 @@ const App: React.FC = () => {
             <button
               type="button"
               onClick={handleExportCSV}
-              className="bg-slate-800 text-white px-3 py-2 rounded-lg text-sm font-bold hover:bg-slate-700 transition-colors shadow-sm disabled:opacity-50"
+              className="bg-brand-navy text-white px-3 py-2 rounded-md text-sm font-bold hover:bg-brand-blue transition-colors disabled:opacity-50"
               disabled={exportReadyCount === 0}
             >
               {csvLabel}
@@ -659,14 +658,9 @@ const App: React.FC = () => {
 
       <main className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {files.length === 0 && (
-          <section className="text-center space-y-3 max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold text-slate-900 leading-tight">Extract & Refine Your Program Data</h2>
-            <p className="text-slate-600">
-              Upload logic models (PDF, Word, or PowerPoint). AI detects structure and stakeholders. Generate{' '}
-              <span className="font-bold" style={{ color: brand.colors.primary }}>
-                {brand.shortName} branded PDFs
-              </span>{' '}
-              instantly.
+          <section className="text-center max-w-2xl mx-auto">
+            <p className="text-brand-gray text-[15px]">
+              Upload PDF, Word, or PowerPoint. Review the extracted columns, then export a branded PDF or CSV.
             </p>
           </section>
         )}
@@ -681,18 +675,18 @@ const App: React.FC = () => {
 
             {file && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-md border border-gray-200">
                   <div className="flex items-center space-x-3 min-w-0">
-                    <span className="font-bold text-sm text-slate-700 truncate">
+                    <span className="font-bold text-sm text-brand-navy truncate">
                       {file.result?.program?.trim() || file.file.name}
                     </span>
                     <span
                       className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded shrink-0 ${
                         isExportReady(file.status)
-                          ? 'bg-green-100 text-green-700'
+                          ? 'bg-brand-muted text-brand-navy'
                           : file.status === 'error'
-                            ? 'bg-red-100 text-red-700'
-                            : 'bg-blue-100 text-blue-700'
+                            ? 'bg-red-50 text-brand-red'
+                            : 'bg-brand-sky/30 text-brand-navy'
                       }`}
                     >
                       {STATUS_LABELS[file.status]}
@@ -704,7 +698,7 @@ const App: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setPreviewFileId(file.id)}
-                          className="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded transition-colors"
+                          className="text-xs font-bold text-brand-navy bg-brand-sky/25 hover:bg-brand-sky/40 px-3 py-1.5 rounded-md transition-colors"
                         >
                           Preview branded PDF
                         </button>
@@ -712,7 +706,7 @@ const App: React.FC = () => {
                           type="button"
                           onClick={() => handleDownloadSinglePdf(file)}
                           disabled={isGeneratingPdf}
-                          className="text-xs font-bold text-slate-600 hover:text-slate-800 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded transition-colors disabled:opacity-50"
+                          className="text-xs font-bold text-brand-navy bg-brand-muted hover:bg-gray-200 px-3 py-1.5 rounded-md transition-colors disabled:opacity-50"
                         >
                           Download PDF
                         </button>
@@ -765,7 +759,7 @@ const App: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => retryFile(file.id)}
-                          className="text-xs font-bold bg-red-700 text-white px-3 py-1.5 rounded hover:bg-red-800"
+                          className="text-xs font-bold bg-brand-red text-white px-3 py-1.5 rounded-md hover:opacity-90"
                         >
                           Retry
                         </button>
@@ -774,7 +768,7 @@ const App: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => reAnalyzeModel(file.id)}
-                          className="text-xs font-bold bg-red-700 text-white px-3 py-1.5 rounded hover:bg-red-800"
+                          className="text-xs font-bold bg-brand-red text-white px-3 py-1.5 rounded-md hover:opacity-90"
                         >
                           Retry critique
                         </button>
@@ -791,7 +785,7 @@ const App: React.FC = () => {
                 )}
 
                 {file.status === 'pending' && (
-                  <div className="bg-white border rounded-xl px-4 py-6 text-sm text-slate-600" aria-live="polite">
+                  <div className="bg-white border border-gray-200 rounded-md px-4 py-6 text-sm text-brand-gray" aria-live="polite">
                     Queued — files process one at a time.
                   </div>
                 )}
@@ -922,9 +916,9 @@ const App: React.FC = () => {
                 )}
 
                 {showPipelineSpinner && (
-                  <div className="bg-white border rounded-xl px-4 py-10 flex flex-col items-center justify-center space-y-3 shadow-sm" aria-live="polite">
-                    <div className="animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent" aria-hidden="true" />
-                    <p className="font-bold text-slate-600">
+                  <div className="bg-white border border-gray-200 rounded-md px-4 py-10 flex flex-col items-center justify-center space-y-3" aria-live="polite">
+                    <div className="animate-spin rounded-full h-10 w-10 border-4 border-brand-blue border-t-transparent" aria-hidden="true" />
+                    <p className="font-bold text-brand-navy">
                       {file.progressMsg || STATUS_LABELS[file.status]}
                     </p>
                   </div>
@@ -955,17 +949,16 @@ const App: React.FC = () => {
             if (e.target === e.currentTarget) setPreviewFileId(null);
           }}
         >
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden">
-            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50">
-              <h3 id="pdf-preview-title" className="font-bold text-lg text-slate-800">
-                Branded PDF preview: {currentPreviewFile.result.program}
+          <div className="bg-white rounded-md shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-brand-navy text-white">
+              <h3 id="pdf-preview-title" className="headline text-sm text-white">
+                PDF preview: {currentPreviewFile.result.program}
               </h3>
               <div className="flex space-x-2">
                 <button
                   type="button"
                   onClick={() => handleDownloadSinglePdf(currentPreviewFile)}
-                  className="text-white px-4 py-2 rounded font-bold text-sm hover:opacity-90"
-                  style={{ backgroundColor: brand.colors.primary }}
+                  className="bg-brand-accent text-brand-navy px-4 py-2 rounded-md font-bold text-sm hover:bg-brand-sky"
                 >
                   Download PDF
                 </button>
@@ -973,7 +966,7 @@ const App: React.FC = () => {
                   id="pdf-preview-close"
                   type="button"
                   onClick={() => setPreviewFileId(null)}
-                  className="text-gray-500 hover:text-gray-700 px-4 py-2 font-bold text-sm"
+                  className="text-white/80 hover:text-white px-4 py-2 font-bold text-sm"
                 >
                   Close
                 </button>

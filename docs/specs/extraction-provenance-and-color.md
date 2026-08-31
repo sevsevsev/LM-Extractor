@@ -85,4 +85,4 @@ column identity structural, with no double-counting. Anything ambiguous falls ba
 
 ## Follow-ups (not in this change)
 - Optional true native-image extraction (avoid any re-compression) if legibility still limits.
-- Optional colour-cluster grouping in the UI (group items by shared colour) once real docs show demand.
+- Optional colour-cluster grouping in the UI (group items by shared colour) once real docs show demand — **partial 2026-08-31:** unlabeled multi-colour fills surface as a board filter; single-fill and per-column paint are treated as decorative, not categories.

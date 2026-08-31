@@ -14,9 +14,9 @@ const STATUS_LABELS: Record<ProcessingFile['status'], string> = {
 };
 
 const statusClass = (status: ProcessingFile['status']) => {
-  if (isExportReady(status)) return 'bg-green-100 text-green-700';
-  if (status === 'error') return 'bg-red-100 text-red-700';
-  return 'bg-blue-100 text-blue-700';
+  if (isExportReady(status)) return 'bg-brand-muted text-brand-navy';
+  if (status === 'error') return 'bg-red-50 text-brand-red';
+  return 'bg-brand-sky/30 text-brand-navy';
 };
 
 interface SessionFileListProps {
@@ -31,7 +31,7 @@ const SessionFileList: React.FC<SessionFileListProps> = ({ files, selectedFileId
   return (
     <nav aria-label="Files in this session">
       <ul
-        className="max-h-[min(24rem,50vh)] overflow-y-auto divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white shadow-sm"
+        className="max-h-[min(24rem,50vh)] overflow-y-auto divide-y divide-gray-100 rounded-md border border-gray-200 bg-white"
         role="listbox"
         aria-label="Session files"
       >
@@ -46,15 +46,15 @@ const SessionFileList: React.FC<SessionFileListProps> = ({ files, selectedFileId
                 type="button"
                 onClick={() => onSelect(file.id)}
                 className={`w-full text-left px-3 py-2.5 flex items-center gap-3 transition-colors ${
-                  selected ? 'bg-indigo-50 ring-inset ring-2 ring-indigo-400' : 'hover:bg-slate-50'
+                  selected ? 'bg-brand-sky/20 ring-inset ring-2 ring-brand-navy' : 'hover:bg-brand-muted'
                 }`}
               >
                 <span className="min-w-0 flex-1">
-                  <span className="block font-bold text-sm text-slate-800 truncate">
+                  <span className="block font-bold text-sm text-brand-navy truncate">
                     {program || file.file.name}
                   </span>
                   {program ? (
-                    <span className="block text-xs text-slate-500 truncate">{file.file.name}</span>
+                    <span className="block text-xs text-brand-gray truncate">{file.file.name}</span>
                   ) : null}
                 </span>
                 <span className="flex items-center gap-1.5 shrink-0">
@@ -67,7 +67,7 @@ const SessionFileList: React.FC<SessionFileListProps> = ({ files, selectedFileId
                     </span>
                   )}
                   {busy && (
-                    <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500 animate-pulse" aria-hidden="true" />
+                    <span className="inline-block h-2.5 w-2.5 rounded-full bg-brand-accent animate-pulse" aria-hidden="true" />
                   )}
                   <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${statusClass(file.status)}`}>
                     {file.progressMsg && busy ? file.progressMsg : STATUS_LABELS[file.status]}

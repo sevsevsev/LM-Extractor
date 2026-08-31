@@ -16,11 +16,11 @@ const { primary: BRAND_PRIMARY, secondary: BRAND_SECONDARY, accent: BRAND_ACCENT
  * resolve to rgb/rgba, so those utilities remain safe to use.
  */
 const PDF_COLORS = {
-  pageText: '#0f172a',
-  bodyText: '#1e293b',
-  contextText: '#475569',
-  sectionLabel: '#64748b',
-  faintText: '#94a3b8',
+  pageText: '#0b315b',
+  bodyText: '#0b315b',
+  contextText: '#707687',
+  sectionLabel: '#707687',
+  faintText: '#707687',
   gridBorder: '#d1d5db',
   subtleBorder: '#e5e7eb',
 };

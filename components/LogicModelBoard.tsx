@@ -1,6 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { LogicModel, LogicModelGroup, LogicModelItem } from '../types';
 import { groupedDomainHasContent } from '../shared/domainPresence';
+import {
+  analyzeColorAxis,
+  colorAxisNotes,
+  itemMatchesColorFilter,
+} from '../shared/colorAxis';
 import { itemNeedsReview } from '../shared/provenance';
 import { domainFieldLabel, type CanonicalGroupedDomain } from '../shared/domainSynonyms';
 import { ColorSwatch, DomainAssignControls, ratingBadgeClass, swatchColor } from './itemChrome';
@@ -77,9 +82,17 @@ interface LogicModelBoardProps {
 
 const LogicModelBoard: React.FC<LogicModelBoardProps> = ({ model, onUpdate, onFocusSource }) => {
   const [selected, setSelected] = useState<BoardItemRef | null>(null);
+  const [colorFilter, setColorFilter] = useState<string | null>(null);
   const showImpact = groupedDomainHasContent(model.impact.content);
   const showUnmapped = groupedDomainHasContent(model.unmapped?.content);
   const columnCount = 6 + (showImpact ? 1 : 0);
+  const colorAxis = useMemo(() => analyzeColorAxis(model), [model]);
+  const colorNotes = useMemo(() => colorAxisNotes(colorAxis), [colorAxis]);
+  const showColorMeta = colorAxis.kind === 'cross_cutting';
+
+  useEffect(() => {
+    if (!showColorMeta) setColorFilter(null);
+  }, [showColorMeta]);
 
   const selectedItem = selected ? getBoardItem(model, selected) : null;
 
@@ -153,14 +166,65 @@ const LogicModelBoard: React.FC<LogicModelBoardProps> = ({ model, onUpdate, onFo
   );
 
   return (
-    <div className="mb-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] lg:gap-4 lg:items-start space-y-4 lg:space-y-0">
-      <div className="space-y-4 min-w-0">
+    <div className="mb-8 space-y-3 min-w-0 max-w-full">
+      {!selected && (
+        <p className="text-sm text-slate-600">Click an item to edit wording or move it to another column.</p>
+      )}
+      {colorNotes.map(note => (
+        <p
+          key={note}
+          className="text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2"
+          role="status"
+        >
+          {note}
+        </p>
+      ))}
+      {showColorMeta && (
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by box colour">
+          <button
+            type="button"
+            onClick={() => setColorFilter(null)}
+            className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
+              colorFilter === null
+                ? 'bg-brand-navy text-white border-brand-navy'
+                : 'bg-white text-brand-navy border-gray-200 hover:border-brand-blue'
+            }`}
+            aria-pressed={colorFilter === null}
+          >
+            All colours
+          </button>
+          {colorAxis.colors.map(color => {
+            const css = swatchColor(color);
+            const active = colorFilter === color;
+            return (
+              <button
+                key={color}
+                type="button"
+                onClick={() => setColorFilter(active ? null : color)}
+                className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${
+                  active
+                    ? 'bg-brand-sky/25 text-brand-navy border-brand-blue'
+                    : 'bg-white text-brand-navy border-gray-200 hover:border-brand-blue'
+                }`}
+                aria-pressed={active}
+              >
+                <span
+                  className="inline-block w-2.5 h-2.5 rounded-sm border border-slate-300"
+                  style={css ? { backgroundColor: css } : undefined}
+                  aria-hidden="true"
+                />
+                {color}
+              </button>
+            );
+          })}
+        </div>
+      )}
       {showUnmapped && (
         <section
-          className="rounded-lg border border-indigo-200 bg-indigo-50/60 p-3"
+          className="rounded-lg border border-brand-accent/50 bg-brand-sky/15 p-3"
           aria-label="Unmapped items"
         >
-          <h4 className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 mb-2">
+          <h4 className="text-[10px] font-bold uppercase tracking-wider text-brand-navy mb-2">
             Unmapped — assign a column
           </h4>
           <div className="flex flex-wrap gap-2">
@@ -175,6 +239,8 @@ const LogicModelBoard: React.FC<LogicModelBoardProps> = ({ model, onUpdate, onFo
                     selected.groupIndex === gi &&
                     selected.itemIndex === ii
                   }
+                  showColorMeta={showColorMeta}
+                  dimmed={!itemMatchesColorFilter(item, colorFilter)}
                   onSelect={() => handleSelect({ domain: 'unmapped', groupIndex: gi, itemIndex: ii })}
                 />
               ))
@@ -183,10 +249,10 @@ const LogicModelBoard: React.FC<LogicModelBoardProps> = ({ model, onUpdate, onFo
         </section>
       )}
 
-      <div className="overflow-x-auto -mx-1 px-1">
+      <div className="overflow-x-auto max-w-full pb-2">
         <div
-          className="grid gap-2 min-w-[72rem]"
-          style={{ gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))` }}
+          className="grid gap-2 w-full"
+          style={{ gridTemplateColumns: `repeat(${columnCount}, minmax(10.5rem, 1fr))` }}
           role="list"
           aria-label="Logic model columns"
         >
@@ -199,10 +265,11 @@ const LogicModelBoard: React.FC<LogicModelBoardProps> = ({ model, onUpdate, onFo
               rating={model[col.key].rating}
               selected={selected}
               onSelect={handleSelect}
+              showColorMeta={showColorMeta}
+              colorFilter={colorFilter}
             />
           ))}
         </div>
-      </div>
       </div>
 
       <ItemInspector
@@ -226,13 +293,15 @@ const BoardColumn: React.FC<{
   rating?: string;
   selected: BoardItemRef | null;
   onSelect: (ref: BoardItemRef) => void;
-}> = ({ title, domain, groups, rating, selected, onSelect }) => {
+  showColorMeta: boolean;
+  colorFilter: string | null;
+}> = ({ title, domain, groups, rating, selected, onSelect, showColorMeta, colorFilter }) => {
   const itemCount = groups.reduce((n, g) => n + g.items.filter(i => i.text?.trim()).length, 0);
   return (
-    <section className="min-w-0 rounded-lg border border-slate-200 bg-slate-50/80 flex flex-col" aria-label={title}>
-      <header className="px-2 py-2 border-b border-slate-200 bg-white rounded-t-lg">
+    <section className="min-w-0 rounded-md border border-gray-200 bg-brand-muted/60 flex flex-col" aria-label={title}>
+      <header className="px-2 py-2 border-b border-gray-200 bg-white rounded-t-md">
         <div className="flex items-start justify-between gap-1">
-          <h4 className="text-[11px] font-bold uppercase tracking-wide text-slate-700 leading-tight">{title}</h4>
+          <h4 className="text-[11px] font-bold uppercase tracking-wide text-brand-navy leading-tight">{title}</h4>
           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase shrink-0 ${ratingBadgeClass(rating)}`}>
             {rating || '—'}
           </span>
@@ -257,6 +326,8 @@ const BoardColumn: React.FC<{
                   selected={
                     selected?.domain === domain && selected.groupIndex === gi && selected.itemIndex === ii
                   }
+                  showColorMeta={showColorMeta}
+                  dimmed={!itemMatchesColorFilter(item, colorFilter)}
                   onSelect={() => onSelect({ domain, groupIndex: gi, itemIndex: ii })}
                 />
               ))}
@@ -272,9 +343,11 @@ const BoardItemCard: React.FC<{
   item: LogicModelItem;
   groupName?: string;
   selected: boolean;
+  showColorMeta?: boolean;
+  dimmed?: boolean;
   onSelect: () => void;
-}> = ({ item, groupName, selected, onSelect }) => {
-  const fill = swatchColor(item.fillColor);
+}> = ({ item, groupName, selected, showColorMeta = false, dimmed = false, onSelect }) => {
+  const fill = showColorMeta ? swatchColor(item.fillColor) : undefined;
   const needsReview = itemNeedsReview(item);
   return (
     <button
@@ -282,11 +355,11 @@ const BoardItemCard: React.FC<{
       onClick={onSelect}
       className={`w-full text-left rounded-md border px-2 py-1.5 text-sm leading-snug transition-colors ${
         selected
-          ? 'border-indigo-500 ring-2 ring-indigo-200 bg-white'
+          ? 'border-brand-navy ring-2 ring-brand-accent/40 bg-white'
           : needsReview
             ? 'border-amber-300 bg-white hover:border-amber-400'
-            : 'border-slate-200 bg-white hover:border-indigo-300'
-      }`}
+            : 'border-gray-200 bg-white hover:border-brand-blue'
+      } ${dimmed ? 'opacity-35' : ''}`}
       style={fill ? { borderLeftWidth: 4, borderLeftColor: fill } : undefined}
       aria-pressed={selected}
     >
@@ -295,8 +368,8 @@ const BoardItemCard: React.FC<{
         {needsReview && (
           <span className="text-[9px] font-bold uppercase tracking-wide text-amber-800">Verify</span>
         )}
-        {item.fillColor?.trim() && <ColorSwatch label="Fill" value={item.fillColor} />}
-        {item.borderColor?.trim() && item.borderColor !== item.fillColor && (
+        {showColorMeta && item.fillColor?.trim() && <ColorSwatch label="Fill" value={item.fillColor} />}
+        {showColorMeta && item.borderColor?.trim() && item.borderColor !== item.fillColor && (
           <ColorSwatch label="Border" value={item.borderColor} />
         )}
         {groupName && groupName !== 'General' && (
@@ -318,14 +391,7 @@ const ItemInspector: React.FC<{
   onClear: () => void;
 }> = ({ model, selected, item, onUpdate, onChangeText, onMarkReviewed, onFocusSource, onClear }) => {
   if (!selected || !item) {
-    return (
-      <aside
-        className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600"
-        aria-live="polite"
-      >
-        Click an item to edit wording or move it to another column.
-      </aside>
-    );
+    return null;
   }
 
   const needsReview = itemNeedsReview(item);
@@ -336,7 +402,7 @@ const ItemInspector: React.FC<{
 
   return (
     <aside
-      className="rounded-lg border border-indigo-200 bg-white p-4 shadow-sm lg:sticky lg:top-20"
+      className="rounded-md border border-brand-blue/40 bg-white p-4"
       aria-label="Selected item"
     >
       <div className="flex items-start justify-between gap-2 mb-3">
@@ -376,7 +442,7 @@ const ItemInspector: React.FC<{
                 { open: true }
               )
             }
-            className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800"
+            className="text-[10px] font-bold text-brand-blue hover:text-brand-navy"
           >
             Show in source
           </button>
@@ -385,7 +451,7 @@ const ItemInspector: React.FC<{
           <button
             type="button"
             onClick={() => onMarkReviewed(selected)}
-            className="text-[10px] font-bold text-blue-600 hover:text-blue-800"
+            className="text-[10px] font-bold text-brand-blue hover:text-brand-navy"
           >
             Mark reviewed
           </button>

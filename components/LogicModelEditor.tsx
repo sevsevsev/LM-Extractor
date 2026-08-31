@@ -9,6 +9,7 @@ import { itemNeedsReview } from '../shared/provenance';
 import { type CanonicalGroupedDomain } from '../shared/domainSynonyms';
 import { shouldSuggestMismatch, appendCorrection } from '../shared/sourceMapping';
 import { shouldShowFidelityBanner } from '../shared/extractionFidelity';
+import { analyzeColorAxis } from '../shared/colorAxis';
 import { ColorSwatch, DomainAssignControls, ratingBadgeClass, RATING_OPTIONS } from './itemChrome';
 import LogicModelBoard from './LogicModelBoard';
 
@@ -327,7 +328,7 @@ const EditableGroupSection: React.FC<{
                                  { open: true }
                                )
                              }
-                             className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800"
+                             className="text-[10px] font-bold text-brand-blue hover:text-brand-navy"
                            >
                              Show in source
                            </button>
@@ -539,22 +540,22 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
   };
 
   return (
-    <div className={`bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden ${isAnalyzing ? 'opacity-90' : ''}`}>
-      <div className="bg-slate-800 text-white px-6 py-4 flex justify-between items-center">
-        <div>
-          <h3 className="font-bold text-lg">{model.program || 'Draft Logic Model'}</h3>
-          <p className="text-xs opacity-70">Read columns left to right. Click an item to fix wording or placement.</p>
+    <div className={`bg-white rounded-md border border-gray-200 overflow-hidden ${isAnalyzing ? 'opacity-90' : ''}`}>
+      <div className="bg-brand-navy text-white px-6 py-3 flex justify-between items-center gap-3">
+        <div className="min-w-0">
+          <h3 className="headline text-sm text-white truncate">{model.program || 'Draft logic model'}</h3>
+          <p className="text-xs text-white/75 mt-0.5">Read columns left to right. Click an item to edit wording or placement.</p>
         </div>
         <button
           type="button"
           onClick={onReAnalyze}
           disabled={isAnalyzing}
-          className="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-600 px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center space-x-2"
+          className="bg-brand-blue hover:bg-brand-accent hover:text-brand-navy disabled:bg-white/20 px-4 py-2 rounded-md text-sm font-bold transition-colors flex items-center space-x-2 shrink-0"
         >
           {isAnalyzing ? (
-            <><div className="animate-spin h-4 w-4 border-2 border-white/30 border-t-white rounded-full" aria-hidden="true"></div><span>Refining...</span></>
+            <><div className="animate-spin h-4 w-4 border-2 border-white/30 border-t-white rounded-full" aria-hidden="true"></div><span>Updating…</span></>
           ) : (
-            <span>Re-Analyze Edits</span>
+            <span>Re-run critique</span>
           )}
         </button>
       </div>
@@ -583,7 +584,7 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
         </div>
       </div>
       
-      <fieldset disabled={isAnalyzing} className="p-8 border-0 m-0 min-w-0 disabled:opacity-70">
+      <fieldset disabled={isAnalyzing} className="p-8 border-0 m-0 min-w-0 max-w-full w-full [min-inline-size:0] disabled:opacity-70">
         <legend className="sr-only">Logic model fields</legend>
         <div className="grid grid-cols-2 gap-6 mb-6 bg-slate-50 p-6 rounded-lg border border-slate-100">
            <div>
@@ -702,7 +703,7 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
         )}
         <EditableTextSection title="Target Population" field="targetPopulation" model={model} onUpdate={onUpdate} />
 
-        {model.colorLegend?.trim() && (
+        {analyzeColorAxis(model).kind === 'cross_cutting' && model.colorLegend?.trim() && (
           <div
             className="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-3"
             role="note"
@@ -768,15 +769,15 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
 
         {!mismatchBannerDismissed && shouldSuggestMismatch(model) && (
           <div
-            className="mb-6 rounded-lg border border-indigo-200 bg-indigo-50 p-3 flex flex-wrap items-start justify-between gap-3"
+            className="mb-6 rounded-lg border border-brand-accent/50 bg-brand-sky/15 p-3 flex flex-wrap items-start justify-between gap-3"
             role="status"
             id="unmapped-mismatch-banner"
           >
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 mb-1">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-brand-navy mb-1">
                 Mapping review suggested
               </p>
-              <p className="text-sm text-indigo-950">
+              <p className="text-sm text-brand-navy">
                 Significant layout or label mismatch detected. Review unmapped items and assign domains
                 with the dropdown — leave empty when there is no clear home.
               </p>
@@ -784,13 +785,14 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
             <div className="flex items-center gap-2 shrink-0">
               <a
                 href="#unmapped-section"
-                className="text-xs font-bold text-indigo-800 hover:text-indigo-950 underline"
+                className="text-xs font-bold text-brand-blue hover:text-brand-navy underline"
               >
                 Review unmapped
               </a>
               <button
                 type="button"
-                className="text-xs font-bold text-indigo-600 hover:text-indigo-900"
+                className="text-xs font-bold text-brand-gray hover:text-brand-navy"
+
                 onClick={() => {
                   onUpdate(
                     appendCorrection(model, {
