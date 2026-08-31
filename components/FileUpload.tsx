@@ -3,24 +3,26 @@ import React, { useCallback } from 'react';
 interface FileUploadProps {
   onFilesSelected: (files: File[]) => void;
   disabled?: boolean;
+  /** Compact control once a session already has files. */
+  compact?: boolean;
 }
 
-const FileUpload: React.FC<FileUploadProps> = ({ onFilesSelected, disabled }) => {
+const FileUpload: React.FC<FileUploadProps> = ({ onFilesSelected, disabled, compact }) => {
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
       if (disabled) return;
-      
+
       const droppedFiles = Array.from<File>(e.dataTransfer.files).filter(
-        (file) => 
-            file.type === 'application/pdf' || 
-            file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-            file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
-            file.name.endsWith('.pdf') ||
-            file.name.endsWith('.docx') ||
-            file.name.endsWith('.pptx')
+        file =>
+          file.type === 'application/pdf' ||
+          file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+          file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+          file.name.endsWith('.pdf') ||
+          file.name.endsWith('.docx') ||
+          file.name.endsWith('.pptx')
       );
-      
+
       if (droppedFiles.length > 0) {
         onFilesSelected(droppedFiles);
       }
@@ -36,28 +38,56 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFilesSelected, disabled }) =>
     if (disabled || !e.target.files) return;
     const selectedFiles = Array.from<File>(e.target.files);
     onFilesSelected(selectedFiles);
-    e.target.value = ''; 
+    e.target.value = '';
   };
+
+  const input = (
+    <input
+      type="file"
+      multiple
+      accept=".pdf,.docx,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+      onChange={handleInputChange}
+      disabled={disabled}
+      className="hidden"
+      id="file-upload"
+    />
+  );
+
+  if (compact) {
+    return (
+      <div
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        className={`border-2 border-dashed rounded-lg px-3 py-2 transition-colors ${
+          disabled
+            ? 'border-gray-300 bg-gray-50 cursor-not-allowed opacity-60'
+            : 'border-blue-300 bg-blue-50/50 hover:bg-blue-50 hover:border-blue-500'
+        }`}
+      >
+        {input}
+        <label
+          htmlFor="file-upload"
+          className={`flex items-center gap-3 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+        >
+          <span className="text-sm font-bold text-blue-700">Add files</span>
+          <span className="text-xs text-slate-500">PDF, Word, or PowerPoint — or drop them here</span>
+        </label>
+      </div>
+    );
+  }
 
   return (
     <div
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       className={`border-2 border-dashed rounded-xl p-10 text-center transition-all duration-200 
-        ${disabled 
-            ? 'border-gray-300 bg-gray-50 cursor-not-allowed opacity-60' 
+        ${
+          disabled
+            ? 'border-gray-300 bg-gray-50 cursor-not-allowed opacity-60'
             : 'border-blue-300 bg-blue-50/50 hover:bg-blue-50 hover:border-blue-500 cursor-pointer'
         }`}
     >
-      <input
-        type="file"
-        multiple
-        accept=".pdf,.docx,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-        onChange={handleInputChange}
-        disabled={disabled}
-        className="hidden"
-        id="file-upload"
-      />
+      {input}
       <label htmlFor="file-upload" className={disabled ? 'cursor-not-allowed' : 'cursor-pointer'}>
         <div className="flex flex-col items-center justify-center space-y-3">
           <div className="p-3 bg-white rounded-full shadow-sm">

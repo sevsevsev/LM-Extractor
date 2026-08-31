@@ -1,16 +1,33 @@
 # Discovery — Bulk ingest, confidence, and Sheets tracking
 
-Status: **Exploration** (not approved build)  
-Date: 2026-07-24  
-Owner answers: edit-not-required-if-confident; walk-away possibly in play; Sheets marriage = design entertainment / future options.
+Status: **Parked (2026-08-31)** — owner: Sheets/Jotform/Drive ledger not needed now; L1 processing log will not be built  
+Last updated: 2026-08-31  
+Related: `processing-log-l1.md`, `extraction-confidence-v1.md`, `roadmap.md`
+
+## Owner decisions (2026-08-10)
+
+Superseded **2026-08-31:** Sheets/Jotform/Drive ledger and L1 processing log are **parked**. Do not build. Coding export, PDF/DOCX/PPTX, and optional Vercel remain in product scope.
+
+| Topic | Decision |
+|-------|----------|
+| **Where LMs live** | Office **shared-drive folder** (specific path) — not URL-only. Sheet hyperlinks are identity/join keys. |
+| **Sheets integration** | **L1** — Extractor emits `processing_log.csv`; join into Sheet via VLOOKUP/XLOOKUP (or paste). No Google auth in the app. |
+| **Host** | **Local first** (operator PC + filesystem path to shared folder). Cloud bulk jobs deferred. |
+| **Hyperlinks** | Ledger + join identity — **not** the runtime download path for L1. |
+| **Parked** | L3 Apps Script write-back; L4 live Sheets/Drive API inside Extractor; cloud unattended workers. |
+
+**Assumption for build:** shared folder is reachable as a normal filesystem path (mapped drive / UNC / Drive for Desktop sync). If files are Google-only in browser with no sync, L1 folder ingest needs a sync client or a later L4 download PRD.
+
+Earlier answers (2026-07-24): edit-not-required-if-confident; walk-away possibly in play.
 
 ## Problem reframed
-~200 logic models tracked in a Google Sheet (program + Drive URL). Today’s Extractor is an attended, in-browser queue — fine for confidence-building, not for unattended 200-file runs or live Sheet sync.
 
-## Product stance (recommended)
+~100–200 logic models tracked in a Google Sheet (program + LM hyperlink). Files already sit in an office shared-drive folder. Today’s Extractor is an attended, in-browser queue — fine for confidence-building, weak for batch status tracking back into the Sheet.
 
-**Build confidence first → then unattended queue → then Sheet marriage.**  
-Do not start with Drive/Sheets APIs. Prove extract quality and a joinable status log; automation comes after.
+## Product stance
+
+**Calibrate quality → L1 processing log (local) → optional review-lite / local worker → L3/L4 only with new PRD.**  
+Do not start with Drive/Sheets APIs. Prove extract quality and a joinable status log first.
 
 ---
 
@@ -18,103 +35,105 @@ Do not start with Drive/Sheets APIs. Prove extract quality and a joinable status
 
 | Stage | What you do | Exit criteria |
 |-------|-------------|---------------|
-| **Calibrate** | Fully review 10–20 diverse LMs (formats, weak layouts, long PDFs) | Trust overall S/A/W + domain fill; note systematic misses in friction log |
-| **Spot-check** | Run batches of ~5–15; open only Weak / errors / random 10% | Edit rate falling; coding export usable |
-| **Bulk mode (later)** | Auto extract→critique→export; human only on fail/Weak/flagged | Written policy: when to skip edit |
+| **Calibrate** | Fully review 10–20 diverse LMs (formats, weak layouts, long PDFs) | Trust overall S/A/W + fidelity hard-stop; note systematic misses in friction log |
+| **Spot-check** | Run batches of ~5–15; open only errors / hard-stops / partial / random 10% | Edit rate falling; coding export usable |
+| **Bulk mode (later)** | Auto extract→critique→export; human only on fail/hard-stop/flagged | Written policy: when to skip edit |
 
-**IN for confidence phase:** friction log, overall quality, full + coding exports (already shipping).  
+**IN for confidence phase:** friction log, overall quality, fidelity hard-stop, full + coding exports (shipping).  
 **OUT:** forced edit on every file; auto-approve without a calibration sample.
 
-Optional later product: **“Bulk / review-lite”** mode — process queue to export without opening every editor; surface a results table (filename, overall rating, error, export ready).
+Optional later: **review-lite** results table (filename, fidelity, overall rating, error, export ready).
 
 ---
 
-## 2. Walk-away (possibly in play)
+## 2. Local vs cloud (locked 2026-08-10)
 
 | Option | Walk-away level | Fit |
 |--------|-----------------|-----|
-| **A. Attended browser queue** (today) | Stay with tab open | Confidence + small batches |
-| **B. Local job worker** (Express/Node on your machine) | Leave browser; laptop stays on | Best match if walk-away matters and local-first holds |
-| **C. Cloud jobs** | Fully unattended off-machine | Out until PRD + hosting re-approved |
+| **A. Attended browser queue** (today + L1 log) | Stay with tab open | **Chosen first slice** — confidence + batches + processing log download |
+| **B. Local job worker** (Express/Node on your machine) | Leave browser; machine stays on | Next if walk-away hurts; still local; still L1 Sheet join |
+| **C. Cloud jobs** | Fully unattended off-machine | **Out** until cloud/auth PRD |
 
-**If B is scoped later — candidate IN:** enqueue folder or file list; disk-persisted job status; resume after crash; results as JSON/CSV on disk; UI to inspect failures.  
-**OUT for B:** Google auth, multi-user queue, Vercel.
+Cloud does not fix OCR or Gemini wall-clock — it only removes “keep the machine on.” Revisit cloud when: PC must be off during runs; multi-operator shared queue; folder not filesystem-accessible; org forbids workstation Gemini runs.
 
-Rough capacity: sequential Gemini still dominates time (~minutes/file). Walk-away solves *attendance*, not wall-clock — 200 files may still be overnight+.
+Rough capacity: sequential Gemini still dominates (~minutes/file). 100+ files may be overnight+.
 
 ---
 
-## 3. Marrying Sheets ↔ extract/coding (conceptual)
+## 3. Marrying Sheets ↔ extract (L1)
 
-Your sheet stays the **coverage ledger**. Extractor/Coder emit **event logs** you join on stable keys.
+Your sheet stays the **coverage ledger**. Extractor emits **`processing_log.csv`** you join on stable keys. See **`processing-log-l1.md`** for full schema, AC, and XLOOKUP runbook.
 
 ### Suggested sheet columns (additive)
 
 | Column | Meaning |
 |--------|---------|
 | `program_id` / Program name | Existing |
-| `lm_drive_url` | Existing |
-| `lm_filename` | Basename of file (join key with extractor log) |
-| `ingest_status` | `not_started` \| `queued` \| `extracted` \| `needs_review` \| `exported` \| `coded` \| `error` |
+| `lm_drive_url` | Hyperlink / URL (identity; optional in log) |
+| `lm_filename` | Basename of file (**primary join** to log) |
+| `ingest_status` | From log / manual: `not_started` \| `queued` \| `extracted` \| `needs_review` \| `exported` \| `coded` \| `error` \| `hard_stopped` |
 | `extract_date` | Last successful extract |
 | `overall_quality` | Strong / Adequate / Weak |
+| `extraction_status` / `extraction_confidence` | From fidelity rollup (optional Sheet columns) |
 | `extract_export_path` | Path or name of full CSV / run id |
 | `coding_status` | `not_sent` \| `in_coder` \| `verified` \| `error` |
 | `coding_export_path` | Coder output file / run id |
 | `notes` | Human |
 
-### Join pattern (no live API required)
+### Join pattern (L1 — no live API)
 
 ```text
-Google Sheet (programs + Drive URL)
+Google Sheet (programs + LM hyperlinks)
         │
-        │  you download LM files into a folder (manual or Drive sync client)
+        │  files already on shared-drive folder (filesystem path)
         ▼
-Extractor → processing_log.csv  (filename, org, program, status, overall_quality, error, timestamps)
+Extractor (local) → processing_log.csv
         │
-        ├─ full CSV → DB path
-        └─ coding CSV → Qualitative Outcomes Coder → verified_coded_outcomes.csv
+        ├─ full CSV → DB / archive
+        └─ coding CSV → Qualitative Outcomes Coder
         │
         ▼
-Sheet updated by: paste/LOOKUP from processing_log + coding export
-   OR later: Apps Script / Sheets API write-back
+Sheet updated by: XLOOKUP/VLOOKUP or paste from processing_log
+   (L3 later: Apps Script; L4 later: live API — new PRD)
 ```
 
 **Stable join keys (prefer in order):**
-1. `program_id` if present in both sheet and extract metadata  
-2. Else `organization` + `program`  
-3. Else `lm_filename` ↔ Drive file name  
+1. `lm_filename` ↔ basename of Sheet hyperlink target (or matching display name on disk)  
+2. Else `program_id` if present in both  
+3. Else `organization` + `program`
 
-### Maturity ladder for “marriage”
+### Maturity ladder
 
-| Level | What it looks like | Build cost |
-|-------|--------------------|------------|
-| **L0 — Manual** | You tick `ingest_status` after each batch | None |
-| **L1 — Log join** | Extractor writes `processing_log.csv`; VLOOKUP/XLOOKUP into sheet | Small (product) |
-| **L2 — Coder log** | Coder export includes program + row counts; sheet `coding_status` updated from that file | Small (sibling app or spreadsheet) |
-| **L3 — Apps Script** | Script reads log CSVs from Drive folder, updates rows | Outside Extractor repo; no app auth |
-| **L4 — Live API** | Extractor/Coder write Sheets; read Drive URLs | Large; Google OAuth; explicit PRD |
-
-**Recommendation:** Design sheet columns now (L0/L1). Implement L1 when bulk confidence is proven. Defer L4.
+| Level | What it looks like | Status |
+|-------|--------------------|--------|
+| **L0 — Manual** | Tick `ingest_status` after each batch | Available now |
+| **L1 — Log join** | Extractor writes `processing_log.csv`; XLOOKUP into sheet | **Parked 2026-08-31** |
+| **L2 — Coder log** | Coder export updates `coding_status` | Parked |
+| **L3 — Apps Script** | Script reads log CSVs, updates rows | Parked (outside repo) |
+| **L4 — Live API** | Extractor reads Sheet / Drive; writes status | Parked — OAuth PRD required |
 
 ---
 
-## 4. Candidate sequencing (if promoted to roadmap)
+## 4. Sequencing
 
-1. Calibration set (10–20) + friction log — **ops, no code**  
-2. Spec **processing_log.csv** shape (align to sheet columns) — `@product` + `@architect`  
-3. Optional **review-lite results table** — small UX  
-4. Optional **local job worker** — only if walk-away becomes a hard requirement  
-5. Sheet L1 join runbook; L3 Apps Script if volume hurts  
-6. Drive URL ingest + Sheets API — only with new PRD
+1. Calibration + fidelity hard-stop validation — **ops**  
+2. **L1 processing log** — **parked 2026-08-31** (`processing-log-l1.md`)  
+3. Optional review-lite results table  
+4. Optional local job worker if walk-away is hard requirement  
+5. L3 Apps Script if volume makes paste painful  
+6. L4 Drive/Sheets API — only with new PRD  
 
 ## Explicitly out until re-scoped
+
 - Automatic Drive download from sheet URLs inside Extractor  
 - Live Google Sheets write-back from the web app  
 - Cloud unattended processing  
-- Skipping calibration and jumping to 200-file auto-approve  
+- Skipping calibration and jumping to 100+ file auto-approve  
+- Google OAuth / new Google npm clients in this repo  
 
-## Open questions (next check-in)
-1. Do programs in the sheet have a stable **program_id** usable as join key?  
-2. Are LM files already in one local/Drive-synced folder, or only linked by URL today?  
-3. When walk-away matters, is **overnight laptop-on** acceptable, or must the machine sleep?
+## Open questions (before / during L1 build)
+
+1. Exact filesystem path form for the shared folder (mapped drive vs UNC vs Drive for Desktop)?  
+2. Does the Sheet already have a `lm_filename` column that matches files on disk, or only hyperlinks?  
+3. First code slice: **log download only** vs **log + review-lite table**?  
+4. When walk-away matters, is overnight machine-on acceptable?

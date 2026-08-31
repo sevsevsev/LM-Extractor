@@ -13,6 +13,11 @@
 - **[source-review-v1.md](./source-review-v1.md)** — side-by-side source rasters + item→page anchors for validation (scoped 2026-07-31)
 - **[extraction-confidence-v1.md](./extraction-confidence-v1.md)** — extraction status/confidence + abstention; fidelity banner; soft coding gate (scoped 2026-08-10)
 - **[tech-extraction-confidence-v1.md](./tech-extraction-confidence-v1.md)** — implementer blueprint for extraction confidence v1
+- **[session-navigator-v1.md](./session-navigator-v1.md)** — file list + one active file (scoped 2026-08-31)
+- **[ltr-column-review-v1.md](./ltr-column-review-v1.md)** — L→R board as default review of selected file (scoped 2026-08-31; after navigator)
+- **[ux-session-surfaces-discovery.md](./ux-session-surfaces-discovery.md)** — session UX discovery — **answered**; see the two PRDs above
+- **[bulk-ingest-sheets-discovery.md](./bulk-ingest-sheets-discovery.md)** — bulk / Sheets discovery — **parked 2026-08-31**
+- **[processing-log-l1.md](./processing-log-l1.md)** — processing_log.csv / Sheet join — **parked 2026-08-31** (do not build)
 - **[tech-source-review-v1.md](./tech-source-review-v1.md)** — implementer blueprint for source review v1
 - **[phase-2-cloud.md](./phase-2-cloud.md)** — draft only (auth/cloud) — not approved
 - **[multi-column-extract-patterns.md](./multi-column-extract-patterns.md)** — @pattern-analyst pattern benchmark (Phase 1 ✓)

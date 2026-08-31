@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import { ProcessingFile, LogicModel, DocumentBundle, bundleImpliesLowLegibility } from './types';
 import FileUpload from './components/FileUpload';
 import LogicModelEditor from './components/LogicModelEditor';
+import SessionFileList from './components/SessionFileList';
 import SourceDocumentPane, { type SourceFocus } from './components/SourceDocumentPane';
 import { LogicModelPdfTemplate, PDF_PAGE_WIDTH_PX } from './components/LogicModelPdfTemplate';
 import { extractLogicModel, critiqueLogicModel } from './services/geminiService';
@@ -15,6 +17,13 @@ import {
   shouldHardStopExtraction,
   shouldSoftGateCodingExport,
 } from './shared/extractionFidelity';
+import {
+  countSessionFiles,
+  exportWouldOmitFiles,
+  formatSessionStatus,
+  isExportReady,
+  isPipelineBusy,
+} from './shared/sessionQueue';
 
 function modelForExport(model: LogicModel, warnings?: string[]): LogicModel {
   return sanitizeAbsentDomainCritiques(
@@ -63,6 +72,8 @@ const createFileId = () =>
 
 const App: React.FC = () => {
   const [files, setFiles] = useState<ProcessingFile[]>([]);
+  const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
+  const [pdfCaptureFileId, setPdfCaptureFileId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [reAnalyzingId, setReAnalyzingId] = useState<string | null>(null);
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
@@ -75,12 +86,24 @@ const App: React.FC = () => {
     {}
   );
 
-  const filesWithResults = files.filter(f => !!f.result);
-  const exportReadyFiles = filesWithResults.filter(
-    f => f.status === 'editing' || f.status === 'completed'
-  );
+  const sessionCounts = countSessionFiles(files);
+  const exportReadyFiles = files.filter(f => isExportReady(f.status) && f.result);
   const exportReadyCount = exportReadyFiles.length;
   const codingExportRowCount = countCodingExportRows(exportReadyFiles);
+  const selectedFile = files.find(f => f.id === selectedFileId) ?? null;
+  const pdfCaptureFile =
+    files.find(f => f.id === pdfCaptureFileId && f.result) ??
+    (selectedFile?.result ? selectedFile : null);
+
+  useEffect(() => {
+    if (files.length === 0) {
+      setSelectedFileId(null);
+      return;
+    }
+    if (!selectedFileId || !files.some(f => f.id === selectedFileId)) {
+      setSelectedFileId(files[0].id);
+    }
+  }, [files, selectedFileId]);
 
   const handleFilesSelected = (newFiles: File[]) => {
     const newProcessingFiles: ProcessingFile[] = newFiles.map(file => ({
@@ -327,9 +350,24 @@ const App: React.FC = () => {
     }
   };
 
+  const confirmIncompleteExport = (kind: string): boolean => {
+    if (!exportWouldOmitFiles(sessionCounts)) return true;
+    const omitted = sessionCounts.total - sessionCounts.ready;
+    return window.confirm(
+      `${kind} includes ${sessionCounts.ready} of ${sessionCounts.total} files. ${omitted} ${
+        omitted === 1 ? 'is' : 'are'
+      } still queued, running, or need attention. Continue?`
+    );
+  };
+
+  const mountPdfTemplate = (fileId: string) => {
+    flushSync(() => setPdfCaptureFileId(fileId));
+  };
+
   const handleExportCSV = () => {
-    const completed = files.filter(f => (f.status === 'editing' || f.status === 'completed') && f.result);
+    const completed = files.filter(f => isExportReady(f.status) && f.result);
     if (completed.length === 0) return;
+    if (!confirmIncompleteExport('CSV export')) return;
 
     const headers = [
       'Organization',
@@ -403,6 +441,7 @@ const App: React.FC = () => {
   };
 
   const handleExportForCoding = () => {
+    if (!confirmIncompleteExport('Export for coding')) return;
     const gated = exportReadyFiles.filter(
       f => f.result && shouldSoftGateCodingExport(f.result) && !f.codingExportFidelityAck
     );
@@ -428,6 +467,7 @@ const App: React.FC = () => {
     if (!file.result) return;
     setIsGeneratingPdf(true);
     try {
+      mountPdfTemplate(file.id);
       const { generatePdfFromElement } = await import('./services/pdfService');
       const elementId = `pdf-template-${file.id}`;
       const blob = await generatePdfFromElement(elementId, `${file.result.program}.pdf`);
@@ -439,19 +479,20 @@ const App: React.FC = () => {
         link.click();
         URL.revokeObjectURL(url);
       } else {
-        alert("Couldn't create the PDF — try Preview first, then download again.");
+        alert("Couldn't create the PDF. Try again.");
       }
     } catch (e) {
       console.error('PDF generation failed', e);
-      alert("Couldn't create the PDF — try Preview first, then download again.");
+      alert("Couldn't create the PDF. Try again.");
     } finally {
       setIsGeneratingPdf(false);
     }
   };
 
   const handleBatchDownloadPdf = async () => {
-    const completed = files.filter(f => (f.status === 'editing' || f.status === 'completed') && f.result);
+    const completed = files.filter(f => isExportReady(f.status) && f.result);
     if (completed.length === 0) return;
+    if (!confirmIncompleteExport('This ZIP')) return;
 
     setIsGeneratingPdf(true);
     try {
@@ -459,6 +500,7 @@ const App: React.FC = () => {
       const blobs: { name: string; blob: Blob }[] = [];
 
       for (const file of completed) {
+        mountPdfTemplate(file.id);
         const elementId = `pdf-template-${file.id}`;
         const blob = await generatePdfFromElement(elementId, '');
         if (blob) {
@@ -472,7 +514,7 @@ const App: React.FC = () => {
       if (blobs.length > 0) {
         await createZipFromBlobs(blobs);
       } else {
-        alert("Couldn't create the ZIP — open Preview for each file, then try again.");
+        alert("Couldn't create the ZIP. Try downloading files one at a time.");
       }
     } catch (e) {
       console.error('Batch PDF failed', e);
@@ -542,14 +584,22 @@ const App: React.FC = () => {
   }, [previewFileId]);
 
   const currentPreviewFile = files.find(f => f.id === previewFileId);
-  const isPipelineBusy = (status: ProcessingFile['status']) =>
-    status === 'converting' || status === 'extracting' || status === 'analyzing';
+  const zipLabel =
+    exportReadyCount === 0
+      ? 'Download PDFs (ZIP)'
+      : exportReadyCount === sessionCounts.total
+        ? 'Download all PDFs (ZIP)'
+        : `Download ${exportReadyCount} PDF${exportReadyCount === 1 ? '' : 's'} (ZIP)`;
+  const csvLabel = `Export CSV (${exportReadyCount})`;
+  const file = selectedFile;
+  const showEditor = !!file?.result && isExportReady(file.status);
+  const showPipelineSpinner = !!file && isPipelineBusy(file.status) && !file.result;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20 relative">
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+        <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center space-x-3 min-w-0">
             <div className="bg-indigo-600 text-white p-1.5 rounded-lg shadow-sm">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
@@ -562,22 +612,30 @@ const App: React.FC = () => {
               </span>
             </h1>
           </div>
-          <div className="flex space-x-3">
+          {files.length > 0 && (
+            <p className="text-xs font-bold text-slate-600 flex items-center gap-2" aria-live="polite">
+              {isProcessing && (
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500 animate-pulse" aria-hidden="true" />
+              )}
+              <span>{formatSessionStatus(sessionCounts)}</span>
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={handleBatchDownloadPdf}
               disabled={isGeneratingPdf || exportReadyCount === 0}
-              className="bg-white border border-gray-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50 flex items-center space-x-2"
+              className="bg-white border border-gray-300 text-slate-700 px-3 py-2 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50 flex items-center space-x-2"
             >
               {isGeneratingPdf ? (
                 <div className="animate-spin h-3 w-3 border-2 border-slate-400 border-t-transparent rounded-full" aria-hidden="true" />
               ) : null}
-              <span>Download All (ZIP)</span>
+              <span>{zipLabel}</span>
             </button>
             <button
               type="button"
               onClick={handleExportForCoding}
-              className="bg-white border border-indigo-300 text-indigo-800 px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-50 transition-colors shadow-sm disabled:opacity-50"
+              className="bg-white border border-indigo-300 text-indigo-800 px-3 py-2 rounded-lg text-sm font-bold hover:bg-indigo-50 transition-colors shadow-sm disabled:opacity-50"
               disabled={codingExportRowCount === 0}
               title={
                 codingExportRowCount === 0
@@ -590,290 +648,300 @@ const App: React.FC = () => {
             <button
               type="button"
               onClick={handleExportCSV}
-              className="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-700 transition-colors shadow-sm disabled:opacity-50"
+              className="bg-slate-800 text-white px-3 py-2 rounded-lg text-sm font-bold hover:bg-slate-700 transition-colors shadow-sm disabled:opacity-50"
               disabled={exportReadyCount === 0}
             >
-              Export CSV
+              {csvLabel}
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        <section className="text-center space-y-3 max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-slate-900 leading-tight">Extract & Refine Your Program Data</h2>
-          <p className="text-slate-600">
-            Upload logic models (PDF, Word, or PowerPoint). AI detects structure and stakeholders. Generate{' '}
-            <span className="font-bold" style={{ color: brand.colors.primary }}>
-              {brand.shortName} branded PDFs
-            </span>{' '}
-            instantly.
-          </p>
-        </section>
+      <main className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {files.length === 0 && (
+          <section className="text-center space-y-3 max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold text-slate-900 leading-tight">Extract & Refine Your Program Data</h2>
+            <p className="text-slate-600">
+              Upload logic models (PDF, Word, or PowerPoint). AI detects structure and stakeholders. Generate{' '}
+              <span className="font-bold" style={{ color: brand.colors.primary }}>
+                {brand.shortName} branded PDFs
+              </span>{' '}
+              instantly.
+            </p>
+          </section>
+        )}
 
         <section>
-          <FileUpload onFilesSelected={handleFilesSelected} />
+          <FileUpload onFilesSelected={handleFilesSelected} compact={files.length > 0} />
         </section>
 
         {files.length > 0 && (
-          <div className="space-y-12">
-            {files.map(file => {
-              const showEditor = !!file.result && (file.status === 'editing' || file.status === 'completed');
-              const showPipelineSpinner = isPipelineBusy(file.status) && !file.result;
+          <div className="space-y-4">
+            <SessionFileList files={files} selectedFileId={selectedFileId} onSelect={setSelectedFileId} />
 
-              return (
-                <div key={file.id} className="space-y-4">
-                  <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                    <div className="flex items-center space-x-3 min-w-0">
-                      <span className="font-bold text-sm text-slate-700 truncate">{file.file.name}</span>
-                      <span
-                        className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded shrink-0 ${
-                          file.status === 'editing' || file.status === 'completed'
-                            ? 'bg-green-100 text-green-700'
-                            : file.status === 'error'
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-blue-100 text-blue-700'
-                        }`}
-                      >
-                        {STATUS_LABELS[file.status]}
-                      </span>
+            {file && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <span className="font-bold text-sm text-slate-700 truncate">
+                      {file.result?.program?.trim() || file.file.name}
+                    </span>
+                    <span
+                      className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded shrink-0 ${
+                        isExportReady(file.status)
+                          ? 'bg-green-100 text-green-700'
+                          : file.status === 'error'
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-blue-100 text-blue-700'
+                      }`}
+                    >
+                      {STATUS_LABELS[file.status]}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 shrink-0">
+                    {showEditor && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setPreviewFileId(file.id)}
+                          className="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded transition-colors"
+                        >
+                          Preview branded PDF
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadSinglePdf(file)}
+                          disabled={isGeneratingPdf}
+                          className="text-xs font-bold text-slate-600 hover:text-slate-800 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded transition-colors disabled:opacity-50"
+                        >
+                          Download PDF
+                        </button>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeFile(file.id)}
+                      className="text-xs font-bold text-slate-500 hover:text-red-600 px-2 py-1.5"
+                      aria-label={`Remove ${file.file.name}`}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+
+                {file.warnings && file.warnings.length > 0 && (
+                  <div
+                    className="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-3"
+                    role="status"
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1">
+                      Fidelity notice
+                    </p>
+                    <ul className="text-sm space-y-1 list-disc pl-5">
+                      {file.warnings.map((w, i) => (
+                        <li key={i}>{w}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {file.error && (
+                  <div
+                    className="bg-red-50 border border-red-200 text-red-900 rounded-lg p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3"
+                    role="alert"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">{file.error}</p>
+                      {file.extractionBlockers && file.extractionBlockers.length > 0 && (
+                        <ul className="mt-2 text-sm list-disc pl-5 space-y-1 text-red-800">
+                          {file.extractionBlockers.map((b, i) => (
+                            <li key={i}>{b}</li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
-                    <div className="flex items-center space-x-2 shrink-0">
-                      {showEditor && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => setPreviewFileId(file.id)}
-                            className="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded transition-colors"
-                          >
-                            Preview branded PDF
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDownloadSinglePdf(file)}
-                            className="text-xs font-bold text-slate-600 hover:text-slate-800 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded transition-colors"
-                          >
-                            Download PDF
-                          </button>
-                        </>
+                    <div className="flex space-x-2 shrink-0">
+                      {(file.status === 'error' || !file.result) && (
+                        <button
+                          type="button"
+                          onClick={() => retryFile(file.id)}
+                          className="text-xs font-bold bg-red-700 text-white px-3 py-1.5 rounded hover:bg-red-800"
+                        >
+                          Retry
+                        </button>
+                      )}
+                      {file.result && file.status === 'editing' && (
+                        <button
+                          type="button"
+                          onClick={() => reAnalyzeModel(file.id)}
+                          className="text-xs font-bold bg-red-700 text-white px-3 py-1.5 rounded hover:bg-red-800"
+                        >
+                          Retry critique
+                        </button>
                       )}
                       <button
                         type="button"
                         onClick={() => removeFile(file.id)}
-                        className="text-xs font-bold text-slate-500 hover:text-red-600 px-2 py-1.5"
-                        aria-label={`Remove ${file.file.name}`}
+                        className="text-xs font-bold border border-red-300 text-red-800 px-3 py-1.5 rounded hover:bg-red-100"
                       >
                         Remove
                       </button>
                     </div>
                   </div>
+                )}
 
-                  {file.warnings && file.warnings.length > 0 && (
-                    <div
-                      className="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-3"
-                      role="status"
-                    >
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1">
-                        Fidelity notice
-                      </p>
-                      <ul className="text-sm space-y-1 list-disc pl-5">
-                        {file.warnings.map((w, i) => (
-                          <li key={i}>{w}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                {file.status === 'pending' && (
+                  <div className="bg-white border rounded-xl px-4 py-6 text-sm text-slate-600" aria-live="polite">
+                    Queued — files process one at a time.
+                  </div>
+                )}
 
-                  {file.error && (
+                {showEditor && file.result && (
+                  <div
+                    className={`grid gap-4 ${
+                      file.sourcePaneCollapsed !== false
+                        ? 'grid-cols-1'
+                        : 'grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]'
+                    }`}
+                  >
                     <div
-                      className="bg-red-50 border border-red-200 text-red-900 rounded-lg p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3"
-                      role="alert"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium">{file.error}</p>
-                        {file.extractionBlockers && file.extractionBlockers.length > 0 && (
-                          <ul className="mt-2 text-sm list-disc pl-5 space-y-1 text-red-800">
-                            {file.extractionBlockers.map((b, i) => (
-                              <li key={i}>{b}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                      <div className="flex space-x-2 shrink-0">
-                        {(file.status === 'error' || !file.result) && (
-                          <button
-                            type="button"
-                            onClick={() => retryFile(file.id)}
-                            className="text-xs font-bold bg-red-700 text-white px-3 py-1.5 rounded hover:bg-red-800"
-                          >
-                            Retry
-                          </button>
-                        )}
-                        {file.result && file.status === 'editing' && (
-                          <button
-                            type="button"
-                            onClick={() => reAnalyzeModel(file.id)}
-                            className="text-xs font-bold bg-red-700 text-white px-3 py-1.5 rounded hover:bg-red-800"
-                          >
-                            Retry critique
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => removeFile(file.id)}
-                          className="text-xs font-bold border border-red-300 text-red-800 px-3 py-1.5 rounded hover:bg-red-100"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {showEditor && file.result && (
-                    <div
-                      className={`grid gap-4 ${
+                      className={
                         file.sourcePaneCollapsed !== false
-                          ? 'grid-cols-1'
-                          : 'grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]'
-                      }`}
+                          ? ''
+                          : 'order-2 lg:order-1 lg:self-start'
+                      }
                     >
-                      <div
-                        className={
-                          file.sourcePaneCollapsed !== false
-                            ? ''
-                            : 'order-2 lg:order-1 lg:self-start'
+                      <SourceDocumentPane
+                        images={file.sourcePreviewImages ?? []}
+                        textOnly={!file.sourcePreviewImages?.length}
+                        collapsed={file.sourcePaneCollapsed !== false}
+                        focus={sourceFocusByFileId[file.id]}
+                        onCollapsedChange={collapsed =>
+                          setFiles(prev =>
+                            prev.map(f =>
+                              f.id === file.id ? { ...f, sourcePaneCollapsed: collapsed } : f
+                            )
+                          )
                         }
-                      >
-                        <SourceDocumentPane
-                          images={file.sourcePreviewImages ?? []}
-                          textOnly={!file.sourcePreviewImages?.length}
-                          collapsed={file.sourcePaneCollapsed !== false}
-                          focus={sourceFocusByFileId[file.id]}
-                          onCollapsedChange={collapsed =>
-                            setFiles(prev =>
-                              prev.map(f =>
-                                f.id === file.id ? { ...f, sourcePaneCollapsed: collapsed } : f
-                              )
+                      />
+                    </div>
+                    <div
+                      className={
+                        file.sourcePaneCollapsed !== false
+                          ? 'min-w-0'
+                          : 'order-1 lg:order-2 min-w-0'
+                      }
+                    >
+                      <LogicModelEditor
+                        model={file.result}
+                        onUpdate={updated => updateModel(file.id, updated)}
+                        onReAnalyze={() => reAnalyzeModel(file.id)}
+                        isAnalyzing={reAnalyzingId === file.id}
+                        mismatchBannerDismissed={file.mismatchBannerDismissed}
+                        onDismissMismatchBanner={() =>
+                          setFiles(prev =>
+                            prev.map(f =>
+                              f.id === file.id ? { ...f, mismatchBannerDismissed: true } : f
                             )
-                          }
-                        />
-                      </div>
-                      <div
-                        className={
-                          file.sourcePaneCollapsed !== false
-                            ? 'min-w-0'
-                            : 'order-1 lg:order-2 min-w-0'
+                          )
                         }
-                      >
-                        <LogicModelEditor
-                          model={file.result}
-                          onUpdate={updated => updateModel(file.id, updated)}
-                          onReAnalyze={() => reAnalyzeModel(file.id)}
-                          isAnalyzing={reAnalyzingId === file.id}
-                          mismatchBannerDismissed={file.mismatchBannerDismissed}
-                          onDismissMismatchBanner={() =>
-                            setFiles(prev =>
-                              prev.map(f =>
-                                f.id === file.id ? { ...f, mismatchBannerDismissed: true } : f
-                              )
+                        fidelityBannerDismissed={file.fidelityBannerDismissed}
+                        onDismissFidelityBanner={() =>
+                          setFiles(prev =>
+                            prev.map(f =>
+                              f.id === file.id ? { ...f, fidelityBannerDismissed: true } : f
                             )
-                          }
-                          fidelityBannerDismissed={file.fidelityBannerDismissed}
-                          onDismissFidelityBanner={() =>
-                            setFiles(prev =>
-                              prev.map(f =>
-                                f.id === file.id ? { ...f, fidelityBannerDismissed: true } : f
-                              )
+                          )
+                        }
+                        onOpenSourceForFidelity={() =>
+                          setFiles(prev =>
+                            prev.map(f =>
+                              f.id === file.id ? { ...f, sourcePaneCollapsed: false } : f
                             )
-                          }
-                          onOpenSourceForFidelity={() =>
+                          )
+                        }
+                        onFocusSource={(anchor, options) => {
+                          const wantOpen = options?.open === true;
+                          const alreadyOpen = file.sourcePaneCollapsed === false;
+                          if (!wantOpen && !alreadyOpen) return;
+
+                          const preserveEl =
+                            wantOpen && document.activeElement instanceof HTMLElement
+                              ? document.activeElement
+                              : null;
+
+                          if (wantOpen && !alreadyOpen) {
                             setFiles(prev =>
                               prev.map(f =>
                                 f.id === file.id ? { ...f, sourcePaneCollapsed: false } : f
                               )
-                            )
+                            );
                           }
-                          onFocusSource={(anchor, options) => {
-                            const wantOpen = options?.open === true;
-                            const alreadyOpen = file.sourcePaneCollapsed === false;
-                            // Quiet sync only when pane is already visible; expand only on explicit open.
-                            if (!wantOpen && !alreadyOpen) return;
 
-                            const preserveEl =
-                              wantOpen && document.activeElement instanceof HTMLElement
-                                ? document.activeElement
-                                : null;
+                          const pageCount = file.sourcePreviewImages?.length ?? 0;
+                          if (
+                            typeof anchor.sourcePage === 'number' &&
+                            anchor.sourcePage >= 1 &&
+                            (pageCount === 0 || anchor.sourcePage <= pageCount)
+                          ) {
+                            setSourceFocusByFileId(prev => ({
+                              ...prev,
+                              [file.id]: {
+                                page: Math.round(anchor.sourcePage!),
+                                column:
+                                  typeof anchor.sourceColumn === 'number'
+                                    ? Math.round(anchor.sourceColumn)
+                                    : undefined,
+                                note: anchor.needsReview ? 'Verify against source' : undefined,
+                              },
+                            }));
+                          } else {
+                            setSourceFocusByFileId(prev => ({
+                              ...prev,
+                              [file.id]: {
+                                page: sourceFocusByFileId[file.id]?.page ?? 1,
+                                note: 'Page unknown — browse source manually',
+                              },
+                            }));
+                          }
 
-                            if (wantOpen && !alreadyOpen) {
-                              setFiles(prev =>
-                                prev.map(f =>
-                                  f.id === file.id ? { ...f, sourcePaneCollapsed: false } : f
-                                )
-                              );
-                            }
-
-                            const pageCount = file.sourcePreviewImages?.length ?? 0;
-                            if (
-                              typeof anchor.sourcePage === 'number' &&
-                              anchor.sourcePage >= 1 &&
-                              (pageCount === 0 || anchor.sourcePage <= pageCount)
-                            ) {
-                              setSourceFocusByFileId(prev => ({
-                                ...prev,
-                                [file.id]: {
-                                  page: Math.round(anchor.sourcePage!),
-                                  column:
-                                    typeof anchor.sourceColumn === 'number'
-                                      ? Math.round(anchor.sourceColumn)
-                                      : undefined,
-                                  note: anchor.needsReview ? 'Verify against source' : undefined,
-                                },
-                              }));
-                            } else {
-                              setSourceFocusByFileId(prev => ({
-                                ...prev,
-                                [file.id]: {
-                                  page: sourceFocusByFileId[file.id]?.page ?? 1,
-                                  note: 'Page unknown — browse source manually',
-                                },
-                              }));
-                            }
-
-                            if (preserveEl) {
+                          if (preserveEl) {
+                            requestAnimationFrame(() => {
                               requestAnimationFrame(() => {
-                                requestAnimationFrame(() => {
-                                  preserveEl.scrollIntoView({
-                                    block: 'nearest',
-                                    inline: 'nearest',
-                                  });
+                                preserveEl.scrollIntoView({
+                                  block: 'nearest',
+                                  inline: 'nearest',
                                 });
                               });
-                            }
-                          }}
-                        />
-                      </div>
+                            });
+                          }
+                        }}
+                      />
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {showPipelineSpinner && (
-                    <div className="bg-white border rounded-xl p-20 flex flex-col items-center justify-center space-y-4 shadow-sm" aria-live="polite">
-                      <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent" aria-hidden="true" />
-                      <p className="font-bold text-slate-600">
-                        {file.progressMsg || STATUS_LABELS[file.status]}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                {showPipelineSpinner && (
+                  <div className="bg-white border rounded-xl px-4 py-10 flex flex-col items-center justify-center space-y-3 shadow-sm" aria-live="polite">
+                    <div className="animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent" aria-hidden="true" />
+                    <p className="font-bold text-slate-600">
+                      {file.progressMsg || STATUS_LABELS[file.status]}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </main>
 
       <div style={{ position: 'absolute', top: -10000, left: -10000, pointerEvents: 'none' }} aria-hidden="true">
-        {filesWithResults.map(f => (
-          <LogicModelPdfTemplate key={f.id} id={`pdf-template-${f.id}`} model={modelForExport(f.result!, f.warnings)} />
-        ))}
+        {pdfCaptureFile?.result && (
+          <LogicModelPdfTemplate
+            id={`pdf-template-${pdfCaptureFile.id}`}
+            model={modelForExport(pdfCaptureFile.result, pdfCaptureFile.warnings)}
+          />
+        )}
       </div>
 
       {previewFileId && currentPreviewFile && currentPreviewFile.result && (

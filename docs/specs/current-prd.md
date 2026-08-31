@@ -1,7 +1,7 @@
 # Current PRD — Logic Model Extractor (SDP Edition)
 
 Status: Active local MVP (2-person) + scoped enhancements  
-Last updated: 2026-08-10
+Last updated: 2026-08-31
 
 ## Problem
 Program staff receive logic models in heterogeneous formats (PDF, Word, PowerPoint). Manual transcription into a consistent structure is slow, and quality review against logic-model guidance is inconsistent.
@@ -35,8 +35,12 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 ## In scope (scoped — owner 2026-08-10)
 4. **Extraction confidence + abstention v1** — document-level `ok` / `partial` / `abstained` + categorical confidence + blockers; deterministic rollup from provenance/mismatch/legibility; fidelity banner; soft-gate coding export on partial/low. **Separate from** Overall LM quality (S/A/W). See `extraction-confidence-v1.md`. **Implemented (local).**
 
+## In scope (scoped — owner 2026-08-31)
+5. **Session navigator v1** — file list + one active editor/source pane; header counts; honest ZIP/CSV counts. Typical sitting 5–10 files; same list must survive a large batch. Preview overlay **stays**. See `session-navigator-v1.md`. **Implemented (local).**
+6. **L→R column review v1** — **after navigator.** Selected file’s default view is standard columns so operators can spot extraction/placement errors without Preview. See `ltr-column-review-v1.md`. Split-compare OUT. **Implemented (local).**
+
 ## Out of scope (until explicitly scoped)
-- Authentication / multi-user accounts / public cloud / Vercel team host
+- Authentication / multi-user accounts / public cloud / Vercel **team** host (optional private Vercel for the owner remains allowed)
 - Cloud storage or shared workspaces / multi-tenant white-label
 - LM Entry App / LM Feedback Module / coding UI in this repo
 - Partnerships DB implementation / unify Extract+Coding
@@ -44,6 +48,7 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 - Numeric extraction “accuracy %” / calibrated probabilities; always-on dual extract; verify-pass Gemini (deferred follow-up in `extraction-confidence-v1.md`)
 - Suppressing “noisy” item critiques in storage (policy may change later in rubric doc)
 - Full automated CI suite expansion
+- **Sheets ledger / Jotform / Drive manifest sync** — processing log L1, Apps Script, Python Drive download, live Sheets/Drive APIs (parked 2026-08-31)
 
 ## Acceptance criteria (shipped MVP)
 1. User can upload multiple files and queue while another file processes.
@@ -78,16 +83,20 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 - **Structure-aware extract (2026-07-28):** Presence-first — omit empty domains in export; critique ignores absent domains; missing Mission does not penalize overall quality. See `structure-aware-extract.md`.
 - **Extraction fidelity fix (2026-07-30):** Evidence-gated fix from real-doc friction (Oxford Circle CCDA). Per-item provenance (`verbatim`/`sourceNote`) surfaces low-confidence/clipped transcriptions; per-item colour (`fillColor`/`borderColor`) captures the population axis as metadata (never re-buckets); prompt stops treating colour/Resources sub-headings as tracks ("General" is the default); raster pages are cropped + rendered larger with a legibility warning, and dense grids can be sent as per-column tiles. Additive optional fields only. See `extraction-provenance-and-color.md`.
 - **Source-aware mapping (2026-07-31):** Capture source sections faithfully; synonym auto-map into standard domains without inventing/forcing; unmapped bucket + domain dropdown + short note; suggest mismatch review when ≥30% unmapped (or related thresholds); log user mapping corrections for iterative improvement. Full split Translate mode deferred. See `source-aware-mapping-v1.md`.
-- **Source review v1 (2026-07-31):** Unpark side-by-side source preview for validation friction. Session-retained page rasters beside editor; soft `sourcePage` / optional `sourceColumn` jump; no item bboxes; text-only extracts degrade with a message. L→R review board and bbox Tier 2 deferred pending evidence. See `source-review-v1.md`.
+- **Source review v1 (2026-07-31):** Unpark side-by-side source preview for validation friction. Session-retained page rasters beside editor; soft `sourcePage` / optional `sourceColumn` jump; no item bboxes; text-only extracts degrade with a message. Bbox Tier 2 still deferred. **L→R board unparked 2026-08-31** (`ltr-column-review-v1.md`) after navigator. See `source-review-v1.md`.
 - **Extraction confidence + abstention v1 (2026-08-10):** Fidelity is separate from Overall quality. Document status `ok`/`partial`/`abstained` + categorical confidence from model + deterministic rollup; fidelity banner; soft-gate coding export; no numeric % or second Gemini pass in v1. See `extraction-confidence-v1.md`.
+- **Sheets / Jotform / Drive ledger (2026-08-31):** Parked. No processing-log build, no Jotform fetch, no Drive sidecar in the product. **Still IN:** Export for coding, PDF/DOCX/PPTX ingest, optional private Vercel. Local `scripts/drive-manifest-sync/` stays uncommitted (gitignored).
+- **Session UX (2026-08-31):** Typical sitting 5–10 files; owner may also run a large batch — **file list + one workspace**, not a review-lite table. Branded PDF preview is a **workaround** for missing L→R; do not demote it until column review ships. Two extracts at once **OUT**. Sequence: `session-navigator-v1.md` then `ltr-column-review-v1.md`.
 
 ## Open product questions
 - After first real-doc sessions (`friction-log-template.md`): other friction beyond the two scoped items?
 - Volume/cadence: throughput vs quality-time?
+- Session UX: **closed 2026-08-31** — navigator then L→R column review (`session-navigator-v1.md`, `ltr-column-review-v1.md`).
 - Colleague handoff: full end-to-end alone, or review/export only?
 - Tune mismatch thresholds after 3–5 docs using correction exports (`source-aware-mapping-v1.md`).
 - Source review: source pane default left vs right; auto-open when mismatch banner shows (`source-review-v1.md`).
 - Extraction confidence: **closed 2026-08-10** — confirm dialog for coding soft-gate; banner + CSV columns; critique always runs on partial (`extraction-confidence-v1.md`).
+- Sheets / Jotform / Drive ledger: **closed 2026-08-31** — parked; coding export, Word/PPTX/PDF, and optional Vercel remain IN.
 
 ## Specs
 - Pipeline: `pipeline-context.md`
@@ -99,4 +108,7 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 - Tech (extraction confidence): `tech-extraction-confidence-v1.md`
 - Coding export: `export-for-coding.md`
 - Tech: `tech-overall-quality-and-coding-export.md`
+- Session navigator (v1): `session-navigator-v1.md`
+- L→R column review (v1): `ltr-column-review-v1.md`
+- Session UX discovery (answered): `ux-session-surfaces-discovery.md`
 - Roadmap: `roadmap.md`

@@ -49,7 +49,7 @@ Same as MVP: tool owner + one colleague, local session.
 - Pixel-perfect item bounding boxes / freeform region draw
 - PDF.js text-layer search highlight (Tier 3)
 - Persistent save of rasters or anchors across refresh (session save/load remains separate candidate)
-- Full traditional L→R “board” review layout (separate candidate; this spec does not block it)
+- Full traditional L→R “board” review layout — **unparked 2026-08-31** in `ltr-column-review-v1.md` (does not change this source-pane spec)
 - Side-by-side of **two domains** only (pair-compare)
 - Replacing branded PDF Print Preview
 - New npm packages (pdf viewer libs, etc.)
