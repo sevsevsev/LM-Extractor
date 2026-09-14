@@ -12,7 +12,7 @@ Living plan. Updated **2026-08-31** (session navigator + L→R column review sco
 |-------|--------|--------|----------------|
 | Stabilize → Quality (local MVP) | **Done** | Extract → critique → edit → CSV/PDF; server Gemini | MVP AC in `current-prd.md` |
 | **0 — Feature freeze (speculative)** | Soft | No *unscoped* capability work | Owner-scoped items may proceed |
-| **1 — Real-doc validation** | Parallel | 5–10 real SDP LMs; friction log | Top pains ranked |
+| **1 — Real-doc validation** | Parallel | 5–10 real SDP LMs; friction log; extraction accuracy checked against source via `extraction-verification-protocol-v1.md` | Top pains ranked; ≥3 documents fully scored |
 | **2 — Colleague onboarding** | Ready | Short runbook | Colleague solo success |
 | **4a — Export for coding** | **Done** | Coder-shaped CSV button | `export-for-coding.md` AC |
 | **4b — Overall LM quality** | **Done** | S/A/W + rationale; rubric doc | `lm-quality-rubric.md` AC |
