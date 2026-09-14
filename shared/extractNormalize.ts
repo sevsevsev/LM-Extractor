@@ -1,5 +1,8 @@
 import type { LogicModel, LogicModelGroup } from '../types';
-import { harvestImpactStatementFromPlainText } from './impactStatementHarvest.js';
+import {
+  harvestImpactStatementFromPlainText,
+  looksLikeImpactStatementProse,
+} from './impactStatementHarvest.js';
 import { applySourceAwareMapping } from './sourceMapping.js';
 import { reconcileExtractionFidelity } from './extractionFidelity.js';
 
@@ -60,18 +63,6 @@ function inferOutputGroup(text: string): string {
     if (pattern.test(text)) return group;
   }
   return 'General';
-}
-
-function looksLikeImpactStatementProse(text: string): boolean {
-  const t = norm(text);
-  if (t.length < 80) return false;
-  const signals =
-    /through\s+sustained\s+participation/.test(t) ||
-    /will\s+experience\s+an\s+affirming/.test(t) ||
-    /fosters\s+artistic\s+growth/.test(t) ||
-    /expanding\s+their\s+educational\s+pathways/.test(t) ||
-    /long-term\s+career\s+opportunities/.test(t);
-  return signals;
 }
 
 function promoteImpactStatementFromMission(model: LogicModel): void {
