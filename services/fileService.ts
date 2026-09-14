@@ -52,6 +52,24 @@ const TILE_BAND_OVERLAP_FRAC = 0.04; // overlap so a box split across the seam s
 const QUALITY_TIERS = [0.95, 0.85, 0.78, 0.72];
 const GLOBAL_SCALE_FACTORS = [1, 0.8, 0.65, 0.5];
 
+/**
+ * DOCX raster-aware rendering shares the PDF path's content-crop / image-dominance /
+ * column-tiling / legibility-floor logic (see docs/specs/extraction-provenance-and-color.md and
+ * the "DOCX ingestion parity" follow-up). DOCX pages are DOM/CSS renders (docx-preview +
+ * html2canvas) rather than pdfjs's native vector render, so unlike the PDF path's full
+ * scale×quality budget grid, this does one analysis-informed render per section plus at most one
+ * downgrade retry — html2canvas is materially more expensive per call than re-rendering a PDF
+ * page from its vector source, so an exhaustive tier grid isn't worth the added latency here.
+ */
+const DOCX_PROBE_SCALE = 1.0;
+const DOCX_IMAGE_DOMINANT_SCALE = 3.2;
+const DOCX_IMAGE_DOMINANT_MIN_SCALE = 2.4;
+const DOCX_MAX_SCALE = 3.5;
+/** Embedded <img> area / section area at or above this fraction ⇒ treat the section as image-dominant. */
+const DOCX_IMAGE_AREA_DOMINANT_FRAC = 0.35;
+const DOCX_DOWNGRADE_QUALITY = 0.72;
+const DOCX_DOWNGRADE_SCALE_FACTOR = 0.7;
+
 /** Legacy fallback tiers used only if the analysis pipeline throws. */
 const RENDER_TIERS: { scale: number; quality: number }[] = [
   { scale: 2.5, quality: 0.92 },
@@ -191,16 +209,38 @@ function encodeCanvas(canvas: HTMLCanvasElement, quality: number): string {
 }
 
 /**
+ * Shared by the PDF and DOCX renderers: image-dominant content stays denser under budget
+ * pressure — softened by `scaleFactor` but never below `dominantMin`, so Track-B-only content
+ * keeps usable glyph density regardless of source format.
+ */
+function resolveContentScale(
+  imageDominant: boolean,
+  scaleFactor: number,
+  base: number,
+  dominant: number,
+  dominantMin: number,
+  max: number
+): number {
+  if (imageDominant) {
+    return Math.min(max, Math.max(dominantMin, dominant * scaleFactor));
+  }
+  return Math.min(max, Math.max(1, base * scaleFactor));
+}
+
+/**
  * Per-page viewport scale: textless (flattened-raster) pages stay at high DPI; vector pages
  * use BASE_SCALE. Global budget `scaleFactor` softens both, but raster pages never drop below
  * IMAGE_DOMINANT_MIN_SCALE so Track-B-only docs keep usable glyph density.
  */
 function resolvePageScale(analysis: PageAnalysis, scaleFactor: number): number {
-  if (analysis.imageDominant) {
-    const softened = IMAGE_DOMINANT_SCALE * scaleFactor;
-    return Math.min(MAX_SCALE, Math.max(IMAGE_DOMINANT_MIN_SCALE, softened));
-  }
-  return Math.min(MAX_SCALE, Math.max(1, BASE_SCALE * scaleFactor));
+  return resolveContentScale(
+    analysis.imageDominant,
+    scaleFactor,
+    BASE_SCALE,
+    IMAGE_DOMINANT_SCALE,
+    IMAGE_DOMINANT_MIN_SCALE,
+    MAX_SCALE
+  );
 }
 
 /** Draw a sub-rectangle of a source canvas onto a fresh canvas and return it. */
@@ -418,6 +458,62 @@ async function convertPdfWithLegacyTiers(
 }
 
 /** Pull text-layer content from an already-loaded PDF (Track A). */
+/**
+ * A text run meaningfully taller than the page's typical run height is treated as a probable
+ * heading. Glyph height (via `item.height` / the transform's scale term) is on every pdfjs
+ * TextItem and is the standard, robust PDF heading signal. Deliberately NOT attempting bold-weight
+ * detection: that needs resolving `item.fontName` through `page.commonObjs`, an internal-ish pdfjs
+ * API whose behavior isn't guaranteed to be stable across versions (we were burned by exactly this
+ * kind of pdfjs internals assumption once already this project — see the getOrInsertComputed
+ * polyfill). Height is public, stable, and does the same job for the common case (headings are
+ * bigger, not just bold).
+ */
+const HEADING_SIZE_RATIO = 1.35;
+const HEADING_MAX_CHARS = 120;
+
+interface PdfTextLine {
+  text: string;
+  maxHeight: number;
+}
+
+/**
+ * pdfjs emits text as per-run fragments (mixed with TextMarkedContent items with no `str`), not
+ * lines — group by `hasEOL` to reconstruct lines. Takes the raw `getTextContent().items` union
+ * directly rather than pre-filtering to a narrower type, since pdfjs-dist doesn't re-export
+ * `TextItem` from its package root for a clean type-predicate narrowing.
+ */
+function groupTextItemsIntoLines(items: unknown[]): PdfTextLine[] {
+  const lines: PdfTextLine[] = [];
+  let cur: string[] = [];
+  let curMaxHeight = 0;
+  const flush = () => {
+    const text = cur.join(' ').replace(/\s+/g, ' ').trim();
+    if (text) lines.push({ text, maxHeight: curMaxHeight });
+    cur = [];
+    curMaxHeight = 0;
+  };
+  for (const raw of items) {
+    const item = raw as { str?: unknown; height?: unknown; transform?: unknown; hasEOL?: unknown };
+    if (typeof item.str === 'string' && item.str) {
+      cur.push(item.str);
+      const height = typeof item.height === 'number' ? item.height : 0;
+      const transformScale =
+        Array.isArray(item.transform) && typeof item.transform[3] === 'number' ? item.transform[3] : 0;
+      const h = Math.abs(height || transformScale);
+      if (h > curMaxHeight) curMaxHeight = h;
+    }
+    if (item.hasEOL) flush();
+  }
+  flush();
+  return lines;
+}
+
+/**
+ * Track A for PDF: page text plus a lightweight structural signal. Lines whose glyph height
+ * clears the page's typical (median) height by HEADING_SIZE_RATIO render as Markdown ATX
+ * headings, giving the extraction prompt the same kind of heading/emphasis signal DOCX's Track A
+ * already gets from Mammoth's style map — PDF's raw text layer otherwise carries none at all.
+ */
 async function textTrackFromPdf(
   pdf: Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>,
   maxPages = 2
@@ -427,15 +523,28 @@ async function textTrackFromPdf(
   for (let i = 1; i <= pageCount; i++) {
     const page = await pdf.getPage(i);
     const textContent = await page.getTextContent();
-    const pageText = textContent.items
-      .map(item => ('str' in item && typeof item.str === 'string' ? item.str : ''))
-      .join(' ');
+    const lines = groupTextItemsIntoLines(textContent.items);
+
+    const heights = lines.map(l => l.maxHeight).filter(h => h > 0);
+    const sortedHeights = [...heights].sort((a, b) => a - b);
+    const medianHeight = sortedHeights.length ? sortedHeights[Math.floor(sortedHeights.length / 2)] : 0;
+    const headingThreshold = medianHeight * HEADING_SIZE_RATIO;
+
+    const pageText = lines
+      .map(line => {
+        const isHeadingSize =
+          medianHeight > 0 && line.maxHeight >= headingThreshold && line.text.length <= HEADING_MAX_CHARS;
+        return isHeadingSize ? `### ${line.text}` : line.text;
+      })
+      .join('\n');
+
     fullText += `\n\n## Page ${i}\n\n${pageText}`;
   }
   return fullText.trim();
 }
 
-function assemblePdfBundle(
+function assembleDocumentBundle(
+  sourceFormat: DocumentBundle['sourceFormat'],
   images: string[],
   warnings: string[],
   lowLegibility: boolean,
@@ -444,7 +553,10 @@ function assemblePdfBundle(
   imageRefs?: SourceImageRef[]
 ): DocumentBundle {
   const mergedWarnings = [...warnings];
-  if (lowLegibility && !mergedWarnings.some(w => w.includes('flattened-raster'))) {
+  if (
+    lowLegibility &&
+    !mergedWarnings.some(w => w.includes('flattened-raster') || w.includes('low-resolution'))
+  ) {
     mergedWarnings.push(LOW_LEGIBILITY_WARNING);
   }
   const previews =
@@ -463,7 +575,7 @@ function assemblePdfBundle(
     previewImages: previews,
     textTrack,
     warnings: mergedWarnings,
-    sourceFormat: 'pdf',
+    sourceFormat,
   };
 }
 
@@ -485,7 +597,8 @@ export const convertPdfToImages = async (file: File): Promise<DocumentBundle> =>
 
     try {
       const result = await convertPdfWithAnalysis(pdf, pageCount);
-      return assemblePdfBundle(
+      return assembleDocumentBundle(
+        'pdf',
         result.images,
         [...warnings, ...result.warnings],
         result.lowLegibility,
@@ -497,7 +610,7 @@ export const convertPdfToImages = async (file: File): Promise<DocumentBundle> =>
       console.warn('Analysis render failed; falling back to tier rendering:', analysisError);
       const images = await convertPdfWithLegacyTiers(pdf, pageCount);
       // Fallback skipped analysis, so assume the worst and let extraction flag risky tokens.
-      return assemblePdfBundle(images, warnings, true, textTrack);
+      return assembleDocumentBundle('pdf', images, warnings, true, textTrack);
     }
   } catch (error) {
     console.error('PDF Image Conversion Error:', error);
@@ -578,24 +691,151 @@ function sliceCanvasToJpegs(
   return images;
 }
 
-async function captureElementJpeg(el: HTMLElement): Promise<string> {
-  const canvas = await html2canvas(el, {
-    scale: DOCX_VISION_SCALE,
+interface DocxSectionAnalysis {
+  imageDominant: boolean;
+  bboxFrac: Box | null;
+  columnFracs: { start: number; end: number }[] | null;
+}
+
+/** Cheap probe render → content box + column bands + embedded-image dominance. Mirrors analyzePdfPage. */
+async function analyzeDocxSection(el: HTMLElement): Promise<DocxSectionAnalysis> {
+  const probe = await html2canvas(el, {
+    scale: DOCX_PROBE_SCALE,
     useCORS: true,
     backgroundColor: '#ffffff',
   });
-  return encodeCanvasJpeg(canvas);
+  const ctx = probe.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return { imageDominant: false, bboxFrac: null, columnFracs: null };
+  const { data } = ctx.getImageData(0, 0, probe.width, probe.height);
+  const { bbox, inkProfile } = analyzeCanvasPixels(data, probe.width, probe.height);
+
+  // Image-dominance for DOCX means "a large embedded raster (photo/screenshot) drives this
+  // section" — unlike a PDF page, a Word page is never itself a flattened scan, but it can
+  // embed one, which carries the same small-print legibility risk.
+  const elRect = el.getBoundingClientRect();
+  const elArea = Math.max(1, elRect.width * elRect.height);
+  let imgArea = 0;
+  for (const img of Array.from(el.querySelectorAll('img'))) {
+    const r = img.getBoundingClientRect();
+    imgArea += Math.max(0, r.width) * Math.max(0, r.height);
+  }
+  const imageDominant = imgArea / elArea >= DOCX_IMAGE_AREA_DOMINANT_FRAC;
+
+  let bboxFrac: Box | null = null;
+  if (bbox) {
+    const pad = CONTENT_PAD_FRAC;
+    bboxFrac = {
+      x0: Math.max(0, bbox.x0 / probe.width - pad),
+      y0: Math.max(0, bbox.y0 / probe.height - pad),
+      x1: Math.min(1, bbox.x1 / probe.width + pad),
+      y1: Math.min(1, bbox.y1 / probe.height + pad),
+    };
+  }
+
+  let columnFracs: { start: number; end: number }[] | null = null;
+  if (ENABLE_COLUMN_TILING && bbox) {
+    const cropX0 = bbox.x0;
+    const cropX1 = bbox.x1;
+    const cropWidth = cropX1 - cropX0;
+    const aspect = (bbox.x1 - bbox.x0) / Math.max(1, bbox.y1 - bbox.y0);
+    if (cropWidth > 40 && aspect > 0.7) {
+      const cropped = inkProfile.slice(cropX0, cropX1);
+      const bands = findColumnBands(cropped);
+      if (bands.length >= 3) {
+        columnFracs = bands.map(b => ({ start: b.start / cropWidth, end: b.end / cropWidth }));
+      }
+    }
+  }
+
+  return { imageDominant, bboxFrac, columnFracs };
+}
+
+interface DocxSectionRenderResult {
+  extractImages: string[];
+  imageRefs: SourceImageRef[];
+  previewImage: string;
+  payloadBytes: number;
+}
+
+/** Render one analyzed section: crop to content, tile per column when a confident grid was found. */
+async function renderAnalyzedDocxSection(
+  el: HTMLElement,
+  analysis: DocxSectionAnalysis,
+  pageNum: number,
+  scale: number,
+  quality: number
+): Promise<DocxSectionRenderResult> {
+  const fullCanvas = await html2canvas(el, { scale, useCORS: true, backgroundColor: '#ffffff' });
+
+  const bbox = analysis.bboxFrac;
+  let contentCanvas: HTMLCanvasElement = fullCanvas;
+  let contentX0 = 0;
+  let contentWidth = fullCanvas.width;
+  if (bbox && (bbox.x1 - bbox.x0) * (bbox.y1 - bbox.y0) < 0.93) {
+    const sx = bbox.x0 * fullCanvas.width;
+    const sy = bbox.y0 * fullCanvas.height;
+    const sw = (bbox.x1 - bbox.x0) * fullCanvas.width;
+    const sh = (bbox.y1 - bbox.y0) * fullCanvas.height;
+    const cropped = cropCanvas(fullCanvas, sx, sy, sw, sh);
+    if (cropped) {
+      contentCanvas = cropped;
+      contentX0 = sx;
+      contentWidth = cropped.width;
+    }
+  }
+
+  const previewImage = encodeCanvas(contentCanvas, quality);
+
+  if (analysis.columnFracs && analysis.columnFracs.length >= 3) {
+    const tiles: string[] = [];
+    const refs: SourceImageRef[] = [];
+    let columnIndex = 0;
+    for (const band of analysis.columnFracs) {
+      columnIndex += 1;
+      const bx = contentX0 + band.start * contentWidth;
+      const bw = (band.end - band.start) * contentWidth;
+      const tile = cropCanvas(contentCanvas, bx - contentX0, 0, bw, contentCanvas.height);
+      if (!tile) continue;
+      for (const sub of splitTallTile(tile)) {
+        tiles.push(encodeCanvas(sub, quality));
+        refs.push({ page: pageNum, column: columnIndex });
+      }
+    }
+    if (tiles.length >= 3) {
+      return {
+        extractImages: tiles,
+        imageRefs: refs,
+        previewImage,
+        payloadBytes: totalPayloadBytes(tiles),
+      };
+    }
+  }
+
+  return {
+    extractImages: [previewImage],
+    imageRefs: [{ page: pageNum }],
+    previewImage,
+    payloadBytes: previewImage.length,
+  };
+}
+
+interface DocxVisionResult {
+  images: string[];
+  imageRefs: SourceImageRef[];
+  previewImages: string[];
+  warnings: string[];
+  lowLegibility: boolean;
 }
 
 /**
- * Track B: prefer docx-preview page `<section class="docx">` nodes; otherwise slice
- * one tall render into letter-aspect JPEG bands.
+ * Track B: prefer docx-preview page `<section class="docx">` nodes, each analyzed and rendered
+ * like a PDF page (content-crop, image-dominant scale-up, column tiling, legibility floor);
+ * otherwise analyze once and slice one tall render into letter-aspect JPEG bands.
  */
-async function renderDocxVisionPages(
-  arrayBuffer: ArrayBuffer
-): Promise<{ images: string[]; warnings: string[] }> {
+async function renderDocxVisionPages(arrayBuffer: ArrayBuffer): Promise<DocxVisionResult> {
   const warnings: string[] = [];
   let container: HTMLDivElement | null = null;
+  let lowLegibility = false;
 
   try {
     container = document.createElement('div');
@@ -620,27 +860,82 @@ async function renderDocxVisionPages(
     ).filter(el => (el.textContent || '').trim().length > 0 || el.querySelector('img,table,svg'));
 
     let images: string[] = [];
+    let imageRefs: SourceImageRef[] = [];
+    let previewImages: string[] = [];
+
+    const legibilityWarningFor = (pageLabel: string, bboxFrac: Box | null, scale: number): string | null => {
+      const contentFrac = bboxFrac ? bboxFrac.x1 - bboxFrac.x0 : 1;
+      const contentPx = contentFrac * DOCX_RENDER_WIDTH_PX * scale;
+      if (contentPx >= LEGIBILITY_FLOOR_PX) return null;
+      return `${pageLabel} of this Word document contains a low-resolution embedded image, so small text may be misread. Verify the extracted wording against the original.`;
+    };
 
     if (pageSections.length >= 2) {
       const limited = pageSections.slice(0, MAX_VISION_PAGES);
-      for (const section of limited) {
-        images.push(await captureElementJpeg(section));
+      const budgetBytes = isLocalHost() ? Number.POSITIVE_INFINITY : 3_800_000;
+      let runningBytes = 0;
+
+      for (let i = 0; i < limited.length; i++) {
+        const section = limited[i];
+        const pageNum = i + 1;
+        const analysis = await analyzeDocxSection(section);
+        if (analysis.imageDominant) lowLegibility = true;
+
+        const scale = resolveContentScale(
+          analysis.imageDominant,
+          1,
+          DOCX_VISION_SCALE,
+          DOCX_IMAGE_DOMINANT_SCALE,
+          DOCX_IMAGE_DOMINANT_MIN_SCALE,
+          DOCX_MAX_SCALE
+        );
+        let result = await renderAnalyzedDocxSection(section, analysis, pageNum, scale, DOCX_JPEG_QUALITY);
+
+        // One downgrade retry when running total is already tight — cheaper than a full
+        // scale×quality grid (see the constant block comment for why DOCX doesn't use one).
+        if (!isLocalHost() && runningBytes + result.payloadBytes > budgetBytes) {
+          const downgradedScale = Math.max(1, scale * DOCX_DOWNGRADE_SCALE_FACTOR);
+          result = await renderAnalyzedDocxSection(
+            section,
+            analysis,
+            pageNum,
+            downgradedScale,
+            DOCX_DOWNGRADE_QUALITY
+          );
+        }
+
+        runningBytes += result.payloadBytes;
+        images.push(...result.extractImages);
+        imageRefs.push(...result.imageRefs);
+        previewImages.push(result.previewImage);
+
+        const warning = legibilityWarningFor(`Page ${pageNum}`, analysis.bboxFrac, scale);
+        if (warning) warnings.push(warning);
       }
+
       if (pageSections.length > MAX_VISION_PAGES) {
         warnings.push(
           `This Word document has ${pageSections.length} pages; only the first ${MAX_VISION_PAGES} were analyzed.`
         );
       }
     } else {
-      // Single flow / no reliable page breaks — capture once and paginate by height.
+      // Single flow / no reliable page breaks — analyze once, then paginate by height.
       const target = pageSections[0] || container;
-      const full = await html2canvas(target, {
-        scale: DOCX_VISION_SCALE,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-      });
-      const slicePx = Math.round(DOCX_SLICE_HEIGHT_PX * DOCX_VISION_SCALE);
+      const analysis = await analyzeDocxSection(target);
+      if (analysis.imageDominant) lowLegibility = true;
+      const scale = resolveContentScale(
+        analysis.imageDominant,
+        1,
+        DOCX_VISION_SCALE,
+        DOCX_IMAGE_DOMINANT_SCALE,
+        DOCX_IMAGE_DOMINANT_MIN_SCALE,
+        DOCX_MAX_SCALE
+      );
+      const full = await html2canvas(target, { scale, useCORS: true, backgroundColor: '#ffffff' });
+      const slicePx = Math.round(DOCX_SLICE_HEIGHT_PX * scale);
       images = sliceCanvasToJpegs(full, slicePx, MAX_VISION_PAGES);
+      imageRefs = images.map((_, i) => ({ page: i + 1 }));
+      previewImages = images;
       if (images.length > 1) {
         warnings.push(
           'Word page breaks were unclear, so the document was split into fixed-height image bands for vision analysis.'
@@ -652,13 +947,15 @@ async function renderDocxVisionPages(
           `This Word document is long; only the first ${MAX_VISION_PAGES} image bands were analyzed.`
         );
       }
+      const warning = legibilityWarningFor('This document', analysis.bboxFrac, scale);
+      if (warning) warnings.push(warning);
     }
 
     if (images.length === 0) {
       throw new Error('DOCX vision render produced no page images.');
     }
 
-    return { images, warnings };
+    return { images, imageRefs, previewImages, warnings, lowLegibility };
   } finally {
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
@@ -676,14 +973,15 @@ export const convertDocxToImages = async (file: File): Promise<DocumentBundle> =
       renderDocxVisionPages(arrayBuffer.slice(0)),
     ]);
 
-    const bundle: DocumentBundle = {
-      images: vision.images,
-      previewImages: vision.images.length ? vision.images : undefined,
-      imageRefs: vision.images.map((_, i) => ({ page: i + 1 })),
+    const bundle = assembleDocumentBundle(
+      'docx',
+      vision.images,
+      vision.warnings,
+      vision.lowLegibility,
       textTrack,
-      warnings: vision.warnings,
-      sourceFormat: 'docx',
-    };
+      vision.previewImages,
+      vision.imageRefs
+    );
 
     const snippet = bundle.textTrack.slice(0, 400);
     console.log('[DOCX DocumentBundle] images length:', bundle.images.length);
