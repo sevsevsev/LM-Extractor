@@ -23,6 +23,7 @@
 - **[multi-column-extract-patterns.md](./multi-column-extract-patterns.md)** — @pattern-analyst pattern benchmark (Phase 1 ✓)
 - **[tech-multi-column-extract.md](./tech-multi-column-extract.md)** — @architect implementer spec (Phase 2 ✓)
 - **[structure-aware-extract.md](./structure-aware-extract.md)** — presence-first extract & critique (owner decisions 2026-07-28)
+- **[causal-chain-critique-v1.md](./causal-chain-critique-v1.md)** — CMO-lens critique for mechanism/context leaks + chain coherence, deterministic overall-quality guardrail — **proposed, not yet scoped** (draft 2026-09-14)
 - **[multi-column-extract-patterns.md](./multi-column-extract-patterns.md)** — @pattern-analyst benchmark + MVP pick (prompt-only)
 
 Use `@product` to revise PRD scope; `@lm-quality` / `@critique-prompt` for assessment prompts; agents update `roadmap.md` when guidance changes.
