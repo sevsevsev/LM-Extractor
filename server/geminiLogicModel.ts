@@ -13,15 +13,22 @@ import { applyCausalChainGuardrail } from '../shared/causalChain.js';
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 500;
-/** Mechanical transcription (layout mapping, OCR-style fidelity) — fast tier is the right fit. */
-const EXTRACT_MODEL_ID = 'gemini-2.5-flash';
 /**
- * Qualitative judgment (logic-model theory, causal-chain reasoning, CMO-lens classification) is a
- * harder reasoning task than transcription — use the stronger tier. See docs/specs assessment
- * (2026-09-14): matching model strength to task difficulty was the highest-leverage lever identified
- * for a 2-person local tool where latency/cost headroom is not the binding constraint.
+ * Use Google's rolling `-latest` aliases, not a dated snapshot (e.g. `gemini-2.5-flash`) — pinned
+ * snapshots get sunset for new API keys/projects (confirmed 2026-09-14: `gemini-2.5-flash` returned
+ * 404 "no longer available to new users" on a freshly created key even though it still appeared in
+ * the models.list response). The alias resolves forward automatically as Google rotates the
+ * recommended model, which is what we actually want for a rarely-touched local tool.
  */
-const CRITIQUE_MODEL_ID = 'gemini-2.5-pro';
+const EXTRACT_MODEL_ID = 'gemini-flash-latest';
+/**
+ * Ideally a stronger-reasoning tier for qualitative judgment (logic-model theory, causal-chain
+ * reasoning, CMO-lens classification) than mechanical transcription needs — see docs/specs
+ * assessment (2026-09-14). In practice `gemini-pro-latest` (currently `gemini-3.1-pro`) returns a
+ * hard 429 with `limit: 0` on the free tier, so critique stays on the same flash-tier alias as
+ * extraction until billing is enabled. Revisit once the account has paid-tier quota.
+ */
+const CRITIQUE_MODEL_ID = 'gemini-flash-latest';
 
 const baseItemSchema: Schema = {
   type: Type.OBJECT,
