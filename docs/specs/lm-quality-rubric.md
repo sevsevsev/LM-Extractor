@@ -44,6 +44,8 @@ Otherwise **Adequate**.
 
 **Presence-aware (v0.2):** Do not penalize empty optional domains (Mission, Medium-Term, grid Impact) when absent from source. Do not cite missing Mission in overall rationale. See `structure-aware-extract.md`.
 
+**Causal-chain guardrail (v0.3 — implemented (local), tune thresholds from next 3-5 real docs):** A deterministic, code-level check (`shared/causalChain.ts` `applyCausalChainGuardrail`) caps a model-assigned `Strong` down to `Adequate` when structured CMO-lens signals (`causalRole` mechanism/context leaks on present outcome items, or `causalChainAssessment.coherence === "broken"`) cross a threshold (default: ≥2 leak items or ≥25% of present outcome items). Downgrade-only — never upgrades a model-assigned `Weak`/`Adequate`. Full design in `causal-chain-critique-v1.md`.
+
 Human edits + re-critique may change overall; overall should be recomputed on critique pass.
 
 ## Proposed data shape (names for @architect)
@@ -79,5 +81,6 @@ After domain/item critiques on **present** domains, assign `overallQuality.ratin
 
 | Version | Date | Change |
 |---------|------|--------|
+| v0.3 | 2026-09-14 | Causal-chain guardrail: deterministic downgrade-only cap on `Strong` from CMO-lens `causalRole`/`causalChainAssessment` signals (`causal-chain-critique-v1.md`) |
 | v0.2 | 2026-07-28 | Presence-aware rollup: ignore absent domains; Mission not mandatory; progression across present horizons only (`structure-aware-extract.md`) |
 | v0.1 | 2026-07-24 | Initial: single S/A/W + rationale bullets; store all item assessments; tweakable doc process |

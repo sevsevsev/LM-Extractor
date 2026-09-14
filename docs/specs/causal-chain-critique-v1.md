@@ -1,7 +1,7 @@
 # Causal-chain critique (v1)
 
-Status: **Proposed (draft)** — owner reviewing 2026-09-14; not yet scoped/locked
-Owners: `@product` (this doc, scope), `@critique-prompt` (rubric language + worked examples), `@architect` (schema + rollup guardrail), `@lm-quality` (interaction with overall rollup — sign-off required), `@ux` (optional item-level chrome)
+Status: **Implemented (local)** (owner 2026-09-14) — validate on next 3-5 real docs, tune thresholds
+Owners: `@product` (this doc, scope), `@critique-prompt` (rubric language + worked examples), `@architect` (schema + rollup guardrail), `@lm-quality` (interaction with overall rollup), `@ux` (optional item-level chrome — deferred, see below)
 Related: `lm-quality-rubric.md`, `structure-aware-extract.md`, `extraction-confidence-v1.md` (precedent for deterministic rollup over model self-score), `current-prd.md`
 
 ## Problem
@@ -107,22 +107,32 @@ New pure function, e.g. `shared/causalChain.ts` → `applyCausalChainGuardrail(m
 6. No item is classified `mechanism_leak`/`context_leak` without a corresponding one-line justification in that item's `critique` text.
 7. Fixture regression: existing fixtures (`oxford-circle-carnell-frc`, `performance-garage-youthmoves`) still pass after the change — this feature must not alter extraction behavior or existing critique fields.
 
-## Open product questions
+## Open product questions — resolved 2026-09-14 (owner delegated to implementer)
 
-1. **Guardrail threshold** — is "≥2 leaks or ≥25% of present outcome items" the right default, or should it be tuned before shipping using the next 3–5 real docs (matching how extraction-confidence thresholds were tuned)?
-2. **Scope of `context_leak` detection** — ship outcome-domains-only in v1, or extend to `inputs`/`targetPopulation` now? (Leaning: outcome-only first, extend once real-doc evidence shows it's needed — same "evidence-gated" posture the roadmap uses elsewhere.)
-3. **UI badge** — is item critique text sufficient, or does `mechanism_leak`/`context_leak` warrant a visible badge (reusing the "needs review" pattern) so operators can filter/scan without reading every critique?
-4. **Does `@lm-quality` want the guardrail threshold documented in `lm-quality-rubric.md` itself** (like the existing rollup hints) rather than only in this spec, so the two docs don't drift?
+1. **Guardrail threshold** — shipped with the illustrative default (`minLeakCount: 2`, `minLeakRatio: 0.25`), same posture as extraction-confidence thresholds: ship a documented default, tune from the next 3–5 real docs rather than blocking on a priori certainty. Defaults live in `shared/causalChain.ts` (`DEFAULT_CAUSAL_CHAIN_THRESHOLDS`), not hardcoded inline, so tuning is a one-place change.
+2. **Scope of `context_leak` detection** — shipped outcome-domains-only in v1, as leaned. Extending to `inputs`/`targetPopulation` stays a v1.1 candidate, evidence-gated.
+3. **UI badge** — deferred. v1 relies on the existing item `critique` text (which the prompt requires to name the leak in one sentence) plus the new CSV columns. Revisit once real-doc sessions show operators need a scannable badge beyond reading critique text.
+4. **Mirror threshold into `lm-quality-rubric.md`** — done. See that doc's v0.3 changelog entry and updated Rollup hints section, which now cross-references `shared/causalChain.ts` as the source of truth for the numeric default so the two docs don't drift silently.
 
-## Sequencing
+## What shipped
 
-1. `@product` (this doc) — owner review, lock scope + threshold defaults.
-2. `@critique-prompt` — CMO-lens prompt section + worked examples (narrow — does not touch extraction prompt or overall rollup rubric wording beyond citing the new signal).
-3. `@architect` — `causalRole` / `causalChainAssessment` types, critique schema additions, `applyCausalChainGuardrail` function, CSV columns.
-4. `@lm-quality` — sign off on guardrail interaction with `overallQuality` rollup; decide whether to mirror the threshold into `lm-quality-rubric.md`.
-5. `@ux` — only if Open question 3 resolves toward a badge.
-6. `@devops` — typecheck/build/test; confirm fixture regression still passes.
-7. Validate on next 3–5 real docs before tightening thresholds (same posture as `extraction-confidence-v1.md`).
+- `types.ts`: `CausalRole`, `CausalChainCoherence`, `CausalChainAssessment`; `causalRole?` on `LogicModelItem`; `causalChainAssessment?` on `LogicModel`.
+- `shared/causalChain.ts`: `applyCausalChainGuardrail`, `countCausalLeaks`, `countPresentOutcomeHorizons`, `isCausalRole`, `isCausalChainCoherence`, `DEFAULT_CAUSAL_CHAIN_THRESHOLDS` — plus `shared/causalChain.test.ts`.
+- `shared/domainPresence.ts`: `clearAbsentGroupedDomainCritique` now also strips `causalRole` on items in domains that became empty (e.g. after edits); `sanitizeAbsentDomainCritiques` drops `causalChainAssessment` when fewer than 2 outcome horizons remain present; `buildGranularExportRows` adds `causalRole` / `causalChainCoherence` / `causalChainEvidence` columns.
+- `server/geminiLogicModel.ts`: critique schema extended with `causalRole` (per item) and `causalChainAssessment` (model-level, optional); `critiqueLogicModelOnServer` runs `applyCausalChainGuardrail` after `sanitizeAbsentDomainCritiques`, before returning.
+- `constants.ts`: `getAiCritiquePrompt()` adds the CMO-lens section (three-way classification + two worked examples) and the chain-coherence instruction, gated on ≥2 present outcome horizons.
+- `App.tsx`: full CSV export headers/rows include the three new columns. Coding export (`services/codingExport.ts`) is unaffected — it builds an explicit column list and never spreads model fields, so it omits these by construction (no code change needed there).
+- `docs/specs/lm-quality-rubric.md`: v0.3 changelog entry + Rollup hints cross-reference.
+
+## Sequencing (completed)
+
+1. `@product` (this doc) — scope + threshold defaults locked 2026-09-14.
+2. `@critique-prompt` — CMO-lens prompt section + worked examples — done (`constants.ts`).
+3. `@architect` — types, schema, guardrail function, CSV columns — done.
+4. `@lm-quality` — rollup interaction + `lm-quality-rubric.md` cross-reference — done.
+5. `@ux` — deferred (Open question 3).
+6. `@devops` — typecheck/test pass required before this status can move past "Implemented (local)" — see Acceptance criteria.
+7. **Not yet done: validate on 3–5 real docs and tune thresholds.** This is the one remaining step before calling v1 closed.
 
 ## Closed decisions (this scope, 2026-09-14)
 
@@ -130,9 +140,11 @@ New pure function, e.g. `shared/causalChain.ts` → `applyCausalChainGuardrail(m
 - BCTO and CFIR 2.0 explicitly rejected for v1 — source documents are mostly bare bullets, insufficient to ground either taxonomy honestly.
 - Causal-chain evidence feeds the existing single `overallQuality` rating via a deterministic downgrade-only guardrail; it does not become a second visible quality dimension.
 - No new Gemini call — this stays inside the existing single critique pass.
+- Threshold defaults, `context_leak` scope, and UI badge questions resolved by implementer per owner delegation ("take this to the finish line") rather than left blocking — see "Open product questions — resolved" above. Threshold tuning after real-doc validation remains explicitly open.
 
 ## Changelog
 
 | Date | Change |
 |------|--------|
+| 2026-09-14 | Implemented (local): types, guardrail module + tests, critique schema + prompt, CSV export columns, rubric cross-reference. Open questions resolved by implementer; threshold tuning after real-doc validation remains outstanding. |
 | 2026-09-14 | Initial draft — CMO lens scoped in; BCTO/CFIR/vector-DB scoped out; guardrail pattern proposed |

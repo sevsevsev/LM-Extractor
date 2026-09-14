@@ -9,6 +9,7 @@ import { parseLogicModelResponse } from '../shared/logicModelValidate.js';
 import { normalizeExtractedLogicModel } from '../shared/extractNormalize.js';
 import { sanitizeAbsentDomainCritiques } from '../shared/domainPresence.js';
 import { reconcileProvenance } from '../shared/provenance.js';
+import { applyCausalChainGuardrail } from '../shared/causalChain.js';
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 500;
@@ -106,6 +107,10 @@ const critiquedItemSchema: Schema = {
     borderColor: { type: Type.STRING },
     sourcePage: { type: Type.NUMBER },
     sourceColumn: { type: Type.NUMBER },
+    causalRole: {
+      type: Type.STRING,
+      enum: ['outcome', 'mechanism_leak', 'context_leak', 'unclear'],
+    },
   },
   required: ['text', 'critique', 'rating'],
 };
@@ -169,6 +174,14 @@ const critiqueModelSchema: Schema = {
         rationale: { type: Type.ARRAY, items: { type: Type.STRING } },
       },
       required: ['rating', 'rationale'],
+    },
+    causalChainAssessment: {
+      type: Type.OBJECT,
+      properties: {
+        coherence: { type: Type.STRING, enum: ['holds', 'weak', 'broken'] },
+        evidence: { type: Type.ARRAY, items: { type: Type.STRING } },
+      },
+      required: ['coherence', 'evidence'],
     },
   },
   required: [
@@ -355,5 +368,6 @@ export async function critiqueLogicModelOnServer(
 
   const critiqued = parseLogicModelResponse(response.text, { requireOverallQuality: true });
   if (sourceModel) reconcileProvenance(critiqued, sourceModel);
-  return sanitizeAbsentDomainCritiques(critiqued);
+  const sanitized = sanitizeAbsentDomainCritiques(critiqued);
+  return applyCausalChainGuardrail(sanitized);
 }

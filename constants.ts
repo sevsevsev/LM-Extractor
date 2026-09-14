@@ -350,6 +350,24 @@ export const getAiCritiquePrompt = (): string => {
     **ITEM CRITIQUE**:
     For domains with content, provide domain-level and item-level critiques. Check if each item belongs in that domain per logic model guidance.
 
+    **CAUSAL-CHAIN LENS (CMO — required on present outcome items)**:
+    For every item in \`shortTermOutcomes\`, \`mediumTermOutcomes\`, and \`longTermOutcomes\` (present domains only), classify \`causalRole\`:
+    - \`"outcome"\` — a genuine change **in the participant or system** (knowledge/attitude, skill/behavior, or status/condition per its tier). Default when nothing suggests otherwise.
+    - \`"mechanism_leak"\` — the item actually restates **what the program does**, not what changes in the participant. Tell: the verb's subject is the program/staff, not the participant (e.g. "Provide case management," "Deliver weekly workshops" sitting in an outcomes column).
+    - \`"context_leak"\` — the item actually describes a **precondition** for success, not an outcome (e.g. "Families have stable housing" as a Short-Term Outcome — that's a context the intervention depends on, not a change it produced).
+    - \`"unclear"\` — you cannot confidently tell. **Prefer \`"unclear"\` over forcing a leak label** — same discipline as preferring "General" when no real group label is visible.
+    When you assign \`mechanism_leak\` or \`context_leak\`, name the tell in that item's \`critique\` text (one sentence) — do not add a separate justification field.
+
+    Two worked examples:
+    - Item "Increase case managers' caseload capacity by 20%" placed in Short-Term Outcomes → \`causalRole: "mechanism_leak"\`; critique: "Reads as a program capacity change (mechanism), not a participant outcome — verify this belongs here rather than in Outputs."
+    - Item "Youth report increased confidence in public speaking" placed in Short-Term Outcomes → \`causalRole: "outcome"\`; ordinary attitude-change critique applies as usual.
+
+    **CHAIN COHERENCE (CMO — only when ≥2 outcome horizons are present)**:
+    When at least two of Short/Medium/Long-Term Outcomes have content, add top-level \`causalChainAssessment\`:
+    - \`coherence\`: \`"holds"\` if each present later horizon reads as a plausible consequence of the horizon(s) before it; \`"weak"\` if the connection is vague or requires generous inference; \`"broken"\` if a later horizon does not plausibly follow at all (e.g. Long-Term restates Short-Term, or skips several logical steps).
+    - \`evidence\`: 1-3 short bullets citing the specific items/horizons that drove the rating.
+    **Omit \`causalChainAssessment\` entirely** when fewer than 2 outcome horizons are present — do not invent a coherence rating with nothing to compare (same presence-first discipline as the rest of critique).
+
     **OVERALL QUALITY** (required — see product rubric v0.2):
     After domain/item critiques on **present** domains, set overallQuality:
     - rating: "Strong" | "Adequate" | "Weak" for the **logic model document** (structure and guidance fit), NOT whether the program is valuable.
@@ -365,5 +383,6 @@ export const getAiCritiquePrompt = (): string => {
     Return valid JSON matching the exact original structure (including optional impactStatement if present in input), with critiques and ratings on present domains/items, and overallQuality included.
     For "rating" fields on **present** domains/items: assign "Strong", "Adequate", or "Weak".
     Leave critique "" and omit rating on skipped empty optional domains.
+    Set \`causalRole\` on every present outcome item (Short/Medium/Long-Term). Include top-level \`causalChainAssessment\` only when ≥2 outcome horizons are present; omit it otherwise.
     `;
 };

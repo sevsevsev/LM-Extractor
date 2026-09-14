@@ -23,9 +23,18 @@ function clearAbsentGroupedDomainCritique<T extends LogicModelField<LogicModelGr
       for (const item of g.items) {
         delete item.critique;
         delete item.rating;
+        delete item.causalRole;
       }
     }
   }
+}
+
+/** Clear `causalChainAssessment` once fewer than 2 outcome horizons remain present (e.g. after edits). */
+function clearCausalChainAssessmentIfUnderscoped(model: LogicModel): void {
+  const presentHorizons = ['shortTermOutcomes', 'mediumTermOutcomes', 'longTermOutcomes'].filter(
+    domain => groupedDomainHasContent((model[domain as keyof LogicModel] as { content?: LogicModelGroup[] })?.content)
+  ).length;
+  if (presentHorizons < 2) delete model.causalChainAssessment;
 }
 
 function rationaleMentionsAbsentMission(bullet: string): boolean {
@@ -115,6 +124,8 @@ export function sanitizeAbsentDomainCritiques(model: LogicModel): LogicModel {
     m.overallQuality.rationale = ensureMinRationale(filterAbsentDomainRationaleBullets(m));
   }
 
+  clearCausalChainAssessmentIfUnderscoped(m);
+
   return m;
 }
 
@@ -143,6 +154,9 @@ export interface GranularExportRow {
   extractionConfidence: string;
   extractionBlockers: string;
   mappingCorrectionsJson: string;
+  causalRole: string;
+  causalChainCoherence: string;
+  causalChainEvidence: string;
 }
 
 /** Build full CSV rows — omit domains with no content (presence-first export). */
@@ -159,6 +173,8 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
     const mappingCorrectionsJson = m.mappingCorrections?.length
       ? JSON.stringify(m.mappingCorrections)
       : '';
+    const causalChainCoherence = m.causalChainAssessment?.coherence || '';
+    const causalChainEvidence = (m.causalChainAssessment?.evidence || []).filter(Boolean).join(' | ');
 
     const pushStringField = (
       domain: string,
@@ -190,6 +206,9 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
         extractionConfidence,
         extractionBlockers,
         mappingCorrectionsJson,
+        causalRole: '',
+        causalChainCoherence,
+        causalChainEvidence,
       });
     };
 
@@ -228,6 +247,9 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
             extractionConfidence,
             extractionBlockers,
             mappingCorrectionsJson,
+            causalRole: item.causalRole || '',
+            causalChainCoherence,
+            causalChainEvidence,
           });
         }
       }

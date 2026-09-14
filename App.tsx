@@ -394,6 +394,9 @@ const App: React.FC = () => {
       'Extraction Confidence',
       'Extraction Blockers',
       'Mapping Corrections JSON',
+      'Causal Role',
+      'Causal Chain Coherence',
+      'Causal Chain Evidence',
     ];
 
     const exportRows = buildGranularExportRows(
@@ -424,6 +427,9 @@ const App: React.FC = () => {
       r.extractionConfidence,
       r.extractionBlockers,
       r.mappingCorrectionsJson,
+      r.causalRole,
+      r.causalChainCoherence,
+      r.causalChainEvidence,
     ]);
 
     const csvContent = [
