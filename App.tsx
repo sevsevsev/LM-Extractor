@@ -801,14 +801,22 @@ const App: React.FC = () => {
                     className={`grid gap-4 ${
                       file.sourcePaneCollapsed !== false
                         ? 'grid-cols-1'
-                        : 'grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]'
+                        : /* Side-by-side only above ~1536px: the board needs ~1050-1200px on its
+                             own, so anything narrower (a normal 13-15" laptop) docks the source
+                             pane full-width above the board instead of squeezing both into half
+                             the screen. Above that, give the source pane a CAPPED width (300-352px
+                             — legible via its own zoom control, doesn't need to grow further) and
+                             let the board take the rest via 1fr — a proportional 50/50 split still
+                             clips the board to 4-5 of 6 columns even at 1920px, which is one of the
+                             most common external-monitor widths; empirically checked at 1920px. */
+                          'grid-cols-1 2xl:grid-cols-[minmax(300px,22rem)_minmax(0,1fr)]'
                     }`}
                   >
                     <div
                       className={
                         file.sourcePaneCollapsed !== false
                           ? ''
-                          : 'order-2 lg:order-1 lg:self-start'
+                          : 'order-2 2xl:order-1 2xl:self-start'
                       }
                     >
                       <SourceDocumentPane
@@ -829,7 +837,7 @@ const App: React.FC = () => {
                       className={
                         file.sourcePaneCollapsed !== false
                           ? 'min-w-0'
-                          : 'order-1 lg:order-2 min-w-0'
+                          : 'order-1 2xl:order-2 min-w-0'
                       }
                     >
                       <LogicModelEditor

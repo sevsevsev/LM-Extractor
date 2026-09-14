@@ -110,7 +110,10 @@ const SourceDocumentPane: React.FC<SourceDocumentPaneProps> = ({
 
   return (
     <aside
-      className="flex w-full flex-col rounded-md border border-gray-200 bg-white max-lg:h-[min(70vh,28rem)] lg:sticky lg:top-4 lg:h-[calc(100vh-5.5rem)] lg:max-h-[calc(100vh-5.5rem)]"
+      // Docked (full-width, capped-height band above the board) below ~1536px; only becomes a
+      // sticky side column at the same breakpoint App.tsx switches the grid to side-by-side.
+      // See the comment on the layout grid in App.tsx for why that threshold is 2xl, not lg.
+      className="flex w-full flex-col rounded-md border border-gray-200 bg-white max-2xl:h-[min(42vh,28rem)] 2xl:sticky 2xl:top-4 2xl:h-[calc(100vh-5.5rem)] 2xl:max-h-[calc(100vh-5.5rem)]"
       aria-label="Source document"
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 bg-brand-muted px-3 py-2">
