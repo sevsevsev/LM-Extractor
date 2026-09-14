@@ -13,7 +13,15 @@ import { applyCausalChainGuardrail } from '../shared/causalChain.js';
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 500;
-const MODEL_ID = 'gemini-2.5-flash';
+/** Mechanical transcription (layout mapping, OCR-style fidelity) — fast tier is the right fit. */
+const EXTRACT_MODEL_ID = 'gemini-2.5-flash';
+/**
+ * Qualitative judgment (logic-model theory, causal-chain reasoning, CMO-lens classification) is a
+ * harder reasoning task than transcription — use the stronger tier. See docs/specs assessment
+ * (2026-09-14): matching model strength to task difficulty was the highest-leverage lever identified
+ * for a 2-person local tool where latency/cost headroom is not the binding constraint.
+ */
+const CRITIQUE_MODEL_ID = 'gemini-2.5-pro';
 
 const baseItemSchema: Schema = {
   type: Type.OBJECT,
@@ -311,7 +319,7 @@ export async function extractLogicModelOnServer(
 
   const response = await withRetry(() =>
     ai.models.generateContent({
-      model: MODEL_ID,
+      model: EXTRACT_MODEL_ID,
       contents: contents as never,
       config: {
         responseMimeType: 'application/json',
@@ -356,7 +364,7 @@ export async function critiqueLogicModelOnServer(
 
   const response = await withRetry(() =>
     ai.models.generateContent({
-      model: MODEL_ID,
+      model: CRITIQUE_MODEL_ID,
       contents,
       config: {
         responseMimeType: 'application/json',
