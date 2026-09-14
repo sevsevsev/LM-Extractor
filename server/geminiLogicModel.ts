@@ -22,13 +22,13 @@ const BASE_DELAY_MS = 500;
  */
 const EXTRACT_MODEL_ID = 'gemini-flash-latest';
 /**
- * Ideally a stronger-reasoning tier for qualitative judgment (logic-model theory, causal-chain
- * reasoning, CMO-lens classification) than mechanical transcription needs — see docs/specs
- * assessment (2026-09-14). In practice `gemini-pro-latest` (currently `gemini-3.1-pro`) returns a
- * hard 429 with `limit: 0` on the free tier, so critique stays on the same flash-tier alias as
- * extraction until billing is enabled. Revisit once the account has paid-tier quota.
+ * Qualitative judgment (logic-model theory, causal-chain reasoning, CMO-lens classification) is a
+ * harder reasoning task than mechanical transcription — use the stronger tier. Confirmed usable
+ * 2026-09-14 after billing was enabled on the account (previously hard 429 `limit: 0` on the free
+ * tier — see git history if that regresses). Same rolling-alias reasoning as EXTRACT_MODEL_ID: this
+ * resolves forward as Google rotates the recommended Pro model rather than pinning a dated snapshot.
  */
-const CRITIQUE_MODEL_ID = 'gemini-flash-latest';
+const CRITIQUE_MODEL_ID = 'gemini-pro-latest';
 
 const baseItemSchema: Schema = {
   type: Type.OBJECT,
