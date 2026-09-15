@@ -62,18 +62,24 @@ function toPersistedRecord(f: ProcessingFile): PersistedFileRecord {
  * page, so there's no retained tiling geometry to look up here) — falls back to a full-width
  * highlight when it couldn't estimate one.
  */
+/**
+ * Only render a highlight box when Gemini gave a real spatial estimate. The client-side text
+ * heuristic (shared/completenessCheck.ts) can only ever know a page number — never a horizontal
+ * position — so a region it contributed has no `xStart`/`xEnd`; a box drawn around the whole page
+ * for that case would convey nothing the page-jump chip doesn't already say, so it's dropped
+ * rather than drawn. (The chip itself still shows for every flagged page regardless.)
+ */
 function resolveHighlightRegions(file: ProcessingFile): HighlightRegion[] {
   const regions = file.result?.possiblyMissedRegions;
   if (!regions || regions.length === 0) return [];
-  return regions.map(region => {
-    const hasSpan = typeof region.xStart === 'number' && typeof region.xEnd === 'number';
-    return {
+  return regions
+    .filter(region => typeof region.xStart === 'number' && typeof region.xEnd === 'number')
+    .map(region => ({
       page: region.page,
-      leftFrac: hasSpan ? region.xStart! : 0,
-      widthFrac: hasSpan ? Math.max(0, region.xEnd! - region.xStart!) : 1,
+      leftFrac: region.xStart!,
+      widthFrac: Math.max(0, region.xEnd! - region.xStart!),
       note: region.note,
-    };
-  });
+    }));
 }
 
 function hashPersistedRecord(record: PersistedFileRecord): string {

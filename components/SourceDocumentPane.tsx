@@ -9,13 +9,16 @@ export interface SourceFocus {
 
 /**
  * One "possibly missed content" highlight, pre-resolved to plain fractions by the caller (App.tsx,
- * from `LogicModel.possiblyMissedRegions` + `ProcessingFile.sourceColumnFracs` — see
- * shared/extractionFidelity.ts). Covers all pages for the file; this component filters to whichever
- * page is currently displayed, the same way it already does for `focus`'s `locationCue`.
+ * from `LogicModel.possiblyMissedRegions` — see `shared/extractionFidelity.ts`). Only ever built
+ * from a region that carried a real Gemini-estimated span; App.tsx drops page-only entries (no
+ * `xStart`/`xEnd`) before they reach here, rather than falling back to a whole-page box that
+ * wouldn't say anything the page-jump chip doesn't already. Covers all pages for the file; this
+ * component filters to whichever page is currently displayed, the same way it already does for
+ * `focus`'s `locationCue`.
  */
 export interface HighlightRegion {
   page: number;
-  /** Fraction [0,1] of the page image's width. `0` + `1` (full width) when only page-level is known. */
+  /** Fraction [0,1] of the page image's width. */
   leftFrac: number;
   widthFrac: number;
   note?: string;

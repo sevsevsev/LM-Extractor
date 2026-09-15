@@ -66,30 +66,41 @@ source exists across formats, and `docs/specs/source-review-v1.md` already defer
 a real bounding box, but sourced from something that actually looks at the page, rather than a
 brittle CV heuristic.
 
-### Rendering
+### Rendering — and a second correction: no full-page fallback
 
-`App.tsx`'s `resolveHighlightRegions()` resolves `model.possiblyMissedRegions` directly to plain
-`{ page, leftFrac, widthFrac, note? }` fractions (falling back to `{0, 1}` — full page width — when
-Gemini couldn't estimate a span) and passes the full per-file list to `SourceDocumentPane`, which
-filters to whichever page is currently displayed — the same pattern already used for the existing
-`focus`/`locationCue` cue. Each region renders as a translucent amber overlay
-(`SourceDocumentPane.tsx`, wrapping the existing `<img>` in a `position: relative` container) with
-a pinned "Possibly missed" label; decorative (`aria-hidden`), matching the project's existing "page
-label is the accessible name for location" convention. The fidelity banner
-(`LogicModelEditor.tsx`) gained "Pages to spot-check: [N] [M]" chips reusing the existing
-`onFocusSource`/`SourceFocus` navigation, extended with an optional `note` override so the chip's
-jump can show "Spot-check for missed content" instead of the default verify-against-source cue.
+The first version of this rendering step fell back to `{leftFrac: 0, widthFrac: 1}` (a full-page
+box) whenever a region had no `xStart`/`xEnd`. That turned out to be the *common* case in practice:
+across every real document available in this session, Gemini's own `possiblyMissedRegions`
+essentially never fired (tested repeatedly, including PPTX), while the client-side text heuristic
+(§1) — which structurally can only ever know a page number, never a horizontal position — was the
+one actually producing the fidelity blocker. So in real usage this almost always rendered as a
+full-page box, which is exactly what the page-level-only version already did and had already been
+rejected as unhelpful.
+
+Fixed by dropping the fallback entirely: `App.tsx`'s `resolveHighlightRegions()` now filters out
+any `possiblyMissedRegions` entry without both `xStart` and `xEnd` before it ever reaches
+`SourceDocumentPane` — no overlay box is drawn for those, since a box around the whole page adds
+nothing the page-jump chip doesn't already say. The chip itself (`LogicModelEditor.tsx`'s "Pages to
+spot-check: [N] [M]", reusing the existing `onFocusSource`/`SourceFocus` navigation, extended with
+an optional `note` override) still shows for every flagged page regardless — that part of the
+signal (page-level pointing) is real and kept. A highlight box only ever appears in the case Gemini
+itself supplies a confident spatial estimate.
+
+Each region that does render is a translucent amber overlay (`SourceDocumentPane.tsx`, wrapping the
+existing `<img>` in a `position: relative` container) with a pinned "Possibly missed" label;
+decorative (`aria-hidden`), matching the project's existing "page label is the accessible name for
+location" convention.
 
 ## Verified
 
 Typecheck, all 93 tests (7 new, covering the page-aware heuristic and the Gemini/heuristic merge),
-and build pass. Live Playwright pass against a real document: confirmed the fidelity banner shows
-page chips and clicking one jumps the source pane; via a response interception injecting a
-synthetic `possiblyMissedRegions` entry with `xStart: 0.33, xEnd: 0.5`, confirmed (both via DOM
-inspection of the rendered `left`/`width` style and visually, via screenshot) that the highlight
-box lands precisely on a single column of the page rather than the whole page — the actual case
-that motivated the redesign. Re-ran the three real documents used throughout this session
-end-to-end with no injection — all extracted cleanly with no regression.
+and build pass. Live Playwright passes against real documents: confirmed the fidelity banner shows
+page chips and clicking one jumps the source pane; via response interception, confirmed a region
+with `xStart`/`xEnd` renders a highlight box landing precisely on that span (verified via DOM style
+inspection and screenshot), and confirmed a page-only region (no span) renders the page chip with
+**no** overlay box. Ran the natural (non-injected) extraction repeatedly against all 6 real
+documents available in this session (3 PDF, 3 PPTX) — Gemini's own `possiblyMissedRegions` did not
+fire on any of them, which is the direct evidence behind dropping the full-page fallback.
 
 ## Out of scope (v1)
 
@@ -101,3 +112,9 @@ end-to-end with no injection — all extracted cleanly with no regression.
   full page height within its `xStart`–`xEnd` band.
 - DOCX page-level pointing (Track A has no page markers; would need new plumbing to correlate
   Markdown lines to Mammoth/docx-preview render-time page slices).
+
+**Known limitation**: since Gemini's `possiblyMissedRegions` essentially never fired in this
+session's testing, the highlight box itself may end up rarely seen in practice — most real
+occurrences of this fidelity blocker will show only the page chip, not a box. If that holds up
+under more real usage, the next move is either stronger prompting/validation on the Gemini side, or
+retiring the box in favor of page-chip-only pointing.
