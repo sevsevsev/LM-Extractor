@@ -58,8 +58,3 @@ export const extractLogicModel = async (bundle: DocumentBundle): Promise<LogicMo
   const data = await postJson<{ model: LogicModel }>('/api/gemini/extract', bundle);
   return data.model;
 };
-
-export const critiqueLogicModel = async (model: LogicModel | string): Promise<LogicModel> => {
-  const data = await postJson<{ model: LogicModel }>('/api/gemini/critique', { model });
-  return data.model;
-};

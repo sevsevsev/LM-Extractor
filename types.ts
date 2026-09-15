@@ -1,28 +1,4 @@
-export type QualityRating = 'Strong' | 'Adequate' | 'Weak';
-
-/**
- * CMO-lens critique-time classification — see docs/specs/causal-chain-critique-v1.md.
- * Set only during critique (like `critique`/`rating`); never present after extract.
- * `outcome`: reads as a genuine change in the participant/system.
- * `mechanism_leak`: reads as a program action/mechanism, not a participant outcome.
- * `context_leak`: reads as a precondition/context, not an outcome.
- * `unclear`: not confidently classifiable — prefer this over forcing a leak label.
- */
-export type CausalRole = 'outcome' | 'mechanism_leak' | 'context_leak' | 'unclear';
-
-export type CausalChainCoherence = 'holds' | 'weak' | 'broken';
-
-/**
- * Model-level causal-chain coherence across **present** outcome horizons only.
- * Omitted (not `n/a`) when fewer than 2 outcome horizons are present — nothing to compare.
- */
-export interface CausalChainAssessment {
-  coherence: CausalChainCoherence;
-  /** 1-3 short bullets citing specific items/horizons. */
-  evidence: string[];
-}
-
-/** Document-level extraction fidelity — not LM document quality (`overallQuality`). */
+/** Document-level extraction fidelity. */
 export type ExtractionStatus = 'ok' | 'partial' | 'abstained';
 export type ExtractionConfidence = 'high' | 'medium' | 'low';
 
@@ -35,8 +11,6 @@ export interface ExtractionFidelity {
 
 export interface LogicModelItem {
   text: string;
-  critique?: string;
-  rating?: QualityRating;
   /**
    * Provenance flags — see docs/specs/extraction-provenance-and-color.md.
    * `verbatim: false` means the wording was paraphrased, reconstructed, or read from
@@ -67,11 +41,6 @@ export interface LogicModelItem {
   sourcePage?: number;
   /** 1-based column band when known (e.g. from column tiling); omit when unknown. */
   sourceColumn?: number;
-  /**
-   * CMO-lens causal-role classification (critique-only). Scoped to outcome-domain items in v1.
-   * See docs/specs/causal-chain-critique-v1.md.
-   */
-  causalRole?: CausalRole;
 }
 
 export type LayoutFamily =
@@ -110,14 +79,6 @@ export interface LogicModelGroup {
 
 export interface LogicModelField<T> {
   content: T;
-  critique?: string;
-  rating?: QualityRating;
-}
-
-/** Model-level qualitative assessment — see docs/specs/lm-quality-rubric.md */
-export interface OverallQuality {
-  rating: QualityRating;
-  rationale: string[];
 }
 
 export interface LogicModel {
@@ -140,12 +101,6 @@ export interface LogicModel {
    * are then recorded per item without an inferred meaning. See docs/specs/extraction-provenance-and-color.md.
    */
   colorLegend?: string;
-  overallQuality?: OverallQuality;
-  /**
-   * CMO-lens chain-coherence assessment (critique-only). See docs/specs/causal-chain-critique-v1.md.
-   * Omitted when fewer than 2 outcome horizons are present.
-   */
-  causalChainAssessment?: CausalChainAssessment;
   /**
    * Items whose source header did not synonym-map (or were returned by the user).
    * Not a Gemini-required field — filled by source-aware mapping / human assignment.
@@ -156,7 +111,7 @@ export interface LogicModel {
   /** Session correction log for offline review / synonym iteration. */
   mappingCorrections?: MappingCorrectionEvent[];
   /**
-   * Extraction fidelity (separate from overallQuality). See `extraction-confidence-v1.md`.
+   * Extraction fidelity. See `extraction-confidence-v1.md`.
    * Flat fields for Gemini schema / CSV; use helpers in `shared/extractionFidelity.ts`.
    */
   extractionStatus?: ExtractionStatus;
@@ -207,7 +162,7 @@ export function bundleImpliesLowLegibility(bundle: Pick<DocumentBundle, 'warning
 export interface ProcessingFile {
   id: string;
   file: File;
-  status: 'pending' | 'converting' | 'extracting' | 'analyzing' | 'editing' | 'completed' | 'error';
+  status: 'pending' | 'converting' | 'extracting' | 'editing' | 'completed' | 'error';
   progressMsg?: string;
   error?: string;
   result?: LogicModel;

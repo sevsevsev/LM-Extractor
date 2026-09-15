@@ -1,5 +1,8 @@
 # LM overall quality rubric (v0.1)
 
+> **Deprecated 2026-09 — removed from the app.** See
+> `docs/specs/scope-extraction-only-2026-09.md`. Kept for historical reference only.
+
 Status: **Active — tweakable**  
 Owners: `@lm-quality` (rubric), `@critique-prompt` (item/domain prompts), `@product` (scale/IN-OUT changes)  
 Implements in: `constants.ts` critique prompt + `types.ts` / critique schema (when built)  

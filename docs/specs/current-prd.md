@@ -1,17 +1,22 @@
 # Current PRD — Logic Model Extractor (SDP Edition)
 
 Status: Active local MVP (2-person) + scoped enhancements  
-Last updated: 2026-08-31
+Last updated: 2026-09-15
+
+> **2026-09 scope narrowing:** document-quality critique (Overall LM quality S/A/W, per-domain/item
+> critique, causal-chain lens) is deprecated and removed from this app — see
+> `scope-extraction-only-2026-09.md`. Sections below that describe critique are historical; the app
+> is now extraction-only.
 
 ## Problem
 Program staff receive logic models in heterogeneous formats (PDF, Word, PowerPoint). Manual transcription into a consistent structure is slow, and quality review against logic-model guidance is inconsistent.
 
 ## Primary users
-- **Now:** Tool owner + one colleague (ingest, extract, critique, edit, export).
+- **Now:** Tool owner + one colleague (ingest, extract, edit, export).
 - **Later (unscoped):** Broader SDP / partner staff — only after an explicit PRD update.
 
 ## Job to be done
-Upload a logic-model document → extract **all** LM domains into a structured, editable model → qualitatively assess overall (and item/domain) quality → refine → export (1) a **full** flat file for database population and (2) an **outcomes** CSV for Qualitative Outcomes Coder, plus optional SDP-branded PDF.
+Upload a logic-model document → reliably extract **all** LM domains into a structured, editable model → refine → export (1) a **full** flat file for database population and (2) an **outcomes** CSV for Qualitative Outcomes Coder, plus optional SDP-branded PDF.
 
 ## Pipeline role
 This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Qualitative Outcomes Coder**. LM Feedback Module is a separate program-facing utility.
@@ -19,14 +24,14 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 ## In scope (MVP — shipped)
 - Multi-file upload: PDF, DOCX, PPTX (PDF recommended for layout fidelity)
 - Vision-first extraction with text fallback (15 page/slide cap)
-- Two-pass Gemini: extract then critique (Strong / Adequate / Weak at domain/item)
-- Human-in-the-loop editing + re-critique
+- Single-pass Gemini extract (two-pass extract+critique **deprecated 2026-09**, see below)
+- Human-in-the-loop editing
 - Full CSV export (granular rows) + branded PDF
 - Clear error, retry, and remove controls
 - Server-side Gemini proxy; local hosting for two users
 
 ## In scope (scoped next — owner 2026-07-24)
-1. **Overall LM quality** — single Strong/Adequate/Weak + rationale bullets; see `lm-quality-rubric.md` (tweakable). Store **all** item/domain assessments in the model and full export. **Implemented.**
+1. ~~**Overall LM quality** — single Strong/Adequate/Weak + rationale bullets; see `lm-quality-rubric.md` (tweakable). Store **all** item/domain assessments in the model and full export.~~ **Deprecated 2026-09** — removed, see `scope-extraction-only-2026-09.md`.
 2. **Export for coding** — dedicated CSV matching coder intake; see `export-for-coding.md`. **Implemented.**
 
 ## In scope (scoped — owner 2026-07-31)
@@ -53,15 +58,15 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 ## Acceptance criteria (shipped MVP)
 1. User can upload multiple files and queue while another file processes.
 2. Failed files show a human-readable error with Retry and Remove.
-3. Re-critique keeps the editor visible and shows loading state.
+3. ~~Re-critique keeps the editor visible and shows loading state.~~ **Deprecated 2026-09** — critique removed.
 4. CSV / ZIP export only enable when at least one editable result exists.
 5. Built client JS does not contain `GEMINI_API_KEY`; only the Node server reads `.env.local`.
 6. Weak / unrated sections are easy to find (summary strip + default-open sections).
 7. Both operators can run the app locally with documented steps.
 
 ## Acceptance criteria (scoped next — implemented)
-8. After critique, each model has `overallQuality.rating` ∈ {Strong, Adequate, Weak} and 2–4 rationale bullets (`lm-quality-rubric.md`).
-9. Full CSV includes overall quality + all item/domain assessments.
+8. ~~After critique, each model has `overallQuality.rating` ∈ {Strong, Adequate, Weak} and 2–4 rationale bullets (`lm-quality-rubric.md`).~~ **Deprecated 2026-09.**
+9. ~~Full CSV includes overall quality + all item/domain assessments.~~ **Deprecated 2026-09** — full CSV no longer carries quality/critique columns.
 10. **Export for coding** produces a CSV that uploads into Qualitative Outcomes Coder without header errors (`export-for-coding.md`).
 
 ## Acceptance criteria (source review v1 — implemented)
@@ -69,9 +74,9 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 12. Item select / “Show in source” navigates to `sourcePage` when present; branded Print Preview remains distinct from source.
 
 ## Acceptance criteria (extraction confidence v1 — implemented)
-13. Successful extracts expose `extractionStatus` ∈ {ok, partial, abstained} and `extractionConfidence` ∈ {high, medium, low}; **`low` or `abstained` hard-stops** (no critique/editor). Rollup rules in `extraction-confidence-v1.md`.
+13. Successful extracts expose `extractionStatus` ∈ {ok, partial, abstained} and `extractionConfidence` ∈ {high, medium, low}; **`low` or `abstained` hard-stops** (no editor). Rollup rules in `extraction-confidence-v1.md`.
 14. Fidelity banner for proceed-with-caution `partial`/`medium`; coding export soft-gates on those; full CSV includes fidelity fields.
-15. `overallQuality` remains document quality only (not extraction fidelity).
+15. ~~`overallQuality` remains document quality only (not extraction fidelity).~~ **Moot 2026-09** — `overallQuality` removed entirely.
 16. Dense low-legibility grids (\(L\) ∧ \(N \ge 6\)) force `low` even when the model under-flags verbatim (Oxford Circle–class).
 
 ## Closed product decisions
@@ -87,6 +92,7 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 - **Extraction confidence + abstention v1 (2026-08-10):** Fidelity is separate from Overall quality. Document status `ok`/`partial`/`abstained` + categorical confidence from model + deterministic rollup; fidelity banner; soft-gate coding export; no numeric % or second Gemini pass in v1. See `extraction-confidence-v1.md`.
 - **Sheets / Jotform / Drive ledger (2026-08-31):** Parked. No processing-log build, no Jotform fetch, no Drive sidecar in the product. **Still IN:** Export for coding, PDF/DOCX/PPTX ingest, optional private Vercel. Local `scripts/drive-manifest-sync/` stays uncommitted (gitignored).
 - **Session UX (2026-08-31):** Typical sitting 5–10 files; owner may also run a large batch — **file list + one workspace**, not a review-lite table. Branded PDF preview is a **workaround** for missing L→R; do not demote it until column review ships. Two extracts at once **OUT**. Sequence: `session-navigator-v1.md` then `ltr-column-review-v1.md`.
+- **Scope narrowing to extraction-only (2026-09-15):** App's purpose is reliable extraction for downstream processing, not document-quality assessment. Document-quality critique (Overall LM quality S/A/W, per-domain/item critique, causal-chain lens) is deprecated and removed — the two-pass extract+critique Gemini pipeline becomes single-pass extract-only, halving cost/latency per document. A future separate app will own quality/causal-chain analysis. See `scope-extraction-only-2026-09.md`.
 
 ## Open product questions
 - After first real-doc sessions (`friction-log-template.md`): other friction beyond the two scoped items?
@@ -99,8 +105,9 @@ This app is the **LM Extraction Tool** (see `pipeline-context.md`). Sibling: **Q
 - Sheets / Jotform / Drive ledger: **closed 2026-08-31** — parked; coding export, Word/PPTX/PDF, and optional Vercel remain IN.
 
 ## Specs
+- Scope decision (extraction-only): `scope-extraction-only-2026-09.md`
 - Pipeline: `pipeline-context.md`
-- Quality rubric: `lm-quality-rubric.md`
+- Quality rubric (deprecated): `lm-quality-rubric.md`
 - Structure-aware extract: `structure-aware-extract.md`
 - Source-aware mapping (v1): `source-aware-mapping-v1.md`
 - Source review (v1): `source-review-v1.md`

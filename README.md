@@ -1,6 +1,6 @@
 # Logic Model Extractor
 
-Local Vite + React app that extracts structured logic models from PDF/DOCX/PPTX via Gemini, critiques them against guidance, supports human editing, and exports CSV / branded PDFs.
+Local Vite + React app that reliably extracts structured logic models from PDF/DOCX/PPTX via Gemini for downstream processing, supports human editing, and exports CSV / branded PDFs.
 
 ## Run locally (development)
 
@@ -28,7 +28,7 @@ Builds the client, then serves API + `dist` from Express on `:3011` (override wi
 The same API is exposed two ways so one codebase serves both targets:
 
 - **Local:** Express (`server.ts`) on `:3011`
-- **Vercel:** serverless functions in `api/` (`/api/health`, `/api/gemini/extract`, `/api/gemini/critique`)
+- **Vercel:** serverless functions in `api/` (`/api/health`, `/api/gemini/extract`)
 
 Both delegate to `server/apiCore.ts`, so behavior stays identical.
 
@@ -45,7 +45,7 @@ Hosted limits to be aware of:
 
 ## Architecture notes
 
-- Gemini is **server-side only** (`/api/gemini/extract`, `/api/gemini/critique`).
+- Gemini is **server-side only** (`/api/gemini/extract`).
 - Document libs are npm packages (no script CDNs).
 - Brand tokens: `config/brand.ts`
 - Specs/roadmap: `docs/specs/`

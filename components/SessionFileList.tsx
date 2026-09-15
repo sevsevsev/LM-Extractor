@@ -8,7 +8,6 @@ const PROCESSING_LABELS: Record<ProcessingFile['status'], string> = {
   pending: 'Queued',
   converting: 'Reading layout',
   extracting: 'Extracting',
-  analyzing: 'Reviewing quality',
   editing: 'Ready',
   completed: 'Ready',
   error: 'Needs attention',

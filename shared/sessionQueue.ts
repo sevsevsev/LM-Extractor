@@ -9,7 +9,7 @@ export type SessionFileCounts = {
 };
 
 export function isPipelineBusy(status: ProcessingFile['status']): boolean {
-  return status === 'converting' || status === 'extracting' || status === 'analyzing';
+  return status === 'converting' || status === 'extracting';
 }
 
 export function isExportReady(status: ProcessingFile['status']): boolean {

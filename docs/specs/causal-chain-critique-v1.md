@@ -1,5 +1,8 @@
 # Causal-chain critique (v1)
 
+> **Deprecated 2026-09 — removed from the app.** See
+> `docs/specs/scope-extraction-only-2026-09.md`. Kept for historical reference only.
+
 Status: **Implemented (local)** (owner 2026-09-14) — validate on next 3-5 real docs, tune thresholds
 Owners: `@product` (this doc, scope), `@critique-prompt` (rubric language + worked examples), `@architect` (schema + rollup guardrail), `@lm-quality` (interaction with overall rollup), `@ux` (optional item-level chrome — deferred, see below)
 Related: `lm-quality-rubric.md`, `structure-aware-extract.md`, `extraction-confidence-v1.md` (precedent for deterministic rollup over model self-score), `current-prd.md`

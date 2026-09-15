@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Schema } from '@google/genai';
-import { getAiExtractionPrompt, getAiCritiquePrompt } from '../constants.js';
+import { getAiExtractionPrompt } from '../constants.js';
 import {
   bundleImpliesLowLegibility,
   type DocumentBundle,
@@ -7,9 +7,6 @@ import {
 } from '../types.js';
 import { parseLogicModelResponse } from '../shared/logicModelValidate.js';
 import { normalizeExtractedLogicModel } from '../shared/extractNormalize.js';
-import { sanitizeAbsentDomainCritiques } from '../shared/domainPresence.js';
-import { reconcileProvenance } from '../shared/provenance.js';
-import { applyCausalChainGuardrail } from '../shared/causalChain.js';
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 500;
@@ -21,14 +18,6 @@ const BASE_DELAY_MS = 500;
  * recommended model, which is what we actually want for a rarely-touched local tool.
  */
 const EXTRACT_MODEL_ID = 'gemini-flash-latest';
-/**
- * Qualitative judgment (logic-model theory, causal-chain reasoning, CMO-lens classification) is a
- * harder reasoning task than mechanical transcription — use the stronger tier. Confirmed usable
- * 2026-09-14 after billing was enabled on the account (previously hard 429 `limit: 0` on the free
- * tier — see git history if that regresses). Same rolling-alias reasoning as EXTRACT_MODEL_ID: this
- * resolves forward as Google rotates the recommended Pro model rather than pinning a dated snapshot.
- */
-const CRITIQUE_MODEL_ID = 'gemini-pro-latest';
 
 const baseItemSchema: Schema = {
   type: Type.OBJECT,
@@ -107,111 +96,6 @@ const extractModelSchema: Schema = {
     'mediumTermOutcomes',
     'longTermOutcomes',
     'impact',
-  ],
-};
-
-const critiquedItemSchema: Schema = {
-  type: Type.OBJECT,
-  properties: {
-    text: { type: Type.STRING },
-    critique: { type: Type.STRING },
-    rating: { type: Type.STRING, enum: ['Strong', 'Adequate', 'Weak'] },
-    verbatim: { type: Type.BOOLEAN },
-    sourceNote: { type: Type.STRING },
-    fillColor: { type: Type.STRING },
-    borderColor: { type: Type.STRING },
-    sourcePage: { type: Type.NUMBER },
-    sourceColumn: { type: Type.NUMBER },
-    causalRole: {
-      type: Type.STRING,
-      enum: ['outcome', 'mechanism_leak', 'context_leak', 'unclear'],
-    },
-  },
-  required: ['text', 'critique', 'rating'],
-};
-
-const critiquedGroupSchema: Schema = {
-  type: Type.OBJECT,
-  properties: {
-    name: { type: Type.STRING },
-    items: { type: Type.ARRAY, items: critiquedItemSchema },
-  },
-  required: ['name', 'items'],
-};
-
-const critiquedFieldSchema = (contentType: Type): Schema => ({
-  type: Type.OBJECT,
-  properties: {
-    content:
-      contentType === Type.ARRAY
-        ? { type: Type.ARRAY, items: critiquedGroupSchema }
-        : { type: Type.STRING },
-    critique: { type: Type.STRING },
-    rating: { type: Type.STRING, enum: ['Strong', 'Adequate', 'Weak'] },
-  },
-  required: ['content', 'critique', 'rating'],
-});
-
-const critiqueModelSchema: Schema = {
-  type: Type.OBJECT,
-  properties: {
-    organization: { type: Type.STRING },
-    program: { type: Type.STRING },
-    impactStatement: critiquedFieldSchema(Type.STRING),
-    mission: critiquedFieldSchema(Type.STRING),
-    targetPopulation: critiquedFieldSchema(Type.STRING),
-    inputs: critiquedFieldSchema(Type.ARRAY),
-    activities: critiquedFieldSchema(Type.ARRAY),
-    outputs: critiquedFieldSchema(Type.ARRAY),
-    shortTermOutcomes: critiquedFieldSchema(Type.ARRAY),
-    mediumTermOutcomes: critiquedFieldSchema(Type.ARRAY),
-    longTermOutcomes: critiquedFieldSchema(Type.ARRAY),
-    impact: critiquedFieldSchema(Type.ARRAY),
-    colorLegend: { type: Type.STRING },
-    unmapped: critiquedFieldSchema(Type.ARRAY),
-    layoutFamily: {
-      type: Type.STRING,
-      enum: ['vertical_columns', 'horizontal_rows', 'diagram', 'prose_sections', 'unknown'],
-    },
-    extractionStatus: {
-      type: Type.STRING,
-      enum: ['ok', 'partial', 'abstained'],
-    },
-    extractionConfidence: {
-      type: Type.STRING,
-      enum: ['high', 'medium', 'low'],
-    },
-    extractionBlockers: { type: Type.ARRAY, items: { type: Type.STRING } },
-    overallQuality: {
-      type: Type.OBJECT,
-      properties: {
-        rating: { type: Type.STRING, enum: ['Strong', 'Adequate', 'Weak'] },
-        rationale: { type: Type.ARRAY, items: { type: Type.STRING } },
-      },
-      required: ['rating', 'rationale'],
-    },
-    causalChainAssessment: {
-      type: Type.OBJECT,
-      properties: {
-        coherence: { type: Type.STRING, enum: ['holds', 'weak', 'broken'] },
-        evidence: { type: Type.ARRAY, items: { type: Type.STRING } },
-      },
-      required: ['coherence', 'evidence'],
-    },
-  },
-  required: [
-    'organization',
-    'program',
-    'mission',
-    'targetPopulation',
-    'inputs',
-    'activities',
-    'outputs',
-    'shortTermOutcomes',
-    'mediumTermOutcomes',
-    'longTermOutcomes',
-    'impact',
-    'overallQuality',
   ],
 };
 
@@ -340,49 +224,4 @@ export async function extractLogicModelOnServer(
     sourceText: textTrack || undefined,
     lowLegibility,
   });
-}
-
-export async function critiqueLogicModelOnServer(
-  apiKey: string,
-  model: LogicModel | string
-): Promise<LogicModel> {
-  const ai = new GoogleGenAI({ apiKey });
-  const prompt = getAiCritiquePrompt();
-
-  // Keep the pre-critique model so provenance/colour fields survive even if the
-  // critique response drops those optional properties.
-  let sourceModel: LogicModel | undefined;
-  if (typeof model === 'string') {
-    try {
-      sourceModel = JSON.parse(model) as LogicModel;
-    } catch {
-      sourceModel = undefined;
-    }
-  } else {
-    sourceModel = model;
-  }
-
-  const contents = [
-    { text: prompt },
-    {
-      text: `\n\nLogic Model JSON:\n---\n${typeof model === 'string' ? model : JSON.stringify(model)}\n---`,
-    },
-  ];
-
-  const response = await withRetry(() =>
-    ai.models.generateContent({
-      model: CRITIQUE_MODEL_ID,
-      contents,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: critiqueModelSchema,
-        temperature: 0.2,
-      },
-    })
-  );
-
-  const critiqued = parseLogicModelResponse(response.text, { requireOverallQuality: true });
-  if (sourceModel) reconcileProvenance(critiqued, sourceModel);
-  const sanitized = sanitizeAbsentDomainCritiques(critiqued);
-  return applyCausalChainGuardrail(sanitized);
 }

@@ -15,8 +15,6 @@ This project uses specialized agent personas via Cursor rules in `.cursor/rules/
 | **@critic** | `critic.mdc` | Heuristic / cognitive-load audits of flows and UI; structured critiques only | Implementation code |
 | **@microcopy** | `microcopy.mdc` | UI text: labels, CTAs, errors, empty states, tooltips | Visual redesign, new features |
 | **@user-tester** | `user-tester.mdc` | Edge-case scenarios, keyboard/a11y stress tests, graceful-degradation checks | Shipping features, scope changes |
-| **@lm-quality** | `lm-quality.mdc` | Overall LM qualitative quality rubric + assessment prompts | UI code, coder app features |
-| **@critique-prompt** | `critique-prompt.mdc` | Domain/item critique prompts that evidence overall quality | Overall rollup rubric, product scope |
 
 ## Source-of-truth docs
 - **Project context:** `.cursor/rules/project.mdc` (always applied)

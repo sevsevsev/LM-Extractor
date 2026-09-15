@@ -6,10 +6,10 @@ import LogicModelEditor from './components/LogicModelEditor';
 import SessionFileList from './components/SessionFileList';
 import SourceDocumentPane, { type SourceFocus } from './components/SourceDocumentPane';
 import { LogicModelPdfTemplate, PDF_PAGE_WIDTH_PX } from './components/LogicModelPdfTemplate';
-import { extractLogicModel, critiqueLogicModel } from './services/geminiService';
+import { extractLogicModel } from './services/geminiService';
 import { countCodingExportRows, downloadCodingExportCsv } from './services/codingExport';
 import { normalizeExtractedLogicModel } from './shared/extractNormalize';
-import { buildGranularExportRows, sanitizeAbsentDomainCritiques } from './shared/domainPresence';
+import { buildGranularExportRows } from './shared/domainPresence';
 import { brand } from './config/brand';
 import { shouldSuggestMismatch } from './shared/sourceMapping';
 import {
@@ -26,18 +26,15 @@ import {
 } from './shared/sessionQueue';
 
 function modelForExport(model: LogicModel, warnings?: string[]): LogicModel {
-  return sanitizeAbsentDomainCritiques(
-    normalizeExtractedLogicModel(structuredClone(model), {
-      lowLegibility: bundleImpliesLowLegibility({ warnings: warnings ?? [] }),
-    })
-  );
+  return normalizeExtractedLogicModel(structuredClone(model), {
+    lowLegibility: bundleImpliesLowLegibility({ warnings: warnings ?? [] }),
+  });
 }
 
 const STATUS_LABELS: Record<ProcessingFile['status'], string> = {
   pending: 'Queued',
   converting: 'Reading layout',
   extracting: 'Extracting',
-  analyzing: 'Reviewing quality',
   editing: 'Ready to edit',
   completed: 'Ready to edit',
   error: 'Needs attention',
@@ -75,7 +72,6 @@ const App: React.FC = () => {
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [pdfCaptureFileId, setPdfCaptureFileId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [reAnalyzingId, setReAnalyzingId] = useState<string | null>(null);
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const processingRef = useRef(false);
@@ -108,7 +104,6 @@ const App: React.FC = () => {
     setFiles(prev => prev.filter(f => f.id !== fileId));
     if (selectedFileId === fileId) setSelectedFileId(null);
     if (previewFileId === fileId) setPreviewFileId(null);
-    if (reAnalyzingId === fileId) setReAnalyzingId(null);
     setSourceFocusByFileId(prev => {
       const next = { ...prev };
       delete next[fileId];
@@ -247,20 +242,9 @@ const App: React.FC = () => {
           return;
         }
 
-        setFiles(prev =>
-          prev.map(f =>
-            f.id === fileId
-              ? { ...f, status: 'analyzing', progressMsg: 'Reviewing quality against guidance...' }
-              : f
-          )
-        );
-        const finalResult = sanitizeAbsentDomainCritiques(
-          await critiqueLogicModel(extractedResult)
-        );
-
         const fidelityNeedsReview =
-          finalResult.extractionStatus === 'partial' ||
-          finalResult.extractionConfidence === 'medium';
+          extractedResult.extractionStatus === 'partial' ||
+          extractedResult.extractionConfidence === 'medium';
 
         setFiles(prev =>
           prev.map(f =>
@@ -268,13 +252,13 @@ const App: React.FC = () => {
               ? {
                   ...f,
                   status: 'editing',
-                  result: finalResult,
+                  result: extractedResult,
                   progressMsg: undefined,
                   error: undefined,
                   extractionBlockers: undefined,
                   // Auto-open source when mismatch or medium fidelity.
                   sourcePaneCollapsed:
-                    shouldSuggestMismatch(finalResult) || fidelityNeedsReview
+                    shouldSuggestMismatch(extractedResult) || fidelityNeedsReview
                       ? false
                       : f.sourcePaneCollapsed,
                 }
@@ -299,46 +283,6 @@ const App: React.FC = () => {
 
   const updateModel = (fileId: string, updatedModel: LogicModel) => {
     setFiles(prev => prev.map(f => (f.id === fileId ? { ...f, result: updatedModel } : f)));
-  };
-
-  const reAnalyzeModel = async (fileId: string) => {
-    const file = files.find(f => f.id === fileId);
-    if (!file || !file.result || reAnalyzingId) return;
-
-    setReAnalyzingId(fileId);
-    setFiles(prev =>
-      prev.map(f =>
-        f.id === fileId
-          ? { ...f, status: 'editing', error: undefined, progressMsg: 'Re-evaluating your edits...' }
-          : f
-      )
-    );
-
-    try {
-      const result = sanitizeAbsentDomainCritiques(await critiqueLogicModel(file.result));
-      setFiles(prev =>
-        prev.map(f =>
-          f.id === fileId
-            ? { ...f, status: 'editing', result, progressMsg: undefined, error: undefined }
-            : f
-        )
-      );
-    } catch (e: unknown) {
-      setFiles(prev =>
-        prev.map(f =>
-          f.id === fileId
-            ? {
-                ...f,
-                status: 'editing',
-                error: friendlyError(e),
-                progressMsg: undefined,
-              }
-            : f
-        )
-      );
-    } finally {
-      setReAnalyzingId(null);
-    }
   };
 
   const confirmIncompleteExport = (kind: string): boolean => {
@@ -366,10 +310,6 @@ const App: React.FC = () => {
       'Domain',
       'Group',
       'Content',
-      'Domain Critique',
-      'Domain Rating',
-      'Item Critique',
-      'Item Rating',
       'Needs Review',
       'Source Note',
       'Fill Color',
@@ -379,15 +319,10 @@ const App: React.FC = () => {
       'Mapped By',
       'Mapping Confidence',
       'Mapping Note',
-      'Overall Rating',
-      'Overall Rationale',
       'Extraction Status',
       'Extraction Confidence',
       'Extraction Blockers',
       'Mapping Corrections JSON',
-      'Causal Role',
-      'Causal Chain Coherence',
-      'Causal Chain Evidence',
     ];
 
     const exportRows = buildGranularExportRows(
@@ -399,10 +334,6 @@ const App: React.FC = () => {
       r.domain,
       r.group,
       r.content,
-      r.domainCritique,
-      r.domainRating,
-      r.itemCritique,
-      r.itemRating,
       r.needsReview,
       r.sourceNote,
       r.fillColor,
@@ -412,15 +343,10 @@ const App: React.FC = () => {
       r.mappedBy,
       r.mappingConfidence,
       r.mappingNote,
-      r.overallRating,
-      r.overallRationale,
       r.extractionStatus,
       r.extractionConfidence,
       r.extractionBlockers,
       r.mappingCorrectionsJson,
-      r.causalRole,
-      r.causalChainCoherence,
-      r.causalChainEvidence,
     ]);
 
     const csvContent = [
@@ -771,15 +697,6 @@ const App: React.FC = () => {
                           Retry
                         </button>
                       )}
-                      {file.result && file.status === 'editing' && (
-                        <button
-                          type="button"
-                          onClick={() => reAnalyzeModel(file.id)}
-                          className="text-xs font-bold bg-brand-red text-white px-3 py-1.5 rounded-md hover:opacity-90"
-                        >
-                          Retry critique
-                        </button>
-                      )}
                       <button
                         type="button"
                         onClick={() => removeFile(file.id)}
@@ -844,8 +761,6 @@ const App: React.FC = () => {
                       <LogicModelEditor
                         model={file.result}
                         onUpdate={updated => updateModel(file.id, updated)}
-                        onReAnalyze={() => reAnalyzeModel(file.id)}
-                        isAnalyzing={reAnalyzingId === file.id}
                         mismatchBannerDismissed={file.mismatchBannerDismissed}
                         onDismissMismatchBanner={() =>
                           setFiles(prev =>

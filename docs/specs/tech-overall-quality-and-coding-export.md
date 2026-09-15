@@ -1,5 +1,9 @@
 # Tech spec — Overall quality + Export for coding
 
+> **Section 1 (Overall quality) deprecated 2026-09 — removed from the app.** See
+> `docs/specs/scope-extraction-only-2026-09.md`. Section 2 (Export for coding) is unaffected and
+> still active.
+
 Status: Ready for implementer  
 Stack: existing Golden Path only (no new packages)
 

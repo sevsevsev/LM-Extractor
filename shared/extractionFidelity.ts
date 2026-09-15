@@ -298,39 +298,3 @@ export function formatAbstainMessage(blockers: string[]): string {
   return formatHardStopMessage(blockers);
 }
 
-/** Restore document-level fidelity fields if critique dropped them. */
-export function reconcileExtractionFidelityFields(
-  target: LogicModel,
-  source: LogicModel
-): LogicModel {
-  if (!target.extractionStatus && source.extractionStatus) {
-    target.extractionStatus = source.extractionStatus;
-  }
-  if (!target.extractionConfidence && source.extractionConfidence) {
-    target.extractionConfidence = source.extractionConfidence;
-  }
-  if (
-    (!target.extractionBlockers || target.extractionBlockers.length === 0) &&
-    source.extractionBlockers?.length
-  ) {
-    target.extractionBlockers = [...source.extractionBlockers];
-  }
-  // Prefer source severity if critique softened status (should not happen, but guard).
-  if (
-    isExtractionStatus(source.extractionStatus) &&
-    isExtractionStatus(target.extractionStatus) &&
-    STATUS_RANK[source.extractionStatus] > STATUS_RANK[target.extractionStatus]
-  ) {
-    target.extractionStatus = source.extractionStatus;
-  }
-  if (
-    isExtractionConfidence(source.extractionConfidence) &&
-    isExtractionConfidence(target.extractionConfidence)
-  ) {
-    const confRank: Record<ExtractionConfidence, number> = { high: 0, medium: 1, low: 2 };
-    if (confRank[source.extractionConfidence] > confRank[target.extractionConfidence]) {
-      target.extractionConfidence = source.extractionConfidence;
-    }
-  }
-  return target;
-}

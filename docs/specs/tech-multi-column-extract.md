@@ -1,5 +1,9 @@
 # Technical spec — Multi-column extract fidelity (YouthMoves)
 
+> **2026-09 note:** §6 (Critique pass) and other `critique`/`overallQuality` mentions below describe
+> the now-removed critique pass — see `scope-extraction-only-2026-09.md`. Everything else in this
+> doc (the `impactStatement` extract-path work) is unaffected and still active.
+
 **Status:** Ready for implementer (Phases 1–2 complete)  
 **Date:** 2026-07-28  
 **PRD:** [`multi-column-extract-fidelity.md`](./multi-column-extract-fidelity.md)  

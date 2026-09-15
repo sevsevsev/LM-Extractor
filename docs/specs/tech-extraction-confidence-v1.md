@@ -1,7 +1,12 @@
 # Tech — Extraction confidence + abstention v1
 
 Implements `extraction-confidence-v1.md`. Golden Path only; no new npm deps.  
-Owner defaults locked 2026-08-10: coding confirm dialog; banner + CSV columns; critique always runs on `partial`.
+Owner defaults locked 2026-08-10: coding confirm dialog; banner + CSV columns.
+
+Document-quality critique was removed from the app 2026-09 (see
+`docs/specs/scope-extraction-only-2026-09.md`) — the pipeline below is extract-only. Mentions of
+critique/`overallQuality` elsewhere in this doc are historical context for the fidelity design,
+not current behavior.
 
 ## Data shapes (`types.ts`)
 
@@ -9,7 +14,7 @@ Owner defaults locked 2026-08-10: coding confirm dialog; banner + CSV columns; c
 export type ExtractionStatus = 'ok' | 'partial' | 'abstained';
 export type ExtractionConfidence = 'high' | 'medium' | 'low';
 
-/** Document-level extraction fidelity — not LM document quality (overallQuality). */
+/** Document-level extraction fidelity. */
 export interface ExtractionFidelity {
   status: ExtractionStatus;
   confidence: ExtractionConfidence;
@@ -54,15 +59,14 @@ Confidence is **authoritative from deterministic rollup** after status reconcili
 | `shared/extractionFidelity.ts` (new) | Count items / non-verbatim; reconcile status; compute confidence + blockers; `shouldSoftGateCodingExport`; format error headline. Pure + unit-tested. |
 | `shared/extractNormalize.ts` | After mapping/harvest, call `reconcileExtractionFidelity(model, { lowLegibility })`. |
 | `shared/logicModelValidate.ts` | Optional parse/clamp of status, confidence, blockers (trim, max 4 blockers, valid enums). Extract path: fields optional until reconcile fills them. |
-| `shared/provenance.ts` | After critique, restore fidelity fields from pre-critique model if the critique model drops them (same pattern as `verbatim`). |
-| `shared/domainPresence.ts` / `App.tsx` CSV | Add columns: Extraction Status, Extraction Confidence, Extraction Blockers (join with ` \| `). Repeat on each granular row like overall quality. |
-| `server/geminiLogicModel.ts` | Add three properties to **extract** schema (enum strings + blockers array). Critique schema: allow same fields so the model can echo them, but server always reconciles from pre-critique via provenance. Pass `lowLegibility` into normalize. |
-| `constants.ts` | Extract prompt: abstain / partial criteria + required field meanings. **Do not** change critique rubric / overall quality text beyond what’s needed to say critique assesses the LM as extracted. |
+| `shared/domainPresence.ts` / `App.tsx` CSV | Add columns: Extraction Status, Extraction Confidence, Extraction Blockers (join with ` \| `). Repeat on each granular row. |
+| `server/geminiLogicModel.ts` | Add three properties to the extract schema (enum strings + blockers array). Pass `lowLegibility` into normalize. |
+| `constants.ts` | Extract prompt: abstain / partial criteria + required field meanings. |
 | `services/geminiService.ts` | No API shape change (`POST /api/gemini/extract` still returns LogicModel JSON). Abstained is a normal 200 body with `extractionStatus: "abstained"` **or** map server throw — see flow below. |
-| `App.tsx` | Branch after extract; fidelity banner state; coding export confirm; skip critique on abstain. |
-| `components/LogicModelEditor.tsx` (or thin banner sibling) | Fidelity banner UI; one-line disambiguation near Overall quality. |
+| `App.tsx` | Branch after extract; fidelity banner state; coding export confirm. |
+| `components/LogicModelEditor.tsx` (or thin banner sibling) | Fidelity banner UI. |
 
-## Extract → critique flow
+## Extract flow
 
 ```
 convert → extractLogicModel(bundle)
@@ -73,10 +77,8 @@ convert → extractLogicModel(bundle)
             error = formatHardStopMessage(blockers)
             extractionBlockers = blockers
             result = undefined
-            STOP (no critique)
+            STOP
        → else:
-            critiqueLogicModel(...)
-            reconcileProvenance (includes fidelity fields)
             status 'editing'
             auto-open source pane when mismatch OR confidence === 'medium'
 ```
@@ -133,24 +135,20 @@ extractionBlockers: { type: Type.ARRAY, items: { type: Type.STRING } },
 
 Not required in `required[]` — reconcile fills gaps. Prompt instructs the model to set them honestly.
 
-Critique schema: same three optional properties (echo only); ratings/overallQuality unchanged.
+## Prompt (extract) — product requirements for implementer
 
-## Prompt (extract) — product requirements for implementer / `@critique-prompt`
-
-Add a short section (no rubric rewrite):
+Add a short section:
 
 - Set `extractionStatus` / `extractionBlockers` per PRD abstain & partial criteria.
 - Prefer empty domains + `verbatim: false` over invention; abstain when not an LM / illegible / unmappable columns.
 - `extractionConfidence` may be omitted (server rollup wins).
-- Never use critique/quality language here.
 
 ## UI contracts (no boilerplate — for `@ux` / implementer)
 
 1. **Fidelity banner** — show when `status === 'partial'` or `confidence !== 'high'` (and not dismissed). Distinct from mismatch banner. CTA: focus needs-review / open source pane.
-2. **Overall quality** — one-line helper: document quality ≠ extraction fidelity.
-3. **Abstain** — existing error row + list `extractionBlockers`; Retry / Remove.
-4. **Export for coding** — if any selected/ready file soft-gates and lacks `codingExportFidelityAck`, `window.confirm` (or equivalent) with copy per microcopy pass; on OK set ack and proceed. Full CSV unchanged (always on when editable results exist).
-5. **Auto-open source** — when `partial` or `low`, set `sourcePaneCollapsed: false` (same as mismatch today).
+2. **Abstain** — existing error row + list `extractionBlockers`; Retry / Remove.
+3. **Export for coding** — if any selected/ready file soft-gates and lacks `codingExportFidelityAck`, `window.confirm` (or equivalent) with copy per microcopy pass; on OK set ack and proceed. Full CSV unchanged (always on when editable results exist).
+4. **Auto-open source** — when `partial` or `low`, set `sourcePaneCollapsed: false` (same as mismatch today).
 
 ## CSV
 
@@ -180,11 +178,10 @@ Coding export: **no** new fidelity columns required (outcomes intake unchanged);
 ## Implementation order
 
 1. Types + `shared/extractionFidelity.ts` + tests  
-2. Wire normalize + validate + provenance  
+2. Wire normalize + validate  
 3. Gemini extract schema + prompt section  
 4. App abstain branch + banner + coding confirm + CSV columns  
-5. Editor one-line quality disambiguation  
-6. `npm run typecheck` / `test` / `build`
+5. `npm run typecheck` / `test` / `build`
 
 ## Completeness signal (`shared/completenessCheck.ts`, added 2026-09-15)
 
@@ -215,5 +212,4 @@ unvalidated against real documents; it can only ever push `ok` → `partial` / `
 - Second Gemini verify pass / dual extract  
 - Nested `extractionFidelity` in API JSON  
 - Hard-block full CSV/PDF  
-- Changing `overallQuality` semantics  
 - Pre-model LM classifier package  
