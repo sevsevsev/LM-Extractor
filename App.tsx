@@ -4,7 +4,7 @@ import { ProcessingFile, LogicModel, DocumentBundle, bundleImpliesLowLegibility 
 import FileUpload from './components/FileUpload';
 import LogicModelEditor from './components/LogicModelEditor';
 import SessionFileList from './components/SessionFileList';
-import SourceDocumentPane, { type SourceFocus } from './components/SourceDocumentPane';
+import SourceDocumentPane, { type HighlightRegion, type SourceFocus } from './components/SourceDocumentPane';
 import { LogicModelPdfTemplate, PDF_PAGE_WIDTH_PX } from './components/LogicModelPdfTemplate';
 import { extractLogicModel } from './services/geminiService';
 import { countCodingExportRows, downloadCodingExportCsv } from './services/codingExport';
@@ -54,6 +54,27 @@ function toPersistedRecord(f: ProcessingFile): PersistedFileRecord {
     codingExportFidelityAck: f.codingExportFidelityAck,
     sourcePaneCollapsed: f.sourcePaneCollapsed,
   };
+}
+
+/**
+ * Resolve `LogicModel.possiblyMissedRegions` down to plain fractions for `SourceDocumentPane`,
+ * using the file's retained `sourceColumnFracs` (same cropped-content coordinate space the page
+ * preview was rendered from — see services/fileService.ts). Falls back to a full-width highlight
+ * when no column band is known for that region (page-level only, or the page wasn't column-tiled).
+ */
+function resolveHighlightRegions(file: ProcessingFile): HighlightRegion[] {
+  const regions = file.result?.possiblyMissedRegions;
+  if (!regions || regions.length === 0) return [];
+  return regions.map(region => {
+    const bands = file.sourceColumnFracs?.[region.page - 1];
+    const band = typeof region.column === 'number' ? bands?.[region.column - 1] : undefined;
+    return {
+      page: region.page,
+      leftFrac: band ? band.start : 0,
+      widthFrac: band ? band.end - band.start : 1,
+      note: region.note,
+    };
+  });
 }
 
 function hashPersistedRecord(record: PersistedFileRecord): string {
@@ -242,6 +263,7 @@ const App: React.FC = () => {
               error: undefined,
               progressMsg: undefined,
               sourcePreviewImages: undefined,
+              sourceColumnFracs: undefined,
               sourcePaneCollapsed: undefined,
               extractionBlockers: undefined,
               fidelityBannerDismissed: undefined,
@@ -331,6 +353,7 @@ const App: React.FC = () => {
                     bundle.previewImages && bundle.previewImages.length > 0
                       ? bundle.previewImages
                       : undefined,
+                  sourceColumnFracs: bundle.columnFracs,
                   // Editor-primary: source stays hidden until mismatch/fidelity or explicit show.
                   sourcePaneCollapsed: true,
                 }
@@ -461,8 +484,11 @@ const App: React.FC = () => {
       else return;
       if (bundle.previewImages && bundle.previewImages.length > 0) {
         const previews = bundle.previewImages;
+        const columnFracs = bundle.columnFracs;
         setFiles(prev =>
-          prev.map(f => (f.id === fileId ? { ...f, sourcePreviewImages: previews } : f))
+          prev.map(f =>
+            f.id === fileId ? { ...f, sourcePreviewImages: previews, sourceColumnFracs: columnFracs } : f
+          )
         );
       }
     } catch (e) {
@@ -992,6 +1018,7 @@ const App: React.FC = () => {
                         textOnly={!file.sourcePreviewImages?.length}
                         collapsed={file.sourcePaneCollapsed !== false}
                         focus={sourceFocusByFileId[file.id]}
+                        highlightRegions={resolveHighlightRegions(file)}
                         onCollapsedChange={collapsed => {
                           setFiles(prev =>
                             prev.map(f =>
@@ -1069,7 +1096,7 @@ const App: React.FC = () => {
                                   typeof anchor.sourceColumn === 'number'
                                     ? Math.round(anchor.sourceColumn)
                                     : undefined,
-                                note: anchor.needsReview ? 'Verify against source' : undefined,
+                                note: anchor.note ?? (anchor.needsReview ? 'Verify against source' : undefined),
                               },
                             }));
                           } else {

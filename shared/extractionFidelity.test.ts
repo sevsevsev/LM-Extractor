@@ -223,3 +223,45 @@ test('possiblyIncomplete does not fire when extraction matches the source reason
   assert.equal(model.extractionConfidence, 'high');
   assert.ok(!model.extractionBlockers?.includes(FIDELITY_BLOCKERS.possiblyIncomplete));
 });
+
+test('possiblyIncomplete without page markers (e.g. DOCX Track A) sets no possiblyMissedRegions', () => {
+  const model = baseModel({
+    activities: { content: groups(manyItems(3, 0)) },
+  });
+  const sourceText = Array.from({ length: 20 }, (_, i) => `- Bullet item ${i}`).join('\n');
+  reconcileExtractionFidelity(model, { sourceText });
+  assert.equal(model.extractionStatus, 'partial');
+  assert.equal(model.possiblyMissedRegions, undefined);
+});
+
+test('possiblyIncomplete with page markers points at the gappiest page', () => {
+  const items: LogicModelItem[] = [
+    { text: 'Item 1', sourcePage: 1 },
+    { text: 'Item 2', sourcePage: 1 },
+  ];
+  const model = baseModel({ activities: { content: groups(items) } });
+  const page1 = Array.from({ length: 3 }, (_, i) => `- Page 1 bullet ${i}`).join('\n');
+  const page2 = Array.from({ length: 10 }, (_, i) => `- Page 2 bullet ${i}`).join('\n');
+  const sourceText = `## Page 1\n\n${page1}\n\n## Page 2\n\n${page2}`;
+  reconcileExtractionFidelity(model, { sourceText });
+  assert.equal(model.extractionStatus, 'partial');
+  assert.deepEqual(model.possiblyMissedRegions, [{ page: 2, note: FIDELITY_BLOCKERS.possiblyIncomplete }]);
+});
+
+test('Gemini-reported possiblyMissedRegions are normalized, deduped, and merged with heuristic pages', () => {
+  const items: LogicModelItem[] = [{ text: 'Item 1', sourcePage: 1 }];
+  const model = baseModel({
+    activities: { content: groups(items) },
+    possiblyMissedRegions: [
+      { page: 2, column: 1, note: 'Left column looks cut off' },
+      { page: 0, note: 'invalid page, must be dropped' },
+      { page: 2, column: 1, note: 'duplicate of the first entry, must be deduped' },
+    ],
+  });
+  const page2 = Array.from({ length: 8 }, (_, i) => `- Page 2 bullet ${i}`).join('\n');
+  const sourceText = `## Page 1\n\n- one\n\n## Page 2\n\n${page2}`;
+  reconcileExtractionFidelity(model, { sourceText });
+  assert.equal(model.extractionStatus, 'partial');
+  // Gemini already covered page 2 — the heuristic's own page-2 entry is not added on top of it.
+  assert.deepEqual(model.possiblyMissedRegions, [{ page: 2, column: 1, note: 'Left column looks cut off' }]);
+});

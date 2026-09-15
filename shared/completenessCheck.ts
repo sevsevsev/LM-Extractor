@@ -17,6 +17,8 @@
 const BULLET_PREFIX = /^[-*••]\s+/;
 const NUMBERED_PREFIX = /^\d+[.)]\s+/;
 const HEADING_PREFIX = /^#{1,6}\s+/;
+/** `## Page N` / `## Slide N` markers inserted by services/fileService.ts's Track A builders. */
+const PAGE_MARKER = /^##\s+(?:Page|Slide)\s+(\d+)\s*$/i;
 
 /** Longer lines read as prose (an Impact Statement or Mission paragraph), not a single grid item. */
 const MIN_CANDIDATE_LEN = 3;
@@ -31,27 +33,45 @@ const MAX_CANDIDATE_LEN = 200;
  * non-bulleted, non-heading lines into it until the next bullet, heading, or blank line — the same
  * "sticky" merge a markdown renderer does for a wrapped list item.
  */
-function reflowWrappedLines(rawLines: string[]): string[] {
-  const merged: string[] = [];
+interface ReflowedLine {
+  text: string;
+  /** Page/slide the line fell under (from the nearest preceding `## Page N` / `## Slide N` marker); 1 when the text carries no such markers (e.g. DOCX Track A). */
+  page: number;
+}
+
+function reflowWrappedLines(rawLines: string[]): { lines: ReflowedLine[]; sawPageMarker: boolean } {
+  const merged: ReflowedLine[] = [];
   let current: string | null = null;
+  let currentPage = 1;
+  let sawPageMarker = false;
+  const flush = () => {
+    if (current !== null) merged.push({ text: current, page: currentPage });
+    current = null;
+  };
   for (const raw of rawLines) {
     const trimmed = raw.trim();
+    const pageMatch = PAGE_MARKER.exec(trimmed);
+    if (pageMatch) {
+      flush();
+      currentPage = parseInt(pageMatch[1], 10) || currentPage;
+      sawPageMarker = true;
+      continue;
+    }
     if (!trimmed || HEADING_PREFIX.test(trimmed)) {
-      if (current !== null) merged.push(current);
-      current = null;
+      flush();
       continue;
     }
     if (BULLET_PREFIX.test(trimmed) || NUMBERED_PREFIX.test(trimmed)) {
-      if (current !== null) merged.push(current);
+      flush();
       current = trimmed;
     } else if (current !== null) {
       current = `${current} ${trimmed}`; // wrapped continuation of the open bullet
     } else {
-      merged.push(trimmed); // standalone line with nothing open (e.g. a DOCX line with no bullet)
+      merged.push({ text: trimmed, page: currentPage }); // standalone line with nothing open (e.g. a DOCX line with no bullet)
     }
   }
-  if (current !== null) merged.push(current);
-  return merged;
+  flush();
+  return { lines: merged, sawPageMarker };
 }
 
 function isCandidateItemLine(line: string): boolean {
@@ -63,24 +83,53 @@ export interface CompletenessEstimate {
   candidateSourceLines: number;
   extractedItemCount: number;
   possiblyIncomplete: boolean;
+  /**
+   * Pages ranked by largest (candidate lines - extracted items) gap, capped at 3, ascending by
+   * page number. Only set when `possiblyIncomplete` fires, `itemsByPage` was passed, and the
+   * source text actually carried `## Page N` / `## Slide N` markers (DOCX Track A has none —
+   * every line lands on the same synthetic page 1, which isn't a useful pointer, so it's omitted
+   * rather than reported). Same "unvalidated proxy" trust level as `possiblyIncomplete` itself.
+   */
+  suspectPages?: number[];
 }
 
 /** Ignore small documents / small absolute gaps entirely — noise, not signal, at that scale. */
 const MIN_GAP_TO_FLAG = 5;
 /** Candidate lines at least 50% more than what was extracted. */
 const RATIO_TO_FLAG = 1.5;
+/** Per-page gap floor — deliberately smaller than MIN_GAP_TO_FLAG since per-page counts run smaller than whole-document ones. */
+const MIN_PAGE_GAP_TO_FLAG = 2;
+const MAX_SUSPECT_PAGES = 3;
 
 export function estimateCompleteness(
   sourceText: string | undefined,
-  extractedItemCount: number
+  extractedItemCount: number,
+  itemsByPage?: Map<number, number>
 ): CompletenessEstimate {
   const rawLines = (sourceText || '').split('\n');
-  const reflowedLines = reflowWrappedLines(rawLines);
-  const candidateSourceLines = reflowedLines.filter(isCandidateItemLine).length;
+  const { lines: reflowedLines, sawPageMarker } = reflowWrappedLines(rawLines);
+  const candidates = reflowedLines.filter(l => isCandidateItemLine(l.text));
+  const candidateSourceLines = candidates.length;
 
   const gap = candidateSourceLines - extractedItemCount;
   const possiblyIncomplete =
     extractedItemCount > 0 && gap >= MIN_GAP_TO_FLAG && candidateSourceLines / extractedItemCount >= RATIO_TO_FLAG;
 
-  return { candidateSourceLines, extractedItemCount, possiblyIncomplete };
+  let suspectPages: number[] | undefined;
+  if (possiblyIncomplete && sawPageMarker && itemsByPage) {
+    const candidatesByPage = new Map<number, number>();
+    for (const c of candidates) {
+      candidatesByPage.set(c.page, (candidatesByPage.get(c.page) ?? 0) + 1);
+    }
+    const ranked = Array.from(candidatesByPage.entries())
+      .map(([page, count]) => ({ page, gap: count - (itemsByPage.get(page) ?? 0) }))
+      .filter(p => p.gap >= MIN_PAGE_GAP_TO_FLAG)
+      .sort((a, b) => b.gap - a.gap)
+      .slice(0, MAX_SUSPECT_PAGES)
+      .map(p => p.page)
+      .sort((a, b) => a - b);
+    if (ranked.length > 0) suspectPages = ranked;
+  }
+
+  return { candidateSourceLines, extractedItemCount, possiblyIncomplete, suspectPages };
 }

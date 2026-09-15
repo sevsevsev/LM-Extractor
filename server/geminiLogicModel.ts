@@ -83,6 +83,18 @@ const extractModelSchema: Schema = {
       enum: ['high', 'medium', 'low'],
     },
     extractionBlockers: { type: Type.ARRAY, items: { type: Type.STRING } },
+    possiblyMissedRegions: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          page: { type: Type.NUMBER },
+          column: { type: Type.NUMBER },
+          note: { type: Type.STRING },
+        },
+        required: ['page'],
+      },
+    },
   },
   required: [
     'organization',

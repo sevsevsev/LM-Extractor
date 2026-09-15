@@ -57,3 +57,38 @@ test('empty source text yields zero candidates and never flags', () => {
   assert.equal(result.candidateSourceLines, 0);
   assert.equal(result.possiblyIncomplete, false);
 });
+
+test('suspectPages points at the page with the largest candidate/extracted gap', () => {
+  const page1 = Array.from({ length: 3 }, (_, i) => `- Page 1 bullet ${i}`).join('\n');
+  const page2 = Array.from({ length: 10 }, (_, i) => `- Page 2 bullet ${i}`).join('\n');
+  const sourceText = `## Page 1\n\n${page1}\n\n## Page 2\n\n${page2}`;
+  const itemsByPage = new Map([[1, 2]]); // page 2 has no extracted items at all
+  const result = estimateCompleteness(sourceText, 2, itemsByPage);
+  assert.equal(result.possiblyIncomplete, true);
+  assert.deepEqual(result.suspectPages, [2]);
+});
+
+test('suspectPages is omitted without itemsByPage even when possiblyIncomplete fires', () => {
+  const sourceText = `## Page 1\n\n${Array.from({ length: 20 }, (_, i) => `- Bullet ${i}`).join('\n')}`;
+  const result = estimateCompleteness(sourceText, 2);
+  assert.equal(result.possiblyIncomplete, true);
+  assert.equal(result.suspectPages, undefined);
+});
+
+test('suspectPages is omitted when the text has no page/slide markers (e.g. DOCX)', () => {
+  const sourceText = Array.from({ length: 20 }, (_, i) => `- Bullet ${i}`).join('\n');
+  const itemsByPage = new Map([[1, 2]]);
+  const result = estimateCompleteness(sourceText, 2, itemsByPage);
+  assert.equal(result.possiblyIncomplete, true);
+  assert.equal(result.suspectPages, undefined);
+});
+
+test('recognizes ## Slide N markers (PPTX Track A) the same way as ## Page N', () => {
+  const slide1 = Array.from({ length: 2 }, (_, i) => `- Slide 1 bullet ${i}`).join('\n');
+  const slide2 = Array.from({ length: 9 }, (_, i) => `- Slide 2 bullet ${i}`).join('\n');
+  const sourceText = `## Slide 1\n\n${slide1}\n\n## Slide 2\n\n${slide2}`;
+  const itemsByPage = new Map([[1, 2]]);
+  const result = estimateCompleteness(sourceText, 2, itemsByPage);
+  assert.equal(result.possiblyIncomplete, true);
+  assert.deepEqual(result.suspectPages, [2]);
+});

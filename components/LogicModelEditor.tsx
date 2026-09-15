@@ -23,6 +23,8 @@ interface LogicModelEditorProps {
       sourcePage?: number;
       sourceColumn?: number;
       needsReview?: boolean;
+      /** Overrides the default needsReview-derived cue text when set (e.g. from the fidelity banner). */
+      note?: string;
     },
     options?: { open?: boolean }
   ) => void;
@@ -175,6 +177,32 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
                     <li key={i}>{b}</li>
                   ))}
                 </ul>
+              )}
+              {model.possiblyMissedRegions && model.possiblyMissedRegions.length > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className="text-xs font-bold text-amber-900">Pages to spot-check:</span>
+                  {(() => {
+                    const pages: number[] = Array.from(
+                      new Set(model.possiblyMissedRegions.map(r => r.page))
+                    );
+                    pages.sort((a, b) => a - b);
+                    return pages;
+                  })().map(page => (
+                      <button
+                        key={page}
+                        type="button"
+                        className="rounded border border-amber-400 bg-white px-1.5 py-0.5 text-xs font-bold text-amber-900 hover:bg-amber-100"
+                        onClick={() =>
+                          onFocusSource?.(
+                            { sourcePage: page, note: 'Spot-check for missed content' },
+                            { open: true }
+                          )
+                        }
+                      >
+                        {page}
+                      </button>
+                    ))}
+                </div>
               )}
             </div>
             <div className="flex flex-wrap items-center gap-2 shrink-0">

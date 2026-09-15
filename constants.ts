@@ -251,6 +251,11 @@ ${
     - \`extractionStatus\`: \`ok\` | \`partial\` | \`abstained\`
     - \`extractionBlockers\`: 0–4 short plain-language reasons (why partial/abstained, or empty when ok)
     - \`extractionConfidence\` may be omitted (server rollup will set it)
+    - \`possiblyMissedRegions\`: after extracting, re-look at each TRACK B image. If any image shows content
+      (a bullet, a labeled box, a header) you were **not confident** you fully transcribed into an item above,
+      add \`{ "page": <that image's document page number>, "column": <its column, if the label gave one>, "note": "<short reason>" }\`
+      citing the same page/column values from that image's label (see SOURCE LOCATION above). Omit entirely
+      (empty array) when you're confident every image's visible content made it into an item. 0–6 entries.
 
     **Abstain** (\`extractionStatus: "abstained"\`) when any of:
     - The document is not a logic model (or has no extractable LM layout).
@@ -286,7 +291,8 @@ ${
       "layoutFamily": "vertical_columns",
       "colorLegend": "",
       "extractionStatus": "ok",
-      "extractionBlockers": []
+      "extractionBlockers": [],
+      "possiblyMissedRegions": []
     }
     Use "General" unless a real in-column label/track is visible. Prefer empty \`impact.content\` over inventing Impact items.
     `;

@@ -4,6 +4,7 @@ import type {
   ExtractionStatus,
   LogicModel,
   LogicModelGroup,
+  PossiblyMissedRegion,
 } from '../types';
 import { stringDomainHasContent, groupedDomainHasContent } from './domainPresence.js';
 import { shouldSuggestMismatch } from './sourceMapping.js';
@@ -92,6 +93,11 @@ export function parseExtractionFidelityFields(model: Record<string, unknown>): v
       delete model.extractionConfidence;
     }
   }
+  if ('possiblyMissedRegions' in model) {
+    const regions = normalizePossiblyMissedRegions(model.possiblyMissedRegions);
+    if (regions.length) model.possiblyMissedRegions = regions;
+    else delete model.possiblyMissedRegions;
+  }
   if ('extractionBlockers' in model) {
     const blockers = normalizeBlockers(model.extractionBlockers);
     if (blockers.length) model.extractionBlockers = blockers;
@@ -124,6 +130,51 @@ export function countExtractionItems(model: LogicModel): { total: number; nonVer
     }
   }
   return { total, nonVerbatim };
+}
+
+/** Bucket extracted items by `sourcePage` — items without a known page contribute nothing. */
+export function countItemsByPage(model: LogicModel): Map<number, number> {
+  const counts = new Map<number, number>();
+  for (const domain of GROUPED_DOMAINS) {
+    const field = model[domain] as { content?: LogicModelGroup[] } | undefined;
+    for (const group of field?.content ?? []) {
+      for (const item of group.items ?? []) {
+        if (!item.text?.trim()) continue;
+        if (typeof item.sourcePage !== 'number') continue;
+        counts.set(item.sourcePage, (counts.get(item.sourcePage) ?? 0) + 1);
+      }
+    }
+  }
+  return counts;
+}
+
+const MAX_MISSED_REGIONS = 6;
+
+/** Clamp/validate Gemini's self-reported `possiblyMissedRegions` (same posture as `normalizeBlockers`). */
+function normalizePossiblyMissedRegions(raw: unknown): PossiblyMissedRegion[] {
+  if (!Array.isArray(raw)) return [];
+  const out: PossiblyMissedRegion[] = [];
+  const seen = new Set<string>();
+  for (const entry of raw) {
+    if (!entry || typeof entry !== 'object') continue;
+    const rec = entry as Record<string, unknown>;
+    const page = rec.page;
+    if (typeof page !== 'number' || !Number.isFinite(page) || page < 1) continue;
+    const pageInt = Math.round(page);
+    const columnRaw = rec.column;
+    const column =
+      typeof columnRaw === 'number' && Number.isFinite(columnRaw) && columnRaw >= 1
+        ? Math.round(columnRaw)
+        : undefined;
+    const noteRaw = rec.note;
+    const note = typeof noteRaw === 'string' && noteRaw.trim() ? noteRaw.trim().slice(0, 200) : undefined;
+    const key = `${pageInt}:${column ?? ''}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(column !== undefined ? { page: pageInt, column, note } : { page: pageInt, note });
+    if (out.length >= MAX_MISSED_REGIONS) break;
+  }
+  return out;
 }
 
 export function hasRecoveredLogicModelContent(model: LogicModel): boolean {
@@ -189,7 +240,13 @@ export function reconcileExtractionFidelity(
   // Unvalidated heuristic (see completenessCheck.ts) — deliberately excluded from every `low`/
   // `abstained` condition below; it can only ever push ok -> partial, same ceiling as mismatch/
   // unknown-layout, until it's been checked against real documents.
-  const possiblyIncomplete = estimateCompleteness(options?.sourceText, N).possiblyIncomplete;
+  const completeness = estimateCompleteness(options?.sourceText, N, countItemsByPage(model));
+  const possiblyIncomplete = completeness.possiblyIncomplete;
+  // Gemini's own per-image self-report (see server/geminiLogicModel.ts) — same trust ceiling as
+  // possiblyIncomplete (can only push ok -> partial), but a distinct signal: it can fire even when
+  // the text-count heuristic above doesn't (or vice versa), so both feed the same blocker/upgrade.
+  const geminiMissedRegions = normalizePossiblyMissedRegions(model.possiblyMissedRegions);
+  const hasMissedContentSignal = possiblyIncomplete || geminiMissedRegions.length > 0;
 
   if (status === 'ok') {
     if (
@@ -200,7 +257,7 @@ export function reconcileExtractionFidelity(
       (L && N >= 6) ||
       modelBlockers.length > 0 ||
       noContent ||
-      possiblyIncomplete
+      hasMissedContentSignal
     ) {
       status = upgradeStatus(status, 'partial');
     }
@@ -230,7 +287,7 @@ export function reconcileExtractionFidelity(
   }
   if (M) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.mismatch);
   if (Uunk) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.unknownLayout);
-  if (possiblyIncomplete) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.possiblyIncomplete);
+  if (hasMissedContentSignal) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.possiblyIncomplete);
 
   let confidence: ExtractionConfidence;
   if (
@@ -259,6 +316,22 @@ export function reconcileExtractionFidelity(
   if (N < 6 && status === 'ok' && !L && !M && !Uunk && Vf === 0) {
     confidence = 'high';
   }
+
+  // Merge Gemini's per-image self-report with the text-heuristic's page-level pointer — Gemini
+  // entries (which may carry a column) win for a page it already covered; the heuristic only adds
+  // pages Gemini didn't already flag.
+  const mergedRegions: PossiblyMissedRegion[] = [...geminiMissedRegions];
+  if (completeness.suspectPages) {
+    const coveredPages = new Set(geminiMissedRegions.map(r => r.page));
+    for (const page of completeness.suspectPages) {
+      if (coveredPages.has(page)) continue;
+      coveredPages.add(page);
+      mergedRegions.push({ page, note: FIDELITY_BLOCKERS.possiblyIncomplete });
+    }
+  }
+  model.possiblyMissedRegions = mergedRegions.length
+    ? mergedRegions.slice(0, MAX_MISSED_REGIONS)
+    : undefined;
 
   return applyExtractionFidelity(model, { status, confidence, blockers });
 }

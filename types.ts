@@ -117,12 +117,35 @@ export interface LogicModel {
   extractionStatus?: ExtractionStatus;
   extractionConfidence?: ExtractionConfidence;
   extractionBlockers?: string[];
+  /**
+   * Pages (and, when known, the column band on that page) that may contain content the
+   * extraction missed — drives the "spot-check for missed content" fidelity blocker's
+   * source-pane highlight. See `shared/extractionFidelity.ts` / `shared/completenessCheck.ts`.
+   * Unvalidated signal, same trust level as `possiblyIncomplete` in `extractionBlockers` — never
+   * used to hard-stop or gate anything, purely a "look here" cue.
+   */
+  possiblyMissedRegions?: PossiblyMissedRegion[];
+}
+
+export interface PossiblyMissedRegion {
+  /** 1-based, matches `sourcePage` / `DocumentBundle.previewImages` indexing. */
+  page: number;
+  /** 1-based column band when Gemini attributed the gap to a specific column tile; omit when unknown. */
+  column?: number;
+  /** Short human-readable reason, when available (e.g. from Gemini's self-report). */
+  note?: string;
 }
 
 /** Locates one extract JPEG within the source document (1-based page / column). */
 export interface SourceImageRef {
   page: number;
   column?: number;
+}
+
+/** Fractional (0-1) left/right split of one detected column band, relative to the page's cropped content width. */
+export interface ColumnFrac {
+  start: number;
+  end: number;
 }
 
 /**
@@ -142,6 +165,13 @@ export interface DocumentBundle {
    * Empty/omitted for text-only bundles. Indexes match 1-based `sourcePage` on items.
    */
   previewImages?: string[];
+  /**
+   * Parallel to `previewImages` when a confident column grid was detected on that page/section —
+   * the same band fractions used to tile that page's Track B images, relative to the *same*
+   * cropped-content canvas `previewImages[i]` was rendered from (no coordinate remapping needed
+   * to overlay on the preview). `null`/absent entries mean no column grid was detected there.
+   */
+  columnFracs?: (ColumnFrac[] | null)[];
   /** Markdown or structural text for Track A / text-layer hints / fallback. */
   textTrack: string;
   /** Non-blocking fidelity notes (e.g. low resolution, truncated pages). */
@@ -187,6 +217,12 @@ export interface ProcessingFile {
    * Cleared on Remove. Not exported.
    */
   sourcePreviewImages?: string[];
+  /**
+   * Session-only, parallel to `sourcePreviewImages` (from `DocumentBundle.columnFracs`) — column
+   * band geometry for rendering the "possibly missed content" highlight overlay. Not persisted
+   * (regenerated alongside previews on resume, like `sourcePreviewImages`).
+   */
+  sourceColumnFracs?: (ColumnFrac[] | null)[];
   /** User collapsed the source pane for this file (session). */
   /** When true (or undefined treated as collapsed in UI), source preview is hidden. Default collapsed. */
   sourcePaneCollapsed?: boolean;

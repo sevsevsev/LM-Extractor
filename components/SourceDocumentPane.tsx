@@ -7,6 +7,20 @@ export interface SourceFocus {
   note?: string;
 }
 
+/**
+ * One "possibly missed content" highlight, pre-resolved to plain fractions by the caller (App.tsx,
+ * from `LogicModel.possiblyMissedRegions` + `ProcessingFile.sourceColumnFracs` — see
+ * shared/extractionFidelity.ts). Covers all pages for the file; this component filters to whichever
+ * page is currently displayed, the same way it already does for `focus`'s `locationCue`.
+ */
+export interface HighlightRegion {
+  page: number;
+  /** Fraction [0,1] of the page image's width. `0` + `1` (full width) when only page-level is known. */
+  leftFrac: number;
+  widthFrac: number;
+  note?: string;
+}
+
 interface SourceDocumentPaneProps {
   images: string[];
   focus?: SourceFocus | null;
@@ -14,6 +28,8 @@ interface SourceDocumentPaneProps {
   onCollapsedChange: (collapsed: boolean) => void;
   /** When true, show the text-only empty state instead of images. */
   textOnly?: boolean;
+  /** "Possibly missed content" overlays — see HighlightRegion. */
+  highlightRegions?: HighlightRegion[];
 }
 
 const MIN_ZOOM = 0.5;
@@ -33,6 +49,7 @@ const SourceDocumentPane: React.FC<SourceDocumentPaneProps> = ({
   collapsed,
   onCollapsedChange,
   textOnly = false,
+  highlightRegions,
 }) => {
   const pageCount = images.length;
   const [pageIndex, setPageIndex] = useState(0); // 0-based
@@ -100,6 +117,8 @@ const SourceDocumentPane: React.FC<SourceDocumentPaneProps> = ({
           .filter(Boolean)
           .join(' · ')
       : null;
+
+  const pageHighlights = highlightRegions?.filter(r => r.page === pageNum) ?? [];
 
   const bumpZoom = (delta: number) => {
     setZoom(z => {
@@ -186,13 +205,29 @@ const SourceDocumentPane: React.FC<SourceDocumentPaneProps> = ({
 
       <div className="min-h-0 flex-1 overflow-auto bg-slate-100 p-2">
         {/* Width % is of this scrollport — 100% = fit pane; >100% enlarges and scrolls. */}
-        <img
-          src={src}
-          alt={`Source page ${pageNum} of ${pageCount}`}
-          className="block h-auto shadow-md"
-          style={{ width: `${zoom * 100}%`, maxWidth: 'none' }}
-          draggable={false}
-        />
+        <div className="relative inline-block">
+          <img
+            src={src}
+            alt={`Source page ${pageNum} of ${pageCount}`}
+            className="block h-auto shadow-md"
+            style={{ width: `${zoom * 100}%`, maxWidth: 'none' }}
+            draggable={false}
+          />
+          {/* "Possibly missed content" overlays — decorative; the amber locationCue banner above
+              is the accessible name for location (same convention as focus's page/column cue). */}
+          {pageHighlights.map((region, i) => (
+            <div
+              key={i}
+              aria-hidden="true"
+              className="pointer-events-none absolute top-0 h-full border-2 border-amber-600/70 bg-amber-400/25"
+              style={{ left: `${region.leftFrac * 100}%`, width: `${region.widthFrac * 100}%` }}
+            >
+              <span className="absolute left-1 top-1 whitespace-nowrap rounded bg-amber-600 px-1.5 py-0.5 text-[10px] font-bold text-white shadow">
+                Possibly missed
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </aside>
   );
