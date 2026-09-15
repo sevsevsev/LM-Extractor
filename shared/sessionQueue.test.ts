@@ -4,6 +4,7 @@ import {
   countSessionFiles,
   exportWouldOmitFiles,
   formatSessionStatus,
+  sessionProgressFraction,
 } from './sessionQueue.ts';
 
 describe('sessionQueue', () => {
@@ -29,5 +30,16 @@ describe('sessionQueue', () => {
     const counts = countSessionFiles([{ status: 'editing' }, { status: 'completed' }]);
     assert.equal(formatSessionStatus(counts), '2 ready');
     assert.equal(exportWouldOmitFiles(counts), false);
+  });
+
+  it('computes progress fraction from terminal-state files only', () => {
+    const counts = countSessionFiles([
+      { status: 'editing' },
+      { status: 'error' },
+      { status: 'extracting' },
+      { status: 'pending' },
+    ]);
+    assert.equal(sessionProgressFraction(counts), 0.5);
+    assert.equal(sessionProgressFraction(countSessionFiles([])), 0);
   });
 });

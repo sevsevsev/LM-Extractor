@@ -46,3 +46,9 @@ export function formatSessionStatus(counts: SessionFileCounts): string {
 export function exportWouldOmitFiles(counts: SessionFileCounts): boolean {
   return counts.total > 0 && counts.ready < counts.total;
 }
+
+/** Fraction [0,1] of files that have reached a terminal state (ready or needs attention). */
+export function sessionProgressFraction(counts: SessionFileCounts): number {
+  if (counts.total === 0) return 0;
+  return (counts.ready + counts.needsAttention) / counts.total;
+}

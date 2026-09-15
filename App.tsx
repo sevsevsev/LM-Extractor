@@ -23,13 +23,61 @@ import {
   formatSessionStatus,
   isExportReady,
   isPipelineBusy,
+  sessionProgressFraction,
 } from './shared/sessionQueue';
+import {
+  clearAll as clearSavedSession,
+  deleteFile as deleteSavedFile,
+  loadAll as loadSavedFiles,
+  saveFile as saveSessionFile,
+  type PersistedFileRecord,
+} from './services/sessionStore';
 
 function modelForExport(model: LogicModel, warnings?: string[]): LogicModel {
   return normalizeExtractedLogicModel(structuredClone(model), {
     lowLegibility: bundleImpliesLowLegibility({ warnings: warnings ?? [] }),
   });
 }
+
+/** Checkpoint-relevant fields only — excludes transient/session-only data (previews, progress text). */
+function toPersistedRecord(f: ProcessingFile): PersistedFileRecord {
+  return {
+    id: f.id,
+    file: f.file,
+    status: f.status === 'converting' || f.status === 'extracting' ? 'pending' : f.status,
+    result: f.result,
+    warnings: f.warnings,
+    extractionBlockers: f.extractionBlockers,
+    error: f.error,
+    mismatchBannerDismissed: f.mismatchBannerDismissed,
+    fidelityBannerDismissed: f.fidelityBannerDismissed,
+    codingExportFidelityAck: f.codingExportFidelityAck,
+    sourcePaneCollapsed: f.sourcePaneCollapsed,
+  };
+}
+
+function hashPersistedRecord(record: PersistedFileRecord): string {
+  return JSON.stringify(record, (key, value) => (key === 'file' ? undefined : value));
+}
+
+function persistedRecordToProcessingFile(record: PersistedFileRecord): ProcessingFile {
+  return {
+    id: record.id,
+    file: record.file,
+    status: record.status,
+    result: record.result,
+    warnings: record.warnings,
+    extractionBlockers: record.extractionBlockers,
+    error: record.error,
+    mismatchBannerDismissed: record.mismatchBannerDismissed,
+    fidelityBannerDismissed: record.fidelityBannerDismissed,
+    codingExportFidelityAck: record.codingExportFidelityAck,
+    sourcePaneCollapsed: record.sourcePaneCollapsed,
+  };
+}
+
+const MAX_CONCURRENT_EXTRACTS = 2;
+const PERSIST_DEBOUNCE_MS = 1200;
 
 const STATUS_LABELS: Record<ProcessingFile['status'], string> = {
   pending: 'Queued',
@@ -71,16 +119,84 @@ const App: React.FC = () => {
   const [files, setFiles] = useState<ProcessingFile[]>([]);
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [pdfCaptureFileId, setPdfCaptureFileId] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  const processingRef = useRef(false);
   const previewViewportRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState(1);
   /** Per-file source pane focus (page jump from item select). */
   const [sourceFocusByFileId, setSourceFocusByFileId] = useState<Record<string, SourceFocus | null>>(
     {}
   );
+
+  // Batch processing pipeline coordination — see docs/specs for the pipelined-concurrency design.
+  const convertingRef = useRef(false);
+  const extractingCountRef = useRef(0);
+  const dispatchedExtractIds = useRef<Set<string>>(new Set());
+  const pendingBundles = useRef<Record<string, DocumentBundle>>({});
+  const regeneratingPreviewsRef = useRef<Set<string>>(new Set());
+
+  // Session checkpoint/resume — see docs/specs for the persistence design.
+  const [resumeState, setResumeState] = useState<'checking' | 'prompt' | 'none'>('checking');
+  const [pendingResumeRecords, setPendingResumeRecords] = useState<PersistedFileRecord[] | null>(
+    null
+  );
+  const persistTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const lastPersistedHash = useRef<Map<string, string>>(new Map());
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const records = await loadSavedFiles();
+      if (cancelled) return;
+      if (records.length > 0) {
+        setPendingResumeRecords(records);
+        setResumeState('prompt');
+      } else {
+        setResumeState('none');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleResumeSession = () => {
+    if (!pendingResumeRecords) return;
+    const restored = pendingResumeRecords.map(persistedRecordToProcessingFile);
+    for (const record of pendingResumeRecords) {
+      lastPersistedHash.current.set(record.id, hashPersistedRecord(record));
+    }
+    setFiles(restored);
+    setPendingResumeRecords(null);
+    setResumeState('none');
+  };
+
+  const handleDiscardSession = async () => {
+    await clearSavedSession();
+    setPendingResumeRecords(null);
+    setResumeState('none');
+  };
+
+  // Debounced checkpoint: persists any file not mid-flight (converting/extracting resolve to
+  // 'pending' on reload anyway, so there's nothing useful to checkpoint mid-transition).
+  useEffect(() => {
+    if (resumeState !== 'none') return;
+    for (const f of files) {
+      if (f.status === 'converting' || f.status === 'extracting') continue;
+      const record = toPersistedRecord(f);
+      const hash = hashPersistedRecord(record);
+      if (lastPersistedHash.current.get(f.id) === hash) continue;
+
+      const existing = persistTimers.current.get(f.id);
+      if (existing) clearTimeout(existing);
+      const timer = setTimeout(() => {
+        lastPersistedHash.current.set(f.id, hash);
+        persistTimers.current.delete(f.id);
+        void saveSessionFile(record);
+      }, PERSIST_DEBOUNCE_MS);
+      persistTimers.current.set(f.id, timer);
+    }
+  }, [files, resumeState]);
 
   const sessionCounts = countSessionFiles(files);
   const exportReadyFiles = files.filter(f => isExportReady(f.status) && f.result);
@@ -109,6 +225,11 @@ const App: React.FC = () => {
       delete next[fileId];
       return next;
     });
+    const timer = persistTimers.current.get(fileId);
+    if (timer) clearTimeout(timer);
+    persistTimers.current.delete(fileId);
+    lastPersistedHash.current.delete(fileId);
+    void deleteSavedFile(fileId);
   };
 
   const retryFile = (fileId: string) => {
@@ -137,14 +258,18 @@ const App: React.FC = () => {
     });
   };
 
+  // Pipelined batch processing: conversion (CPU-heavy canvas rendering) stays strictly serial —
+  // running several concurrently would just contend for the same resources — but a file's extract
+  // call (mostly network wait) no longer blocks the next file's conversion from starting. Extract
+  // calls overlap in the background, bounded by MAX_CONCURRENT_EXTRACTS so the batch doesn't
+  // hammer Gemini; existing per-call retry/backoff absorbs any rate-limit hiccups this surfaces.
   useEffect(() => {
-    const processQueue = async () => {
-      if (processingRef.current) return;
+    const startConversion = async () => {
+      if (convertingRef.current) return;
       const pendingFile = files.find(f => f.status === 'pending');
       if (!pendingFile) return;
 
-      processingRef.current = true;
-      setIsProcessing(true);
+      convertingRef.current = true;
       const fileId = pendingFile.id;
 
       try {
@@ -192,6 +317,7 @@ const App: React.FC = () => {
           );
         }
 
+        pendingBundles.current[fileId] = bundle;
         setFiles(prev =>
           prev.map(f =>
             f.id === fileId
@@ -211,10 +337,22 @@ const App: React.FC = () => {
               : f
           )
         );
-        const extractBundle: DocumentBundle = {
-          ...bundle,
-          previewImages: undefined,
-        };
+      } catch (error: unknown) {
+        setFiles(prev =>
+          prev.map(f =>
+            f.id === fileId
+              ? { ...f, status: 'error', error: friendlyError(error), progressMsg: undefined }
+              : f
+          )
+        );
+      } finally {
+        convertingRef.current = false;
+      }
+    };
+
+    const runExtraction = async (fileId: string, bundle: DocumentBundle) => {
+      try {
+        const extractBundle: DocumentBundle = { ...bundle, previewImages: undefined };
         const lowLegibility = bundleImpliesLowLegibility(bundle);
         const extractedResult = normalizeExtractedLogicModel(await extractLogicModel(extractBundle), {
           sourceText: bundle.textTrack || undefined,
@@ -274,15 +412,64 @@ const App: React.FC = () => {
           )
         );
       } finally {
-        processingRef.current = false;
-        setIsProcessing(false);
+        delete pendingBundles.current[fileId];
+        dispatchedExtractIds.current.delete(fileId);
+        extractingCountRef.current -= 1;
       }
     };
-    processQueue();
-  }, [files, isProcessing]);
+
+    const startExtractions = () => {
+      for (const f of files) {
+        if (f.status !== 'extracting') continue;
+        if (dispatchedExtractIds.current.has(f.id)) continue;
+        if (extractingCountRef.current >= MAX_CONCURRENT_EXTRACTS) break;
+        const bundle = pendingBundles.current[f.id];
+        if (!bundle) continue; // conversion result not yet stashed on this pass
+        dispatchedExtractIds.current.add(f.id);
+        extractingCountRef.current += 1;
+        void runExtraction(f.id, bundle);
+      }
+    };
+
+    startConversion();
+    startExtractions();
+  }, [files]);
 
   const updateModel = (fileId: string, updatedModel: LogicModel) => {
     setFiles(prev => prev.map(f => (f.id === fileId ? { ...f, result: updatedModel } : f)));
+  };
+
+  /**
+   * Resumed files don't carry cached source previews (only the original File is checkpointed —
+   * see services/sessionStore.ts). Regenerate them lazily, only when the source pane is actually
+   * opened for that file, rather than eagerly reconverting every resumed file upfront.
+   */
+  const ensurePreviewImages = async (fileId: string) => {
+    const target = files.find(f => f.id === fileId);
+    if (!target || (target.sourcePreviewImages && target.sourcePreviewImages.length > 0)) return;
+    if (regeneratingPreviewsRef.current.has(fileId)) return;
+    regeneratingPreviewsRef.current.add(fileId);
+    try {
+      const { convertPdfToImages, convertDocxToImages, convertPptxToImages } = await import(
+        './services/fileService'
+      );
+      const fileName = target.file.name.toLowerCase();
+      let bundle: DocumentBundle;
+      if (fileName.endsWith('.pdf')) bundle = await convertPdfToImages(target.file);
+      else if (fileName.endsWith('.docx')) bundle = await convertDocxToImages(target.file);
+      else if (fileName.endsWith('.pptx')) bundle = await convertPptxToImages(target.file);
+      else return;
+      if (bundle.previewImages && bundle.previewImages.length > 0) {
+        const previews = bundle.previewImages;
+        setFiles(prev =>
+          prev.map(f => (f.id === fileId ? { ...f, sourcePreviewImages: previews } : f))
+        );
+      }
+    } catch (e) {
+      console.warn('Failed to regenerate source previews for resumed file', e);
+    } finally {
+      regeneratingPreviewsRef.current.delete(fileId);
+    }
   };
 
   const confirmIncompleteExport = (kind: string): boolean => {
@@ -518,6 +705,52 @@ const App: React.FC = () => {
   const showEditor = !!file?.result && isExportReady(file.status);
   const showPipelineSpinner = !!file && isPipelineBusy(file.status) && !file.result;
 
+  if (resumeState === 'checking') {
+    return (
+      <div className="min-h-screen bg-brand-muted flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-brand-blue border-t-transparent" aria-hidden="true" />
+      </div>
+    );
+  }
+
+  if (resumeState === 'prompt' && pendingResumeRecords) {
+    const resumeReadyCount = pendingResumeRecords.filter(
+      r => r.status === 'editing' || r.status === 'completed'
+    ).length;
+    return (
+      <div className="min-h-screen bg-brand-muted flex items-center justify-center p-4">
+        <div className="bg-white rounded-md border border-gray-200 p-6 max-w-md w-full space-y-4 shadow-lg">
+          <img src={brand.logoSrc} alt={brand.logoAlt} className="h-10 w-auto object-contain" />
+          <div>
+            <h2 className="headline text-sm text-brand-navy mb-1">Resume previous session?</h2>
+            <p className="text-sm text-brand-gray">
+              {pendingResumeRecords.length} file{pendingResumeRecords.length === 1 ? '' : 's'} from
+              your last session {pendingResumeRecords.length === 1 ? 'is' : 'are'} saved on this
+              device — {resumeReadyCount} ready to export. Files still mid-processing when the
+              session ended will pick back up automatically.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={handleResumeSession}
+              className="bg-brand-navy text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-brand-blue transition-colors"
+            >
+              Resume session
+            </button>
+            <button
+              type="button"
+              onClick={handleDiscardSession}
+              className="border border-gray-300 text-brand-navy px-4 py-2 rounded-md text-sm font-bold hover:bg-brand-muted transition-colors"
+            >
+              Start fresh
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-brand-muted text-brand-navy pb-20 relative">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
@@ -535,12 +768,29 @@ const App: React.FC = () => {
             </h1>
           </div>
           {files.length > 0 && (
-            <p className="text-xs font-bold text-brand-gray flex items-center gap-2" aria-live="polite">
-              {isProcessing && (
-                <span className="inline-block h-2.5 w-2.5 rounded-full bg-brand-accent animate-pulse" aria-hidden="true" />
+            <div className="flex items-center gap-2 min-w-0" aria-live="polite">
+              <p className="text-xs font-bold text-brand-gray flex items-center gap-2 shrink-0">
+                {sessionCounts.running > 0 && (
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-brand-accent animate-pulse" aria-hidden="true" />
+                )}
+                <span>{formatSessionStatus(sessionCounts)}</span>
+              </p>
+              {sessionCounts.total > 1 && (
+                <div
+                  className="w-24 h-1.5 rounded-full bg-gray-200 overflow-hidden shrink-0"
+                  role="progressbar"
+                  aria-valuenow={Math.round(sessionProgressFraction(sessionCounts) * 100)}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label="Batch progress"
+                >
+                  <div
+                    className="h-full bg-brand-accent transition-all"
+                    style={{ width: `${sessionProgressFraction(sessionCounts) * 100}%` }}
+                  />
+                </div>
               )}
-              <span>{formatSessionStatus(sessionCounts)}</span>
-            </p>
+            </div>
           )}
           <div className="flex flex-wrap gap-2">
             <button
@@ -742,13 +992,14 @@ const App: React.FC = () => {
                         textOnly={!file.sourcePreviewImages?.length}
                         collapsed={file.sourcePaneCollapsed !== false}
                         focus={sourceFocusByFileId[file.id]}
-                        onCollapsedChange={collapsed =>
+                        onCollapsedChange={collapsed => {
                           setFiles(prev =>
                             prev.map(f =>
                               f.id === file.id ? { ...f, sourcePaneCollapsed: collapsed } : f
                             )
-                          )
-                        }
+                          );
+                          if (!collapsed) void ensurePreviewImages(file.id);
+                        }}
                       />
                     </div>
                     <div
@@ -777,13 +1028,14 @@ const App: React.FC = () => {
                             )
                           )
                         }
-                        onOpenSourceForFidelity={() =>
+                        onOpenSourceForFidelity={() => {
                           setFiles(prev =>
                             prev.map(f =>
                               f.id === file.id ? { ...f, sourcePaneCollapsed: false } : f
                             )
-                          )
-                        }
+                          );
+                          void ensurePreviewImages(file.id);
+                        }}
                         onFocusSource={(anchor, options) => {
                           const wantOpen = options?.open === true;
                           const alreadyOpen = file.sourcePaneCollapsed === false;
@@ -800,6 +1052,7 @@ const App: React.FC = () => {
                                 f.id === file.id ? { ...f, sourcePaneCollapsed: false } : f
                               )
                             );
+                            void ensurePreviewImages(file.id);
                           }
 
                           const pageCount = file.sourcePreviewImages?.length ?? 0;
