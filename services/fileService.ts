@@ -380,26 +380,69 @@ async function convertPdfWithAnalysis(
     analyses.push(await analyzePdfPage(page, i));
   }
 
+  const hasImageDominant = analyses.some(a => a.imageDominant);
+  const hasVectorPages = analyses.some(a => !a.imageDominant);
+
+  async function renderAllPagesAt(
+    vectorScaleFactor: number,
+    imageDominantScaleFactor: number,
+    quality: number
+  ): Promise<{ rendered: string[]; refs: SourceImageRef[]; previews: string[] }> {
+    const rendered: string[] = [];
+    const refs: SourceImageRef[] = [];
+    const previews: string[] = [];
+    for (let i = 0; i < pages.length; i++) {
+      const scaleFactor = analyses[i].imageDominant ? imageDominantScaleFactor : vectorScaleFactor;
+      const pageResult = await renderAnalyzedPage(pages[i], analyses[i], scaleFactor, quality);
+      rendered.push(...pageResult.extractImages);
+      refs.push(...pageResult.imageRefs);
+      if (pageResult.previewImage) previews.push(pageResult.previewImage);
+    }
+    return { rendered, refs, previews };
+  }
+
   let images: string[] = [];
   let imageRefs: SourceImageRef[] = [];
   let previewImages: string[] = [];
-  let usedScaleFactor = 1;
-  outer: for (const scaleFactor of GLOBAL_SCALE_FACTORS) {
-    for (const quality of QUALITY_TIERS) {
-      const rendered: string[] = [];
-      const refs: SourceImageRef[] = [];
-      const previews: string[] = [];
-      for (let i = 0; i < pages.length; i++) {
-        const pageResult = await renderAnalyzedPage(pages[i], analyses[i], scaleFactor, quality);
-        rendered.push(...pageResult.extractImages);
-        refs.push(...pageResult.imageRefs);
-        if (pageResult.previewImage) previews.push(pageResult.previewImage);
+  let usedImageDominantScaleFactor = 1;
+  let fitBudget = false;
+
+  const record = (
+    attempt: { rendered: string[]; refs: SourceImageRef[]; previews: string[] },
+    imageDominantScaleFactor: number
+  ): boolean => {
+    images = attempt.rendered;
+    imageRefs = attempt.refs;
+    previewImages = attempt.previews;
+    usedImageDominantScaleFactor = imageDominantScaleFactor;
+    return totalPayloadBytes(attempt.rendered) <= budgetBytes;
+  };
+
+  // Phase 1: quality loss first (less harmful to legibility than shrinking pixel dimensions),
+  // then reduce scale — but only on vector/text-layer pages. Those have Track A's real text as a
+  // fallback if the render comes out soft; image-dominant pages have no such backup (Track B is
+  // the only source of truth for wording, layout, and colour there), so this protects them from
+  // the payload budget for as long as vector-page softening alone can satisfy it.
+  if (hasVectorPages) {
+    phase1: for (const quality of QUALITY_TIERS) {
+      for (const vectorScaleFactor of GLOBAL_SCALE_FACTORS) {
+        const attempt = await renderAllPagesAt(vectorScaleFactor, 1, quality);
+        fitBudget = record(attempt, 1);
+        if (fitBudget) break phase1;
       }
-      images = rendered;
-      imageRefs = refs;
-      previewImages = previews;
-      usedScaleFactor = scaleFactor;
-      if (totalPayloadBytes(rendered) <= budgetBytes) break outer;
+    }
+  }
+
+  // Phase 2 (last resort): vector-only softening wasn't enough to hit budget — or every page is
+  // image-dominant, so there was nothing to protect them with — so soften image-dominant pages
+  // too, same uniform behaviour as before this change.
+  if (!fitBudget && hasImageDominant) {
+    phase2: for (const quality of QUALITY_TIERS) {
+      for (const scaleFactor of GLOBAL_SCALE_FACTORS) {
+        const attempt = await renderAllPagesAt(scaleFactor, scaleFactor, quality);
+        fitBudget = record(attempt, scaleFactor);
+        if (fitBudget) break phase2;
+      }
     }
   }
 
@@ -410,7 +453,7 @@ async function convertPdfWithAnalysis(
     // A flattened page is inherently risky: rendering above its native raster resolution
     // interpolates rather than recovering detail, so always signal the extractor.
     lowLegibility = true;
-    const scale = resolvePageScale(a, usedScaleFactor);
+    const scale = resolvePageScale(a, usedImageDominantScaleFactor);
     const contentPx = (a.bboxFrac.x1 - a.bboxFrac.x0) * a.pageWidthPt * scale;
     if (contentPx < LEGIBILITY_FLOOR_PX) {
       warnings.push(
