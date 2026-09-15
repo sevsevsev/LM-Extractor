@@ -161,17 +161,24 @@ function normalizePossiblyMissedRegions(raw: unknown): PossiblyMissedRegion[] {
     const page = rec.page;
     if (typeof page !== 'number' || !Number.isFinite(page) || page < 1) continue;
     const pageInt = Math.round(page);
-    const columnRaw = rec.column;
-    const column =
-      typeof columnRaw === 'number' && Number.isFinite(columnRaw) && columnRaw >= 1
-        ? Math.round(columnRaw)
-        : undefined;
+    const xStartRaw = rec.xStart;
+    const xEndRaw = rec.xEnd;
+    const hasValidSpan =
+      typeof xStartRaw === 'number' &&
+      Number.isFinite(xStartRaw) &&
+      typeof xEndRaw === 'number' &&
+      Number.isFinite(xEndRaw) &&
+      xStartRaw >= 0 &&
+      xEndRaw <= 1 &&
+      xEndRaw > xStartRaw;
+    const xStart = hasValidSpan ? xStartRaw : undefined;
+    const xEnd = hasValidSpan ? xEndRaw : undefined;
     const noteRaw = rec.note;
     const note = typeof noteRaw === 'string' && noteRaw.trim() ? noteRaw.trim().slice(0, 200) : undefined;
-    const key = `${pageInt}:${column ?? ''}`;
+    const key = `${pageInt}:${hasValidSpan ? `${xStart!.toFixed(2)}-${xEnd!.toFixed(2)}` : ''}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push(column !== undefined ? { page: pageInt, column, note } : { page: pageInt, note });
+    out.push(hasValidSpan ? { page: pageInt, xStart, xEnd, note } : { page: pageInt, note });
     if (out.length >= MAX_MISSED_REGIONS) break;
   }
   return out;

@@ -89,7 +89,8 @@ const extractModelSchema: Schema = {
         type: Type.OBJECT,
         properties: {
           page: { type: Type.NUMBER },
-          column: { type: Type.NUMBER },
+          xStart: { type: Type.NUMBER },
+          xEnd: { type: Type.NUMBER },
           note: { type: Type.STRING },
         },
         required: ['page'],

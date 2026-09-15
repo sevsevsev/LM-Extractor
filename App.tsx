@@ -57,21 +57,20 @@ function toPersistedRecord(f: ProcessingFile): PersistedFileRecord {
 }
 
 /**
- * Resolve `LogicModel.possiblyMissedRegions` down to plain fractions for `SourceDocumentPane`,
- * using the file's retained `sourceColumnFracs` (same cropped-content coordinate space the page
- * preview was rendered from — see services/fileService.ts). Falls back to a full-width highlight
- * when no column band is known for that region (page-level only, or the page wasn't column-tiled).
+ * Resolve `LogicModel.possiblyMissedRegions` down to plain fractions for `SourceDocumentPane`.
+ * `xStart`/`xEnd` are Gemini's own estimate of the region's horizontal span (it's shown the whole
+ * page, so there's no retained tiling geometry to look up here) — falls back to a full-width
+ * highlight when it couldn't estimate one.
  */
 function resolveHighlightRegions(file: ProcessingFile): HighlightRegion[] {
   const regions = file.result?.possiblyMissedRegions;
   if (!regions || regions.length === 0) return [];
   return regions.map(region => {
-    const bands = file.sourceColumnFracs?.[region.page - 1];
-    const band = typeof region.column === 'number' ? bands?.[region.column - 1] : undefined;
+    const hasSpan = typeof region.xStart === 'number' && typeof region.xEnd === 'number';
     return {
       page: region.page,
-      leftFrac: band ? band.start : 0,
-      widthFrac: band ? band.end - band.start : 1,
+      leftFrac: hasSpan ? region.xStart! : 0,
+      widthFrac: hasSpan ? Math.max(0, region.xEnd! - region.xStart!) : 1,
       note: region.note,
     };
   });
@@ -263,7 +262,6 @@ const App: React.FC = () => {
               error: undefined,
               progressMsg: undefined,
               sourcePreviewImages: undefined,
-              sourceColumnFracs: undefined,
               sourcePaneCollapsed: undefined,
               extractionBlockers: undefined,
               fidelityBannerDismissed: undefined,
@@ -353,7 +351,6 @@ const App: React.FC = () => {
                     bundle.previewImages && bundle.previewImages.length > 0
                       ? bundle.previewImages
                       : undefined,
-                  sourceColumnFracs: bundle.columnFracs,
                   // Editor-primary: source stays hidden until mismatch/fidelity or explicit show.
                   sourcePaneCollapsed: true,
                 }
@@ -484,11 +481,8 @@ const App: React.FC = () => {
       else return;
       if (bundle.previewImages && bundle.previewImages.length > 0) {
         const previews = bundle.previewImages;
-        const columnFracs = bundle.columnFracs;
         setFiles(prev =>
-          prev.map(f =>
-            f.id === fileId ? { ...f, sourcePreviewImages: previews, sourceColumnFracs: columnFracs } : f
-          )
+          prev.map(f => (f.id === fileId ? { ...f, sourcePreviewImages: previews } : f))
         );
       }
     } catch (e) {

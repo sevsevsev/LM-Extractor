@@ -253,9 +253,12 @@ ${
     - \`extractionConfidence\` may be omitted (server rollup will set it)
     - \`possiblyMissedRegions\`: after extracting, re-look at each TRACK B image. If any image shows content
       (a bullet, a labeled box, a header) you were **not confident** you fully transcribed into an item above,
-      add \`{ "page": <that image's document page number>, "column": <its column, if the label gave one>, "note": "<short reason>" }\`
-      citing the same page/column values from that image's label (see SOURCE LOCATION above). Omit entirely
-      (empty array) when you're confident every image's visible content made it into an item. 0–6 entries.
+      add \`{ "page": <that image's document page number>, "xStart": <fraction>, "xEnd": <fraction>, "note": "<short reason>" }\`.
+      \`xStart\`/\`xEnd\` are your own visual estimate of that content's horizontal position, as a fraction
+      0.0–1.0 of the full page width (e.g. a box roughly a third of the way across to about halfway →
+      \`xStart: 0.33, xEnd: 0.5\`) — estimate by eye from the image, do not just repeat a column index.
+      Omit \`xStart\`/\`xEnd\` if you can't estimate a horizontal position (page-level flag only). Omit the
+      array entirely when you're confident every image's visible content made it into an item. 0–6 entries.
 
     **Abstain** (\`extractionStatus: "abstained"\`) when any of:
     - The document is not a logic model (or has no extractable LM layout).

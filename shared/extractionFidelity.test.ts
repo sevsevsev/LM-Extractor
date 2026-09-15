@@ -253,9 +253,10 @@ test('Gemini-reported possiblyMissedRegions are normalized, deduped, and merged 
   const model = baseModel({
     activities: { content: groups(items) },
     possiblyMissedRegions: [
-      { page: 2, column: 1, note: 'Left column looks cut off' },
+      { page: 2, xStart: 0.1, xEnd: 0.3, note: 'Left column looks cut off' },
       { page: 0, note: 'invalid page, must be dropped' },
-      { page: 2, column: 1, note: 'duplicate of the first entry, must be deduped' },
+      { page: 2, xStart: 0.1, xEnd: 0.3, note: 'duplicate of the first entry, must be deduped' },
+      { page: 3, xStart: 0.5, xEnd: 0.2, note: 'invalid span (end before start), span must be dropped' },
     ],
   });
   const page2 = Array.from({ length: 8 }, (_, i) => `- Page 2 bullet ${i}`).join('\n');
@@ -263,5 +264,8 @@ test('Gemini-reported possiblyMissedRegions are normalized, deduped, and merged 
   reconcileExtractionFidelity(model, { sourceText });
   assert.equal(model.extractionStatus, 'partial');
   // Gemini already covered page 2 — the heuristic's own page-2 entry is not added on top of it.
-  assert.deepEqual(model.possiblyMissedRegions, [{ page: 2, column: 1, note: 'Left column looks cut off' }]);
+  assert.deepEqual(model.possiblyMissedRegions, [
+    { page: 2, xStart: 0.1, xEnd: 0.3, note: 'Left column looks cut off' },
+    { page: 3, note: 'invalid span (end before start), span must be dropped' },
+  ]);
 });

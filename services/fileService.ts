@@ -9,7 +9,6 @@ import { findColumnBands } from './columnDetect';
 import {
   DocumentBundle,
   LOW_LEGIBILITY_WARNING,
-  type ColumnFrac,
   type SourceImageRef,
 } from '../types';
 
@@ -40,8 +39,6 @@ interface PdfRenderResult {
   images: string[];
   imageRefs: SourceImageRef[];
   previewImages: string[];
-  /** Parallel to `previewImages` — column band geometry when that page was confidently tiled. */
-  columnFracs: (ColumnFrac[] | null)[];
   warnings: string[];
   lowLegibility: boolean;
 }
@@ -374,8 +371,6 @@ interface PageRenderResult {
   extractImages: string[];
   imageRefs: SourceImageRef[];
   previewImage: string;
-  /** Column band geometry, relative to `previewImage`'s own width — null when no confident grid was tiled. */
-  columnFracs: ColumnFrac[] | null;
 }
 
 /** Render one page (cropped to content) plus optional per-column tiles for grid pages. */
@@ -393,7 +388,7 @@ async function renderAnalyzedPage(
   fullCanvas.height = Math.ceil(viewport.height);
   const ctx = fullCanvas.getContext('2d');
   if (!ctx) {
-    return { extractImages: [], imageRefs: [], previewImage: '', columnFracs: null };
+    return { extractImages: [], imageRefs: [], previewImage: '' };
   }
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, fullCanvas.width, fullCanvas.height);
@@ -439,7 +434,7 @@ async function renderAnalyzedPage(
       }
     }
     if (tiles.length >= 3) {
-      return { extractImages: tiles, imageRefs: refs, previewImage, columnFracs: analysis.columnFracs };
+      return { extractImages: tiles, imageRefs: refs, previewImage };
     }
   }
 
@@ -447,7 +442,6 @@ async function renderAnalyzedPage(
     extractImages: [previewImage],
     imageRefs: [{ page: pageNum }],
     previewImage,
-    columnFracs: null,
   };
 }
 
@@ -473,49 +467,33 @@ async function convertPdfWithAnalysis(
     vectorScaleFactor: number,
     imageDominantScaleFactor: number,
     quality: number
-  ): Promise<{
-    rendered: string[];
-    refs: SourceImageRef[];
-    previews: string[];
-    columnFracs: (ColumnFrac[] | null)[];
-  }> {
+  ): Promise<{ rendered: string[]; refs: SourceImageRef[]; previews: string[] }> {
     const rendered: string[] = [];
     const refs: SourceImageRef[] = [];
     const previews: string[] = [];
-    const columnFracs: (ColumnFrac[] | null)[] = [];
     for (let i = 0; i < pages.length; i++) {
       const scaleFactor = analyses[i].imageDominant ? imageDominantScaleFactor : vectorScaleFactor;
       const pageResult = await renderAnalyzedPage(pages[i], analyses[i], scaleFactor, quality);
       rendered.push(...pageResult.extractImages);
       refs.push(...pageResult.imageRefs);
-      if (pageResult.previewImage) {
-        previews.push(pageResult.previewImage);
-        columnFracs.push(pageResult.columnFracs);
-      }
+      if (pageResult.previewImage) previews.push(pageResult.previewImage);
     }
-    return { rendered, refs, previews, columnFracs };
+    return { rendered, refs, previews };
   }
 
   let images: string[] = [];
   let imageRefs: SourceImageRef[] = [];
   let previewImages: string[] = [];
-  let columnFracs: (ColumnFrac[] | null)[] = [];
   let usedImageDominantScaleFactor = 1;
   let fitBudget = false;
 
   const record = (
-    attempt: {
-      rendered: string[];
-      refs: SourceImageRef[];
-      previews: string[];
-      columnFracs: (ColumnFrac[] | null)[];
-    },
+    attempt: { rendered: string[]; refs: SourceImageRef[]; previews: string[] },
     imageDominantScaleFactor: number
   ): boolean => {
     images = attempt.rendered;
     imageRefs = attempt.refs;
     previewImages = attempt.previews;
-    columnFracs = attempt.columnFracs;
     usedImageDominantScaleFactor = imageDominantScaleFactor;
     return totalPayloadBytes(attempt.rendered) <= budgetBytes;
   };
@@ -572,7 +550,7 @@ async function convertPdfWithAnalysis(
     }
   }
 
-  return { images, imageRefs, previewImages, columnFracs, warnings, lowLegibility };
+  return { images, imageRefs, previewImages, warnings, lowLegibility };
 }
 
 /** Legacy tier renderer — used only when the analysis pipeline throws. */
@@ -703,8 +681,7 @@ function assembleDocumentBundle(
   lowLegibility: boolean,
   textTrack: string,
   previewImages?: string[],
-  imageRefs?: SourceImageRef[],
-  columnFracs?: (ColumnFrac[] | null)[]
+  imageRefs?: SourceImageRef[]
 ): DocumentBundle {
   const mergedWarnings = [...warnings];
   if (
@@ -727,7 +704,6 @@ function assembleDocumentBundle(
     images,
     imageRefs: images.length ? refs : undefined,
     previewImages: previews,
-    columnFracs: columnFracs && previews && columnFracs.length === previews.length ? columnFracs : undefined,
     textTrack,
     warnings: mergedWarnings,
     sourceFormat,
@@ -761,8 +737,7 @@ export const convertPdfToImages = async (file: File): Promise<DocumentBundle> =>
         result.lowLegibility,
         textTrack,
         result.previewImages,
-        result.imageRefs,
-        result.columnFracs
+        result.imageRefs
       );
     } catch (analysisError) {
       console.warn('Analysis render failed; falling back to tier rendering:', analysisError);
@@ -913,8 +888,6 @@ interface DocxSectionRenderResult {
   imageRefs: SourceImageRef[];
   previewImage: string;
   payloadBytes: number;
-  /** Column band geometry, relative to `previewImage`'s own width — null when no confident grid was tiled. */
-  columnFracs: ColumnFrac[] | null;
 }
 
 /** Render one analyzed section: crop to content, tile per column when a confident grid was found. */
@@ -967,7 +940,6 @@ async function renderAnalyzedDocxSection(
         imageRefs: refs,
         previewImage,
         payloadBytes: totalPayloadBytes(tiles),
-        columnFracs: analysis.columnFracs,
       };
     }
   }
@@ -977,7 +949,6 @@ async function renderAnalyzedDocxSection(
     imageRefs: [{ page: pageNum }],
     previewImage,
     payloadBytes: previewImage.length,
-    columnFracs: null,
   };
 }
 
@@ -985,8 +956,6 @@ interface DocxVisionResult {
   images: string[];
   imageRefs: SourceImageRef[];
   previewImages: string[];
-  /** Parallel to `previewImages` — column band geometry when that section was confidently tiled. */
-  columnFracs: (ColumnFrac[] | null)[];
   warnings: string[];
   lowLegibility: boolean;
 }
@@ -1026,7 +995,6 @@ async function renderDocxVisionPages(arrayBuffer: ArrayBuffer): Promise<DocxVisi
     let images: string[] = [];
     let imageRefs: SourceImageRef[] = [];
     let previewImages: string[] = [];
-    let columnFracs: (ColumnFrac[] | null)[] = [];
 
     const legibilityWarningFor = (pageLabel: string, bboxFrac: Box | null, scale: number): string | null => {
       const contentFrac = bboxFrac ? bboxFrac.x1 - bboxFrac.x0 : 1;
@@ -1073,7 +1041,6 @@ async function renderDocxVisionPages(arrayBuffer: ArrayBuffer): Promise<DocxVisi
         images.push(...result.extractImages);
         imageRefs.push(...result.imageRefs);
         previewImages.push(result.previewImage);
-        columnFracs.push(result.columnFracs);
 
         const warning = legibilityWarningFor(`Page ${pageNum}`, analysis.bboxFrac, scale);
         if (warning) warnings.push(warning);
@@ -1102,7 +1069,6 @@ async function renderDocxVisionPages(arrayBuffer: ArrayBuffer): Promise<DocxVisi
       images = sliceCanvasToJpegs(full, slicePx, MAX_VISION_PAGES);
       imageRefs = images.map((_, i) => ({ page: i + 1 }));
       previewImages = images;
-      columnFracs = images.map(() => null);
       if (images.length > 1) {
         warnings.push(
           'Word page breaks were unclear, so the document was split into fixed-height image bands for vision analysis.'
@@ -1122,7 +1088,7 @@ async function renderDocxVisionPages(arrayBuffer: ArrayBuffer): Promise<DocxVisi
       throw new Error('DOCX vision render produced no page images.');
     }
 
-    return { images, imageRefs, previewImages, columnFracs, warnings, lowLegibility };
+    return { images, imageRefs, previewImages, warnings, lowLegibility };
   } finally {
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
@@ -1147,8 +1113,7 @@ export const convertDocxToImages = async (file: File): Promise<DocumentBundle> =
       vision.lowLegibility,
       textTrack,
       vision.previewImages,
-      vision.imageRefs,
-      vision.columnFracs
+      vision.imageRefs
     );
 
     const snippet = bundle.textTrack.slice(0, 400);
@@ -1275,7 +1240,6 @@ export const convertPptxToImages = async (file: File): Promise<DocumentBundle> =
       images: pdfBundle.images,
       previewImages: pdfBundle.previewImages,
       imageRefs: pdfBundle.imageRefs,
-      columnFracs: pdfBundle.columnFracs,
       textTrack: textTrack || pdfBundle.textTrack,
       warnings,
       sourceFormat: 'pptx',
