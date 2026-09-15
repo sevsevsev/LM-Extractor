@@ -200,3 +200,26 @@ test('countExtractionItems includes unmapped', () => {
   });
   assert.deepEqual(countExtractionItems(model), { total: 2, nonVerbatim: 1 });
 });
+
+test('possiblyIncomplete alone upgrades ok -> partial and confidence to medium (never low)', () => {
+  const model = baseModel({
+    activities: { content: groups(manyItems(3, 0)) },
+  });
+  const sourceText = Array.from({ length: 20 }, (_, i) => `- Bullet item ${i}`).join('\n');
+  reconcileExtractionFidelity(model, { sourceText });
+  assert.equal(model.extractionStatus, 'partial');
+  assert.equal(model.extractionConfidence, 'medium');
+  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.possiblyIncomplete));
+  assert.equal(shouldHardStopExtraction(model), false);
+});
+
+test('possiblyIncomplete does not fire when extraction matches the source reasonably well', () => {
+  const model = baseModel({
+    activities: { content: groups(manyItems(9, 0)) },
+  });
+  const sourceText = Array.from({ length: 10 }, (_, i) => `- Bullet item ${i}`).join('\n');
+  reconcileExtractionFidelity(model, { sourceText });
+  assert.equal(model.extractionStatus, 'ok');
+  assert.equal(model.extractionConfidence, 'high');
+  assert.ok(!model.extractionBlockers?.includes(FIDELITY_BLOCKERS.possiblyIncomplete));
+});

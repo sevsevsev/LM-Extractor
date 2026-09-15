@@ -159,7 +159,10 @@ export function normalizeExtractedLogicModel(
   promoteImpactStatementFromMission(model);
   promoteImpactStatementFromGroupedDomains(model);
   applySourceAwareMapping(model);
-  reconcileExtractionFidelity(model, { lowLegibility: options?.lowLegibility });
+  reconcileExtractionFidelity(model, {
+    lowLegibility: options?.lowLegibility,
+    sourceText: options?.sourceText,
+  });
   return model;
 }
 

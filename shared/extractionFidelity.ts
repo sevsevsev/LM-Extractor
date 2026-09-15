@@ -7,6 +7,7 @@ import type {
 } from '../types';
 import { stringDomainHasContent, groupedDomainHasContent } from './domainPresence.js';
 import { shouldSuggestMismatch } from './sourceMapping.js';
+import { estimateCompleteness } from './completenessCheck.js';
 
 const STATUSES: readonly ExtractionStatus[] = ['ok', 'partial', 'abstained'];
 const CONFIDENCES: readonly ExtractionConfidence[] = ['high', 'medium', 'low'];
@@ -30,6 +31,9 @@ export const FIDELITY_BLOCKERS = {
   /** Flattened / low-DPI dense grids (Oxford Circle–class) — do not trust fluent OCR. */
   lowLegibilityDense:
     'Low-resolution dense grid — transcription is not reliable enough to continue',
+  /** Unvalidated proxy (see completenessCheck.ts) — caps at partial/medium, never forces low/abstained. */
+  possiblyIncomplete:
+    'Source text suggests more items may be present than were extracted — spot-check for missed content',
 } as const;
 
 export function isExtractionStatus(value: unknown): value is ExtractionStatus {
@@ -146,6 +150,8 @@ function pushBlocker(list: string[], seen: Set<string>, text: string): void {
 
 export interface ReconcileFidelityOptions {
   lowLegibility?: boolean;
+  /** Track A text (PDF/DOCX/PPTX text layer) — drives the completeness proxy below. */
+  sourceText?: string;
 }
 
 /**
@@ -180,6 +186,10 @@ export function reconcileExtractionFidelity(
   const M = shouldSuggestMismatch(model);
   const Uunk = model.layoutFamily === 'unknown';
   const noContent = !hasRecoveredLogicModelContent(model);
+  // Unvalidated heuristic (see completenessCheck.ts) — deliberately excluded from every `low`/
+  // `abstained` condition below; it can only ever push ok -> partial, same ceiling as mismatch/
+  // unknown-layout, until it's been checked against real documents.
+  const possiblyIncomplete = estimateCompleteness(options?.sourceText, N).possiblyIncomplete;
 
   if (status === 'ok') {
     if (
@@ -189,7 +199,8 @@ export function reconcileExtractionFidelity(
       (L && Vf >= 1) ||
       (L && N >= 6) ||
       modelBlockers.length > 0 ||
-      noContent
+      noContent ||
+      possiblyIncomplete
     ) {
       status = upgradeStatus(status, 'partial');
     }
@@ -219,6 +230,7 @@ export function reconcileExtractionFidelity(
   }
   if (M) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.mismatch);
   if (Uunk) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.unknownLayout);
+  if (possiblyIncomplete) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.possiblyIncomplete);
 
   let confidence: ExtractionConfidence;
   if (

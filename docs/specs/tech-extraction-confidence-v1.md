@@ -186,6 +186,30 @@ Coding export: **no** new fidelity columns required (outcomes intake unchanged);
 5. Editor one-line quality disambiguation  
 6. `npm run typecheck` / `test` / `build`
 
+## Completeness signal (`shared/completenessCheck.ts`, added 2026-09-15)
+
+Recall had no code-level signal at all — text fidelity has `verbatim` ratios, placement has
+mismatch/causal-chain checks, resolution has the legibility floor, but a model that silently
+*dropped* visible items was invisible to the rollup. `estimateCompleteness(sourceText, N)` is a
+rough proxy: it counts candidate item-like lines in Track A (bullets, numbered lines, short
+standalone lines) and compares against `N` (extracted item count). A gross mismatch
+(`candidateSourceLines - N >= 5` and ratio `>= 1.5`) sets `possiblyIncomplete`.
+
+**PDF/PPTX-specific fix required before this was usable:** Track A for these formats is a flat
+text stream from pdfjs, and line breaks follow *visual* wrapping, not logical item boundaries — a
+single bullet in a narrow grid column routinely spans 2-4 lines. Naive per-line counting massively
+over-counted on exactly the dense multi-column documents this signal most needs to work on
+(caught via live regression against a real, previously-verified-correct document — "Foster
+Grandparent Program" — before this shipped). Fixed with `reflowWrappedLines()`: a "sticky" merge
+that absorbs non-bulleted, non-heading continuation lines into the preceding open bullet, the same
+behavior a markdown renderer gives a wrapped list item. DOCX's Turndown-generated Markdown doesn't
+have this problem (HTML list items already reflow to one line each), so the merge is a no-op there.
+
+Wired into `reconcileExtractionFidelity` (`options.sourceText`, threaded from
+`normalizeExtractedLogicModel` → `server/geminiLogicModel.ts`'s `textTrack`). Deliberately excluded
+from every `low`/`abstained` condition — same ceiling as `mismatch`/`unknownLayout` — since it's
+unvalidated against real documents; it can only ever push `ok` → `partial` / `medium`.
+
 ## Out of tech scope (v1)
 
 - Second Gemini verify pass / dual extract  
