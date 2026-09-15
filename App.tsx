@@ -95,16 +95,6 @@ const App: React.FC = () => {
     files.find(f => f.id === pdfCaptureFileId && f.result) ??
     (selectedFile?.result ? selectedFile : null);
 
-  useEffect(() => {
-    if (files.length === 0) {
-      setSelectedFileId(null);
-      return;
-    }
-    if (!selectedFileId || !files.some(f => f.id === selectedFileId)) {
-      setSelectedFileId(files[0].id);
-    }
-  }, [files, selectedFileId]);
-
   const handleFilesSelected = (newFiles: File[]) => {
     const newProcessingFiles: ProcessingFile[] = newFiles.map(file => ({
       id: createFileId(),
@@ -116,6 +106,7 @@ const App: React.FC = () => {
 
   const removeFile = (fileId: string) => {
     setFiles(prev => prev.filter(f => f.id !== fileId));
+    if (selectedFileId === fileId) setSelectedFileId(null);
     if (previewFileId === fileId) setPreviewFileId(null);
     if (reAnalyzingId === fileId) setReAnalyzingId(null);
     setSourceFocusByFileId(prev => {
@@ -666,7 +657,8 @@ const App: React.FC = () => {
         {files.length === 0 && (
           <section className="text-center max-w-2xl mx-auto">
             <p className="text-brand-gray text-[15px]">
-              Upload PDF, Word, or PowerPoint. Review the extracted columns, then export a branded PDF or CSV.
+              Upload PDF, Word, or PowerPoint. We'll flag anything that needs a second look —
+              everything else exports straight to CSV or PDF.
             </p>
           </section>
         )}
@@ -677,7 +669,9 @@ const App: React.FC = () => {
 
         {files.length > 0 && (
           <div className="space-y-4">
-            <SessionFileList files={files} selectedFileId={selectedFileId} onSelect={setSelectedFileId} />
+            {!file && (
+              <SessionFileList files={files} selectedFileId={selectedFileId} onSelect={setSelectedFileId} />
+            )}
 
             {file && (
               <div className="space-y-4">
@@ -718,6 +712,13 @@ const App: React.FC = () => {
                         </button>
                       </>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFileId(null)}
+                      className="text-xs font-bold text-brand-navy hover:underline px-2 py-1.5"
+                    >
+                      ← All files
+                    </button>
                     <button
                       type="button"
                       onClick={() => removeFile(file.id)}

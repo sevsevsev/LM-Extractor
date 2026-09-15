@@ -491,6 +491,8 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
   const weakCount = ratingSummary.filter(r => r.rating === 'Weak' || !r.rating).length;
   const overall = model.overallQuality;
   const overallTone = ratingBadgeClass(overall?.rating);
+  const needsAttention =
+    overall?.rating === 'Weak' || !overall?.rating || shouldShowFidelityBanner(model);
 
   const updateOverallRating = (rating: QualityRating) => {
     onUpdate({
@@ -565,25 +567,33 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${overallTone}`}>
             Overall{overall?.rating ? `: ${overall.rating}` : ': Unrated'}
           </span>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mr-1">
-            {weakCount > 0 ? `${weakCount} section${weakCount === 1 ? '' : 's'} need attention` : 'All sections rated Strong or Adequate'}
-          </span>
-          {ratingSummary.map(item => {
-            const tone = ratingBadgeClass(item.rating);
-            return (
-              <span
-                key={item.label}
-                className={`text-[10px] font-bold px-2 py-0.5 rounded border ${tone}`}
-                title={item.rating || 'No rating'}
-              >
-                {item.label}
-                {item.rating ? `: ${item.rating}` : ''}
-              </span>
-            );
-          })}
         </div>
+        <details open={weakCount > 0} className="group">
+          <summary className="cursor-pointer list-none flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <span>
+              {weakCount > 0 ? `${weakCount} section${weakCount === 1 ? '' : 's'} need attention` : 'All sections rated Strong or Adequate'}
+            </span>
+            <span className="text-slate-400 normal-case font-normal tracking-normal group-open:hidden">(show detail)</span>
+            <span className="text-slate-400 normal-case font-normal tracking-normal hidden group-open:inline">(hide)</span>
+          </summary>
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            {ratingSummary.map(item => {
+              const tone = ratingBadgeClass(item.rating);
+              return (
+                <span
+                  key={item.label}
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded border ${tone}`}
+                  title={item.rating || 'No rating'}
+                >
+                  {item.label}
+                  {item.rating ? `: ${item.rating}` : ''}
+                </span>
+              );
+            })}
+          </div>
+        </details>
       </div>
-      
+
       <fieldset disabled={isAnalyzing} className="p-8 border-0 m-0 min-w-0 max-w-full w-full [min-inline-size:0] disabled:opacity-70">
         <legend className="sr-only">Logic model fields</legend>
         <div className="grid grid-cols-2 gap-6 mb-6 bg-slate-50 p-6 rounded-lg border border-slate-100">
@@ -607,72 +617,83 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
            </div>
         </div>
 
-        <div className={`mb-10 border rounded-lg p-5 ${overall?.rating === 'Weak' || !overall?.rating ? 'bg-amber-50 border-amber-100' : 'bg-emerald-50 border-emerald-100'}`}>
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-            <h4 className="text-sm font-bold uppercase tracking-wider text-slate-700">Overall quality</h4>
-            <label className="flex items-center gap-2 text-xs font-bold text-slate-600">
-              <span className="sr-only">Overall rating</span>
-              <select
-                className="border border-slate-300 rounded-md px-2 py-1 bg-white text-sm font-bold"
-                value={overall?.rating || ''}
-                onChange={e => {
-                  const v = e.target.value as QualityRating;
-                  if (RATING_OPTIONS.includes(v)) updateOverallRating(v);
-                }}
-              >
-                <option value="" disabled>
-                  Unrated
-                </option>
-                {RATING_OPTIONS.map(r => (
-                  <option key={r} value={r}>
-                    {r}
+        <details
+          open={needsAttention}
+          className={`mb-10 border rounded-lg group ${overall?.rating === 'Weak' || !overall?.rating ? 'bg-amber-50 border-amber-100' : 'bg-emerald-50 border-emerald-100'}`}
+        >
+          <summary className="cursor-pointer list-none flex flex-wrap items-center justify-between gap-3 p-5 group-open:pb-3">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-slate-700">
+              Overall quality{overall?.rating ? `: ${overall.rating}` : ': Unrated'}
+            </h4>
+            <span className="text-xs font-bold text-slate-500 group-open:hidden">Show rating &amp; rationale</span>
+            <span className="text-xs font-bold text-slate-500 hidden group-open:inline">Hide</span>
+          </summary>
+          <div className="px-5 pb-5">
+            <div className="flex justify-end mb-3">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                <span className="sr-only">Overall rating</span>
+                <select
+                  className="border border-slate-300 rounded-md px-2 py-1 bg-white text-sm font-bold"
+                  value={overall?.rating || ''}
+                  onChange={e => {
+                    const v = e.target.value as QualityRating;
+                    if (RATING_OPTIONS.includes(v)) updateOverallRating(v);
+                  }}
+                >
+                  <option value="" disabled>
+                    Unrated
                   </option>
-                ))}
-              </select>
-            </label>
+                  {RATING_OPTIONS.map(r => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <p className="text-[11px] text-slate-500 mb-1">
+              Rates the logic model document — not how faithfully it was extracted.
+            </p>
+            <p className="text-[11px] text-slate-500 mb-3">
+              Why this rating (2–4 bullets). Re-Analyze refreshes overall quality from AI.
+            </p>
+            <ul className="space-y-2">
+              {(overall?.rationale?.length ? overall.rationale : ['', '']).map((bullet, i) => (
+                <li key={i} className="flex gap-2 items-start">
+                  <span className="text-slate-400 text-xs mt-2.5" aria-hidden="true">
+                    •
+                  </span>
+                  <input
+                    type="text"
+                    className="flex-1 text-sm border border-slate-200 rounded-md px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                    value={bullet}
+                    onChange={e => updateRationaleBullet(i, e.target.value)}
+                    placeholder={`Rationale bullet ${i + 1}`}
+                  />
+                  {(overall?.rationale?.length || 0) > 2 ? (
+                    <button
+                      type="button"
+                      className="text-xs text-slate-400 hover:text-red-600 px-1 py-2"
+                      onClick={() => removeRationaleBullet(i)}
+                      aria-label={`Remove rationale bullet ${i + 1}`}
+                    >
+                      ×
+                    </button>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            {(overall?.rationale?.length || 0) < 4 ? (
+              <button
+                type="button"
+                onClick={addRationaleBullet}
+                className="mt-3 text-xs font-bold text-blue-600 hover:text-blue-800"
+              >
+                + Add rationale bullet
+              </button>
+            ) : null}
           </div>
-          <p className="text-[11px] text-slate-500 mb-1">
-            Rates the logic model document — not how faithfully it was extracted.
-          </p>
-          <p className="text-[11px] text-slate-500 mb-3">
-            Why this rating (2–4 bullets). Re-Analyze refreshes overall quality from AI.
-          </p>
-          <ul className="space-y-2">
-            {(overall?.rationale?.length ? overall.rationale : ['', '']).map((bullet, i) => (
-              <li key={i} className="flex gap-2 items-start">
-                <span className="text-slate-400 text-xs mt-2.5" aria-hidden="true">
-                  •
-                </span>
-                <input
-                  type="text"
-                  className="flex-1 text-sm border border-slate-200 rounded-md px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                  value={bullet}
-                  onChange={e => updateRationaleBullet(i, e.target.value)}
-                  placeholder={`Rationale bullet ${i + 1}`}
-                />
-                {(overall?.rationale?.length || 0) > 2 ? (
-                  <button
-                    type="button"
-                    className="text-xs text-slate-400 hover:text-red-600 px-1 py-2"
-                    onClick={() => removeRationaleBullet(i)}
-                    aria-label={`Remove rationale bullet ${i + 1}`}
-                  >
-                    ×
-                  </button>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-          {(overall?.rationale?.length || 0) < 4 ? (
-            <button
-              type="button"
-              onClick={addRationaleBullet}
-              className="mt-3 text-xs font-bold text-blue-600 hover:text-blue-800"
-            >
-              + Add rationale bullet
-            </button>
-          ) : null}
-        </div>
+        </details>
 
         {/* PROGRAM CONTEXT SECTION */}
         <div className="relative py-4 mb-8">
