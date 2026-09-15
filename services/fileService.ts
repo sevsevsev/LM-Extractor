@@ -16,6 +16,24 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 const MAX_VISION_PAGES = 15;
 
+/**
+ * Operator codes that paint an embedded raster (as opposed to vector fills/strokes or outlined
+ * text). A page can be "image-dominant" (near-zero extractable text) for two very different
+ * reasons: it's a genuine flattened scan/screenshot, or it's vector art with text converted to
+ * outline paths (common from design tools) — pdfjs reports no text objects either way, but only
+ * the former is actually resolution-limited. See analyzePdfPage's `hasEmbeddedRaster`.
+ */
+const IMAGE_PAINT_OPS = new Set<number>([
+  pdfjsLib.OPS.paintImageMaskXObject,
+  pdfjsLib.OPS.paintImageMaskXObjectGroup,
+  pdfjsLib.OPS.paintImageXObject,
+  pdfjsLib.OPS.paintInlineImageXObject,
+  pdfjsLib.OPS.paintInlineImageXObjectGroup,
+  pdfjsLib.OPS.paintImageXObjectRepeat,
+  pdfjsLib.OPS.paintImageMaskXObjectRepeat,
+  pdfjsLib.OPS.paintSolidColorImageMask,
+]);
+
 /** Internal PDF render result before assembling DocumentBundle. */
 interface PdfRenderResult {
   images: string[];
@@ -39,6 +57,9 @@ const PROBE_SCALE = 1.25; // cheap pass to find the content box + column gutters
 const CONTENT_PAD_FRAC = 0.01; // padding around the detected content box
 const TEXT_DOMINANT_MIN_CHARS = 40; // fewer real characters ⇒ page is essentially an image
 const LEGIBILITY_FLOOR_PX = 1150; // image-page content narrower than this ⇒ warn the user
+/** See the "high-fidelity raster" check in analyzePdfPage. */
+const MIN_DISTINCT_RASTER_ASSETS_FOR_TRUST = 3;
+const RASTER_HIGH_FIDELITY_MIN_PX = 700;
 const ENABLE_COLUMN_TILING = true;
 /**
  * A very tall, narrow column tile buries small print. Split such tiles into vertical bands so each
@@ -96,6 +117,12 @@ interface PageAnalysis {
   pageNumber: number;
   pageWidthPt: number;
   imageDominant: boolean;
+  /**
+   * True when the page's content stream paints at least one raster image (scan, screenshot,
+   * flattened export). False when `imageDominant` came from a lack of text objects alone (e.g.
+   * vector art / outlined text) — that content is resolution-independent, not a flattened raster.
+   */
+  hasEmbeddedRaster: boolean;
   /** Content bounding box as fractions [0..1] of the page, or null when not detected. */
   bboxFrac: Box | null;
   /** Column band boundaries as fractions of the cropped content width, or null. */
@@ -159,17 +186,70 @@ async function analyzePdfPage(
   }
   const imageDominant = textChars < TEXT_DOMINANT_MIN_CHARS;
 
+  let hasEmbeddedRaster = false;
+  let rasterObjIds: string[] = [];
+  if (imageDominant) {
+    try {
+      const opList = await page.getOperatorList();
+      for (let i = 0; i < opList.fnArray.length; i++) {
+        if (IMAGE_PAINT_OPS.has(opList.fnArray[i])) {
+          const objId = opList.argsArray[i]?.[0];
+          if (typeof objId === 'string') rasterObjIds.push(objId);
+        }
+      }
+      hasEmbeddedRaster = rasterObjIds.length > 0;
+    } catch {
+      // Unknown either way — err toward the conservative (always-risky) treatment.
+      hasEmbeddedRaster = true;
+    }
+  }
+
   const viewport = page.getViewport({ scale: PROBE_SCALE });
   const canvas = document.createElement('canvas');
   canvas.width = Math.ceil(viewport.width);
   canvas.height = Math.ceil(viewport.height);
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) {
-    return { pageNumber, pageWidthPt, imageDominant, bboxFrac: null, columnFracs: null };
+    return { pageNumber, pageWidthPt, imageDominant, hasEmbeddedRaster, bboxFrac: null, columnFracs: null };
   }
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   await page.render({ canvasContext: ctx, canvas, viewport }).promise;
+
+  // A page can have embedded raster content for two very different reasons: one big flattened
+  // scan/screenshot (genuinely resolution-limited), or several separately-exported high-DPI
+  // graphic assets (e.g. design-tool "cards" with rounded corners/shadows that don't translate to
+  // PDF vector ops, but each asset is well above screen resolution). Only the former is actually
+  // risky. Distinguishing requires ≥3 distinct assets (a single scan is virtually always one
+  // object) that are ALL comfortably high-resolution on their own — resolved via the page's own
+  // decoded image objects (populated by the render just above), never assumed.
+  if (hasEmbeddedRaster) {
+    const dedupIds = Array.from(new Set(rasterObjIds));
+    if (dedupIds.length >= MIN_DISTINCT_RASTER_ASSETS_FOR_TRUST) {
+      let allHighFidelity = true;
+      for (const id of dedupIds) {
+        try {
+          if (!page.objs.has(id)) {
+            allHighFidelity = false;
+            break;
+          }
+          const obj = page.objs.get(id) as { width?: number; height?: number } | null;
+          const w = typeof obj?.width === 'number' ? obj.width : 0;
+          const h = typeof obj?.height === 'number' ? obj.height : 0;
+          if (Math.min(w, h) < RASTER_HIGH_FIDELITY_MIN_PX) {
+            allHighFidelity = false;
+            break;
+          }
+        } catch {
+          allHighFidelity = false;
+          break;
+        }
+      }
+      // Trust it like vector content — fall through to the contentPx-vs-floor check instead of
+      // the blanket "always risky" treatment.
+      if (allHighFidelity) hasEmbeddedRaster = false;
+    }
+  }
 
   const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const { bbox, inkProfile } = analyzeCanvasPixels(data, canvas.width, canvas.height);
@@ -201,7 +281,7 @@ async function analyzePdfPage(
     }
   }
 
-  return { pageNumber, pageWidthPt, imageDominant, bboxFrac, columnFracs };
+  return { pageNumber, pageWidthPt, imageDominant, hasEmbeddedRaster, bboxFrac, columnFracs };
 }
 
 function encodeCanvas(canvas: HTMLCanvasElement, quality: number): string {
@@ -450,11 +530,19 @@ async function convertPdfWithAnalysis(
   let lowLegibility = false;
   for (const a of analyses) {
     if (!a.imageDominant || !a.bboxFrac) continue;
-    // A flattened page is inherently risky: rendering above its native raster resolution
-    // interpolates rather than recovering detail, so always signal the extractor.
-    lowLegibility = true;
     const scale = resolvePageScale(a, usedImageDominantScaleFactor);
     const contentPx = (a.bboxFrac.x1 - a.bboxFrac.x0) * a.pageWidthPt * scale;
+    if (a.hasEmbeddedRaster) {
+      // A genuine flattened raster is inherently risky: rendering above its native resolution
+      // interpolates rather than recovers detail, so always signal the extractor even if this
+      // render cleared the legibility floor.
+      lowLegibility = true;
+    } else if (contentPx < LEGIBILITY_FLOOR_PX) {
+      // No text layer, but also no embedded raster — vector art / outlined text (common from
+      // design-tool exports). That's resolution-independent, so only flag it when the render
+      // itself actually came out small (e.g. under hosted-deployment budget pressure).
+      lowLegibility = true;
+    }
     if (contentPx < LEGIBILITY_FLOOR_PX) {
       warnings.push(
         `Page ${a.pageNumber} of this document is a flattened image at low resolution, so small text may be misread. Verify the extracted wording against the original.`

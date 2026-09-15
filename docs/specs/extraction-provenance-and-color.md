@@ -69,6 +69,43 @@ finds column gutters. When ≥3 confident bands are found, the page is sent as *
 (left→right, each including its header) *instead of* the whole page — maximising legibility and making
 column identity structural, with no double-counting. Anything ambiguous falls back to the cropped full page.
 
+## 6. Distinguishing a genuine scan from a high-DPI vector/outline export (2026-09-15)
+
+Trigger: real-doc friction — **PEAL Center Youth Leadership Academies**. A clean, professionally
+designed PDF (rounded-corner "card" boxes, arrows, crisp text) hard-stopped with "Low-resolution
+dense grid — transcription is not reliable enough to continue," even though the render came out
+at 3200-3500px (well above `LEGIBILITY_FLOOR_PX`).
+
+**Root cause**: `imageDominant` (page has < 40 extractable text characters) was treated as
+synonymous with "flattened raster scan" everywhere downstream — `lowLegibility` was forced `true`
+for *any* image-dominant page regardless of the page's actual rendered resolution, then
+`reconcileExtractionFidelity`'s `lowLegibilityDense` guardrail (`L && N >= 6`) hard-stopped the
+whole document. But "no extractable text layer" has two very different causes: a genuine scanned
+page (resolution-limited — upscaling interpolates rather than recovers detail, so the existing
+"always risky" treatment is correct), or a page composed of separately-exported high-DPI vector
+art / outlined-text graphics (e.g. design-tool "card" shapes with shadow/rounded-corner effects
+that don't translate to PDF vector ops) — which is resolution-independent and, when the source
+assets are genuinely high-DPI, perfectly legible.
+
+**Fix** (`analyzePdfPage` in `services/fileService.ts`): resolve the page's actual embedded raster
+objects via pdfjs's public `page.objs` (populated by the probe render) and check `OPS.paintImage*`
+operator codes in `page.getOperatorList()`. A page's `hasEmbeddedRaster` flag — which still gates
+the unconditional "always risky" treatment — is only relaxed to `false` (falling through to the
+same `contentPx < LEGIBILITY_FLOOR_PX` check vector pages already use) when there are **≥3
+distinct** embedded raster assets and **all** of them are individually ≥700px on their shorter
+side. The distinct-asset-count threshold matters: a genuine full-page scan is virtually always one
+object, so a single low-res image (however large) or a small number of raster fragments still gets
+the conservative treatment; only many separately-high-fidelity assets clear the bar.
+
+Verified against the source PDF: page 1 (Impact Statement) has zero embedded raster — pure
+vector/outlined text. Page 2 (the 6-column grid) has 10 embedded JPEGs, one per "card" element,
+each 858-2396px on its long side (confirmed via both pdfjs's resolved image objects and a raw
+`/Width`/`/Height` scan of the PDF bytes) — comfortably above the 700px floor. Re-processing after
+the fix: no warnings, `ok`/`high` confidence, 31 items extracted correctly (spot-checked against
+source: organization, program, impact statement text, and all six domains match). The two
+previously-verified real documents (Foster Grandparent Program, PHENND) re-ran with no change in
+outcome, confirming no regression on genuine cases the "always risky" path is meant to protect.
+
 ## Guardrails honoured
 - **Zero new dependencies** — uses existing `pdfjs-dist` + canvas.
 - **Secrets** — no change to key handling.
