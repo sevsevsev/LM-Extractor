@@ -138,6 +138,10 @@ ${
        (header literally just "Outcomes", or no time-horizon qualifier at all) instead of separate
        Short/Medium/Long-Term columns. When that's what the source actually shows, **do not guess** a
        time horizon for those items — see \`generalOutcomes\` under COLUMN FIDELITY below.
+       **Alternate outcome taxonomy**: some sources split outcomes into columns/sections by a *different*
+       organizing idea instead of time — e.g. "Attitudes" / "Behaviors" / "Conditions" (a recognized
+       evaluation framework), or similar. These are still outcomes, just not on the short/medium/long
+       axis — see \`generalOutcomes\` under COLUMN FIDELITY below for how to preserve each one's own label.
 ${hasTextTrack ? '       Cross-check header strings against Track A headings when present.\n' : ''}
     3. **Row / track inventory (top → bottom) — ONLY IF REAL**
        A "track" is a horizontal band with the **same label** that lines up across MULTIPLE columns
@@ -210,10 +214,23 @@ ${hasTextTrack ? '       Cross-check header strings against Track A headings whe
        mislabels items a human still needs to sort into a real time horizon. Only use
        \`shortTermOutcomes\`/\`mediumTermOutcomes\`/\`longTermOutcomes\` when the source itself actually
        distinguishes those three (separate columns, or explicit per-item labels).
+    7b. **Multiple outcome columns on a non-time axis (e.g. Attitudes / Behaviors / Conditions) →
+       \`generalOutcomes\`, one group per column, named after that column's own header.** When a source
+       has more than one outcomes-type column/section but none of them is actually a short/medium/
+       long-term label, route **all** of them into \`generalOutcomes\` — but give each column's items a
+       \`group.name\` equal to that column's own visible header (e.g. \`"Attitudes"\`, \`"Behaviors"\`,
+       \`"Conditions"\`), not \`"General"\`, so their own categorization survives for the human who sorts
+       these into a time horizon later. Do **not** force-fit them into \`shortTermOutcomes\` /
+       \`mediumTermOutcomes\` / \`longTermOutcomes\` by left-to-right position — a differently-named column
+       is not a time-horizon guess, however many outcome-shaped columns there are.
 
     **KNOWN FAILURE MODES TO AVOID**:
     - Copying Resources-column sub-headings into other columns; inventing content; swapping familiar names.
     - Defaulting a single combined outcomes section into \`shortTermOutcomes\` — use \`generalOutcomes\`.
+    - Force-fitting an alternate outcome taxonomy (e.g. Attitudes/Behaviors/Conditions columns) into
+      \`shortTermOutcomes\`/\`mediumTermOutcomes\`/\`longTermOutcomes\` by position, or flattening those
+      columns into one undifferentiated \`"General"\` group instead of naming each group after its own
+      column header.
     - Flipping outcome direction; fluent rewrites of small text; stamping one colour per column.
     - Treating colour as a horizontal track; guessing clipped text; omitting page-1 Impact Statement.
 ${
@@ -227,6 +244,10 @@ ${
     3. NEVER carry a label across columns unless it is a real repeated track band.
     4. NEVER copy Resources-column sub-headings into other columns.
     5. Do not rename or merge labels; when unsure, prefer "General".
+    6. **Exception — alternate outcome taxonomy (rule 7b above)**: when routing multiple non-time-horizon
+       outcome columns into \`generalOutcomes\`, the *column's own header itself* becomes the group name
+       (not an in-column sub-heading this time) — this is the one case where a top-level column header,
+       not a sub-label inside it, is the group name.
 
     **INPUTS**: Use Resources sub-headings exactly as shown; otherwise Human / Financial / Material / Knowledge Resources.
 

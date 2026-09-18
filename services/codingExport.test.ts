@@ -105,6 +105,24 @@ test('coding export carries a document type flag when Gemini flags the source', 
   assert.ok(flaggedRows.every(r => r[11] === 'Unclear Document Type'));
 });
 
+test('coding export carries an alternate outcome taxonomy through as the group column, not "General"', () => {
+  const model = sampleModel({
+    shortTermOutcomes: { content: [] },
+    mediumTermOutcomes: { content: [] },
+    longTermOutcomes: { content: [] },
+    generalOutcomes: {
+      content: [
+        { name: 'Attitudes', items: [{ text: 'Volunteers feel more confident' }] },
+        { name: 'Conditions', items: [{ text: 'Fewer students falling behind' }] },
+      ],
+    },
+  });
+  const rows = buildCodingExportRows([fakeFile('f1', model)]);
+  assert.equal(rows.length, 2);
+  assert.ok(rows.some(r => r[3] === 'Attitudes' && r[5].includes('more confident'))); // group column
+  assert.ok(rows.some(r => r[3] === 'Conditions' && r[5].includes('falling behind')));
+});
+
 test('coding export includes generalOutcomes rows under the General Outcomes domain', () => {
   const model = sampleModel({
     shortTermOutcomes: { content: [] },

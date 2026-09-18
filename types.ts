@@ -102,8 +102,12 @@ export interface LogicModel {
   mediumTermOutcomes: LogicModelField<LogicModelGroup[]>;
   longTermOutcomes: LogicModelField<LogicModelGroup[]>;
   /**
-   * Outcomes from a source document that has one combined outcomes column/section, not
-   * separately labeled short/medium/long-term — e.g. a single "Outcomes" header. Not a
+   * Outcomes from a source document that doesn't distinguish short/medium/long-term — either one
+   * combined outcomes column/section (e.g. a single "Outcomes" header), or multiple outcome
+   * columns on a different organizing axis entirely (e.g. "Attitudes" / "Behaviors" / "Conditions").
+   * In the latter case each source column's own header is kept as its `LogicModelGroup.name`
+   * (see COLUMN FIDELITY rule 7b in constants.ts) rather than collapsed to "General", so a coder
+   * can see the source's own categorization while still assigning a real time horizon. Not a
    * Gemini-required field; absent/empty when the source does distinguish time horizons.
    * Deliberately separate from `unmapped` — these are confirmed outcomes, just without a known
    * time horizon, and are expected to reach human review (coding export) for that assignment.

@@ -89,6 +89,25 @@ test('applySourceAwareMapping initializes an empty generalOutcomes even when the
   assert.deepEqual(m.generalOutcomes?.content, []);
 });
 
+test('applySourceAwareMapping preserves an alternate outcome taxonomy (Attitudes/Behaviors/Conditions) as group names under generalOutcomes, not "General"', () => {
+  const m = applySourceAwareMapping(
+    baseModel({
+      generalOutcomes: {
+        content: [
+          { name: 'Attitudes', items: [{ text: 'Volunteers feel more confident' }] },
+          { name: 'Behaviors', items: [{ text: 'Volunteers attend more sessions' }] },
+          { name: 'Conditions', items: [{ text: 'Fewer students falling behind' }] },
+        ],
+      },
+    })
+  );
+  const groupNames = m.generalOutcomes?.content.map(g => g.name).sort();
+  assert.deepEqual(groupNames, ['Attitudes', 'Behaviors', 'Conditions']);
+  assert.ok(
+    m.generalOutcomes?.content.some(g => g.name === 'Attitudes' && g.items.some(i => /more confident/.test(i.text)))
+  );
+});
+
 test('shouldSuggestMismatch when many items unmapped', () => {
   const items = Array.from({ length: 8 }, (_, i) => ({ text: `Item ${i}` }));
   const m = baseModel({

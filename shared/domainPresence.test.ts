@@ -95,6 +95,23 @@ test('buildGranularExportRows carries a document type flag when Gemini flags the
   assert.ok(flaggedRows.every(r => r.documentTypeFlag === 'Possibly Not a Logic Model'));
 });
 
+test('buildGranularExportRows carries an alternate outcome taxonomy through as the group column, not "General"', () => {
+  const model: LogicModel = {
+    ...baseModel(),
+    generalOutcomes: {
+      content: [
+        { name: 'Attitudes', items: [{ text: 'Volunteers feel more confident' }] },
+        { name: 'Behaviors', items: [{ text: 'Volunteers attend more sessions' }] },
+      ],
+    },
+  };
+  const rows = buildGranularExportRows([{ model, sourceFilename: 'abc.pdf' }]);
+  const generalOutcomeRows = rows.filter(r => r.domain === 'General Outcomes');
+  assert.equal(generalOutcomeRows.length, 2);
+  assert.ok(generalOutcomeRows.some(r => r.group === 'Attitudes' && r.content.includes('more confident')));
+  assert.ok(generalOutcomeRows.some(r => r.group === 'Behaviors' && r.content.includes('more sessions')));
+});
+
 test('buildGranularExportRows omits generalOutcomes when absent or empty', () => {
   const withoutField = buildGranularExportRows([{ model: baseModel(), sourceFilename: 'a.pdf' }]);
   assert.ok(!withoutField.some(r => r.domain === 'General Outcomes'));
