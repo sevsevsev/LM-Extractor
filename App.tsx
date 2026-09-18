@@ -73,17 +73,12 @@ function toPersistedRecord(f: ProcessingFile): PersistedFileRecord {
 }
 
 /**
- * Resolve `LogicModel.possiblyMissedRegions` down to plain fractions for `SourceDocumentPane`.
- * `xStart`/`xEnd` are Gemini's own estimate of the region's horizontal span (it's shown the whole
- * page, so there's no retained tiling geometry to look up here) — falls back to a full-width
- * highlight when it couldn't estimate one.
- */
-/**
- * Only render a highlight box when Gemini gave a real spatial estimate. The client-side text
- * heuristic (shared/completenessCheck.ts) can only ever know a page number — never a horizontal
- * position — so a region it contributed has no `xStart`/`xEnd`; a box drawn around the whole page
- * for that case would convey nothing the page-jump chip doesn't already say, so it's dropped
- * rather than drawn. (The chip itself still shows for every flagged page regardless.)
+ * Resolve `LogicModel.possiblyMissedRegions` (Gemini's own self-report; see
+ * `shared/extractionFidelity.ts`) down to plain fractions for `SourceDocumentPane`. `xStart`/`xEnd`
+ * are Gemini's own estimate of the region's horizontal span — a region it couldn't estimate one for
+ * has no `xStart`/`xEnd` and is dropped rather than drawn as a full-page box, since that would convey
+ * nothing the page-jump chip doesn't already say. (The chip itself still shows for every flagged page
+ * regardless.)
  */
 function resolveHighlightRegions(file: ProcessingFile): HighlightRegion[] {
   const regions = file.result?.possiblyMissedRegions;

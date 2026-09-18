@@ -183,14 +183,14 @@ Coding export: **no** new fidelity columns required (outcomes intake unchanged);
 4. App abstain branch + banner + coding confirm + CSV columns  
 5. `npm run typecheck` / `test` / `build`
 
-## Completeness signal (`shared/completenessCheck.ts`, added 2026-09-15)
+## Completeness signal (`shared/completenessCheck.ts`, added 2026-09-15, **removed 2026-09-18**)
 
 Recall had no code-level signal at all — text fidelity has `verbatim` ratios, placement has
 mismatch/causal-chain checks, resolution has the legibility floor, but a model that silently
-*dropped* visible items was invisible to the rollup. `estimateCompleteness(sourceText, N)` is a
-rough proxy: it counts candidate item-like lines in Track A (bullets, numbered lines, short
-standalone lines) and compares against `N` (extracted item count). A gross mismatch
-(`candidateSourceLines - N >= 5` and ratio `>= 1.5`) sets `possiblyIncomplete`.
+*dropped* visible items was invisible to the rollup. `estimateCompleteness(sourceText, N)` was a
+rough proxy: it counted candidate item-like lines in Track A (bullets, numbered lines, short
+standalone lines) and compared against `N` (extracted item count). A gross mismatch
+(`candidateSourceLines - N >= 5` and ratio `>= 1.5`) set `possiblyIncomplete`.
 
 **PDF/PPTX-specific fix required before this was usable:** Track A for these formats is a flat
 text stream from pdfjs, and line breaks follow *visual* wrapping, not logical item boundaries — a
@@ -202,10 +202,23 @@ that absorbs non-bulleted, non-heading continuation lines into the preceding ope
 behavior a markdown renderer gives a wrapped list item. DOCX's Turndown-generated Markdown doesn't
 have this problem (HTML list items already reflow to one line each), so the merge is a no-op there.
 
-Wired into `reconcileExtractionFidelity` (`options.sourceText`, threaded from
+**Removed after a real 112-file batch audit (2026-09-18):** despite the wrapping fix, the line-count
+proxy remained a systematic false positive. Manual, exhaustive item-by-item verification against 3
+real flagged PDFs (cross-referenced against the extraction log) found the heuristic fired on content
+that was never meant to be counted as grid items — numbered academic references, a legitimate
+non-grid evaluation-framework section, and a stat-tile infographic — while true item counts matched
+the extraction exactly (e.g. Healthy NewsWorks: 45/45 items, both pages still incorrectly flagged).
+It was the dominant driver of a ~65% "Needs review" flag rate across that batch. Per owner decision,
+disabled entirely rather than tuned further; `shared/completenessCheck.ts` and its test file were
+deleted. `possiblyIncomplete` is now driven **solely** by Gemini's own per-image self-report
+(`LogicModel.possiblyMissedRegions`, see `## EXTRACTION FIDELITY STATUS` in `constants.ts`) — a
+signal that fired rarely and, on manual spot-check, matched real gaps rather than layout noise.
+
+Was wired into `reconcileExtractionFidelity` (`options.sourceText`, threaded from
 `normalizeExtractedLogicModel` → `server/geminiLogicModel.ts`'s `textTrack`). Deliberately excluded
-from every `low`/`abstained` condition — same ceiling as `mismatch`/`unknownLayout` — since it's
-unvalidated against real documents; it can only ever push `ok` → `partial` / `medium`.
+from every `low`/`abstained` condition — same ceiling as `mismatch`/`unknownLayout` — since it was
+unvalidated against real documents; it could only ever push `ok` → `partial` / `medium`. The
+Gemini-self-report replacement keeps the same ceiling.
 
 ## Out of tech scope (v1)
 

@@ -170,7 +170,6 @@ export function normalizeExtractedLogicModel(
   reconcileExtractionFidelity(model, {
     lowLegibility: options?.lowLegibility,
     textOnlyFallback: options?.textOnlyFallback,
-    sourceText: options?.sourceText,
   });
   return model;
 }

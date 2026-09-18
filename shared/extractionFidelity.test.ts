@@ -202,51 +202,29 @@ test('countExtractionItems includes unmapped', () => {
   assert.deepEqual(countExtractionItems(model), { total: 2, nonVerbatim: 1 });
 });
 
-test('possiblyIncomplete alone upgrades ok -> partial and confidence to medium (never low)', () => {
-  const model = baseModel({
-    activities: { content: groups(manyItems(3, 0)) },
-  });
-  const sourceText = Array.from({ length: 20 }, (_, i) => `- Bullet item ${i}`).join('\n');
-  reconcileExtractionFidelity(model, { sourceText });
-  assert.equal(model.extractionStatus, 'partial');
-  assert.equal(model.extractionConfidence, 'medium');
-  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.possiblyIncomplete));
-  assert.equal(shouldHardStopExtraction(model), false);
-});
+// The client-side text-line-counting heuristic that used to live here (comparing candidate
+// bullet/numbered lines in Track A against extracted item counts) was removed after auditing a
+// real 112-file batch: hand-verifying 3 flagged documents against their source PDFs found it
+// firing on wrapped multi-column table lines, numbered academic references, and legitimate
+// secondary sections (evaluation frameworks, stat-tile infographics) — 3 for 3 false positives,
+// driving the majority of that batch's "Needs Review" flags. Gemini's own per-image self-report
+// (tested via `possiblyMissedRegions` on the model directly, below) is the only remaining source.
+test('possiblyMissedRegions on the model (Gemini self-report) drives possiblyIncomplete; a model with none never flags on its own', () => {
+  const clean = baseModel({ activities: { content: groups(manyItems(9, 0)) } });
+  reconcileExtractionFidelity(clean);
+  assert.equal(clean.extractionStatus, 'ok');
+  assert.equal(clean.extractionConfidence, 'high');
+  assert.ok(!clean.extractionBlockers?.includes(FIDELITY_BLOCKERS.possiblyIncomplete));
 
-test('possiblyIncomplete does not fire when extraction matches the source reasonably well', () => {
-  const model = baseModel({
+  const flagged = baseModel({
     activities: { content: groups(manyItems(9, 0)) },
+    possiblyMissedRegions: [{ page: 1, note: 'A labeled box on this image was not transcribed' }],
   });
-  const sourceText = Array.from({ length: 10 }, (_, i) => `- Bullet item ${i}`).join('\n');
-  reconcileExtractionFidelity(model, { sourceText });
-  assert.equal(model.extractionStatus, 'ok');
-  assert.equal(model.extractionConfidence, 'high');
-  assert.ok(!model.extractionBlockers?.includes(FIDELITY_BLOCKERS.possiblyIncomplete));
-});
-
-test('possiblyIncomplete without page markers (e.g. DOCX Track A) sets no possiblyMissedRegions', () => {
-  const model = baseModel({
-    activities: { content: groups(manyItems(3, 0)) },
-  });
-  const sourceText = Array.from({ length: 20 }, (_, i) => `- Bullet item ${i}`).join('\n');
-  reconcileExtractionFidelity(model, { sourceText });
-  assert.equal(model.extractionStatus, 'partial');
-  assert.equal(model.possiblyMissedRegions, undefined);
-});
-
-test('possiblyIncomplete with page markers points at the gappiest page', () => {
-  const items: LogicModelItem[] = [
-    { text: 'Item 1', sourcePage: 1 },
-    { text: 'Item 2', sourcePage: 1 },
-  ];
-  const model = baseModel({ activities: { content: groups(items) } });
-  const page1 = Array.from({ length: 3 }, (_, i) => `- Page 1 bullet ${i}`).join('\n');
-  const page2 = Array.from({ length: 10 }, (_, i) => `- Page 2 bullet ${i}`).join('\n');
-  const sourceText = `## Page 1\n\n${page1}\n\n## Page 2\n\n${page2}`;
-  reconcileExtractionFidelity(model, { sourceText });
-  assert.equal(model.extractionStatus, 'partial');
-  assert.deepEqual(model.possiblyMissedRegions, [{ page: 2, note: FIDELITY_BLOCKERS.possiblyIncomplete }]);
+  reconcileExtractionFidelity(flagged);
+  assert.equal(flagged.extractionStatus, 'partial');
+  assert.equal(flagged.extractionConfidence, 'medium');
+  assert.ok(flagged.extractionBlockers?.includes(FIDELITY_BLOCKERS.possiblyIncomplete));
+  assert.equal(shouldHardStopExtraction(flagged), false);
 });
 
 test('documentTypeAssessment "not_logic_model" flags for review, never hard-stops', () => {
@@ -338,7 +316,7 @@ test('a genuinely empty result (no overview text either) still gets the stricter
   assert.equal(shouldHardStopExtraction(model), true);
 });
 
-test('Gemini-reported possiblyMissedRegions are normalized, deduped, and merged with heuristic pages', () => {
+test('Gemini-reported possiblyMissedRegions are normalized and deduped', () => {
   const items: LogicModelItem[] = [{ text: 'Item 1', sourcePage: 1 }];
   const model = baseModel({
     activities: { content: groups(items) },
@@ -349,11 +327,8 @@ test('Gemini-reported possiblyMissedRegions are normalized, deduped, and merged 
       { page: 3, xStart: 0.5, xEnd: 0.2, note: 'invalid span (end before start), span must be dropped' },
     ],
   });
-  const page2 = Array.from({ length: 8 }, (_, i) => `- Page 2 bullet ${i}`).join('\n');
-  const sourceText = `## Page 1\n\n- one\n\n## Page 2\n\n${page2}`;
-  reconcileExtractionFidelity(model, { sourceText });
+  reconcileExtractionFidelity(model);
   assert.equal(model.extractionStatus, 'partial');
-  // Gemini already covered page 2 — the heuristic's own page-2 entry is not added on top of it.
   assert.deepEqual(model.possiblyMissedRegions, [
     { page: 2, xStart: 0.1, xEnd: 0.3, note: 'Left column looks cut off' },
     { page: 3, note: 'invalid span (end before start), span must be dropped' },

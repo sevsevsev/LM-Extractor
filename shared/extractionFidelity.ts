@@ -9,7 +9,6 @@ import type {
 } from '../types';
 import { stringDomainHasContent, groupedDomainHasContent } from './domainPresence.js';
 import { shouldSuggestMismatch } from './sourceMapping.js';
-import { estimateCompleteness } from './completenessCheck.js';
 
 const STATUSES: readonly ExtractionStatus[] = ['ok', 'partial', 'abstained'];
 const CONFIDENCES: readonly ExtractionConfidence[] = ['high', 'medium', 'low'];
@@ -38,9 +37,9 @@ export const FIDELITY_BLOCKERS = {
   /** Flattened / low-DPI dense grids (Oxford Circle–class) — do not trust fluent OCR. */
   lowLegibilityDense:
     'Low-resolution dense grid — transcription is not reliable enough to continue',
-  /** Unvalidated proxy (see completenessCheck.ts) — caps at partial/medium, never forces low/abstained. */
+  /** Gemini's own per-image self-report — caps at partial/medium, never forces low/abstained. */
   possiblyIncomplete:
-    'Source text suggests more items may be present than were extracted — spot-check for missed content',
+    'Model flagged one or more regions it may not have fully captured — spot-check for missed content',
   /** Gemini's document-type self-report (see DOCUMENT TYPE CHECK prompt) — never hard-stops. */
   notLogicModel: 'Document may not be a logic model — verify before treating extraction as reliable',
   /** Vision conversion failed entirely (not just low-res) — extracted from the text layer alone. */
@@ -175,22 +174,6 @@ export function countExtractionItems(model: LogicModel): { total: number; nonVer
   return { total, nonVerbatim };
 }
 
-/** Bucket extracted items by `sourcePage` — items without a known page contribute nothing. */
-export function countItemsByPage(model: LogicModel): Map<number, number> {
-  const counts = new Map<number, number>();
-  for (const domain of GROUPED_DOMAINS) {
-    const field = model[domain] as { content?: LogicModelGroup[] } | undefined;
-    for (const group of field?.content ?? []) {
-      for (const item of group.items ?? []) {
-        if (!item.text?.trim()) continue;
-        if (typeof item.sourcePage !== 'number') continue;
-        counts.set(item.sourcePage, (counts.get(item.sourcePage) ?? 0) + 1);
-      }
-    }
-  }
-  return counts;
-}
-
 const MAX_MISSED_REGIONS = 6;
 
 /** Clamp/validate Gemini's self-reported `possiblyMissedRegions` (same posture as `normalizeBlockers`). */
@@ -253,8 +236,6 @@ export interface ReconcileFidelityOptions {
   lowLegibility?: boolean;
   /** True when vision conversion failed entirely — see `bundleUsedTextOnlyFallback` in types.ts. */
   textOnlyFallback?: boolean;
-  /** Track A text (PDF/DOCX/PPTX text layer) — drives the completeness proxy below. */
-  sourceText?: string;
 }
 
 /**
@@ -300,16 +281,19 @@ export function reconcileExtractionFidelity(
   // as M/Uunk/notLogicModel — a genuinely empty result (noContent too) still gets the stricter
   // low-confidence/hard-stop treatment via `noContent` below.
   const noGridItems = N === 0;
-  // Unvalidated heuristic (see completenessCheck.ts) — deliberately excluded from every `low`/
-  // `abstained` condition below; it can only ever push ok -> partial, same ceiling as mismatch/
-  // unknown-layout, until it's been checked against real documents.
-  const completeness = estimateCompleteness(options?.sourceText, N, countItemsByPage(model));
-  const possiblyIncomplete = completeness.possiblyIncomplete;
-  // Gemini's own per-image self-report (see server/geminiLogicModel.ts) — same trust ceiling as
-  // possiblyIncomplete (can only push ok -> partial), but a distinct signal: it can fire even when
-  // the text-count heuristic above doesn't (or vice versa), so both feed the same blocker/upgrade.
+  // Gemini's own per-image self-report (see server/geminiLogicModel.ts) — Gemini re-looks at each
+  // TRACK B image it was shown and flags any it wasn't confident it fully transcribed. Same trust
+  // ceiling as mismatch/unknown-layout (can only push ok -> partial/medium), never a hard-stop.
+  //
+  // A client-side text-line-counting heuristic used to feed this signal too (compared candidate
+  // bullet/numbered lines in Track A against extracted item counts). Removed after auditing a real
+  // 112-file batch: hand-verifying 3 flagged documents against their source PDFs found it firing on
+  // wrapped multi-column table lines, numbered academic references, and legitimate secondary
+  // sections (evaluation frameworks, stat-tile infographics) that were never meant to be extracted
+  // as grid items — 3 for 3 false positives, driving the large majority of that batch's "Needs
+  // Review" flags. See docs/specs/extraction-confidence-v1.md.
   const geminiMissedRegions = normalizePossiblyMissedRegions(model.possiblyMissedRegions);
-  const hasMissedContentSignal = possiblyIncomplete || geminiMissedRegions.length > 0;
+  const hasMissedContentSignal = geminiMissedRegions.length > 0;
 
   if (status === 'ok') {
     if (
@@ -394,20 +378,11 @@ export function reconcileExtractionFidelity(
     confidence = 'high';
   }
 
-  // Merge Gemini's per-image self-report with the text-heuristic's page-level pointer — Gemini
-  // entries (which may carry a column) win for a page it already covered; the heuristic only adds
-  // pages Gemini didn't already flag.
-  const mergedRegions: PossiblyMissedRegion[] = [...geminiMissedRegions];
-  if (completeness.suspectPages) {
-    const coveredPages = new Set(geminiMissedRegions.map(r => r.page));
-    for (const page of completeness.suspectPages) {
-      if (coveredPages.has(page)) continue;
-      coveredPages.add(page);
-      mergedRegions.push({ page, note: FIDELITY_BLOCKERS.possiblyIncomplete });
-    }
-  }
-  model.possiblyMissedRegions = mergedRegions.length
-    ? mergedRegions.slice(0, MAX_MISSED_REGIONS)
+  // Gemini's own per-image self-report is now the only source of possiblyMissedRegions — see the
+  // removal note above for why the client-side text heuristic that used to also contribute here
+  // was taken out.
+  model.possiblyMissedRegions = geminiMissedRegions.length
+    ? geminiMissedRegions.slice(0, MAX_MISSED_REGIONS)
     : undefined;
 
   return applyExtractionFidelity(model, { status, confidence, blockers });

@@ -147,7 +147,7 @@ export interface LogicModel {
   /**
    * Pages (and, when known, the horizontal span on that page) that may contain content the
    * extraction missed — drives the "spot-check for missed content" fidelity blocker's
-   * source-pane highlight. See `shared/extractionFidelity.ts` / `shared/completenessCheck.ts`.
+   * source-pane highlight. See `shared/extractionFidelity.ts` (Gemini self-report only).
    * Unvalidated signal, same trust level as `possiblyIncomplete` in `extractionBlockers` — never
    * used to hard-stop or gate anything, purely a "look here" cue.
    */

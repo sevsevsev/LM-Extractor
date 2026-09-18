@@ -55,9 +55,9 @@ export function sliceDocumentBundle(bundle: DocumentBundle, range: PageRange): D
 /**
  * Keep only the `## Page N` / `## Slide N` sections within `range`, renumbering their headers to
  * the new 1-based range. When the text track carries no page markers at all (e.g. DOCX Track A,
- * which has no pagination — see shared/completenessCheck.ts), there's nothing page-scoped to
- * slice by, so every range gets the whole original text rather than an arbitrary, possibly-wrong
- * fragment — Track B images remain the authoritative page-scoped signal for extraction either way.
+ * which has no pagination), there's nothing page-scoped to slice by, so every range gets the whole
+ * original text rather than an arbitrary, possibly-wrong fragment — Track B images remain the
+ * authoritative page-scoped signal for extraction either way.
  */
 function sliceTextTrackByPage(textTrack: string, range: PageRange, offset: number): string {
   if (!textTrack.trim()) return textTrack;

@@ -724,8 +724,8 @@ export const convertPdfToImages = async (file: File): Promise<DocumentBundle> =>
       );
     }
 
-    // Cover the same pages Track B actually analyzes — a narrower cap here would leave the
-    // completeness heuristic (shared/completenessCheck.ts) blind to pages 3+ on every multi-page PDF.
+    // Cover the same pages Track B actually analyzes, so the text-layer fallback (e.g. recovering a
+    // dropped Impact Statement) isn't blind to pages 3+ on every multi-page PDF.
     const textTrack = await textTrackFromPdf(pdf, pageCount);
 
     try {
