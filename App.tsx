@@ -8,6 +8,7 @@ import SourceDocumentPane, { type HighlightRegion, type SourceFocus } from './co
 import { LogicModelPdfTemplate, PDF_PAGE_WIDTH_PX } from './components/LogicModelPdfTemplate';
 import { detectLogicModelGroups, extractLogicModel } from './services/geminiService';
 import { countCodingExportRows, downloadCodingExportCsv } from './services/codingExport';
+import { countExtractionLogRows, downloadExtractionLogCsv } from './services/extractionLogExport';
 import { normalizeExtractedLogicModel } from './shared/extractNormalize';
 import { buildGranularExportRows } from './shared/domainPresence';
 import { sliceDocumentBundle } from './shared/documentBundleSlicing';
@@ -250,6 +251,7 @@ const App: React.FC = () => {
   const exportReadyFiles = files.filter(f => isExportReady(f.status) && f.result);
   const exportReadyCount = exportReadyFiles.length;
   const codingExportRowCount = countCodingExportRows(exportReadyFiles);
+  const extractionLogRowCount = countExtractionLogRows(files);
   const selectedFile = files.find(f => f.id === selectedFileId) ?? null;
   const pdfCaptureFile =
     files.find(f => f.id === pdfCaptureFileId && f.result) ??
@@ -772,6 +774,18 @@ const App: React.FC = () => {
     }
   };
 
+  /**
+   * Not partner-facing — a per-document QA log (one row per file: fidelity status, blockers,
+   * counts) for diagnosing extraction quality across a batch. See
+   * docs/specs/extraction-log-export-v1.md.
+   */
+  const handleExportExtractionLog = () => {
+    const result = downloadExtractionLogCsv(files);
+    if (result.ok === false) {
+      alert(result.reason);
+    }
+  };
+
   const handleDownloadSinglePdf = async (file: ProcessingFile) => {
     if (!file.result) return;
     setIsGeneratingPdf(true);
@@ -992,6 +1006,19 @@ const App: React.FC = () => {
             </div>
           )}
           <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleExportExtractionLog}
+              className="border border-gray-300 text-slate-500 px-3 py-2 rounded-md text-sm font-bold hover:bg-brand-muted hover:text-brand-navy transition-colors disabled:opacity-50"
+              disabled={extractionLogRowCount === 0}
+              title={
+                extractionLogRowCount === 0
+                  ? 'Needs at least one processed file'
+                  : `Per-file QA log (fidelity status, blockers, counts) for ${extractionLogRowCount} file(s) — not for partners`
+              }
+            >
+              Export extraction log
+            </button>
             <button
               type="button"
               onClick={handleBatchDownloadPdf}
