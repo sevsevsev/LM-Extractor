@@ -168,6 +168,8 @@ const App: React.FC = () => {
   );
   const persistTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const lastPersistedHash = useRef<Map<string, string>>(new Map());
+  /** Session-only: a checkpoint write failed (e.g. storage quota) — surfaced once, non-blocking. */
+  const [persistWarning, setPersistWarning] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -218,7 +220,10 @@ const App: React.FC = () => {
       const timer = setTimeout(() => {
         lastPersistedHash.current.set(f.id, hash);
         persistTimers.current.delete(f.id);
-        void saveSessionFile(record);
+        saveSessionFile(record).catch(err => {
+          console.error('Failed to save file for session resume:', err);
+          setPersistWarning(true);
+        });
       }, PERSIST_DEBOUNCE_MS);
       persistTimers.current.set(f.id, timer);
     }
@@ -870,6 +875,26 @@ const App: React.FC = () => {
         <section>
           <FileUpload onFilesSelected={handleFilesSelected} compact={files.length > 0} />
         </section>
+
+        {persistWarning && (
+          <div
+            className="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-3 flex flex-wrap items-start justify-between gap-3"
+            role="status"
+          >
+            <p className="text-sm">
+              Couldn't save one or more files for session resume — your browser's local storage may
+              be full for a batch this large. Processing will continue normally; a refresh may just
+              not be able to restore everything. Uploading in smaller batches avoids this.
+            </p>
+            <button
+              type="button"
+              className="text-xs font-bold text-amber-700 hover:text-amber-950 shrink-0"
+              onClick={() => setPersistWarning(false)}
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {files.length > 0 && (
           <div className="space-y-4">
