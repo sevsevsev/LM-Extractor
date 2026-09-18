@@ -150,6 +150,60 @@ test('buildExtractionLogCsv has the expected header row', () => {
   const header = csv!.split('\n')[0];
   assert.equal(
     header,
-    '"source_filename","pipeline_status","organization","program","qa_status","extraction_status","extraction_confidence","extraction_blockers","document_type_flag","layout_family","total_items","non_verbatim_items","unmapped_items","mapping_corrections_count","possibly_missed_regions_count","split_part_label","error_message"'
+    '"source_filename","pipeline_status","organization","program","qa_status","extraction_status","extraction_confidence","extraction_blockers","document_type_flag","layout_family","total_items","non_verbatim_items","unmapped_items","mapping_corrections_count","possibly_missed_regions_count","split_part_label","error_message","source_format","warnings","pages_processed","mapping_corrections_json","possibly_missed_regions_json"'
   );
+});
+
+test('buildExtractionLogRows derives source_format from the filename extension', () => {
+  const pdfRow = buildExtractionLogRows([fakeFile('a', { file: { name: 'a.pdf' } as File })])[0];
+  const docxRow = buildExtractionLogRows([fakeFile('b', { file: { name: 'b.DOCX' } as File })])[0];
+  const pptxRow = buildExtractionLogRows([fakeFile('c', { file: { name: 'c.pptx' } as File })])[0];
+  const sourceFormatIndex = 17;
+  assert.equal(pdfRow[sourceFormatIndex], 'pdf');
+  assert.equal(docxRow[sourceFormatIndex], 'docx');
+  assert.equal(pptxRow[sourceFormatIndex], 'pptx');
+});
+
+test('buildExtractionLogRows carries warnings (e.g. text-only fallback) and pages processed', () => {
+  const rows = buildExtractionLogRows([
+    fakeFile('f1', {
+      warnings: ["Couldn't read this document as images, so it was analyzed as plain text."],
+      sourcePreviewImages: ['img1', 'img2', 'img3'],
+    }),
+  ]);
+  const warningsIndex = 18;
+  const pagesProcessedIndex = 19;
+  assert.ok(rows[0][warningsIndex].includes('analyzed as plain text'));
+  assert.equal(rows[0][pagesProcessedIndex], '3');
+});
+
+test('buildExtractionLogRows leaves pages_processed blank rather than 0 when previews are unavailable', () => {
+  const rows = buildExtractionLogRows([fakeFile('f1')]);
+  const pagesProcessedIndex = 19;
+  assert.equal(rows[0][pagesProcessedIndex], '');
+});
+
+test('buildExtractionLogRows carries the full mappingCorrections and possiblyMissedRegions as JSON', () => {
+  const model = sampleModel({
+    mappingCorrections: [
+      {
+        at: '2026-01-01T00:00:00Z',
+        fileId: 'f1',
+        action: 'assign_domain',
+        itemKey: 'k1',
+        itemText: 'Volunteers feel more confident',
+        fromDomain: null,
+        toDomain: 'shortTermOutcomes',
+        sourceHeader: 'Outcomes',
+      },
+    ],
+    possiblyMissedRegions: [{ page: 2, xStart: 0.1, xEnd: 0.4, note: 'left column looks cut off' }],
+  });
+  const rows = buildExtractionLogRows([fakeFile('f1', { result: model })]);
+  const mappingCorrectionsJsonIndex = 20;
+  const possiblyMissedRegionsJsonIndex = 21;
+  const parsedCorrections = JSON.parse(rows[0][mappingCorrectionsJsonIndex]);
+  const parsedRegions = JSON.parse(rows[0][possiblyMissedRegionsJsonIndex]);
+  assert.equal(parsedCorrections[0].sourceHeader, 'Outcomes');
+  assert.equal(parsedRegions[0].note, 'left column looks cut off');
 });

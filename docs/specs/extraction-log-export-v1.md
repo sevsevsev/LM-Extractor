@@ -39,6 +39,11 @@ over for root-causing.
 | `possibly_missed_regions_count` | `LogicModel.possiblyMissedRegions.length` |
 | `split_part_label` | `ProcessingFile.splitPartLabel`, when this file came from a multi-logic-model split |
 | `error_message` | `ProcessingFile.error`, for a hard-stopped file |
+| `source_format` | Derived from the filename extension (pdf/docx/pptx) — a local check, not `services/fileService.ts`'s version, to avoid pulling that module's heavy lazy-loaded deps (pdfjs/mammoth/jszip) into the main bundle |
+| `warnings` | `ProcessingFile.warnings`, joined with ` \| ` — whether this file fell back to text-only extraction (vision/canvas rendering failed) or hit a low-resolution flag; the single biggest predictor of poor extraction quality, and otherwise invisible in this log |
+| `pages_processed` | `ProcessingFile.sourcePreviewImages.length` — session-only, so blank (not `0`) after a resume when unavailable |
+| `mapping_corrections_json` | Full `LogicModel.mappingCorrections` as JSON — the count column alone doesn't say *what* was misclassified or *what* the corrected domain/header was |
+| `possibly_missed_regions_json` | Full `LogicModel.possiblyMissedRegions` as JSON — page/span/note, not just a count |
 
 - Includes hard-stopped (`error`) files — these are exactly the ones most worth reviewing, and
   are excluded from every other export today.
@@ -54,7 +59,10 @@ over for root-causing.
 - No aggregation/charting in-app — the CSV is meant to be sorted/filtered in a spreadsheet, or
   handed directly into a Claude Code session for pattern-finding across a batch.
 - No new export column elsewhere — this is a wholly separate CSV, not a change to the granular or
-  coding export shapes.
+  coding export shapes. Note the **granular** CSV export already carries complementary per-item
+  detail (`source_header`, `mapped_by`, `mapping_confidence`, `mapping_note`) for every extracted
+  item including unmapped ones — worth exporting alongside this log for the flagged files, since
+  it's free/already-shipped and gives item-level, not just document-level, signal.
 
 ## Acceptance criteria
 
@@ -64,5 +72,15 @@ over for root-causing.
 3. `document_type_flag`, `qa_status`, and `extraction_blockers` are enough on their own to sort a
    large batch down to "the ones worth investigating" without opening the app.
 4. Full **Export CSV** and **Export for coding** are unchanged.
+5. `warnings`, `source_format`, and the full `mapping_corrections_json`/`possibly_missed_regions_json`
+   are present for a file that has them — not just counts — so the log alone can distinguish "vision
+   fell back to text-only" from "a low-res flag" from "no signal at all", and can show exactly what
+   a human corrected without needing the source document for that specific issue.
+
+**Version:** v1.1 — 2026-09-18 — added `source_format`, `warnings`, `pages_processed`,
+`mapping_corrections_json`, `possibly_missed_regions_json` (appended, so existing column
+positions are unchanged) after a gap review: the original per-document summary/counts weren't
+enough to distinguish a vision-fallback failure from a mapping failure, or to see what a
+correction actually changed, without opening the app.
 
 **Version:** v1.0 — 2026-09-18

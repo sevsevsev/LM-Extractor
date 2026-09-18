@@ -29,7 +29,22 @@ const HEADERS = [
   'possibly_missed_regions_count',
   'split_part_label',
   'error_message',
+  'source_format',
+  'warnings',
+  'pages_processed',
+  'mapping_corrections_json',
+  'possibly_missed_regions_json',
 ];
+
+/** Small local check, not services/fileService.ts's version — that module pulls in pdfjs/mammoth/
+ * jszip eagerly, and this file is a static (non-lazy) import in App.tsx, so importing it here
+ * would defeat the existing lazy-loading of that dependency graph. */
+function sourceFormatFromDisplayName(name: string): 'pdf' | 'docx' | 'pptx' {
+  const n = name.toLowerCase();
+  if (n.endsWith('.docx')) return 'docx';
+  if (n.endsWith('.pptx')) return 'pptx';
+  return 'pdf';
+}
 
 export function countExtractionLogRows(files: ProcessingFile[]): number {
   return files.filter(f => isExportReady(f.status) || f.status === 'error').length;
@@ -63,6 +78,16 @@ export function buildExtractionLogRows(files: ProcessingFile[]): string[][] {
       String(m?.possiblyMissedRegions?.length ?? 0),
       f.splitPartLabel || '',
       f.error || '',
+      sourceFormatFromDisplayName(f.file.name),
+      // Whether this file fell back to text-only extraction (vision/canvas rendering failed) or
+      // hit a low-resolution flag — the single biggest predictor of poor extraction quality, and
+      // otherwise invisible in this log.
+      (f.warnings ?? []).join(' | '),
+      // Session-only (not persisted across a resume) — blank rather than a misleading 0 when
+      // unknown, since 0 would look like a real zero-page result.
+      f.sourcePreviewImages?.length ? String(f.sourcePreviewImages.length) : '',
+      m?.mappingCorrections?.length ? JSON.stringify(m.mappingCorrections) : '',
+      m?.possiblyMissedRegions?.length ? JSON.stringify(m.possiblyMissedRegions) : '',
     ]);
   }
 
