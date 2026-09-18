@@ -43,6 +43,12 @@ export const FIDELITY_BLOCKERS = {
     'Source text suggests more items may be present than were extracted — spot-check for missed content',
   /** Gemini's document-type self-report (see DOCUMENT TYPE CHECK prompt) — never hard-stops. */
   notLogicModel: 'Document may not be a logic model — verify before treating extraction as reliable',
+  /** Vision conversion failed entirely (not just low-res) — extracted from the text layer alone. */
+  textOnlyFallback:
+    'Extracted from text only — the document could not be read as images, so layout-based columns and formatting may be less reliable',
+  /** Overview text (mission/target/impact) was recovered but the grid itself came back empty. */
+  noGridItems:
+    'No inputs/activities/outputs/outcomes items were extracted — verify this document actually has a logic-model grid',
 } as const;
 
 export function isExtractionStatus(value: unknown): value is ExtractionStatus {
@@ -245,6 +251,8 @@ function pushBlocker(list: string[], seen: Set<string>, text: string): void {
 
 export interface ReconcileFidelityOptions {
   lowLegibility?: boolean;
+  /** True when vision conversion failed entirely — see `bundleUsedTextOnlyFallback` in types.ts. */
+  textOnlyFallback?: boolean;
   /** Track A text (PDF/DOCX/PPTX text layer) — drives the completeness proxy below. */
   sourceText?: string;
 }
@@ -278,6 +286,7 @@ export function reconcileExtractionFidelity(
   const { total: N, nonVerbatim: Vf } = countExtractionItems(model);
   const ratio = N > 0 ? Vf / N : 0;
   const L = lowLegibility;
+  const T = Boolean(options?.textOnlyFallback);
   const M = shouldSuggestMismatch(model);
   const Uunk = model.layoutFamily === 'unknown';
   // Gemini's document-type self-report — same trust ceiling as mismatch/unknown-layout (can only
@@ -285,6 +294,12 @@ export function reconcileExtractionFidelity(
   // extraction is untrustworthy.
   const notLogicModel = isPossiblyNotLogicModel(model);
   const noContent = !hasRecoveredLogicModelContent(model);
+  // Overview text alone (mission/target/impact) satisfies `hasRecoveredLogicModelContent`, so a
+  // document that extracted zero grid items could previously sail through as `ok`/`high` as long
+  // as some overview prose came back — found via real-batch log analysis. Same non-severe ceiling
+  // as M/Uunk/notLogicModel — a genuinely empty result (noContent too) still gets the stricter
+  // low-confidence/hard-stop treatment via `noContent` below.
+  const noGridItems = N === 0;
   // Unvalidated heuristic (see completenessCheck.ts) — deliberately excluded from every `low`/
   // `abstained` condition below; it can only ever push ok -> partial, same ceiling as mismatch/
   // unknown-layout, until it's been checked against real documents.
@@ -302,6 +317,8 @@ export function reconcileExtractionFidelity(
       M ||
       Uunk ||
       notLogicModel ||
+      T ||
+      noGridItems ||
       (L && Vf >= 1) ||
       (L && N >= 6) ||
       modelBlockers.length > 0 ||
@@ -319,6 +336,8 @@ export function reconcileExtractionFidelity(
   for (const b of modelBlockers) pushBlocker(blockers, seen, b);
 
   if (noContent) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.noContent);
+  else if (noGridItems) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.noGridItems);
+  if (T) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.textOnlyFallback);
   // Dense low-legibility grids (e.g. Oxford Circle) — force stop even if the model under-flags verbatim.
   if (L && N >= 6) {
     pushBlocker(blockers, seen, FIDELITY_BLOCKERS.lowLegibilityDense);

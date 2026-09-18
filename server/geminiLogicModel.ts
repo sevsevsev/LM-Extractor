@@ -187,5 +187,6 @@ export async function extractLogicModelOnServer(
   return normalizeExtractedLogicModel(parseLogicModelResponse(response.text), {
     sourceText: textTrack || undefined,
     lowLegibility,
+    textOnlyFallback: !isVision,
   });
 }

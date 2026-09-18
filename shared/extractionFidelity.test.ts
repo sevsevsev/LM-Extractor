@@ -291,6 +291,53 @@ test('documentTypeAssessment "logic_model" (or absent) never flags', () => {
   assert.equal(documentTypeFlagLabel(absent), '');
 });
 
+test('textOnlyFallback flags for review, never hard-stops, even with clean-looking content', () => {
+  const model = baseModel({
+    activities: { content: groups(manyItems(8, 0)) },
+  });
+  reconcileExtractionFidelity(model, { textOnlyFallback: true });
+  assert.equal(model.extractionStatus, 'partial');
+  assert.equal(model.extractionConfidence, 'medium');
+  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.textOnlyFallback));
+  assert.equal(shouldHardStopExtraction(model), false);
+  assert.equal(shouldShowFidelityBanner(model), true);
+});
+
+test('textOnlyFallback: false (or absent) never flags on its own', () => {
+  const model = baseModel({ activities: { content: groups(manyItems(8, 0)) } });
+  reconcileExtractionFidelity(model, { textOnlyFallback: false });
+  assert.equal(model.extractionStatus, 'ok');
+
+  const absent = baseModel({ activities: { content: groups(manyItems(8, 0)) } });
+  reconcileExtractionFidelity(absent);
+  assert.equal(absent.extractionStatus, 'ok');
+});
+
+test('zero grid items with recovered overview text flags for review instead of passing as ok/high', () => {
+  // Real gap found via a 112-file batch run: hasRecoveredLogicModelContent() is satisfied by
+  // mission/target/impact text alone, so a document that extracted zero inputs/activities/
+  // outputs/outcomes items could previously report "Successfully Processed" / high confidence.
+  const model = baseModel({
+    mission: { content: 'A real mission statement was recovered.' },
+    targetPopulation: { content: 'Youth in grades 6-12' },
+  });
+  reconcileExtractionFidelity(model);
+  assert.equal(model.extractionStatus, 'partial');
+  assert.equal(model.extractionConfidence, 'medium');
+  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.noGridItems));
+  assert.equal(shouldHardStopExtraction(model), false);
+});
+
+test('a genuinely empty result (no overview text either) still gets the stricter noContent treatment', () => {
+  const model = baseModel();
+  reconcileExtractionFidelity(model);
+  assert.equal(model.extractionStatus, 'partial');
+  assert.equal(model.extractionConfidence, 'low');
+  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.noContent));
+  assert.ok(!model.extractionBlockers?.includes(FIDELITY_BLOCKERS.noGridItems));
+  assert.equal(shouldHardStopExtraction(model), true);
+});
+
 test('Gemini-reported possiblyMissedRegions are normalized, deduped, and merged with heuristic pages', () => {
   const items: LogicModelItem[] = [{ text: 'Item 1', sourcePage: 1 }];
   const model = baseModel({

@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
-import { ProcessingFile, LogicModel, DocumentBundle, bundleImpliesLowLegibility } from './types';
+import {
+  ProcessingFile,
+  LogicModel,
+  DocumentBundle,
+  bundleImpliesLowLegibility,
+  bundleUsedTextOnlyFallback,
+} from './types';
 import FileUpload from './components/FileUpload';
 import LogicModelEditor from './components/LogicModelEditor';
 import SessionFileList from './components/SessionFileList';
@@ -456,9 +462,11 @@ const App: React.FC = () => {
       try {
         const extractBundle: DocumentBundle = { ...bundle, previewImages: undefined };
         const lowLegibility = bundleImpliesLowLegibility(bundle);
+        const textOnlyFallback = bundleUsedTextOnlyFallback(bundle);
         const extractedResult = normalizeExtractedLogicModel(await extractLogicModel(extractBundle), {
           sourceText: bundle.textTrack || undefined,
           lowLegibility,
+          textOnlyFallback,
         });
 
         if (shouldHardStopExtraction(extractedResult)) {

@@ -229,8 +229,20 @@ export const LOW_LEGIBILITY_WARNING =
 
 export function bundleImpliesLowLegibility(bundle: Pick<DocumentBundle, 'warnings'>): boolean {
   return bundle.warnings.some(
-    w => w.includes('flattened-raster') || /low resolution/i.test(w)
+    // `[- ]` catches both "low resolution" and "low-resolution" — found via real-batch log
+    // analysis that the DOCX embedded-image warning (services/fileService.ts) uses the hyphenated
+    // form while this regex only matched the spaced form, so it silently never fired.
+    w => w.includes('flattened-raster') || /low[- ]resolution/i.test(w)
   );
+}
+
+/**
+ * True when Track B (page rasters) is empty — extraction ran on text alone, with no vision pass
+ * to verify layout, columns, or anything visual. Structural (checks `images.length`), not a
+ * warning-text match, so it can't silently break the way `bundleImpliesLowLegibility` did above.
+ */
+export function bundleUsedTextOnlyFallback(bundle: Pick<DocumentBundle, 'images'>): boolean {
+  return bundle.images.length === 0;
 }
 
 export interface ProcessingFile {

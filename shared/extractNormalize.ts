@@ -19,6 +19,8 @@ export interface NormalizeExtractOptions {
   sourceText?: string;
   /** From DocumentBundle warnings — drives extraction fidelity rollup. */
   lowLegibility?: boolean;
+  /** From `bundleUsedTextOnlyFallback` — drives extraction fidelity rollup. */
+  textOnlyFallback?: boolean;
 }
 
 const OUTCOME_DOMAINS: GroupedDomain[] = [
@@ -167,6 +169,7 @@ export function normalizeExtractedLogicModel(
   applySourceAwareMapping(model);
   reconcileExtractionFidelity(model, {
     lowLegibility: options?.lowLegibility,
+    textOnlyFallback: options?.textOnlyFallback,
     sourceText: options?.sourceText,
   });
   return model;
