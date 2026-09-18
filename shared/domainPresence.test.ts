@@ -25,7 +25,7 @@ test('stringDomainHasContent and groupedDomainHasContent', () => {
 });
 
 test('buildGranularExportRows omits empty mission and empty grouped domains', () => {
-  const rows = buildGranularExportRows([baseModel()]);
+  const rows = buildGranularExportRows([{ model: baseModel(), sourceFilename: 'test.pdf' }]);
   const domains = rows.map(r => r.domain);
   assert.ok(!domains.includes('Mission / Overview'));
   assert.ok(!domains.includes('Medium-Term Outcomes'));
@@ -41,8 +41,16 @@ test('buildGranularExportRows carries extraction fidelity and mapping fields per
     extractionConfidence: 'medium',
     extractionBlockers: ['Some items flagged non-verbatim — verify against source'],
   };
-  const rows = buildGranularExportRows([model]);
+  const rows = buildGranularExportRows([{ model, sourceFilename: 'test.pdf' }]);
   assert.ok(rows.every(r => r.extractionStatus === 'partial'));
   assert.ok(rows.every(r => r.extractionConfidence === 'medium'));
   assert.ok(rows.every(r => r.extractionBlockers.includes('non-verbatim')));
+});
+
+test('buildGranularExportRows carries sourceFilename on every row', () => {
+  const rows = buildGranularExportRows([
+    { model: baseModel(), sourceFilename: '1234_5678_foster-grandparent.pdf' },
+  ]);
+  assert.ok(rows.length > 0);
+  assert.ok(rows.every(r => r.sourceFilename === '1234_5678_foster-grandparent.pdf'));
 });

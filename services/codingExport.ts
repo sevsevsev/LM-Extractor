@@ -48,6 +48,7 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
             color,
             needsReview,
             colorLegend,
+            f.file.name,
           ]);
         });
       });
@@ -71,6 +72,7 @@ export function buildCodingExportCsv(files: ProcessingFile[]): string | null {
     'color_coding',
     'needs_review',
     'color_legend',
+    'source_filename',
   ];
   const escape = (c: string) => `"${String(c).replace(/"/g, '""')}"`;
   return [headers.map(escape).join(','), ...rows.map(row => row.map(escape).join(','))].join('\n');

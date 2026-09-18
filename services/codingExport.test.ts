@@ -49,8 +49,14 @@ test('coding export CSV has coder headers', () => {
   const header = csv!.split('\n')[0];
   assert.equal(
     header,
-    '"row_id","organization","program","group","domain","outcome_text","color_coding","needs_review","color_legend"'
+    '"row_id","organization","program","group","domain","outcome_text","color_coding","needs_review","color_legend","source_filename"'
   );
+});
+
+test('coding export carries the uploaded filename on every row', () => {
+  const rows = buildCodingExportRows([fakeFile('f1', sampleModel())]);
+  assert.ok(rows.length > 0);
+  assert.ok(rows.every(r => r[9] === 'f1.pdf'));
 });
 
 test('coding export carries colour coding, needs-review flag, and legend', () => {

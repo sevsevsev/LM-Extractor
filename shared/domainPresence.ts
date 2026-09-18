@@ -27,13 +27,20 @@ export interface GranularExportRow {
   extractionConfidence: string;
   extractionBlockers: string;
   mappingCorrectionsJson: string;
+  /** Uploaded file name (e.g. "1234_5678_program-name.pdf") — the caller's own ID, not derived from content. */
+  sourceFilename: string;
+}
+
+export interface GranularExportEntry {
+  model: LogicModel;
+  sourceFilename: string;
 }
 
 /** Build full CSV rows — omit domains with no content (presence-first export). */
-export function buildGranularExportRows(models: LogicModel[]): GranularExportRow[] {
+export function buildGranularExportRows(entries: GranularExportEntry[]): GranularExportRow[] {
   const rows: GranularExportRow[] = [];
 
-  for (const m of models) {
+  for (const { model: m, sourceFilename } of entries) {
     const colorLegend = m.colorLegend?.trim() || '';
     const extractionStatus = m.extractionStatus || '';
     const extractionConfidence = m.extractionConfidence || '';
@@ -63,6 +70,7 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
         extractionConfidence,
         extractionBlockers,
         mappingCorrectionsJson,
+        sourceFilename,
       });
     };
 
@@ -92,6 +100,7 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
             extractionConfidence,
             extractionBlockers,
             mappingCorrectionsJson,
+            sourceFilename,
           });
         }
       }

@@ -536,10 +536,11 @@ const App: React.FC = () => {
       'Extraction Confidence',
       'Extraction Blockers',
       'Mapping Corrections JSON',
+      'Source Filename',
     ];
 
     const exportRows = buildGranularExportRows(
-      completed.map(f => modelForExport(f.result!, f.warnings))
+      completed.map(f => ({ model: modelForExport(f.result!, f.warnings), sourceFilename: f.file.name }))
     );
     const rows = exportRows.map(r => [
       r.organization,
@@ -560,6 +561,7 @@ const App: React.FC = () => {
       r.extractionConfidence,
       r.extractionBlockers,
       r.mappingCorrectionsJson,
+      r.sourceFilename,
     ]);
 
     const csvContent = [
