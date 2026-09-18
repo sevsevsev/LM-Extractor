@@ -1,6 +1,13 @@
 /** Document-level extraction fidelity. */
 export type ExtractionStatus = 'ok' | 'partial' | 'abstained';
 export type ExtractionConfidence = 'high' | 'medium' | 'low';
+/**
+ * Gemini's self-report on whether the source looks like a logic model at all, vs. a partner
+ * submitting an overlapping-but-different document (theory of change, impact report, etc.).
+ * `not_logic_model` / `unclear` never abstain the extraction — best-effort extraction still runs
+ * for any genuinely overlapping content, this just flags the file for a human to confirm.
+ */
+export type DocumentTypeAssessment = 'logic_model' | 'not_logic_model' | 'unclear';
 
 export interface ExtractionFidelity {
   status: ExtractionStatus;
@@ -125,6 +132,14 @@ export interface LogicModel {
   extractionStatus?: ExtractionStatus;
   extractionConfidence?: ExtractionConfidence;
   extractionBlockers?: string[];
+  /**
+   * Gemini's self-reported document-type check (see `DocumentTypeAssessment`). Absent/`logic_model`
+   * means no concern; `not_logic_model`/`unclear` feed into `reconcileExtractionFidelity` as a
+   * (partial/medium, never hard-stop) review flag — see `shared/extractionFidelity.ts`.
+   */
+  documentTypeAssessment?: DocumentTypeAssessment;
+  /** Brief reason for a non-`logic_model` assessment (e.g. "reads as a Theory of Change narrative"). */
+  documentTypeNote?: string;
   /**
    * Pages (and, when known, the horizontal span on that page) that may contain content the
    * extraction missed — drives the "spot-check for missed content" fidelity blocker's

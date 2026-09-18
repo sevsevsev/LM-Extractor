@@ -4,6 +4,7 @@ import type { LogicModel, LogicModelGroup, LogicModelItem } from '../types';
 import {
   FIDELITY_BLOCKERS,
   countExtractionItems,
+  documentTypeFlagLabel,
   formatHardStopMessage,
   reconcileExtractionFidelity,
   shouldHardStopExtraction,
@@ -246,6 +247,48 @@ test('possiblyIncomplete with page markers points at the gappiest page', () => {
   reconcileExtractionFidelity(model, { sourceText });
   assert.equal(model.extractionStatus, 'partial');
   assert.deepEqual(model.possiblyMissedRegions, [{ page: 2, note: FIDELITY_BLOCKERS.possiblyIncomplete }]);
+});
+
+test('documentTypeAssessment "not_logic_model" flags for review, never hard-stops', () => {
+  const model = baseModel({
+    documentTypeAssessment: 'not_logic_model',
+    documentTypeNote: 'Reads as a Theory of Change narrative',
+    mission: { content: 'Through sustained investment, ...' },
+  });
+  reconcileExtractionFidelity(model);
+  assert.equal(model.extractionStatus, 'partial');
+  assert.equal(model.extractionConfidence, 'medium');
+  assert.ok(model.extractionBlockers?.some(b => /may not be a logic model/i.test(b)));
+  assert.ok(model.extractionBlockers?.some(b => b.includes('Theory of Change narrative')));
+  assert.equal(shouldHardStopExtraction(model), false);
+  assert.equal(shouldShowFidelityBanner(model), true);
+  assert.equal(documentTypeFlagLabel(model), 'Possibly Not a Logic Model');
+});
+
+test('documentTypeAssessment "unclear" also flags for review', () => {
+  const model = baseModel({
+    documentTypeAssessment: 'unclear',
+    mission: { content: 'Overview text' },
+  });
+  reconcileExtractionFidelity(model);
+  assert.equal(model.extractionStatus, 'partial');
+  assert.equal(shouldHardStopExtraction(model), false);
+  assert.equal(documentTypeFlagLabel(model), 'Unclear Document Type');
+});
+
+test('documentTypeAssessment "logic_model" (or absent) never flags', () => {
+  const clean = baseModel({
+    documentTypeAssessment: 'logic_model',
+    activities: { content: groups(manyItems(8, 0)) },
+  });
+  reconcileExtractionFidelity(clean);
+  assert.equal(clean.extractionStatus, 'ok');
+  assert.equal(documentTypeFlagLabel(clean), '');
+
+  const absent = baseModel({ activities: { content: groups(manyItems(8, 0)) } });
+  reconcileExtractionFidelity(absent);
+  assert.equal(absent.extractionStatus, 'ok');
+  assert.equal(documentTypeFlagLabel(absent), '');
 });
 
 test('Gemini-reported possiblyMissedRegions are normalized, deduped, and merged with heuristic pages', () => {

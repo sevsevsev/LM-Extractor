@@ -84,6 +84,11 @@ const extractModelSchema: Schema = {
       enum: ['high', 'medium', 'low'],
     },
     extractionBlockers: { type: Type.ARRAY, items: { type: Type.STRING } },
+    documentTypeAssessment: {
+      type: Type.STRING,
+      enum: ['logic_model', 'not_logic_model', 'unclear'],
+    },
+    documentTypeNote: { type: Type.STRING },
     possiblyMissedRegions: {
       type: Type.ARRAY,
       items: {

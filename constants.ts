@@ -257,6 +257,24 @@ ${
     - \`layoutFamily\`: \`vertical_columns\` | \`horizontal_rows\` | \`diagram\` | \`prose_sections\` | \`unknown\`.
 
     ---
+    ## DOCUMENT TYPE CHECK (REQUIRED — DO THIS FIRST)
+
+    Partners sometimes submit a document that is **not actually a logic model** — a Theory of Change
+    narrative, an impact/outcomes report, a program overview, etc. — even though it may share some
+    content with one (a mission statement, a list of outcomes, a target population). Do **not** abstain
+    just because the document isn't a clean logic model grid.
+
+    - \`documentTypeAssessment\`: \`"logic_model"\` (has recognizable input/output/outcome structure,
+      even if imperfect) | \`"not_logic_model"\` (reads as a different document type — ToC narrative,
+      impact report, budget, etc.) | \`"unclear"\` (genuinely ambiguous).
+    - \`documentTypeNote\`: one short sentence explaining a non-\`"logic_model"\` call (e.g. "Reads as a
+      Theory of Change narrative — no input/output/outcome column structure"). Omit when \`"logic_model"\`.
+    - When \`"not_logic_model"\` or \`"unclear"\`: still **extract any content that genuinely maps** to the
+      LogicModel fields below (mission, target population, outcomes, etc.) — best effort, same verbatim
+      rules as always. Leave a field empty rather than force-fitting unrelated prose into it. A human
+      will review the flag before trusting the extraction.
+
+    ---
     ## EXTRACTION FIDELITY STATUS (REQUIRED — NOT DOCUMENT QUALITY)
 
     Set document-level extraction fidelity fields. These are **not** logic-model quality ratings.
@@ -274,9 +292,10 @@ ${
       array entirely when you're confident every image's visible content made it into an item. 0–6 entries.
 
     **Abstain** (\`extractionStatus: "abstained"\`) when any of:
-    - The document is not a logic model (or has no extractable LM layout).
-    - The grid / core structure is largely illegible and text track cannot salvage it.
-    - You cannot establish a column/header inventory with any confidence.
+    - The source is largely illegible and text track cannot salvage it — regardless of document type.
+    - You cannot establish a column/header inventory with any confidence AND \`documentTypeAssessment\`
+      is \`"logic_model"\` (an unclear/non-logic-model document naturally has no such inventory to find —
+      that alone is not a reason to abstain; extract what genuinely maps per the DOCUMENT TYPE CHECK above).
     When abstaining: leave domain contents empty (or minimal), list blockers, and do **not** invent items to look complete.
 
     **Partial** when (and not abstaining):
@@ -307,6 +326,7 @@ ${
       "unmapped": { "content": [] },
       "layoutFamily": "vertical_columns",
       "colorLegend": "",
+      "documentTypeAssessment": "logic_model",
       "extractionStatus": "ok",
       "extractionBlockers": [],
       "possiblyMissedRegions": []

@@ -1,5 +1,6 @@
 import type { LogicModel, LogicModelGroup } from '../types';
 import { qaStatusLabel } from './qaStatus.js';
+import { documentTypeFlagLabel } from './extractionFidelity.js';
 
 export function stringDomainHasContent(content?: string): boolean {
   return Boolean(content?.trim());
@@ -36,6 +37,12 @@ export interface GranularExportRow {
    * the per-item `needsReview` field above.
    */
   qaStatus: string;
+  /**
+   * '' | "Possibly Not a Logic Model" | "Unclear Document Type" — from Gemini's document-type
+   * self-report (see shared/extractionFidelity.ts). Also already folds into `qaStatus` above via
+   * the fidelity banner, but broken out here so QA can filter for this specific reason.
+   */
+  documentTypeFlag: string;
 }
 
 export interface GranularExportEntry {
@@ -56,6 +63,7 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
       ? JSON.stringify(m.mappingCorrections)
       : '';
     const qaStatus = qaStatusLabel(m);
+    const documentTypeFlag = documentTypeFlagLabel(m);
 
     const pushStringField = (domain: string, field: { content: string }) => {
       if (!stringDomainHasContent(field.content)) return;
@@ -80,6 +88,7 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
         mappingCorrectionsJson,
         sourceFilename,
         qaStatus,
+        documentTypeFlag,
       });
     };
 
@@ -111,6 +120,7 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
             mappingCorrectionsJson,
             sourceFilename,
             qaStatus,
+            documentTypeFlag,
           });
         }
       }

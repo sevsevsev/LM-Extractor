@@ -1,5 +1,6 @@
 import type { LogicModel, LogicModelGroup, ProcessingFile } from '../types';
 import { qaStatusLabel } from '../shared/qaStatus.js';
+import { documentTypeFlagLabel } from '../shared/extractionFidelity.js';
 
 /** Domains included in Export for coding — see docs/specs/export-for-coding.md */
 export const CODING_EXPORT_DOMAINS = [
@@ -32,6 +33,7 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
 
     const colorLegend = m.colorLegend?.trim() || '';
     const qaStatus = qaStatusLabel(m);
+    const documentTypeFlag = documentTypeFlagLabel(m);
     for (const { domain, field } of DOMAIN_FIELDS) {
       // generalOutcomes is optional (most files don't set it), unlike the always-present short/
       // medium/long-term fields, so m[field] itself can be undefined here.
@@ -57,6 +59,7 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
             colorLegend,
             f.file.name,
             qaStatus,
+            documentTypeFlag,
           ]);
         });
       });
@@ -82,6 +85,7 @@ export function buildCodingExportCsv(files: ProcessingFile[]): string | null {
     'color_legend',
     'source_filename',
     'qa_status',
+    'document_type_flag',
   ];
   const escape = (c: string) => `"${String(c).replace(/"/g, '""')}"`;
   return [headers.map(escape).join(','), ...rows.map(row => row.map(escape).join(','))].join('\n');

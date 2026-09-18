@@ -85,6 +85,16 @@ test('buildGranularExportRows includes generalOutcomes as its own domain when pr
   );
 });
 
+test('buildGranularExportRows carries a document type flag when Gemini flags the source', () => {
+  const clean = buildGranularExportRows([{ model: baseModel(), sourceFilename: 'a.pdf' }]);
+  assert.ok(clean.every(r => r.documentTypeFlag === ''));
+
+  const flagged: LogicModel = { ...baseModel(), documentTypeAssessment: 'not_logic_model' };
+  const flaggedRows = buildGranularExportRows([{ model: flagged, sourceFilename: 'toc.pdf' }]);
+  assert.ok(flaggedRows.length > 0);
+  assert.ok(flaggedRows.every(r => r.documentTypeFlag === 'Possibly Not a Logic Model'));
+});
+
 test('buildGranularExportRows omits generalOutcomes when absent or empty', () => {
   const withoutField = buildGranularExportRows([{ model: baseModel(), sourceFilename: 'a.pdf' }]);
   assert.ok(!withoutField.some(r => r.domain === 'General Outcomes'));

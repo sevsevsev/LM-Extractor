@@ -25,6 +25,7 @@ From editable extract results, download a CSV the Qualitative Outcomes Coder acc
 | `domain` | Domain label (pass-through; coder ignores unknown cols) |
 | `source_filename` | uploaded file name — lets an operator's own file-naming convention (e.g. an `orgid_progid_` prefix) be used to key rows back to a source file (coder ignores unknown cols) |
 | `qa_status` | `Needs Review` \| `Successfully Processed` — same document-level signal as the session list's NEEDS REVIEW grouping (`shared/qaStatus.ts`), for post-hoc QA (coder ignores unknown cols) |
+| `document_type_flag` | `` \| `Possibly Not a Logic Model` \| `Unclear Document Type` — Gemini's document-type self-report (`shared/extractionFidelity.ts`), flags a source that may be a Theory of Change / impact report / other overlapping-but-different document rather than a logic model; never blocks extraction, a human decides (coder ignores unknown cols) |
 
 - Skip empty `outcome_text` rows
 - Filename hint e.g. `logic-models-for-coding.csv`
@@ -45,6 +46,8 @@ From editable extract results, download a CSV the Qualitative Outcomes Coder acc
 
 ## Tweak later
 Domain list and columns live in this doc; bump a one-line version note when changing filter (e.g. add Impact).
+
+**Version:** v1.3 — 2026-09-18 — added `document_type_flag` column (appended, so existing column positions are unchanged).
 
 **Version:** v1.2 — 2026-09-18 — added `qa_status` column (appended, so existing column positions are unchanged).
 

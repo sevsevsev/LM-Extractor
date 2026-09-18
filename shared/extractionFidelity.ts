@@ -1,4 +1,5 @@
 import type {
+  DocumentTypeAssessment,
   ExtractionConfidence,
   ExtractionFidelity,
   ExtractionStatus,
@@ -12,6 +13,11 @@ import { estimateCompleteness } from './completenessCheck.js';
 
 const STATUSES: readonly ExtractionStatus[] = ['ok', 'partial', 'abstained'];
 const CONFIDENCES: readonly ExtractionConfidence[] = ['high', 'medium', 'low'];
+const DOCUMENT_TYPE_ASSESSMENTS: readonly DocumentTypeAssessment[] = [
+  'logic_model',
+  'not_logic_model',
+  'unclear',
+];
 
 const STATUS_RANK: Record<ExtractionStatus, number> = {
   ok: 0,
@@ -35,6 +41,8 @@ export const FIDELITY_BLOCKERS = {
   /** Unvalidated proxy (see completenessCheck.ts) — caps at partial/medium, never forces low/abstained. */
   possiblyIncomplete:
     'Source text suggests more items may be present than were extracted — spot-check for missed content',
+  /** Gemini's document-type self-report (see DOCUMENT TYPE CHECK prompt) — never hard-stops. */
+  notLogicModel: 'Document may not be a logic model — verify before treating extraction as reliable',
 } as const;
 
 export function isExtractionStatus(value: unknown): value is ExtractionStatus {
@@ -43,6 +51,23 @@ export function isExtractionStatus(value: unknown): value is ExtractionStatus {
 
 export function isExtractionConfidence(value: unknown): value is ExtractionConfidence {
   return typeof value === 'string' && (CONFIDENCES as readonly string[]).includes(value);
+}
+
+export function isDocumentTypeAssessment(value: unknown): value is DocumentTypeAssessment {
+  return typeof value === 'string' && (DOCUMENT_TYPE_ASSESSMENTS as readonly string[]).includes(value);
+}
+
+/** True when Gemini flagged the source as possibly not a logic model — never a hard-stop signal alone. */
+export function isPossiblyNotLogicModel(model: LogicModel): boolean {
+  const assessment = model.documentTypeAssessment;
+  return assessment === 'not_logic_model' || assessment === 'unclear';
+}
+
+/** Short label for CSV export / UI — '' when there's nothing to flag. */
+export function documentTypeFlagLabel(model: LogicModel): string {
+  if (model.documentTypeAssessment === 'not_logic_model') return 'Possibly Not a Logic Model';
+  if (model.documentTypeAssessment === 'unclear') return 'Unclear Document Type';
+  return '';
 }
 
 export function getExtractionFidelity(model: LogicModel): ExtractionFidelity | undefined {
@@ -92,6 +117,17 @@ export function parseExtractionFidelityFields(model: Record<string, unknown>): v
     if (!isExtractionConfidence(model.extractionConfidence)) {
       delete model.extractionConfidence;
     }
+  }
+  if ('documentTypeAssessment' in model) {
+    if (!isDocumentTypeAssessment(model.documentTypeAssessment)) {
+      delete model.documentTypeAssessment;
+    }
+  }
+  if ('documentTypeNote' in model) {
+    const note = model.documentTypeNote;
+    const trimmed = typeof note === 'string' ? note.trim().slice(0, 200) : '';
+    if (trimmed) model.documentTypeNote = trimmed;
+    else delete model.documentTypeNote;
   }
   if ('possiblyMissedRegions' in model) {
     const regions = normalizePossiblyMissedRegions(model.possiblyMissedRegions);
@@ -244,6 +280,10 @@ export function reconcileExtractionFidelity(
   const L = lowLegibility;
   const M = shouldSuggestMismatch(model);
   const Uunk = model.layoutFamily === 'unknown';
+  // Gemini's document-type self-report — same trust ceiling as mismatch/unknown-layout (can only
+  // push ok -> partial/medium); never a hard-stop, since the point is a human reviews it, not that
+  // extraction is untrustworthy.
+  const notLogicModel = isPossiblyNotLogicModel(model);
   const noContent = !hasRecoveredLogicModelContent(model);
   // Unvalidated heuristic (see completenessCheck.ts) — deliberately excluded from every `low`/
   // `abstained` condition below; it can only ever push ok -> partial, same ceiling as mismatch/
@@ -261,6 +301,7 @@ export function reconcileExtractionFidelity(
       (N >= 6 && ratio >= 0.15) ||
       M ||
       Uunk ||
+      notLogicModel ||
       (L && Vf >= 1) ||
       (L && N >= 6) ||
       modelBlockers.length > 0 ||
@@ -295,6 +336,15 @@ export function reconcileExtractionFidelity(
   }
   if (M) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.mismatch);
   if (Uunk) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.unknownLayout);
+  if (notLogicModel) {
+    pushBlocker(
+      blockers,
+      seen,
+      model.documentTypeNote
+        ? `${FIDELITY_BLOCKERS.notLogicModel} (${model.documentTypeNote})`
+        : FIDELITY_BLOCKERS.notLogicModel
+    );
+  }
   if (hasMissedContentSignal) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.possiblyIncomplete);
 
   let confidence: ExtractionConfidence;

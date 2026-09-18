@@ -49,7 +49,7 @@ test('coding export CSV has coder headers', () => {
   const header = csv!.split('\n')[0];
   assert.equal(
     header,
-    '"row_id","organization","program","group","domain","outcome_text","color_coding","needs_review","color_legend","source_filename","qa_status"'
+    '"row_id","organization","program","group","domain","outcome_text","color_coding","needs_review","color_legend","source_filename","qa_status","document_type_flag"'
   );
 });
 
@@ -94,6 +94,15 @@ test('coding export carries colour coding, needs-review flag, and legend', () =>
   assert.equal(colored![8], 'Orange = students; Purple = families');
   assert.ok(flagged);
   assert.equal(flagged![7], 'Yes');
+});
+
+test('coding export carries a document type flag when Gemini flags the source', () => {
+  const clean = buildCodingExportRows([fakeFile('f1', sampleModel())]);
+  assert.ok(clean.every(r => r[11] === ''));
+
+  const flagged = sampleModel({ documentTypeAssessment: 'unclear' });
+  const flaggedRows = buildCodingExportRows([fakeFile('f2', flagged)]);
+  assert.ok(flaggedRows.every(r => r[11] === 'Unclear Document Type'));
 });
 
 test('coding export includes generalOutcomes rows under the General Outcomes domain', () => {
