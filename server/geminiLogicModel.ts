@@ -67,6 +67,7 @@ const extractModelSchema: Schema = {
     shortTermOutcomes: baseFieldSchema(Type.ARRAY),
     mediumTermOutcomes: baseFieldSchema(Type.ARRAY),
     longTermOutcomes: baseFieldSchema(Type.ARRAY),
+    generalOutcomes: baseFieldSchema(Type.ARRAY),
     impact: baseFieldSchema(Type.ARRAY),
     colorLegend: { type: Type.STRING },
     unmapped: baseFieldSchema(Type.ARRAY),

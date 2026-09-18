@@ -127,6 +127,7 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
     pushField('Short-Term Outcomes', m.shortTermOutcomes);
     pushField('Medium-Term Outcomes', m.mediumTermOutcomes);
     pushField('Long-Term Outcomes', m.longTermOutcomes);
+    if (m.generalOutcomes) pushField('General Outcomes', m.generalOutcomes);
     pushField('Impact', m.impact);
     if (m.unmapped) pushField('Unmapped', m.unmapped);
   }

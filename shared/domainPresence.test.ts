@@ -67,3 +67,29 @@ test('buildGranularExportRows carries a QA status matching the session list flag
   const flaggedRows = buildGranularExportRows([{ model: flagged, sourceFilename: 'b.pdf' }]);
   assert.ok(flaggedRows.every(r => r.qaStatus === 'Needs Review'));
 });
+
+test('buildGranularExportRows includes generalOutcomes as its own domain when present', () => {
+  const model: LogicModel = {
+    ...baseModel(),
+    generalOutcomes: {
+      content: [{ name: 'General', items: [{ text: 'Participants report increased confidence' }] }],
+    },
+  };
+  const rows = buildGranularExportRows([{ model, sourceFilename: 'single-outcomes.pdf' }]);
+  const generalOutcomeRows = rows.filter(r => r.domain === 'General Outcomes');
+  assert.equal(generalOutcomeRows.length, 1);
+  assert.equal(generalOutcomeRows[0].content, 'Participants report increased confidence');
+  // Must not also be duplicated into shortTermOutcomes.
+  assert.ok(
+    !rows.some(r => r.domain === 'Short-Term Outcomes' && r.content === 'Participants report increased confidence')
+  );
+});
+
+test('buildGranularExportRows omits generalOutcomes when absent or empty', () => {
+  const withoutField = buildGranularExportRows([{ model: baseModel(), sourceFilename: 'a.pdf' }]);
+  assert.ok(!withoutField.some(r => r.domain === 'General Outcomes'));
+
+  const withEmptyField: LogicModel = { ...baseModel(), generalOutcomes: { content: [] } };
+  const withEmpty = buildGranularExportRows([{ model: withEmptyField, sourceFilename: 'b.pdf' }]);
+  assert.ok(!withEmpty.some(r => r.domain === 'General Outcomes'));
+});

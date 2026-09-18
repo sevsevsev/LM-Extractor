@@ -134,6 +134,10 @@ ${
        List every visible grid column header in order. Typical set:
        Resources/Inputs | Activities | Outputs | Short-Term Outcomes | Medium-Term Outcomes | Long-Term Outcomes | (optional) Impact
        Record **exactly** which headers exist. If the rightmost header is **"Long-Term Outcomes"** and there is **no** column titled **"Impact"**, then there is **no Impact column**.
+       **Single combined outcomes column**: some source documents have only ONE outcomes column/section
+       (header literally just "Outcomes", or no time-horizon qualifier at all) instead of separate
+       Short/Medium/Long-Term columns. When that's what the source actually shows, **do not guess** a
+       time horizon for those items — see \`generalOutcomes\` under COLUMN FIDELITY below.
 ${hasTextTrack ? '       Cross-check header strings against Track A headings when present.\n' : ''}
     3. **Row / track inventory (top → bottom) — ONLY IF REAL**
        A "track" is a horizontal band with the **same label** that lines up across MULTIPLE columns
@@ -198,9 +202,18 @@ ${hasTextTrack ? '       Cross-check header strings against Track A headings whe
     4. **Long-Term Outcomes column → \`longTermOutcomes\`.**
     5. **Impact grid column → \`impact\` ONLY if a column header literally says "Impact"**. Otherwise \`impact.content\` = \`[]\`.
     6. **Impact Statement ≠ Long-Term column ≠ Impact column.** Three different things.
+    7. **No separate Short/Medium/Long-Term columns → \`generalOutcomes\`, never a guess.** If the source
+       has one combined outcomes column/section (a single "Outcomes" header, or no time-horizon
+       qualifier at all — not three separate labeled columns), put those items in
+       \`generalOutcomes\`, not \`shortTermOutcomes\`. **Never default undifferentiated outcomes into
+       \`shortTermOutcomes\` just because it's the first outcomes-shaped field in the schema** — that
+       mislabels items a human still needs to sort into a real time horizon. Only use
+       \`shortTermOutcomes\`/\`mediumTermOutcomes\`/\`longTermOutcomes\` when the source itself actually
+       distinguishes those three (separate columns, or explicit per-item labels).
 
     **KNOWN FAILURE MODES TO AVOID**:
     - Copying Resources-column sub-headings into other columns; inventing content; swapping familiar names.
+    - Defaulting a single combined outcomes section into \`shortTermOutcomes\` — use \`generalOutcomes\`.
     - Flipping outcome direction; fluent rewrites of small text; stamping one colour per column.
     - Treating colour as a horizontal track; guessing clipped text; omitting page-1 Impact Statement.
 ${
@@ -289,6 +302,7 @@ ${
       "shortTermOutcomes": { "content": [{ "name": "General", "items": [{ "text": "...", "verbatim": true }] }] },
       "mediumTermOutcomes": { "content": [{ "name": "General", "items": [{ "text": "...", "verbatim": true }] }] },
       "longTermOutcomes": { "content": [{ "name": "General", "items": [{ "text": "...", "verbatim": true }] }] },
+      "generalOutcomes": { "content": [] },
       "impact": { "content": [] },
       "unmapped": { "content": [] },
       "layoutFamily": "vertical_columns",

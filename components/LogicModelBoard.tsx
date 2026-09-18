@@ -29,7 +29,8 @@ const itemRefKey = (ref: BoardItemRef) => `${ref.domain}:${ref.groupIndex}:${ref
 
 const groupsFor = (model: LogicModel, domain: CanonicalGroupedDomain | 'unmapped'): LogicModelGroup[] => {
   if (domain === 'unmapped') return model.unmapped?.content ?? [];
-  return model[domain].content ?? [];
+  // generalOutcomes is optional (most models never set it); the rest are always present.
+  return model[domain]?.content ?? [];
 };
 
 export function getBoardItem(model: LogicModel, ref: BoardItemRef): LogicModelItem | null {
@@ -84,8 +85,9 @@ const LogicModelBoard: React.FC<LogicModelBoardProps> = ({ model, onUpdate, onFo
   const [selected, setSelected] = useState<BoardItemRef | null>(null);
   const [colorFilter, setColorFilter] = useState<string | null>(null);
   const showImpact = groupedDomainHasContent(model.impact.content);
+  const showGeneralOutcomes = groupedDomainHasContent(model.generalOutcomes?.content);
   const showUnmapped = groupedDomainHasContent(model.unmapped?.content);
-  const columnCount = 6 + (showImpact ? 1 : 0);
+  const columnCount = 6 + (showGeneralOutcomes ? 1 : 0) + (showImpact ? 1 : 0);
   const colorAxis = useMemo(() => analyzeColorAxis(model), [model]);
   const colorNotes = useMemo(() => colorAxisNotes(colorAxis), [colorAxis]);
   const showColorMeta = colorAxis.kind === 'cross_cutting';
@@ -115,7 +117,10 @@ const LogicModelBoard: React.FC<LogicModelBoardProps> = ({ model, onUpdate, onFo
 
   const handleItemTextChange = (ref: BoardItemRef, newText: string) => {
     const groups = groupsFor(model, ref.domain);
-    const field = ref.domain === 'unmapped' ? model.unmapped ?? { content: [] } : model[ref.domain];
+    const field =
+      ref.domain === 'unmapped'
+        ? (model.unmapped ?? { content: [] })
+        : (model[ref.domain] ?? { content: [] });
     const newGroups = groups.map((group, i) => {
       if (i !== ref.groupIndex) return group;
       return {
@@ -132,7 +137,10 @@ const LogicModelBoard: React.FC<LogicModelBoardProps> = ({ model, onUpdate, onFo
 
   const markItemReviewed = (ref: BoardItemRef) => {
     const groups = groupsFor(model, ref.domain);
-    const field = ref.domain === 'unmapped' ? model.unmapped ?? { content: [] } : model[ref.domain];
+    const field =
+      ref.domain === 'unmapped'
+        ? (model.unmapped ?? { content: [] })
+        : (model[ref.domain] ?? { content: [] });
     const newGroups = groups.map((group, i) => {
       if (i !== ref.groupIndex) return group;
       return {
@@ -161,8 +169,14 @@ const LogicModelBoard: React.FC<LogicModelBoardProps> = ({ model, onUpdate, onFo
   };
 
   const columns = useMemo(
-    () => [...CORE_COLUMNS, ...(showImpact ? [{ key: 'impact' as const, title: 'Impact' }] : [])],
-    [showImpact]
+    () => [
+      ...CORE_COLUMNS,
+      ...(showGeneralOutcomes
+        ? [{ key: 'generalOutcomes' as const, title: 'General Outcomes' }]
+        : []),
+      ...(showImpact ? [{ key: 'impact' as const, title: 'Impact' }] : []),
+    ],
+    [showGeneralOutcomes, showImpact]
   );
 
   return (

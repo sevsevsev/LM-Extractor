@@ -94,6 +94,14 @@ export interface LogicModel {
   shortTermOutcomes: LogicModelField<LogicModelGroup[]>;
   mediumTermOutcomes: LogicModelField<LogicModelGroup[]>;
   longTermOutcomes: LogicModelField<LogicModelGroup[]>;
+  /**
+   * Outcomes from a source document that has one combined outcomes column/section, not
+   * separately labeled short/medium/long-term — e.g. a single "Outcomes" header. Not a
+   * Gemini-required field; absent/empty when the source does distinguish time horizons.
+   * Deliberately separate from `unmapped` — these are confirmed outcomes, just without a known
+   * time horizon, and are expected to reach human review (coding export) for that assignment.
+   */
+  generalOutcomes?: LogicModelField<LogicModelGroup[]>;
   impact: LogicModelField<LogicModelGroup[]>;
   /**
    * Free-text capture of a colour key/legend when the source document explicitly provides one

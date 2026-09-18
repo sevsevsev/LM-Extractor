@@ -68,6 +68,36 @@ test('promotes Impact Statement prose from mission', () => {
   assert.equal(m.mission.content, '');
 });
 
+test('normalizeExtractedLogicModel initializes generalOutcomes even when Gemini omitted it', () => {
+  // youthMovesMisparse (and virtually every fixture in this file) never sets generalOutcomes —
+  // it's optional on the raw Gemini JSON. Every helper in the normalize pipeline runs before
+  // this the field exists, so this guards against the exact "Cannot read properties of
+  // undefined" crash that shipped once before this test was added.
+  const m = normalizeExtractedLogicModel(structuredClone(youthMovesMisparse));
+  assert.deepEqual(m.generalOutcomes?.content, []);
+});
+
+test('a single combined outcomes column lands in generalOutcomes, not shortTermOutcomes', () => {
+  const singleOutcomesColumn: LogicModel = {
+    ...structuredClone(youthMovesMisparse),
+    shortTermOutcomes: { content: [] },
+    mediumTermOutcomes: { content: [] },
+    longTermOutcomes: { content: [] },
+    generalOutcomes: {
+      content: [
+        { name: 'Outcomes', items: [{ text: 'Dancers report greater confidence on stage' }] },
+      ],
+    },
+  };
+  const m = normalizeExtractedLogicModel(singleOutcomesColumn);
+  assert.ok(
+    m.generalOutcomes?.content.some(g => g.items.some(i => /greater confidence/.test(i.text)))
+  );
+  assert.ok(
+    !m.shortTermOutcomes.content.some(g => g.items.some(i => /greater confidence/.test(i.text)))
+  );
+});
+
 test('does not force rebucket Summer-shaped text from medium-term (spatial trust)', () => {
   const m = normalizeExtractedLogicModel(structuredClone(youthMovesMisparse));
   assert.ok(

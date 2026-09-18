@@ -96,6 +96,26 @@ test('coding export carries colour coding, needs-review flag, and legend', () =>
   assert.equal(flagged![7], 'Yes');
 });
 
+test('coding export includes generalOutcomes rows under the General Outcomes domain', () => {
+  const model = sampleModel({
+    shortTermOutcomes: { content: [] },
+    mediumTermOutcomes: { content: [] },
+    longTermOutcomes: { content: [] },
+    generalOutcomes: {
+      content: [{ name: 'General', items: [{ text: 'Participants report increased confidence' }] }],
+    },
+  });
+  const rows = buildCodingExportRows([fakeFile('f1', model)]);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0][4], 'General Outcomes'); // domain column
+  assert.equal(rows[0][5], 'Participants report increased confidence'); // outcome_text column
+});
+
+test('coding export does not crash or drop rows when generalOutcomes is absent (most files)', () => {
+  const rows = buildCodingExportRows([fakeFile('f1', sampleModel())]);
+  assert.equal(rows.length, 3);
+});
+
 test('coding export returns null when no outcome text', () => {
   const empty = sampleModel({
     shortTermOutcomes: { content: [] },

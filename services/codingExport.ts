@@ -6,6 +6,7 @@ export const CODING_EXPORT_DOMAINS = [
   'Short-Term Outcomes',
   'Medium-Term Outcomes',
   'Long-Term Outcomes',
+  'General Outcomes',
 ] as const;
 
 type CodingDomain = (typeof CODING_EXPORT_DOMAINS)[number];
@@ -14,6 +15,8 @@ const DOMAIN_FIELDS: { domain: CodingDomain; field: keyof LogicModel }[] = [
   { domain: 'Short-Term Outcomes', field: 'shortTermOutcomes' },
   { domain: 'Medium-Term Outcomes', field: 'mediumTermOutcomes' },
   { domain: 'Long-Term Outcomes', field: 'longTermOutcomes' },
+  // No time horizon in the source — a coder assigns short/medium/long-term during coding.
+  { domain: 'General Outcomes', field: 'generalOutcomes' },
 ];
 
 export function countCodingExportRows(files: ProcessingFile[]): number {
@@ -30,7 +33,9 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
     const colorLegend = m.colorLegend?.trim() || '';
     const qaStatus = qaStatusLabel(m);
     for (const { domain, field } of DOMAIN_FIELDS) {
-      const groups = (m[field] as { content: LogicModelGroup[] }).content || [];
+      // generalOutcomes is optional (most files don't set it), unlike the always-present short/
+      // medium/long-term fields, so m[field] itself can be undefined here.
+      const groups = (m[field] as { content: LogicModelGroup[] } | undefined)?.content || [];
       groups.forEach((g, gi) => {
         g.items.forEach((item, ii) => {
           const text = (item.text || '').trim();

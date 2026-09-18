@@ -112,6 +112,7 @@ const GROUPED_DOMAINS: (keyof LogicModel)[] = [
   'shortTermOutcomes',
   'mediumTermOutcomes',
   'longTermOutcomes',
+  'generalOutcomes',
   'impact',
   'unmapped',
 ];

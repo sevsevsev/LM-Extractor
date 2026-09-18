@@ -19,11 +19,22 @@ const GROUPED_FIELDS: CanonicalGroupedDomain[] = [
   'shortTermOutcomes',
   'mediumTermOutcomes',
   'longTermOutcomes',
+  'generalOutcomes',
   'impact',
 ];
 
 function getGroups(field: { content: LogicModelGroup[] } | undefined): LogicModelGroup[] {
   return field?.content ?? [];
+}
+
+/**
+ * generalOutcomes is optional on LogicModel (most files never set it), unlike the always-present
+ * short/medium/long-term fields — initialize it before the domain loop below writes/reads
+ * `model[domain].content` and `model[synonym]` unconditionally.
+ */
+function ensureGeneralOutcomes(model: LogicModel): void {
+  if (!model.generalOutcomes) model.generalOutcomes = { content: [] };
+  if (!Array.isArray(model.generalOutcomes.content)) model.generalOutcomes.content = [];
 }
 
 function ensureUnmapped(model: LogicModel): void {
@@ -77,6 +88,7 @@ function pushItem(groups: LogicModelGroup[], groupName: string, item: LogicModel
  */
 export function applySourceAwareMapping(model: LogicModel): LogicModel {
   ensureUnmapped(model);
+  ensureGeneralOutcomes(model);
   if (!model.layoutFamily) model.layoutFamily = 'vertical_columns';
   if (!model.mappingCorrections) model.mappingCorrections = [];
 
@@ -257,8 +269,9 @@ export function reassignItemDomain(
 ): { model: LogicModel; event: MappingCorrectionEvent | null } {
   const next = structuredClone(model);
   ensureUnmapped(next);
+  ensureGeneralOutcomes(next);
 
-  const fromField = args.fromDomain === 'unmapped' ? next.unmapped! : next[args.fromDomain];
+  const fromField = args.fromDomain === 'unmapped' ? next.unmapped! : next[args.fromDomain]!;
   const fromGroups = getGroups(fromField);
   const group = fromGroups[args.fromGroupIndex];
   if (!group) return { model, event: null };

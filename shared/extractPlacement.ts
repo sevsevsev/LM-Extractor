@@ -10,6 +10,7 @@ export type LogicModelDomain =
   | 'shortTermOutcomes'
   | 'mediumTermOutcomes'
   | 'longTermOutcomes'
+  | 'generalOutcomes'
   | 'impact';
 
 const GROUPED_DOMAINS: LogicModelDomain[] = [
@@ -19,6 +20,7 @@ const GROUPED_DOMAINS: LogicModelDomain[] = [
   'shortTermOutcomes',
   'mediumTermOutcomes',
   'longTermOutcomes',
+  'generalOutcomes',
   'impact',
 ];
 
@@ -62,6 +64,7 @@ const ALL_DOMAINS: LogicModelDomain[] = [
   'shortTermOutcomes',
   'mediumTermOutcomes',
   'longTermOutcomes',
+  'generalOutcomes',
   'impact',
 ];
 

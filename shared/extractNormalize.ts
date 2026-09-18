@@ -11,6 +11,7 @@ type GroupedDomain =
   | 'shortTermOutcomes'
   | 'mediumTermOutcomes'
   | 'longTermOutcomes'
+  | 'generalOutcomes'
   | 'impact';
 
 export interface NormalizeExtractOptions {
@@ -24,6 +25,7 @@ const OUTCOME_DOMAINS: GroupedDomain[] = [
   'shortTermOutcomes',
   'mediumTermOutcomes',
   'longTermOutcomes',
+  'generalOutcomes',
   'impact',
 ];
 
@@ -155,6 +157,10 @@ export function normalizeExtractedLogicModel(
   model: LogicModel,
   options?: NormalizeExtractOptions
 ): LogicModel {
+  // generalOutcomes is optional on raw Gemini JSON (most documents never populate it) — initialize
+  // it up front so every helper below (and applySourceAwareMapping after them) can treat it like
+  // the always-present outcome fields instead of each needing its own undefined guard.
+  if (!model.generalOutcomes) model.generalOutcomes = { content: [] };
   fillMissingImpactStatementFromSourceText(model, options?.sourceText);
   promoteImpactStatementFromMission(model);
   promoteImpactStatementFromGroupedDomains(model);
