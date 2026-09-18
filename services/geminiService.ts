@@ -1,4 +1,4 @@
-import { DocumentBundle, LogicModel } from '../types';
+import { DetectLogicModelGroupsInput, DocumentBundle, LogicModel, LogicModelPageGroup } from '../types';
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 500;
@@ -11,7 +11,7 @@ function isTransientHttpStatus(status: number): boolean {
   return status === 429 || (status >= 500 && status < 600);
 }
 
-async function postJson<T>(url: string, body: unknown): Promise<T> {
+async function postJson<T extends { error?: string }>(url: string, body: unknown): Promise<T> {
   let lastError: unknown;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
@@ -22,10 +22,7 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
         body: JSON.stringify(body),
       });
 
-      const payload = (await response.json().catch(() => ({}))) as {
-        model?: LogicModel;
-        error?: string;
-      };
+      const payload = (await response.json().catch(() => ({}))) as T;
 
       if (!response.ok) {
         const message = payload.error || `Request failed (${response.status})`;
@@ -36,10 +33,7 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
         throw new Error(message);
       }
 
-      if (!payload.model) {
-        throw new Error('Server response missing logic model.');
-      }
-      return payload as T;
+      return payload;
     } catch (error) {
       lastError = error;
       const retryable =
@@ -55,6 +49,23 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 }
 
 export const extractLogicModel = async (bundle: DocumentBundle): Promise<LogicModel> => {
-  const data = await postJson<{ model: LogicModel }>('/api/gemini/extract', bundle);
+  const data = await postJson<{ model?: LogicModel; error?: string }>('/api/gemini/extract', bundle);
+  if (!data.model) throw new Error('Server response missing logic model.');
   return data.model;
+};
+
+/**
+ * Cheap pre-pass deciding whether an upload contains one logic model or several — see
+ * docs/specs/multi-logic-model-pdf-v1.md. Never throws for the caller to treat as "must split";
+ * the server already falls back to a single whole-document group on any detection failure, so a
+ * network error here should surface like any other extraction-path failure, not silently.
+ */
+export const detectLogicModelGroups = async (
+  input: DetectLogicModelGroupsInput
+): Promise<LogicModelPageGroup[]> => {
+  const data = await postJson<{ groups?: LogicModelPageGroup[]; error?: string }>(
+    '/api/gemini/detect-logic-models',
+    input
+  );
+  return data.groups ?? [{ startPage: 1, endPage: Math.max(1, input.previewImages.length) }];
 };

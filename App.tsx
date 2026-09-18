@@ -6,10 +6,12 @@ import LogicModelEditor from './components/LogicModelEditor';
 import SessionFileList from './components/SessionFileList';
 import SourceDocumentPane, { type HighlightRegion, type SourceFocus } from './components/SourceDocumentPane';
 import { LogicModelPdfTemplate, PDF_PAGE_WIDTH_PX } from './components/LogicModelPdfTemplate';
-import { extractLogicModel } from './services/geminiService';
+import { detectLogicModelGroups, extractLogicModel } from './services/geminiService';
 import { countCodingExportRows, downloadCodingExportCsv } from './services/codingExport';
 import { normalizeExtractedLogicModel } from './shared/extractNormalize';
 import { buildGranularExportRows } from './shared/domainPresence';
+import { sliceDocumentBundle } from './shared/documentBundleSlicing';
+import { displayFileName } from './shared/processingFileDisplay';
 import { brand } from './config/brand';
 import { shouldSuggestMismatch } from './shared/sourceMapping';
 import {
@@ -44,7 +46,10 @@ function toPersistedRecord(f: ProcessingFile): PersistedFileRecord {
   return {
     id: f.id,
     file: f.file,
-    status: f.status === 'converting' || f.status === 'extracting' ? 'pending' : f.status,
+    status:
+      f.status === 'converting' || f.status === 'detecting' || f.status === 'extracting'
+        ? 'pending'
+        : f.status,
     result: f.result,
     warnings: f.warnings,
     extractionBlockers: f.extractionBlockers,
@@ -53,6 +58,10 @@ function toPersistedRecord(f: ProcessingFile): PersistedFileRecord {
     fidelityBannerDismissed: f.fidelityBannerDismissed,
     codingExportFidelityAck: f.codingExportFidelityAck,
     sourcePaneCollapsed: f.sourcePaneCollapsed,
+    sourceDocumentId: f.sourceDocumentId,
+    sourcePageRange: f.sourcePageRange,
+    splitPartLabel: f.splitPartLabel,
+    forceSingleModel: f.forceSingleModel,
   };
 }
 
@@ -99,6 +108,10 @@ function persistedRecordToProcessingFile(record: PersistedFileRecord): Processin
     fidelityBannerDismissed: record.fidelityBannerDismissed,
     codingExportFidelityAck: record.codingExportFidelityAck,
     sourcePaneCollapsed: record.sourcePaneCollapsed,
+    sourceDocumentId: record.sourceDocumentId,
+    sourcePageRange: record.sourcePageRange,
+    splitPartLabel: record.splitPartLabel,
+    forceSingleModel: record.forceSingleModel,
   };
 }
 
@@ -108,6 +121,7 @@ const PERSIST_DEBOUNCE_MS = 1200;
 const STATUS_LABELS: Record<ProcessingFile['status'], string> = {
   pending: 'Queued',
   converting: 'Reading layout',
+  detecting: 'Checking for multiple logic models',
   extracting: 'Extracting',
   editing: 'Ready to edit',
   completed: 'Ready to edit',
@@ -160,6 +174,9 @@ const App: React.FC = () => {
   const dispatchedExtractIds = useRef<Set<string>>(new Set());
   const pendingBundles = useRef<Record<string, DocumentBundle>>({});
   const regeneratingPreviewsRef = useRef<Set<string>>(new Set());
+  // Multi-logic-model detection — see docs/specs/multi-logic-model-pdf-v1.md.
+  const detectingCountRef = useRef(0);
+  const dispatchedDetectIds = useRef<Set<string>>(new Set());
 
   // Session checkpoint/resume — see docs/specs for the persistence design.
   const [resumeState, setResumeState] = useState<'checking' | 'prompt' | 'none'>('checking');
@@ -210,7 +227,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (resumeState !== 'none') return;
     for (const f of files) {
-      if (f.status === 'converting' || f.status === 'extracting') continue;
+      if (f.status === 'converting' || f.status === 'detecting' || f.status === 'extracting') continue;
       const record = toPersistedRecord(f);
       const hash = hashPersistedRecord(record);
       if (lastPersistedHash.current.get(f.id) === hash) continue;
@@ -261,6 +278,45 @@ const App: React.FC = () => {
     persistTimers.current.delete(fileId);
     lastPersistedHash.current.delete(fileId);
     void deleteSavedFile(fileId);
+  };
+
+  /**
+   * Cheap escape hatch for a wrong multi-logic-model split (see
+   * docs/specs/multi-logic-model-pdf-v1.md Design §7): remove every sibling split from the same
+   * upload and re-queue one fresh entry with `forceSingleModel` set, so it skips detection
+   * entirely and is extracted exactly like the pipeline behaved before this feature existed.
+   */
+  const treatAsSingleModel = (fileId: string) => {
+    setFiles(prev => {
+      const target = prev.find(f => f.id === fileId);
+      if (!target) return prev;
+      const groupId = target.sourceDocumentId ?? fileId;
+      const isSibling = (f: ProcessingFile) => (f.sourceDocumentId ?? f.id) === groupId;
+      for (const sibling of prev.filter(isSibling)) {
+        if (selectedFileId === sibling.id) setSelectedFileId(null);
+        if (previewFileId === sibling.id) setPreviewFileId(null);
+        setSourceFocusByFileId(sfPrev => {
+          const next = { ...sfPrev };
+          delete next[sibling.id];
+          return next;
+        });
+        const timer = persistTimers.current.get(sibling.id);
+        if (timer) clearTimeout(timer);
+        persistTimers.current.delete(sibling.id);
+        lastPersistedHash.current.delete(sibling.id);
+        void deleteSavedFile(sibling.id);
+      }
+      const rebuilt: ProcessingFile = {
+        id: createFileId(),
+        file: target.file,
+        status: 'pending',
+        forceSingleModel: true,
+      };
+      const firstIndex = prev.findIndex(isSibling);
+      const kept = prev.filter(f => !isSibling(f));
+      const insertAt = prev.slice(0, firstIndex).filter(f => !isSibling(f)).length;
+      return [...kept.slice(0, insertAt), rebuilt, ...kept.slice(insertAt)];
+    });
   };
 
   const retryFile = (fileId: string) => {
@@ -348,14 +404,27 @@ const App: React.FC = () => {
           );
         }
 
+        // A re-queued split part (Retry) already knows its own page range within the shared
+        // original document — slice down to it now, once, rather than re-detecting or extracting
+        // the whole document again. See docs/specs/multi-logic-model-pdf-v1.md.
+        if (pendingFile.sourcePageRange) {
+          bundle = sliceDocumentBundle(bundle, pendingFile.sourcePageRange);
+        }
+
+        const pageCount = bundle.previewImages?.length ?? 0;
+        const skipDetection =
+          Boolean(pendingFile.sourcePageRange) || Boolean(pendingFile.forceSingleModel) || pageCount < 2;
+
         pendingBundles.current[fileId] = bundle;
         setFiles(prev =>
           prev.map(f =>
             f.id === fileId
               ? {
                   ...f,
-                  status: 'extracting',
-                  progressMsg: 'Extracting logic model structure...',
+                  status: skipDetection ? 'extracting' : 'detecting',
+                  progressMsg: skipDetection
+                    ? 'Extracting logic model structure...'
+                    : 'Checking for multiple logic models...',
                   warnings: bundle.warnings.length ? bundle.warnings : undefined,
                   // Keep page previews for side-by-side review; do not upload them to Gemini.
                   sourcePreviewImages:
@@ -462,7 +531,97 @@ const App: React.FC = () => {
       }
     };
 
+    // Cheap pre-pass: decide whether a converted, multi-page bundle actually holds one logic
+    // model or several before running the real extraction — see
+    // docs/specs/multi-logic-model-pdf-v1.md. Biased hard toward "still one" both in the prompt
+    // and here: any detection failure (network error, malformed response) falls back to treating
+    // the document as a single logic model, exactly like the pipeline behaved before this existed.
+    const runDetection = async (fileId: string, bundle: DocumentBundle) => {
+      try {
+        const pageCount = bundle.previewImages?.length ?? 0;
+        let groups = [{ startPage: 1, endPage: Math.max(1, pageCount) }];
+        if (pageCount >= 2 && bundle.previewImages) {
+          try {
+            groups = await detectLogicModelGroups({
+              previewImages: bundle.previewImages,
+              textTrack: bundle.textTrack,
+              sourceFormat: bundle.sourceFormat,
+            });
+          } catch (detectError) {
+            console.warn(
+              'Multi-logic-model detection failed; treating as a single logic model:',
+              detectError
+            );
+          }
+        }
+
+        if (groups.length <= 1) {
+          setFiles(prev =>
+            prev.map(f =>
+              f.id === fileId
+                ? { ...f, status: 'extracting', progressMsg: 'Extracting logic model structure...' }
+                : f
+            )
+          );
+          return;
+        }
+
+        // Multiple logic models — replace the single pending entry with N independent ones, each
+        // carrying its own renumbered slice of the already-converted bundle (no re-conversion, no
+        // new PDF-splitting dependency — see the spec doc's Design §2).
+        setFiles(prev => {
+          const original = prev.find(f => f.id === fileId);
+          if (!original) return prev;
+          const total = groups.length;
+          const sourceDocumentId = original.sourceDocumentId ?? fileId;
+          const splitEntries: ProcessingFile[] = groups.map((group, i) => {
+            const newId = createFileId();
+            const subBundle = sliceDocumentBundle(bundle, { start: group.startPage, end: group.endPage });
+            pendingBundles.current[newId] = subBundle;
+            return {
+              id: newId,
+              file: original.file,
+              status: 'extracting',
+              progressMsg: 'Extracting logic model structure...',
+              warnings: subBundle.warnings.length ? subBundle.warnings : undefined,
+              sourcePreviewImages:
+                subBundle.previewImages && subBundle.previewImages.length > 0
+                  ? subBundle.previewImages
+                  : undefined,
+              sourcePaneCollapsed: true,
+              sourceDocumentId,
+              sourcePageRange: { start: group.startPage, end: group.endPage },
+              splitPartLabel: `Part ${i + 1} of ${total}`,
+            };
+          });
+          return prev.flatMap(f => (f.id === fileId ? splitEntries : f));
+        });
+        // Only reached on an actual split — the original id no longer has an entry in `files`, so
+        // its stashed bundle would otherwise leak. The single-group case returns above without
+        // reaching here, deliberately leaving pendingBundles.current[fileId] in place for
+        // startExtractions() to pick up next.
+        delete pendingBundles.current[fileId];
+      } finally {
+        dispatchedDetectIds.current.delete(fileId);
+        detectingCountRef.current -= 1;
+      }
+    };
+
+    const startDetections = () => {
+      for (const f of files) {
+        if (f.status !== 'detecting') continue;
+        if (dispatchedDetectIds.current.has(f.id)) continue;
+        if (detectingCountRef.current >= MAX_CONCURRENT_EXTRACTS) break;
+        const bundle = pendingBundles.current[f.id];
+        if (!bundle) continue; // conversion result not yet stashed on this pass
+        dispatchedDetectIds.current.add(f.id);
+        detectingCountRef.current += 1;
+        void runDetection(f.id, bundle);
+      }
+    };
+
     startConversion();
+    startDetections();
     startExtractions();
   }, [files]);
 
@@ -490,6 +649,9 @@ const App: React.FC = () => {
       else if (fileName.endsWith('.docx')) bundle = await convertDocxToImages(target.file);
       else if (fileName.endsWith('.pptx')) bundle = await convertPptxToImages(target.file);
       else return;
+      // A resumed split entry only knows its own page range within the shared original file —
+      // slice back down to it (same as the live pipeline does on first conversion).
+      if (target.sourcePageRange) bundle = sliceDocumentBundle(bundle, target.sourcePageRange);
       if (bundle.previewImages && bundle.previewImages.length > 0) {
         const previews = bundle.previewImages;
         setFiles(prev =>
@@ -547,7 +709,7 @@ const App: React.FC = () => {
     ];
 
     const exportRows = buildGranularExportRows(
-      completed.map(f => ({ model: modelForExport(f.result!, f.warnings), sourceFilename: f.file.name }))
+      completed.map(f => ({ model: modelForExport(f.result!, f.warnings), sourceFilename: displayFileName(f) }))
     );
     const rows = exportRows.map(r => [
       r.organization,
@@ -911,8 +1073,15 @@ const App: React.FC = () => {
                 <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-md border border-gray-200">
                   <div className="flex items-center space-x-3 min-w-0">
                     <span className="font-bold text-sm text-brand-navy truncate">
-                      {file.result?.program?.trim() || file.file.name}
+                      {file.result?.program?.trim() || displayFileName(file)}
                     </span>
+                    {/* displayFileName already appends the part label when there's no program
+                        name yet — only add this separate chip once a program name has replaced it. */}
+                    {file.result?.program?.trim() && file.splitPartLabel && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded shrink-0 bg-slate-100 text-slate-600">
+                        {file.splitPartLabel}
+                      </span>
+                    )}
                     <span
                       className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded shrink-0 ${
                         isExportReady(file.status)
@@ -945,6 +1114,16 @@ const App: React.FC = () => {
                         </button>
                       </>
                     )}
+                    {file.splitPartLabel && (
+                      <button
+                        type="button"
+                        onClick={() => treatAsSingleModel(file.id)}
+                        className="text-xs font-bold text-brand-navy hover:underline px-2 py-1.5"
+                        title="Undo the automatic split and re-process this upload as one logic model."
+                      >
+                        ↩ Treat as one logic model
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => setSelectedFileId(null)}
@@ -956,7 +1135,7 @@ const App: React.FC = () => {
                       type="button"
                       onClick={() => removeFile(file.id)}
                       className="text-xs font-bold text-slate-500 hover:text-red-600 px-2 py-1.5"
-                      aria-label={`Remove ${file.file.name}`}
+                      aria-label={`Remove ${displayFileName(file)}`}
                     >
                       Remove
                     </button>

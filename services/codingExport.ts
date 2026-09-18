@@ -1,6 +1,7 @@
 import type { LogicModel, LogicModelGroup, ProcessingFile } from '../types';
 import { qaStatusLabel } from '../shared/qaStatus.js';
 import { documentTypeFlagLabel } from '../shared/extractionFidelity.js';
+import { displayFileName } from '../shared/processingFileDisplay.js';
 
 /** Domains included in Export for coding — see docs/specs/export-for-coding.md */
 export const CODING_EXPORT_DOMAINS = [
@@ -57,7 +58,7 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
             color,
             needsReview,
             colorLegend,
-            f.file.name,
+            displayFileName(f),
             qaStatus,
             documentTypeFlag,
           ]);

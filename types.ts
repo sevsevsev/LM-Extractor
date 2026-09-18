@@ -175,6 +175,20 @@ export interface SourceImageRef {
 }
 
 /**
+ * One page range Gemini identified as containing a single, complete logic model, from the
+ * `detect-logic-models` pre-pass (see `docs/specs/multi-logic-model-pdf-v1.md`). 1-based,
+ * inclusive, matching `DocumentBundle.previewImages` indexing for the *original*, unsliced
+ * document. Groups from one detection call always cover every page exactly once, in order —
+ * see `shared/logicModelPageGroups.ts`.
+ */
+export interface LogicModelPageGroup {
+  startPage: number;
+  endPage: number;
+  /** Organization/program name for this range, only when confidently legible — UI label only. */
+  label?: string;
+}
+
+/**
  * Dual-track handoff from format adapters → Gemini extract.
  * Track A = `textTrack` (Markdown / structural text); Track B = `images` (page rasters).
  */
@@ -198,6 +212,17 @@ export interface DocumentBundle {
   sourceFormat: 'pdf' | 'docx' | 'pptx';
 }
 
+/**
+ * Input to the `detect-logic-models` pre-pass — deliberately narrower than `DocumentBundle`: it
+ * needs one whole-page image per page (`previewImages`, already computed for the source-review
+ * pane), not Track B's possibly column-tiled `images`.
+ */
+export interface DetectLogicModelGroupsInput {
+  previewImages: string[];
+  textTrack: string;
+  sourceFormat: DocumentBundle['sourceFormat'];
+}
+
 /** Canonical warning when image-dominant / flattened pages are present (drives extract prompt). */
 export const LOW_LEGIBILITY_WARNING =
   'Source includes flattened-raster page(s); small text may be misread.';
@@ -211,7 +236,7 @@ export function bundleImpliesLowLegibility(bundle: Pick<DocumentBundle, 'warning
 export interface ProcessingFile {
   id: string;
   file: File;
-  status: 'pending' | 'converting' | 'extracting' | 'editing' | 'completed' | 'error';
+  status: 'pending' | 'converting' | 'detecting' | 'extracting' | 'editing' | 'completed' | 'error';
   progressMsg?: string;
   error?: string;
   result?: LogicModel;
@@ -239,4 +264,21 @@ export interface ProcessingFile {
   /** User collapsed the source pane for this file (session). */
   /** When true (or undefined treated as collapsed in UI), source preview is hidden. Default collapsed. */
   sourcePaneCollapsed?: boolean;
+  /**
+   * Multi-logic-model split (see `docs/specs/multi-logic-model-pdf-v1.md`). Set together — a file
+   * carries all three, or none. `sourceDocumentId` groups siblings split from the same upload
+   * (the original upload's own `id`, reused as the group key); `sourcePageRange` is 1-based,
+   * inclusive, and refers to page numbers in the *original* uploaded document (not this entry's
+   * own re-numbered bundle); `splitPartLabel` is a display string like `"Part 2 of 7"`.
+   */
+  sourceDocumentId?: string;
+  sourcePageRange?: { start: number; end: number };
+  splitPartLabel?: string;
+  /**
+   * Set by the "Treat as one logic model" revert action (or could be set some other way in
+   * future) — when a file with this flag reaches conversion, the multi-logic-model detection
+   * pre-pass is skipped entirely and it's extracted as a single logic model, exactly like the
+   * pipeline behaved before this feature existed.
+   */
+  forceSingleModel?: boolean;
 }

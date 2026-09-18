@@ -1,5 +1,6 @@
-import type { DocumentBundle } from '../types';
+import type { DetectLogicModelGroupsInput, DocumentBundle } from '../types';
 import { extractLogicModelOnServer } from './geminiLogicModel.js';
+import { detectLogicModelGroupsOnServer } from './geminiLogicModelGroups.js';
 
 export interface ApiResult {
   status: number;
@@ -83,6 +84,38 @@ export async function handleExtractRequest(rawBody: unknown): Promise<ApiResult>
 
     const model = await extractLogicModelOnServer(apiKey, bundle);
     return { status: 200, body: { model } };
+  } catch (error) {
+    return errorResult(error);
+  }
+}
+
+/** Narrower than `parseDocumentBundle` — only needs `previewImages` (whole pages), not Track B. */
+export function parseDetectLogicModelGroupsInput(rawBody: unknown): DetectLogicModelGroupsInput | null {
+  const body = parseJsonBody(rawBody);
+  if (!isSourceFormat(body.sourceFormat)) return null;
+  const previewImages = Array.isArray(body.previewImages)
+    ? body.previewImages.filter((img): img is string => typeof img === 'string' && img.length > 0)
+    : [];
+  if (previewImages.length === 0) return null;
+  const textTrack = typeof body.textTrack === 'string' ? body.textTrack : '';
+  return { previewImages, textTrack, sourceFormat: body.sourceFormat };
+}
+
+export async function handleDetectLogicModelGroupsRequest(rawBody: unknown): Promise<ApiResult> {
+  const apiKey = getApiKey();
+  if (!apiKey) return missingKeyResult();
+
+  try {
+    const input = parseDetectLogicModelGroupsInput(rawBody);
+    if (!input) {
+      return {
+        status: 400,
+        body: { error: 'Request must include sourceFormat and a non-empty previewImages[].' },
+      };
+    }
+
+    const groups = await detectLogicModelGroupsOnServer(apiKey, input);
+    return { status: 200, body: { groups } };
   } catch (error) {
     return errorResult(error);
   }

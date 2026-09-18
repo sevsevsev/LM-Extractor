@@ -1,6 +1,6 @@
 # Multi-logic-model documents v1: auto-split one upload into N logic models
 
-Status: **Scoped / not yet built** (owner 2026-09-18)
+Status: **Implemented** (2026-09-18)
 
 ## Problem
 
@@ -24,8 +24,8 @@ extracted model is *the* model, just possibly imperfect.
 
 ### 1. Detection — a cheap pre-pass, gated to multi-page documents
 
-Add a new, small Gemini call (new endpoint, e.g. `api/gemini/detect-logic-models.ts`, mirroring
-`api/gemini/extract.ts`'s client/server split) that takes the **already-converted** bundle's
+A new, small Gemini call (`api/gemini/detect-logic-models.ts` / `server/geminiLogicModelGroups.ts`,
+mirroring `api/gemini/extract.ts`'s client/server split) takes the **already-converted** bundle's
 preview images and Track A text (no new rendering work — reuses exactly what
 `convertPdfToImages`/`convertDocxToImages`/`convertPptxToImages` already produced for the normal
 path) and returns page-range groupings:
@@ -48,6 +48,18 @@ path) and returns page-range groupings:
   is confirmed from a real partner document**; DOCX/PPTX support is architecturally free but
   functionally unvalidated until we see a real multi-model example in either format. Treat as
   lower-confidence for those two formats going in.
+
+**Conservative by design, not just by accident.** Many single logic models legitimately span
+multiple pages — e.g. an overview/Impact Statement on page 1 and the grid on page 2 — and must
+never be split just because the layout or a heading changes partway through. The prompt
+(`getDetectLogicModelGroupsPrompt` in `constants.ts`) defaults to **one group** and only splits
+when BOTH of these hold: (1) a genuinely different Organization/Program name appears, AND (2) the
+grid visibly restarts from Inputs/Resources after a complete grid was already shown. "Not
+confident" always means "stay as one" — a wrong "still one" costs nothing extra (a human reviews
+every extraction anyway); a wrong "split" breaks a document that should have stayed together.
+`shared/logicModelPageGroups.ts`'s `normalizeLogicModelPageGroups` enforces the same posture in
+code: any malformed or non-contiguous response (gaps, overlaps, doesn't start at page 1 / end at
+`pageCount`) falls back to one whole-document group rather than a partial split.
 
 ### 2. Splitting — in-memory bundle slicing, no new PDF library
 
@@ -94,12 +106,16 @@ session for large batches. Instead:
 
 ### 5. Naming / traceability
 
-Display filename per split entry: `${originalStem} — part ${i} of ${n}${ext}` (e.g.
-`"1234_5678_org-programs.pdf — part 2 of 7"`), keeping the **original leading
-`orgid_progid_` prefix intact** so the existing filename-convention CSV workflow described
-earlier in this project still parses per row. `source_filename` in both exports carries this
-per-part name as-is — no new export column needed, since the shared prefix already ties split
-rows back together by eye/sort, the same way any two related uploads would be matched today.
+Display filename per split entry (`shared/processingFileDisplay.ts`'s `displayFileName`):
+`${file.name} — Part ${i} of ${n}` (e.g. `"1234_5678_org-programs.pdf — Part 2 of 7"`), keeping
+the **original leading `orgid_progid_` prefix intact** so the existing filename-convention CSV
+workflow described earlier in this project still parses per row. `source_filename` in both
+exports carries this per-part name as-is — no new export column needed, since the shared prefix
+already ties split rows back together by eye/sort, the same way any two related uploads would be
+matched today. Once a split entry finishes extracting, its own extracted `program` name takes
+over as the primary label in the UI (session list / board header), with the part label kept
+alongside as a small badge — so a completed split reads as "Meals on Wheels (Part 3 of 7)", not
+just a filename suffix.
 
 ### 6. UI — flat rows, no new grouping component
 
@@ -112,12 +128,16 @@ of the app already uses.
 ### 7. Revert — cheap escape hatch, not a merge/undo UI
 
 Detection can misfire (false split of a genuinely single multi-page model, or a false merge of
-two that really are separate). Rather than building a real merge/undo UI, show a one-time notice
-right after a split happens: **"This document looks like it contains 7 separate logic models —
-[Keep as 7] [Actually just one]."** Choosing "Actually just one" simply re-runs today's normal
-single-extraction path on the original (unsliced) bundle instead of the split ones — cheap to
-build, no new state to maintain, and directly answers the "how do we avoid this being brittle"
-concern by making a bad call reversible in one click instead of a re-upload.
+two that really are separate). Rather than building a real merge/undo UI, every split entry's
+board header carries a persistent **"↩ Treat as one logic model"** button (not a one-time toast —
+it stays available for as long as the entry exists, so a user can reconsider later, not only in
+the moment right after the split). Clicking it removes every sibling split from the same upload
+and re-queues one fresh entry with `ProcessingFile.forceSingleModel` set, which makes
+`startConversion` skip the detection pre-pass entirely and extract the full, unsliced document —
+exactly the pipeline's pre-feature behavior. Cheap to build (one boolean flag + one array
+filter/re-add in `App.tsx`'s `treatAsSingleModel`), no new transient banner state, and directly
+answers the "how do we avoid this being brittle" concern by making a bad call reversible in one
+click instead of a re-upload.
 
 ## Out of scope (v1)
 
@@ -125,7 +145,7 @@ concern by making a bad call reversible in one click instead of a re-upload.
   — see Design §2).
 - Manual page-range override UI (a human draws their own split boundaries) — natural v2 if
   detection accuracy proves imperfect in practice; not needed for a first ship.
-- Merge-back-after-split UI beyond the one-time revert notice in Design §7.
+- Merge-back-after-split UI beyond the "Treat as one logic model" revert action in Design §7.
 - A nested/grouped session-list view — flat rows only (Design §6).
 - Treating DOCX/PPTX multi-model detection as validated — architecture supports it, but ship
   behind the same confidence bar as PDF only once a real example is seen, or explicitly caveat it.
@@ -140,18 +160,49 @@ uncommon 7-in-1 case. Worth an explicit go/no-go before implementation, along wi
 `sessionStore.ts` schema migration in Design §4, since that's the one piece touching existing
 persisted data.
 
+## Verification
+
+Live-tested against the real dev pipeline (Playwright + a real `GEMINI_API_KEY`, not just unit tests):
+
+1. **Not overzealous (the core concern):** a real, unmocked 2-page single-program PDF
+   (`PHENND_Logic_Model_final.pdf`, overview on page 1 / grid on page 2) went through the
+   detection pre-pass for real and correctly returned a single group covering both pages — no
+   split, one board entry, "1 ready", 38 items, high confidence, zero console errors.
+2. **Split mechanics:** the detection response was mocked to force a 2-group split on a real
+   2-page PDF (`YLA_Logic_Model_2026.pdf`), with each group's real extraction still running
+   unmocked. Result: two independent board entries ("Part 1 of 2", "Part 2 of 2"), each with its
+   own program name, fidelity status (the page-1-only fragment correctly self-flagged **Needs
+   Review** — "Only overview page with Impact Statement provided; multi-column logic model grid
+   is not present" — while the page-2 grid fragment extracted cleanly at high confidence), and
+   both CSV exports carried distinguishable `source_filename`/`group` rows per part.
+3. **Revert:** clicking "↩ Treat as one logic model" on a split entry removed both parts and
+   re-queued one fresh upload with `forceSingleModel` set; it skipped detection (confirmed the
+   still-mocked detect endpoint was never re-invoked) and re-extracted the full 2-page document as
+   a single, complete 31-item logic model.
+
+A real bug was caught and fixed during this verification: `runDetection`'s `finally` block
+unconditionally deleted `pendingBundles.current[fileId]`, which — for the common single-group
+case — deleted the bundle `startExtractions()` needed before it ever had a chance to dispatch the
+real extraction call, silently hanging every multi-page upload in "Extracting" forever. Fixed by
+only deleting that entry on the actual split path (where it's replaced by per-part entries under
+new ids), leaving it in place for `startExtractions()` on the single-group path.
+
 ## Acceptance criteria
 
-1. A single-logic-model upload (any page count) behaves identically to today — same timing
+1. ✅ A single-logic-model upload (any page count) behaves identically to today — same timing
    characteristics aside from the one added lightweight detection call, same single board/export
    result.
-2. A confirmed multi-logic-model PDF (the real 7-page example) produces 7 independent, fully
-   editable board entries, each exportable and downloadable exactly like any normal upload.
-3. Both CSV exports carry all 7 entries' rows with distinguishable `source_filename` values that
+2. ✅ A confirmed multi-logic-model PDF produces N independent, fully editable board entries, each
+   exportable and downloadable exactly like any normal upload (verified with N=2; the mechanism is
+   not N-specific — see Design §2/§3).
+3. ✅ Both CSV exports carry all N entries' rows with distinguishable `source_filename` values that
    preserve the original `orgid_progid_` prefix.
-4. Session resume after a browser refresh restores all 7 split entries correctly without storing
-   7 copies of the source file.
-5. The one-time revert notice successfully collapses a bad split back into the original
-   single-extraction path with no partial/orphaned split entries left behind.
+4. Session resume after a browser refresh restores split entries correctly without storing N
+   copies of the source file — covered by the `sessionStore.ts` dedup design (Design §4); not yet
+   live-tested (unit tests cover the slicing/dedup logic, not a real refresh-mid-session run).
+5. ✅ The "Treat as one logic model" revert action successfully collapses a bad split back into the
+   original single-extraction path with no partial/orphaned split entries left behind.
+
+**Version:** v1.1 — 2026-09-18 — implemented, verified live against the real pipeline, fixed a bundle-cleanup bug found during verification.
 
 **Version:** v1.0 — 2026-09-18 — scoped, not yet built.

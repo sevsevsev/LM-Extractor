@@ -355,3 +355,50 @@ ${
     Use "General" unless a real in-column label/track is visible. Prefer empty \`impact.content\` over inventing Impact items.
     `;
 };
+
+/**
+ * Cheap pre-pass, run before the main extraction call, deciding ONLY whether an uploaded
+ * document contains one logic model or more than one genuinely separate one (e.g. a partner's
+ * single PDF with one program's logic model per page). See docs/specs/multi-logic-model-pdf-v1.md
+ * for why this is deliberately biased hard toward "still one" — a false split actively breaks a
+ * document that should have stayed together, while a false "still one" just reproduces the
+ * pipeline's pre-existing single-model behavior, which is not a regression.
+ */
+export const getDetectLogicModelGroupsPrompt = (pageCount: number): string => `
+    You are shown ${pageCount} page image(s) from ONE uploaded document, in page order, plus its
+    structural text when available. Your ONLY job: decide whether this document contains ONE logic
+    model, or MORE THAN ONE separate, complete logic model, and report page ranges. Do not extract
+    any content — only classify page ranges.
+
+    A "logic model" here means one program's whole package: an overview (organization/program name,
+    usually with an impact statement / mission / target population) plus a grid of
+    inputs/resources → activities → outputs → outcomes (short/medium/long-term, or a single
+    combined column) → optionally impact.
+
+    **DEFAULT: the whole document is ONE logic model.** Most documents ARE one logic model spread
+    across multiple pages — e.g. page 1 has the overview/impact statement and page 2 has the grid,
+    or a wide grid is printed split across two facing pages. That is normal and still ONE group.
+    Do **not** start a new group just because the page layout changes, a page break happens, or a
+    new heading appears — a heading like "IMPACT STATEMENT" or "RESOURCES" partway through one
+    program's own story is expected, not evidence of a second logic model.
+
+    **Only split when the document clearly restarts for a DIFFERENT program.** Require BOTH of
+    these together, not just one:
+    1. A different Organization or Program name/title appears (a new section heading alone does
+       not count — this must be a genuinely different program identity).
+    2. The grid visibly restarts from the beginning (Inputs/Resources again) after a complete grid
+       (through Outcomes and/or Impact) was already shown earlier in the document.
+
+    If you are not confident both signals are present, treat the document as ONE logic model. A
+    wrong "still one" call costs nothing extra — a human reviews every extraction anyway. A wrong
+    "split" call breaks a document that should have stayed together into disconnected pieces. When
+    in doubt, do not split.
+
+    Return page ranges that together cover every page **exactly once**, page 1 through page
+    ${pageCount}, in order, with no gaps and no overlaps. When a range does start a different
+    program and you can confidently read its organization/program name, include it as \`label\`
+    (omit \`label\` rather than guess).
+
+    **OUTPUT FORMAT** (JSON only, no extra keys):
+    { "groups": [{ "startPage": 1, "endPage": ${pageCount} }] }
+    `;

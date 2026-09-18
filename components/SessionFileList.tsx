@@ -4,10 +4,12 @@ import { countExtractionItems } from '../shared/extractionFidelity';
 import { shouldSuggestMismatch } from '../shared/sourceMapping';
 import { isExportReady, isPipelineBusy } from '../shared/sessionQueue';
 import { needsQaReview } from '../shared/qaStatus';
+import { displayFileName } from '../shared/processingFileDisplay';
 
 const PROCESSING_LABELS: Record<ProcessingFile['status'], string> = {
   pending: 'Queued',
   converting: 'Reading layout',
+  detecting: 'Checking for multiple logic models',
   extracting: 'Extracting',
   editing: 'Ready',
   completed: 'Ready',
@@ -67,7 +69,14 @@ const FileRow: React.FC<FileRowProps> = ({ file, selected, onSelect, variant }) 
       >
         <span className="min-w-0 flex-1">
           <span className="block font-bold text-sm text-brand-navy truncate">
-            {program || file.file.name}
+            {program || displayFileName(file)}
+            {/* displayFileName already appends the part label when there's no program name yet —
+                only add a separate chip once a program name has replaced it, to avoid duplication. */}
+            {program && file.splitPartLabel && (
+              <span className="ml-1.5 text-[10px] font-bold text-slate-500 align-middle">
+                ({file.splitPartLabel})
+              </span>
+            )}
           </span>
           {variant === 'flagged' && (
             <span className="block text-xs text-amber-800 truncate">{flagReason(file)}</span>

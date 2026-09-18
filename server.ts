@@ -3,7 +3,7 @@ import path from 'path';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { config as loadDotenv } from 'dotenv';
-import { handleExtractRequest } from './server/apiCore.js';
+import { handleExtractRequest, handleDetectLogicModelGroupsRequest } from './server/apiCore.js';
 import { handlePptxToPdfRequest } from './server/pptxConvertApi.js';
 import {
   getLibreOfficePackageRoot,
@@ -71,6 +71,11 @@ app.get('/api/health', (_req, res) => {
 
 app.post('/api/gemini/extract', async (req, res) => {
   const result = await handleExtractRequest(req.body);
+  res.status(result.status).json(result.body);
+});
+
+app.post('/api/gemini/detect-logic-models', async (req, res) => {
+  const result = await handleDetectLogicModelGroupsRequest(req.body);
   res.status(result.status).json(result.body);
 });
 
