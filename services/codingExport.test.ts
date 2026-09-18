@@ -49,7 +49,7 @@ test('coding export CSV has coder headers', () => {
   const header = csv!.split('\n')[0];
   assert.equal(
     header,
-    '"row_id","organization","program","group","domain","outcome_text","color_coding","needs_review","color_legend","source_filename"'
+    '"row_id","organization","program","group","domain","outcome_text","color_coding","needs_review","color_legend","source_filename","qa_status"'
   );
 });
 
@@ -57,6 +57,15 @@ test('coding export carries the uploaded filename on every row', () => {
   const rows = buildCodingExportRows([fakeFile('f1', sampleModel())]);
   assert.ok(rows.length > 0);
   assert.ok(rows.every(r => r[9] === 'f1.pdf'));
+});
+
+test('coding export carries QA status, reusing the same signal as the session list', () => {
+  const clean = buildCodingExportRows([fakeFile('f1', sampleModel())]);
+  assert.ok(clean.every(r => r[10] === 'Successfully Processed'));
+
+  const flagged = sampleModel({ extractionStatus: 'partial', extractionConfidence: 'medium' });
+  const flaggedRows = buildCodingExportRows([fakeFile('f2', flagged)]);
+  assert.ok(flaggedRows.every(r => r[10] === 'Needs Review'));
 });
 
 test('coding export carries colour coding, needs-review flag, and legend', () => {

@@ -1,8 +1,9 @@
 import React from 'react';
 import type { ProcessingFile } from '../types';
-import { countExtractionItems, shouldShowFidelityBanner } from '../shared/extractionFidelity';
+import { countExtractionItems } from '../shared/extractionFidelity';
 import { shouldSuggestMismatch } from '../shared/sourceMapping';
 import { isExportReady, isPipelineBusy } from '../shared/sessionQueue';
+import { needsQaReview } from '../shared/qaStatus';
 
 const PROCESSING_LABELS: Record<ProcessingFile['status'], string> = {
   pending: 'Queued',
@@ -16,7 +17,7 @@ const PROCESSING_LABELS: Record<ProcessingFile['status'], string> = {
 function isFlagged(file: ProcessingFile): boolean {
   if (file.status === 'error') return true;
   if (!file.result || !isExportReady(file.status)) return false;
-  return shouldShowFidelityBanner(file.result) || shouldSuggestMismatch(file.result);
+  return needsQaReview(file.result);
 }
 
 function flagReason(file: ProcessingFile): string {

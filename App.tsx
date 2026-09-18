@@ -542,6 +542,7 @@ const App: React.FC = () => {
       'Extraction Blockers',
       'Mapping Corrections JSON',
       'Source Filename',
+      'QA Status',
     ];
 
     const exportRows = buildGranularExportRows(
@@ -567,6 +568,7 @@ const App: React.FC = () => {
       r.extractionBlockers,
       r.mappingCorrectionsJson,
       r.sourceFilename,
+      r.qaStatus,
     ]);
 
     const csvContent = [

@@ -24,6 +24,7 @@ From editable extract results, download a CSV the Qualitative Outcomes Coder acc
 | `row_id` | stable per row (e.g. `{fileIndex}-{domain}-{group}-{n}` or uuid) |
 | `domain` | Domain label (pass-through; coder ignores unknown cols) |
 | `source_filename` | uploaded file name — lets an operator's own file-naming convention (e.g. an `orgid_progid_` prefix) be used to key rows back to a source file (coder ignores unknown cols) |
+| `qa_status` | `Needs Review` \| `Successfully Processed` — same document-level signal as the session list's NEEDS REVIEW grouping (`shared/qaStatus.ts`), for post-hoc QA (coder ignores unknown cols) |
 
 - Skip empty `outcome_text` rows
 - Filename hint e.g. `logic-models-for-coding.csv`
@@ -44,6 +45,8 @@ From editable extract results, download a CSV the Qualitative Outcomes Coder acc
 
 ## Tweak later
 Domain list and columns live in this doc; bump a one-line version note when changing filter (e.g. add Impact).
+
+**Version:** v1.2 — 2026-09-18 — added `qa_status` column (appended, so existing column positions are unchanged).
 
 **Version:** v1.1 — 2026-09-18 — added `source_filename` column (appended, so existing column positions are unchanged).
 

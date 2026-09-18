@@ -1,4 +1,5 @@
 import type { LogicModel, LogicModelGroup } from '../types';
+import { qaStatusLabel } from './qaStatus.js';
 
 export function stringDomainHasContent(content?: string): boolean {
   return Boolean(content?.trim());
@@ -29,6 +30,12 @@ export interface GranularExportRow {
   mappingCorrectionsJson: string;
   /** Uploaded file name (e.g. "1234_5678_program-name.pdf") — the caller's own ID, not derived from content. */
   sourceFilename: string;
+  /**
+   * Document-level QA signal — "Needs Review" or "Successfully Processed", from the same check
+   * that drives the session list's NEEDS REVIEW grouping (see shared/qaStatus.ts). Distinct from
+   * the per-item `needsReview` field above.
+   */
+  qaStatus: string;
 }
 
 export interface GranularExportEntry {
@@ -48,6 +55,7 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
     const mappingCorrectionsJson = m.mappingCorrections?.length
       ? JSON.stringify(m.mappingCorrections)
       : '';
+    const qaStatus = qaStatusLabel(m);
 
     const pushStringField = (domain: string, field: { content: string }) => {
       if (!stringDomainHasContent(field.content)) return;
@@ -71,6 +79,7 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
         extractionBlockers,
         mappingCorrectionsJson,
         sourceFilename,
+        qaStatus,
       });
     };
 
@@ -101,6 +110,7 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
             extractionBlockers,
             mappingCorrectionsJson,
             sourceFilename,
+            qaStatus,
           });
         }
       }

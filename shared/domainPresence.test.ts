@@ -54,3 +54,16 @@ test('buildGranularExportRows carries sourceFilename on every row', () => {
   assert.ok(rows.length > 0);
   assert.ok(rows.every(r => r.sourceFilename === '1234_5678_foster-grandparent.pdf'));
 });
+
+test('buildGranularExportRows carries a QA status matching the session list flag', () => {
+  const clean = buildGranularExportRows([{ model: baseModel(), sourceFilename: 'a.pdf' }]);
+  assert.ok(clean.every(r => r.qaStatus === 'Successfully Processed'));
+
+  const flagged: LogicModel = {
+    ...baseModel(),
+    extractionStatus: 'partial',
+    extractionConfidence: 'medium',
+  };
+  const flaggedRows = buildGranularExportRows([{ model: flagged, sourceFilename: 'b.pdf' }]);
+  assert.ok(flaggedRows.every(r => r.qaStatus === 'Needs Review'));
+});

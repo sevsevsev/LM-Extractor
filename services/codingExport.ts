@@ -1,4 +1,5 @@
 import type { LogicModel, LogicModelGroup, ProcessingFile } from '../types';
+import { qaStatusLabel } from '../shared/qaStatus.js';
 
 /** Domains included in Export for coding — see docs/specs/export-for-coding.md */
 export const CODING_EXPORT_DOMAINS = [
@@ -27,6 +28,7 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
     const m = f.result;
 
     const colorLegend = m.colorLegend?.trim() || '';
+    const qaStatus = qaStatusLabel(m);
     for (const { domain, field } of DOMAIN_FIELDS) {
       const groups = (m[field] as { content: LogicModelGroup[] }).content || [];
       groups.forEach((g, gi) => {
@@ -49,6 +51,7 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
             needsReview,
             colorLegend,
             f.file.name,
+            qaStatus,
           ]);
         });
       });
@@ -73,6 +76,7 @@ export function buildCodingExportCsv(files: ProcessingFile[]): string | null {
     'needs_review',
     'color_legend',
     'source_filename',
+    'qa_status',
   ];
   const escape = (c: string) => `"${String(c).replace(/"/g, '""')}"`;
   return [headers.map(escape).join(','), ...rows.map(row => row.map(escape).join(','))].join('\n');
