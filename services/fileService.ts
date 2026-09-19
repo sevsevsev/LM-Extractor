@@ -17,6 +17,13 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 const MAX_VISION_PAGES = 15;
 
+// Deliberate headroom under Vercel's ~4.5MB serverless request-body limit (README.md's documented
+// figure); server.ts's local Express path allows 40mb and isLocalHost() below bypasses this budget
+// entirely there, so it only ever binds the deployed Vercel path — found duplicated three times
+// (services/fileService.ts, PDF render + DOCX render) with no shared constant or explanation via
+// codebase audit (docs/specs/codebase-audit-2026-09-19.md #12).
+const VISION_PAYLOAD_BUDGET_BYTES = 3_800_000;
+
 /**
  * Operator codes that paint an embedded raster (as opposed to vector fills/strokes or outlined
  * text). A page can be "image-dominant" (near-zero extractable text) for two very different
@@ -232,6 +239,44 @@ function analyzeCanvasPixels(
   return { bbox, inkProfile };
 }
 
+/** Content bbox (pixels) → padded fractional bbox against a canvas/probe of the given size. */
+function computeBboxFrac(bbox: Box | null, width: number, height: number): Box | null {
+  if (!bbox) return null;
+  const pad = CONTENT_PAD_FRAC;
+  return {
+    x0: Math.max(0, bbox.x0 / width - pad),
+    y0: Math.max(0, bbox.y0 / height - pad),
+    x1: Math.min(1, bbox.x1 / width + pad),
+    y1: Math.min(1, bbox.y1 / height + pad),
+  };
+}
+
+/**
+ * Column bands: only meaningful for wide, image-dominant grid pages — splitting a page into
+ * per-column TRACK B crops raises the effective resolution Gemini sees per column, which only
+ * matters when the page is a flattened raster bounded by its own pixel density. A vector/text page
+ * already renders at whatever scale the pipeline chooses, so tiling it adds column-provenance
+ * labeling without a legibility benefit. Shared by the PDF and DOCX analyzers, which previously
+ * duplicated this block with a divergent gate (DOCX omitted the `imageDominant` check) — found via
+ * codebase audit (docs/specs/codebase-audit-2026-09-19.md #13).
+ */
+function computeColumnFracs(
+  imageDominant: boolean,
+  bbox: Box | null,
+  inkProfile: number[]
+): { start: number; end: number }[] | null {
+  if (!ENABLE_COLUMN_TILING || !imageDominant || !bbox) return null;
+  const cropX0 = bbox.x0;
+  const cropX1 = bbox.x1;
+  const cropWidth = cropX1 - cropX0;
+  const aspect = (bbox.x1 - bbox.x0) / Math.max(1, bbox.y1 - bbox.y0);
+  if (cropWidth <= 40 || aspect <= 0.7) return null;
+  const cropped = inkProfile.slice(cropX0, cropX1);
+  const bands = findColumnBands(cropped);
+  if (bands.length < 3) return null;
+  return bands.map(b => ({ start: b.start / cropWidth, end: b.end / cropWidth }));
+}
+
 /** Cheap probe render → content box (fractional) + column bands + image-dominance flag. */
 async function analyzePdfPage(
   page: Awaited<ReturnType<Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>['getPage']>>,
@@ -321,32 +366,8 @@ async function analyzePdfPage(
   const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const { bbox, inkProfile } = analyzeCanvasPixels(data, canvas.width, canvas.height);
 
-  let bboxFrac: Box | null = null;
-  if (bbox) {
-    const pad = CONTENT_PAD_FRAC;
-    bboxFrac = {
-      x0: Math.max(0, bbox.x0 / canvas.width - pad),
-      y0: Math.max(0, bbox.y0 / canvas.height - pad),
-      x1: Math.min(1, bbox.x1 / canvas.width + pad),
-      y1: Math.min(1, bbox.y1 / canvas.height + pad),
-    };
-  }
-
-  // Column bands: only meaningful for wide, image-dominant grid pages.
-  let columnFracs: { start: number; end: number }[] | null = null;
-  if (ENABLE_COLUMN_TILING && imageDominant && bbox) {
-    const cropX0 = bbox.x0;
-    const cropX1 = bbox.x1;
-    const cropWidth = cropX1 - cropX0;
-    const aspect = (bbox.x1 - bbox.x0) / Math.max(1, bbox.y1 - bbox.y0);
-    if (cropWidth > 40 && aspect > 0.7) {
-      const cropped = inkProfile.slice(cropX0, cropX1);
-      const bands = findColumnBands(cropped);
-      if (bands.length >= 3) {
-        columnFracs = bands.map(b => ({ start: b.start / cropWidth, end: b.end / cropWidth }));
-      }
-    }
-  }
+  const bboxFrac = computeBboxFrac(bbox, canvas.width, canvas.height);
+  const columnFracs = computeColumnFracs(imageDominant, bbox, inkProfile);
 
   return { pageNumber, pageWidthPt, imageDominant, hasEmbeddedRaster, bboxFrac, columnFracs };
 }
@@ -517,7 +538,7 @@ async function convertPdfWithAnalysis(
   pageCount: number
 ): Promise<PdfRenderResult> {
   const warnings: string[] = [];
-  const budgetBytes = isLocalHost() ? Number.POSITIVE_INFINITY : 3_800_000;
+  const budgetBytes = isLocalHost() ? Number.POSITIVE_INFINITY : VISION_PAYLOAD_BUDGET_BYTES;
 
   const pages = [];
   const analyses: PageAnalysis[] = [];
@@ -646,7 +667,7 @@ async function convertPdfWithLegacyTiers(
   pdf: Awaited<ReturnType<typeof pdfjsLib.getDocument>['promise']>,
   pageCount: number
 ): Promise<string[]> {
-  const budgetBytes = isLocalHost() ? Number.POSITIVE_INFINITY : 3_800_000;
+  const budgetBytes = isLocalHost() ? Number.POSITIVE_INFINITY : VISION_PAYLOAD_BUDGET_BYTES;
   let images: string[] = [];
   for (const tier of RENDER_TIERS) {
     images = await renderPdfAtTier(pdf, pageCount, tier);
@@ -962,31 +983,8 @@ async function analyzeDocxSection(el: HTMLElement): Promise<DocxSectionAnalysis>
     }
   }
 
-  let bboxFrac: Box | null = null;
-  if (bbox) {
-    const pad = CONTENT_PAD_FRAC;
-    bboxFrac = {
-      x0: Math.max(0, bbox.x0 / probe.width - pad),
-      y0: Math.max(0, bbox.y0 / probe.height - pad),
-      x1: Math.min(1, bbox.x1 / probe.width + pad),
-      y1: Math.min(1, bbox.y1 / probe.height + pad),
-    };
-  }
-
-  let columnFracs: { start: number; end: number }[] | null = null;
-  if (ENABLE_COLUMN_TILING && bbox) {
-    const cropX0 = bbox.x0;
-    const cropX1 = bbox.x1;
-    const cropWidth = cropX1 - cropX0;
-    const aspect = (bbox.x1 - bbox.x0) / Math.max(1, bbox.y1 - bbox.y0);
-    if (cropWidth > 40 && aspect > 0.7) {
-      const cropped = inkProfile.slice(cropX0, cropX1);
-      const bands = findColumnBands(cropped);
-      if (bands.length >= 3) {
-        columnFracs = bands.map(b => ({ start: b.start / cropWidth, end: b.end / cropWidth }));
-      }
-    }
-  }
+  const bboxFrac = computeBboxFrac(bbox, probe.width, probe.height);
+  const columnFracs = computeColumnFracs(imageDominant, bbox, inkProfile);
 
   return { imageDominant, hasLowResEmbeddedImage, bboxFrac, columnFracs };
 }
@@ -1113,7 +1111,7 @@ async function renderDocxVisionPages(arrayBuffer: ArrayBuffer): Promise<DocxVisi
 
     if (pageSections.length >= 2) {
       const limited = pageSections.slice(0, MAX_VISION_PAGES);
-      const budgetBytes = isLocalHost() ? Number.POSITIVE_INFINITY : 3_800_000;
+      const budgetBytes = isLocalHost() ? Number.POSITIVE_INFINITY : VISION_PAYLOAD_BUDGET_BYTES;
       let runningBytes = 0;
 
       for (let i = 0; i < limited.length; i++) {
@@ -1280,39 +1278,33 @@ async function pptxArrayBufferToTextTrack(arrayBuffer: ArrayBuffer): Promise<str
   return fullText.trim();
 }
 
-/** Prefer Express LibreOffice WASM; fall back to in-browser WorkerBrowserConverter. */
-async function convertPptxToPdfBytes(
-  arrayBuffer: ArrayBuffer,
-  filename: string
-): Promise<{ pdfBytes: Uint8Array; via: 'server' | 'browser' }> {
+/**
+ * Convert PPTX → PDF via the server's LibreOffice WASM endpoint. There used to be an in-browser
+ * WorkerBrowserConverter fallback here, but it required COOP/COEP headers that neither
+ * vite.config.ts (which explicitly omits them to keep Google Fonts working) nor server.ts's
+ * production static serving ever set — it could never actually succeed, and its own error message
+ * tacitly admitted as much by pointing users back at the server endpoint. Removed rather than fixed:
+ * adding those headers site-wide is a real product trade-off (breaks the Google Fonts loading the
+ * comment cites), not a contained bug fix. Found via codebase audit
+ * (docs/specs/codebase-audit-2026-09-19.md #16).
+ */
+async function convertPptxToPdfBytes(arrayBuffer: ArrayBuffer, filename: string): Promise<Uint8Array> {
   const qs = `?filename=${encodeURIComponent(filename)}`;
-  try {
-    const response = await fetch(`/api/convert/pptx-to-pdf${qs}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type':
-          'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      },
-      body: arrayBuffer,
-    });
-    const payload = (await response.json().catch(() => ({}))) as {
-      pdfBase64?: string;
-      error?: string;
-    };
-    if (response.ok && payload.pdfBase64) {
-      return { pdfBytes: base64ToUint8Array(payload.pdfBase64), via: 'server' };
-    }
-    console.warn(
-      '[PPTX] Server LibreOffice convert failed; trying browser WASM:',
-      payload.error || response.status
-    );
-  } catch (err) {
-    console.warn('[PPTX] Server LibreOffice convert unreachable; trying browser WASM:', err);
+  const response = await fetch(`/api/convert/pptx-to-pdf${qs}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    },
+    body: arrayBuffer,
+  });
+  const payload = (await response.json().catch(() => ({}))) as {
+    pdfBase64?: string;
+    error?: string;
+  };
+  if (!response.ok || !payload.pdfBase64) {
+    throw new Error(payload.error || `Server LibreOffice convert failed (status ${response.status}).`);
   }
-
-  const { convertPptxToPdfInBrowser } = await import('./pptxLibreOfficeBrowser');
-  const result = await convertPptxToPdfInBrowser(arrayBuffer, filename);
-  return { pdfBytes: result.data, via: 'browser' };
+  return base64ToUint8Array(payload.pdfBase64);
 }
 
 /**
@@ -1324,24 +1316,20 @@ export const convertPptxToImages = async (file: File): Promise<DocumentBundle> =
     const arrayBuffer = await file.arrayBuffer();
     const filename = file.name || 'presentation.pptx';
 
-    const [textTrack, pdfConversion] = await Promise.all([
+    const [textTrack, pdfBytes] = await Promise.all([
       pptxArrayBufferToTextTrack(arrayBuffer.slice(0)),
       convertPptxToPdfBytes(arrayBuffer.slice(0), filename),
     ]);
 
-    const pdfFile = new File(
-      [pdfConversion.pdfBytes],
-      filename.replace(/\.pptx?$/i, '.pdf'),
-      { type: 'application/pdf' }
-    );
+    const pdfFile = new File([pdfBytes], filename.replace(/\.pptx?$/i, '.pdf'), {
+      type: 'application/pdf',
+    });
 
     const pdfBundle = await convertPdfToImages(pdfFile);
 
     const warnings = [
       ...pdfBundle.warnings,
-      pdfConversion.via === 'server'
-        ? 'PowerPoint was converted to PDF with LibreOffice WASM (server) for visual fidelity.'
-        : 'PowerPoint was converted to PDF with LibreOffice WASM (browser) for visual fidelity.',
+      'PowerPoint was converted to PDF with LibreOffice WASM for visual fidelity.',
     ];
 
     const bundle: DocumentBundle = {
@@ -1359,7 +1347,6 @@ export const convertPptxToImages = async (file: File): Promise<DocumentBundle> =
       '[PPTX DocumentBundle] textTrack snippet:',
       snippet + (bundle.textTrack.length > 400 ? '…' : '')
     );
-    console.log('[PPTX DocumentBundle] convert via:', pdfConversion.via);
 
     return bundle;
   } catch (error) {

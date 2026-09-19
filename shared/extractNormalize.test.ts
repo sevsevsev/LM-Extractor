@@ -1,10 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import {
-  normalizeExtractedLogicModel,
-  isOutputLikeText,
-  looksLikeImpactStatementProse,
-} from './extractNormalize.ts';
+import { normalizeExtractedLogicModel, looksLikeImpactStatementProse } from './extractNormalize.ts';
 import type { LogicModel } from '../types.ts';
 
 const youthMovesMisparse: LogicModel = {
@@ -121,11 +117,6 @@ test('does not force rebucket Concert-shaped text from long-term (spatial trust)
 test('preserves Impact column items (does not consolidate into long-term)', () => {
   const m = normalizeExtractedLogicModel(structuredClone(youthMovesMisparse));
   assert.ok(m.impact.content.some(g => g.items.some(i => /Sustain careers/.test(i.text))));
-});
-
-test('isOutputLikeText helper', () => {
-  assert.equal(isOutputLikeText('Attendance is maintained at 90%'), true);
-  assert.equal(isOutputLikeText('Master dance technique'), false);
 });
 
 const youthMovesFourthTryMisparse: LogicModel = {

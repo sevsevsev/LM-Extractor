@@ -8,6 +8,13 @@ export interface ExtractionPromptOptions {
   hasTextTrack?: boolean;
 }
 
+/**
+ * Note on the "never infer [impactStatement] from wording alone" rule below (Impact Statement /
+ * mission section): `shared/extractNormalize.ts`'s `promoteImpactStatementFromGroupedDomains` is a
+ * deliberate, narrowly-gated exception to it — it post-processes Gemini's *output*, not the page, so
+ * it isn't asking Gemini to violate this rule. See that function's own comment for the full
+ * reasoning; cross-referenced here per codebase audit (docs/specs/codebase-audit-2026-09-19.md #10).
+ */
 export const getAiExtractionPrompt = (
   isVision: boolean,
   options?: ExtractionPromptOptions

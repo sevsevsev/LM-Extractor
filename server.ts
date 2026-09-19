@@ -5,10 +5,7 @@ import { fileURLToPath } from 'url';
 import { config as loadDotenv } from 'dotenv';
 import { handleExtractRequest, handleDetectLogicModelGroupsRequest } from './server/apiCore.js';
 import { handlePptxToPdfRequest } from './server/pptxConvertApi.js';
-import {
-  getLibreOfficePackageRoot,
-  getLibreOfficeWasmPath,
-} from './server/libreOfficeConverter.js';
+import { getLibreOfficeWasmPath } from './server/libreOfficeConverter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,7 +17,6 @@ const apiKey = (process.env.GEMINI_API_KEY || '').trim();
 const isProd = process.env.NODE_ENV === 'production';
 const distPath = path.join(__dirname, 'dist');
 const wasmPath = getLibreOfficeWasmPath();
-const loPkgRoot = getLibreOfficePackageRoot();
 
 if (!apiKey) {
   console.warn('Warning: GEMINI_API_KEY is not set in .env.local');
@@ -43,22 +39,6 @@ app.post(
 );
 
 app.use(express.json({ limit: '40mb' }));
-
-// LibreOffice WASM assets for optional browser WorkerBrowserConverter fallback.
-app.use(
-  '/wasm',
-  express.static(wasmPath, {
-    setHeaders(res) {
-      res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
-      res.setHeader('Cache-Control', 'public, max-age=86400');
-    },
-  })
-);
-app.get('/libreoffice/browser.worker.global.js', (_req, res) => {
-  res.type('application/javascript');
-  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
-  res.sendFile(path.join(loPkgRoot, 'dist', 'browser.worker.global.js'));
-});
 
 app.get('/api/health', (_req, res) => {
   res.json({
@@ -86,7 +66,7 @@ if (isProd) {
   }
   app.use(express.static(distPath));
   app.get('/{*path}', (req, res, next) => {
-    if (req.path.startsWith('/api') || req.path.startsWith('/wasm') || req.path.startsWith('/libreoffice')) {
+    if (req.path.startsWith('/api')) {
       next();
       return;
     }

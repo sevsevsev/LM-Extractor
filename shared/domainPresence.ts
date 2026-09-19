@@ -1,6 +1,7 @@
 import type { LogicModel, LogicModelGroup } from '../types';
 import { qaStatusLabel } from './qaStatus.js';
 import { documentTypeFlagLabel } from './extractionFidelity.js';
+import { itemNeedsReview } from './provenance.js';
 
 export function stringDomainHasContent(content?: string): boolean {
   return Boolean(content?.trim());
@@ -98,14 +99,13 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
         for (const item of g.items) {
           const text = item.text?.trim();
           if (!text) continue;
-          const flaggedForReview = item.verbatim === false || Boolean(item.sourceNote?.trim());
           rows.push({
             organization: m.organization,
             program: m.program,
             domain,
             group: g.name,
             content: text,
-            needsReview: flaggedForReview ? 'Yes' : '',
+            needsReview: itemNeedsReview(item) ? 'Yes' : '',
             sourceNote: item.sourceNote?.trim() || '',
             fillColor: item.fillColor?.trim() || '',
             borderColor: item.borderColor?.trim() || '',

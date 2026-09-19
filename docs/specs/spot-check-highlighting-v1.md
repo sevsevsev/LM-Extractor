@@ -1,6 +1,7 @@
 # Spot-check localization v1: color-coded region highlights for possibly-missed content
 
-Status: Implemented (2026-09-15)
+Status: Implemented (2026-09-15); see "Update (2026-09-18)" below — §1 of the shipped design was
+removed three days after this doc was written, and this page wasn't updated at the time.
 
 ## Problem
 
@@ -91,10 +92,34 @@ existing `<img>` in a `position: relative` container) with a pinned "Possibly mi
 decorative (`aria-hidden`), matching the project's existing "page label is the accessible name for
 location" convention.
 
+## Update (2026-09-18): §1 (client-side heuristic) removed — this doc's design section is now half-stale
+
+`shared/completenessCheck.ts` (the whole-document AND page-aware line-count heuristic described in
+§1 of "Design (shipped)" above) was deleted three days after this doc was written, after a real
+112-file batch audit found it was the dominant driver of a ~65% false "Needs review" rate — full
+account in `docs/specs/tech-extraction-confidence-v1.md`'s "Completeness signal" section. Found
+contradicting that doc via codebase audit (`docs/specs/codebase-audit-2026-09-19.md` #4): this page
+still described §1 as shipped and load-bearing, and its own "Known limitation" section below
+(unchanged, kept for history) claims the *opposite* of current reality — it says the heuristic "was
+the one actually producing the fidelity blocker" while Gemini's signal "essentially never fired."
+That was true when this doc was written. It is no longer true: **`possiblyIncomplete` /
+`model.possiblyMissedRegions` is now driven solely by §2, Gemini's own per-image self-report** — §1
+does not exist. The "merge both signals" paragraph after §2, and the "heuristic-only fallback entry"
+half of the `reconcileExtractionFidelity` description, are also dead as written.
+
+Practical effect: the "Known limitation" section's prediction ("highlight box itself may end up
+rarely seen... most real occurrences will show only the page chip") no longer applies the way it's
+written, since the signal it says *does* fire (the heuristic) is gone — the live signal today is
+exactly the one that essentially-never-fired one at time of writing. Per the removal doc, on manual
+spot-check that signal matched real gaps rather than layout noise when it did fire, which is the
+opposite failure mode from the false-positive-heavy heuristic this page describes replacing it with.
+
 ## Verified
 
-Typecheck, all 93 tests (7 new, covering the page-aware heuristic and the Gemini/heuristic merge),
-and build pass. Live Playwright passes against real documents: confirmed the fidelity banner shows
+Typecheck, all 155 tests as of 2026-09-19 (93 at original ship, since grown by unrelated work; 7 of
+the original increase were new for this feature, covering the page-aware heuristic and the
+Gemini/heuristic merge — the heuristic half of that coverage no longer exists post-removal), and
+build pass. Live Playwright passes against real documents: confirmed the fidelity banner shows
 page chips and clicking one jumps the source pane; via response interception, confirmed a region
 with `xStart`/`xEnd` renders a highlight box landing precisely on that span (verified via DOM style
 inspection and screenshot), and confirmed a page-only region (no span) renders the page chip with

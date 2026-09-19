@@ -27,5 +27,14 @@
 - **[causal-chain-critique-v1.md](./causal-chain-critique-v1.md)** — CMO-lens critique for mechanism/context leaks + chain coherence, deterministic overall-quality guardrail — **deprecated 2026-09**
 - **[extraction-verification-protocol-v1.md](./extraction-verification-protocol-v1.md)** — human-verified extraction accuracy against source documents (completeness / non-invention / placement / text fidelity); scorecard + missed-items CSV templates included (active 2026-09-14)
 - **[multi-column-extract-patterns.md](./multi-column-extract-patterns.md)** — @pattern-analyst benchmark + MVP pick (prompt-only)
+- **[multi-column-extract-fidelity.md](./multi-column-extract-fidelity.md)** — PRD slice scoping multi-column extraction fidelity, from Performance Garage YouthMoves calibration (2026-07-28)
+- **[batch-resilience-v1.md](./batch-resilience-v1.md)** — checkpoint/resume, pipelined extract concurrency, progress bar (implemented 2026-09-15)
+- **[spot-check-highlighting-v1.md](./spot-check-highlighting-v1.md)** — color-coded region highlights for possibly-missed content on the source preview (implemented 2026-09-15; see its own "Update (2026-09-18)" for a since-removed half of the design)
+- **[multi-logic-model-pdf-v1.md](./multi-logic-model-pdf-v1.md)** — auto-split one upload containing more than one logic model into N (implemented 2026-09-18)
+- **[extraction-log-export-v1.md](./extraction-log-export-v1.md)** — per-document QA log CSV, one row per file (implemented 2026-09-18)
+- **[codebase-audit-2026-09-19.md](./codebase-audit-2026-09-19.md)** — independent codebase inconsistency audit, 29 findings; status table tracks fixes
+
+Not indexed above: **[handoff-next-chat.md](./handoff-next-chat.md)** is meant to be pasted directly
+into a fresh agent chat, not browsed from here — see its own staleness banner before using it.
 
 Use `@product` to revise PRD scope; agents update `roadmap.md` when guidance changes.

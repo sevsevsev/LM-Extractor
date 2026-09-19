@@ -16,14 +16,24 @@ export type BoardItemRef = {
   itemIndex: number;
 };
 
-const CORE_COLUMNS: { key: CanonicalGroupedDomain; title: string }[] = [
-  { key: 'inputs', title: 'Inputs' },
-  { key: 'activities', title: 'Activities' },
-  { key: 'outputs', title: 'Outputs' },
-  { key: 'shortTermOutcomes', title: 'Short-term' },
-  { key: 'mediumTermOutcomes', title: 'Medium-term' },
-  { key: 'longTermOutcomes', title: 'Long-term' },
+// Titles derive from `domainFieldLabel` — the same canonical label the reassign dropdown and both
+// CSV exports use — rather than a fourth, independent set of column-header strings. Previously
+// hardcoded as "Short-term"/"Medium-term"/"Long-term" (no "Outcomes" suffix, lowercase second word),
+// which disagreed with "Short-Term Outcomes" everywhere else, including this same board's own
+// reassign dropdown rendered right next to it — found via codebase audit
+// (docs/specs/codebase-audit-2026-09-19.md #25).
+const CORE_COLUMN_KEYS: CanonicalGroupedDomain[] = [
+  'inputs',
+  'activities',
+  'outputs',
+  'shortTermOutcomes',
+  'mediumTermOutcomes',
+  'longTermOutcomes',
 ];
+const CORE_COLUMNS: { key: CanonicalGroupedDomain; title: string }[] = CORE_COLUMN_KEYS.map(key => ({
+  key,
+  title: domainFieldLabel(key),
+}));
 
 const itemRefKey = (ref: BoardItemRef) => `${ref.domain}:${ref.groupIndex}:${ref.itemIndex}`;
 

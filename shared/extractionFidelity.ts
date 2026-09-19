@@ -75,15 +75,6 @@ export function documentTypeFlagLabel(model: LogicModel): string {
   return '';
 }
 
-export function getExtractionFidelity(model: LogicModel): ExtractionFidelity | undefined {
-  if (!isExtractionStatus(model.extractionStatus)) return undefined;
-  const confidence = isExtractionConfidence(model.extractionConfidence)
-    ? model.extractionConfidence
-    : 'medium';
-  const blockers = normalizeBlockers(model.extractionBlockers);
-  return { status: model.extractionStatus, confidence, blockers };
-}
-
 export function applyExtractionFidelity(model: LogicModel, fidelity: ExtractionFidelity): LogicModel {
   model.extractionStatus = fidelity.status;
   model.extractionConfidence = fidelity.confidence;
@@ -398,6 +389,11 @@ export function shouldHardStopExtraction(model: LogicModel): boolean {
   return model.extractionStatus === 'abstained' || model.extractionConfidence === 'low';
 }
 
+/**
+ * The "partial or medium" rule — single source of truth for the fidelity banner, the coding-export
+ * soft-gate, and App.tsx's source-pane auto-open, so tuning it can't leave those three disagreeing
+ * about the same document (codebase-audit-2026-09-19.md #7).
+ */
 export function shouldSoftGateCodingExport(model: LogicModel): boolean {
   // `low` hard-stops before edit; soft-gate covers proceed-with-caution partial/medium.
   return model.extractionStatus === 'partial' || model.extractionConfidence === 'medium';
@@ -405,11 +401,7 @@ export function shouldSoftGateCodingExport(model: LogicModel): boolean {
 
 export function shouldShowFidelityBanner(model: LogicModel): boolean {
   if (shouldHardStopExtraction(model)) return false;
-  const status = model.extractionStatus;
-  const confidence = model.extractionConfidence;
-  if (status === 'partial') return true;
-  if (confidence === 'medium') return true;
-  return false;
+  return shouldSoftGateCodingExport(model);
 }
 
 export function formatHardStopMessage(blockers: string[]): string {
@@ -421,10 +413,5 @@ export function formatHardStopMessage(blockers: string[]): string {
     return `Extraction stopped: ${list[0]}`;
   }
   return `Extraction stopped: ${list[0]} (${list.length - 1} more reason${list.length > 2 ? 's' : ''})`;
-}
-
-/** @deprecated Prefer formatHardStopMessage — kept for callers that only handle abstain. */
-export function formatAbstainMessage(blockers: string[]): string {
-  return formatHardStopMessage(blockers);
 }
 

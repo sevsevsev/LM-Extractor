@@ -47,9 +47,37 @@ export function sliceDocumentBundle(bundle: DocumentBundle, range: PageRange): D
     imageRefs,
     previewImages,
     textTrack: sliceTextTrackByPage(bundle.textTrack, range, offset),
-    warnings: bundle.warnings,
+    warnings: sliceWarningsByPage(bundle.warnings, range, offset),
     sourceFormat: bundle.sourceFormat,
   };
+}
+
+/** `services/fileService.ts`'s per-page legibility warnings, e.g. "Page 6 of this document ...". */
+const PAGE_WARNING = /^Page (\d+) of this\b/;
+
+/**
+ * Renumber (or drop) per-page warnings the same way images/text are renumbered — otherwise a split
+ * "Part 1 of 7" entry covering original pages 1-2 could display "Page 6 of this document is a
+ * flattened image at low resolution," a page number that isn't even in this part, referencing the
+ * *original* document's numbering instead of this slice's fresh 1-based one. Found via codebase
+ * audit (docs/specs/codebase-audit-2026-09-19.md #24) — this is the one field users actually read
+ * from a warning, so getting it wrong is worse than the docstring's "indistinguishable from a normal
+ * upload" claim admits. Document-level warnings with no page number (e.g. `LOW_LEGIBILITY_WARNING`)
+ * are left as-is; they're not page-scoped.
+ */
+function sliceWarningsByPage(warnings: string[], range: PageRange, offset: number): string[] {
+  const kept: string[] = [];
+  for (const warning of warnings) {
+    const match = PAGE_WARNING.exec(warning);
+    if (!match) {
+      kept.push(warning);
+      continue;
+    }
+    const page = parseInt(match[1], 10);
+    if (page < range.start || page > range.end) continue;
+    kept.push(`Page ${page - offset} of this${warning.slice(match[0].length)}`);
+  }
+  return kept;
 }
 
 /**

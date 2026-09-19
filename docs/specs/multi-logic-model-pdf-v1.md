@@ -81,11 +81,14 @@ Insert a `detecting` status between `converting` and `extracting`, gated to `pag
 replaced by N new entries (new ids), each carrying:
 
 - `sourceDocumentId` — points back to the shared original upload (see storage, below)
-- `pageRange: { start: number; end: number }`
-- `partLabel` — e.g. `"2 of 7"`, for the session list badge
+- `sourcePageRange: { start: number; end: number }` (named `pageRange` in earlier drafts of this
+  doc; the shipped field is `sourcePageRange` — see `types.ts`)
+- `splitPartLabel` — e.g. `"Part 2 of 7"` (named `partLabel` in earlier drafts; the shipped field is
+  `splitPartLabel` and includes the `"Part "` prefix), for the session list badge
 
 Each new entry enters `extracting` independently, respecting the existing
-`MAX_CONCURRENT_EXTRACTS` gate unchanged (it already just iterates `files`).
+`MAX_CONCURRENT_PER_STAGE` gate unchanged (it already just iterates `files`; renamed from
+`MAX_CONCURRENT_EXTRACTS` 2026-09-19 — see `App.tsx`'s definition for why).
 
 ### 4. Storage — do not duplicate the file blob N times
 
@@ -99,8 +102,12 @@ session for large batches. Instead:
   `file` copy (non-split records keep working exactly as today — this only applies to split
   entries).
 - **Resume**: dedupe by `sourceDocumentId` (convert the shared file once, not once per split
-  record on the same document), then re-slice per record's `pageRange` — same slicing logic as
-  initial detection, so no separate resume-path code.
+  record on the same document), then re-slice per record's `sourcePageRange` — same slicing logic
+  as initial detection, so no separate resume-path code. This dedupe existed for the IndexedDB blob
+  from the start, but `App.tsx`'s `ensurePreviewImages` (source-pane preview regeneration on
+  resume) reconverted the shared file once per split sibling until 2026-09-19 — found via codebase
+  audit (`docs/specs/codebase-audit-2026-09-19.md` #22) and fixed with an in-memory
+  `sourceDocumentId`-keyed cache in `App.tsx`, evicted when the last sibling for that id is removed.
 - This is a real IndexedDB schema change (`DB_VERSION` bump, `onupgradeneeded` migration) —
   flagged as the main implementation-risk area alongside the detection call itself.
 

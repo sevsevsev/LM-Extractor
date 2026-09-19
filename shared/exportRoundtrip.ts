@@ -17,6 +17,10 @@ import {
  * Reconstitution here groups by `sourceFilename` (the uploaded file name), which is the CSV's stable
  * per-file id — two files sharing identical organization+program text in the same batch export are
  * still told apart, as long as they don't also share a filename.
+ *
+ * `exportRoundtrip.test.ts` also runs this against a real extracted model (the Oxford Circle gold
+ * fixture), not just hand-built synthetic ones — added 2026-09-19 after a codebase audit found this
+ * module was previously exercised only by its own synthetic-model tests despite the claim above.
  */
 
 const GROUPED_DOMAIN_LABELS: Record<string, keyof LogicModel> = {

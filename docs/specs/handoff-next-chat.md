@@ -2,6 +2,18 @@
 
 Paste this into a **new Agent chat** in this workspace to continue with full context.
 
+> **Stale as of 2026-09-19 — read `current-prd.md` and `roadmap.md` first, not this file.** Found
+> via codebase audit (`docs/specs/codebase-audit-2026-09-19.md` #20): this doc still describes the
+> pipeline as "extract → critique → edit" and lists critique-era UI under "What works" — critique
+> was removed in the 2026-09 scope narrowing (`scope-extraction-only-2026-09.md`). "`npm test` — 4
+> validator tests" is also long stale (155+ now). A large amount of feature work has shipped since
+> this doc was last accurate (multi-logic-model split, extraction fidelity/spot-check highlighting,
+> document-type flags, coding export, extraction log export, and more) that isn't reflected below at
+> all. Unlike `current-prd.md`, this doc carried no deprecation banner until now — pasting it as-is
+> into a fresh chat would hand that agent a materially wrong picture of the app's current pipeline
+> and status. The sections below are kept for their still-useful "how to run this" mechanics, not as
+> a feature inventory.
+
 ---
 
 ## Status

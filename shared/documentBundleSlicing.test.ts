@@ -58,11 +58,31 @@ test('sliceDocumentBundle keeps the whole textTrack when it has no page markers 
   assert.equal(sliced.textTrack, 'Flat continuous document text with no pagination.');
 });
 
-test('sliceDocumentBundle preserves warnings and sourceFormat as-is', () => {
+test('sliceDocumentBundle preserves document-level (non-page-scoped) warnings and sourceFormat as-is', () => {
   const bundle = baseBundle({ warnings: ['Low resolution'], sourceFormat: 'pptx' });
   const sliced = sliceDocumentBundle(bundle, { start: 1, end: 2 });
   assert.deepEqual(sliced.warnings, ['Low resolution']);
   assert.equal(sliced.sourceFormat, 'pptx');
+});
+
+test('sliceDocumentBundle renumbers a page-scoped warning relative to the slice (audit #24 fix)', () => {
+  const bundle = baseBundle({
+    warnings: [
+      'Page 4 of this document is a flattened image at low resolution, so small text may be misread. Verify the extracted wording against the original.',
+    ],
+  });
+  const sliced = sliceDocumentBundle(bundle, { start: 3, end: 4 });
+  assert.deepEqual(sliced.warnings, [
+    'Page 2 of this document is a flattened image at low resolution, so small text may be misread. Verify the extracted wording against the original.',
+  ]);
+});
+
+test('sliceDocumentBundle drops a page-scoped warning for a page outside this slice', () => {
+  const bundle = baseBundle({
+    warnings: ['Page 1 of this document is a flattened image at low resolution.'],
+  });
+  const sliced = sliceDocumentBundle(bundle, { start: 3, end: 4 });
+  assert.deepEqual(sliced.warnings, []);
 });
 
 test('sliceDocumentBundle round-trips a single-page slice', () => {

@@ -55,7 +55,9 @@ So conversion stays strictly serial (`convertingRef`, one in-flight at a time, s
 Once conversion finishes, the bundle is stashed (`pendingBundles` ref) and the file moves to
 `'extracting'`; a second scan on the same effect dispatches extract calls for any `'extracting'`
 file not yet dispatched (`dispatchedExtractIds` ref, dedupes across effect re-runs), bounded by
-`MAX_CONCURRENT_EXTRACTS = 2`. Existing per-call retry/backoff (`services/geminiService.ts`,
+`MAX_CONCURRENT_PER_STAGE = 2` (named `MAX_CONCURRENT_EXTRACTS` at the time this doc was written;
+renamed 2026-09-19 once the multi-logic-model detect pre-pass added a second, independently-gated
+stage — see `App.tsx`'s definition). Existing per-call retry/backoff (`services/geminiService.ts`,
 `server/geminiLogicModel.ts`) absorbs any rate-limit hiccups the added concurrency surfaces — no
 new rate-limiting logic needed. Both scans are cheap no-ops when there's nothing eligible, so
 running them on every `files` change (already the effect's natural trigger) is fine.
@@ -86,4 +88,4 @@ pass.
 - A manual "Clear saved session" control outside the initial resume-vs-fresh choice (mid-session
   clearing raises questions — stop future checkpointing too, or just wipe current state — that
   didn't seem worth the scope for v1; the resume prompt's "Start fresh" covers the common case).
-- Tuning `MAX_CONCURRENT_EXTRACTS` from real multi-day usage data.
+- Tuning `MAX_CONCURRENT_PER_STAGE` from real multi-day usage data.

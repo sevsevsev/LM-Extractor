@@ -11,15 +11,40 @@ commit for each finding for the specific verification performed.
 
 ## Status
 
+All 29 findings addressed as of 2026-09-19 (three batches — see the dated sections below the
+original report for what each fix actually did and how it was verified).
+
 | # | Finding | Status |
 |---|---|---|
 | 1 | `parseDocumentBundle` silently drops `imageRefs` | **Fixed** — `server/apiCore.ts` |
 | 2 | `extractionStatus` not schema-required | **Fixed** — `server/geminiLogicModel.ts` |
 | 3 | N<6 non-verbatim ratio ignored (dead guard) | **Fixed** — `shared/extractionFidelity.ts` |
+| 4 | `completenessCheck.ts` doc contradiction | **Fixed** — `docs/specs/spot-check-highlighting-v1.md` |
 | 5 | Gold-fixture snapshot tests always no-op | **Fixed** — `shared/extractPlacement.test.ts` + `fixtures/oxford-circle-carnell-frc/` |
 | 6 | NUL bytes make `exportRoundtrip.ts` binary to git/grep | **Fixed** — `shared/exportRoundtrip.ts` |
+| 7 | "partial or medium" rule in 3 places | **Fixed** — `shared/extractionFidelity.ts` + `App.tsx` |
+| 8 | `itemNeedsReview` reimplemented twice | **Fixed** — `shared/domainPresence.ts` + `services/codingExport.ts` |
 | 9 | Spaced-vs-hyphenated `low-resolution` matcher drift | **Fixed** — `services/fileService.ts` |
-| 4, 7, 8, 10–29 | See findings below | Not yet triaged |
+| 10 | ⚠️ judgment call — impact-statement inference tension | **Resolved (kept, documented)** — `shared/extractNormalize.ts` + `constants.ts` |
+| 11 | ⚠️ judgment call — double-normalize fragility | **Resolved (removed redundant pass)** — `App.tsx` |
+| 12 | Payload budget hardcoded 3x | **Fixed** — `services/fileService.ts` |
+| 13 | Divergent column-band detection gates | **Fixed** — `services/fileService.ts` |
+| 14 | Unreferenced dead exports | **Fixed** — removed across `shared/`, `server/`, `services/` |
+| 15 | `verify-api.mjs` missing a route | **Fixed** — `scripts/verify-api.mjs` |
+| 16 | Broken PPTX browser fallback | **Fixed (removed)** — `services/fileService.ts`, `server.ts`; deleted `services/pptxLibreOfficeBrowser.ts` |
+| 17 | `export-for-coding.md` domain count drift | **Fixed** — doc + `services/codingExport.ts` empty-message |
+| 18 | False `/api/health` parity claim | **Fixed** — `README.md` |
+| 19 | Stale "single-pass Gemini pipeline" claim | **Fixed** — `.cursor/rules/project.mdc` |
+| 20 | Stale `handoff-next-chat.md` | **Fixed (deprecation banner)** — doc |
+| 21 | `roadmap.md` missing deprecation marker | **Fixed** — doc |
+| 22 | `multi-logic-model-pdf-v1.md` field names + missing resume dedupe | **Fixed** — doc + `App.tsx` (real dedupe cache added) |
+| 23 | `MAX_CONCURRENT_EXTRACTS` name/comment mismatch | **Fixed (renamed)** — `App.tsx` → `MAX_CONCURRENT_PER_STAGE` |
+| 24 | Warnings not renumbered when slicing a bundle | **Fixed** — `shared/documentBundleSlicing.ts` |
+| 25 | Board column labels vs. dropdown/CSV | **Fixed** — `components/LogicModelBoard.tsx` |
+| 26 | `STATUS_LABELS`/`PROCESSING_LABELS` disagreement | **Fixed** — consolidated into `shared/processingFileDisplay.ts` |
+| 27 | Dishonest `'high'` confidence fallback | **Fixed** — `components/SessionFileList.tsx` |
+| 28 | Misleading `sourceFormatFromDisplayName` name | **Fixed (renamed)** — `services/extractionLogExport.ts` |
+| 29 | `docs/specs/README.md` missing 6 files | **Fixed** — doc |
 
 ## Second batch (2026-09-19): #5, #6, #9
 
@@ -64,6 +89,152 @@ commit for each finding for the specific verification performed.
 
 Verification for all three: `npm run typecheck` clean, `npm test` 161 pass / 1 skip (the YouthMoves
 snapshot, intentionally — see above) / 0 fail, `npm run build` clean.
+
+---
+
+## Third batch (2026-09-19): everything remaining — #4, #7, #8, #10–29
+
+Closed out the rest of the audit in one pass, per owner instruction ("I defer to you on all items").
+
+**Tier 2 duplication (#7, #8, #12, #13)** — each collapsed to one implementation instead of
+documenting the drift, since a shared function can't drift the way independent copies do:
+- #7: `shouldSoftGateCodingExport` (`shared/extractionFidelity.ts`) is now the single "partial or
+  medium" predicate; `shouldShowFidelityBanner` and `App.tsx`'s `fidelityNeedsReview` both call it.
+- #8: `shared/domainPresence.ts` and `services/codingExport.ts` now call `shared/provenance.ts`'s
+  `itemNeedsReview` instead of each inlining `verbatim === false || sourceNote?.trim()`.
+- #12: the `3_800_000` payload-budget literal, duplicated 3x in `services/fileService.ts` with no
+  explanation, is now one documented constant, `VISION_PAYLOAD_BUDGET_BYTES`.
+- #13: PDF and DOCX column-band detection (`services/fileService.ts`) had diverged — PDF gated on
+  `imageDominant && bbox`, DOCX on `bbox` alone, contradicting the PDF copy's own comment.
+  Reconciled to the PDF's documented intent (column tiling is a legibility aid for flattened-raster
+  content; a vector/text page doesn't need it) via two new shared helpers, `computeBboxFrac` /
+  `computeColumnFracs`, replacing both duplicated blocks (the `bboxFrac` padding math too).
+
+**Tier 3 dead/orphaned code (#14, #15, #16)**:
+- #14: removed `formatAbstainMessage`, `getExtractionFidelity` (`extractionFidelity.ts`),
+  `OUTPUT_TRACK_HINTS`/`inferOutputGroup`/`isOutputLikeText`/`OUTPUT_TEXT_PATTERNS`
+  (`extractNormalize.ts`, plus their now-pointless test), `readRawBody`
+  (`server/pptxConvertApi.ts`, confirmed the Vercel PPTX route never called it — uses Vercel's own
+  `req.body` instead), and un-exported `CODING_EXPORT_DOMAINS` (`codingExport.ts`, still used
+  internally, just doesn't need to be public). `shared/exportRoundtrip.ts` (166 lines, previously
+  exercised only by its own synthetic-model tests) got a new test running it against the real
+  Oxford Circle gold snapshot from finding #5, instead of being deleted — it does real, working
+  correctness-checking; it just had never been pointed at a real extraction.
+- #15: added the missing `/api/gemini/detect-logic-models` route to `scripts/verify-api.mjs`'s
+  `ROUTES` list — confirmed via a real run that it now loads and 405s correctly like its siblings.
+- #16: the browser-side LibreOffice WASM PPTX fallback (`services/pptxLibreOfficeBrowser.ts`)
+  required COOP/COEP headers that `vite.config.ts` explicitly omits (to keep Google Fonts working)
+  and production static serving never sets — it could never succeed as configured, and its own
+  error path pointed users back at the server endpoint. Removed rather than fixed (adding those
+  headers site-wide is a real trade-off, not a contained bug fix): deleted the module, the
+  server-side `/wasm` and `/libreoffice/browser.worker.global.js` static routes that existed only
+  to serve it, and simplified `convertPptxToPdfBytes` to a single server-only path. Smoke-tested:
+  dev server starts clean, `/api/health` still reports `libreOfficeWasm` correctly (that check is
+  independent of the removed browser path).
+
+**Tier 4 doc-vs-implementation drift (#4, #17–24)** — mostly doc corrections, with two real code
+fixes where the drift was actually a live bug once traced:
+- #4: `spot-check-highlighting-v1.md` still described the removed `completenessCheck.ts` heuristic
+  as shipped and load-bearing, directly contradicting `tech-extraction-confidence-v1.md`'s own
+  removal note. Added a dated "Update" section correcting the record and the stale test count.
+- #17: `export-for-coding.md` specified three outcome domains; `codingExport.ts` already shipped a
+  fourth (`General Outcomes`) with no version bump. Bumped to v1.4, fixed the domain list, and fixed
+  the empty-export message (`services/codingExport.ts`), which still said "short-, medium-, or
+  long-term" only.
+- #18: `README.md` claimed local Express and Vercel "both delegate to `server/apiCore.ts`, so
+  behavior stays identical" — false for `/api/health` (different response shape, confirmed by
+  reading both handlers) and the PPTX convert route (different body-parsing). Corrected, and added
+  the two endpoints the README's list omitted.
+- #19: `.cursor/rules/project.mdc` (`alwaysApply: true`) said "Single-pass Gemini pipeline: extract
+  only" — stale since the multi-logic-model detect pre-pass shipped. Corrected, and named
+  `geminiLogicModelGroups.ts` alongside `geminiLogicModel.ts`.
+- #20: `handoff-next-chat.md` (meant to be pasted into a fresh agent chat) still described a
+  critique step removed in the 2026-09 scope narrowing and a "4 validator tests" count now off by
+  150+. Added a deprecation banner (it lacked one, unlike `current-prd.md`) rather than rewriting
+  the whole doc's now-large "what's shipped since" gap.
+- #21: `roadmap.md`'s "4b — Overall LM quality" row had no deprecation marker despite
+  `docs/specs/README.md` already annotating that feature as deprecated. Added the marker, and
+  updated the two "commit snapshot" exit-criteria rows to reflect finding #5's actual outcome (met
+  for Oxford Circle, still unmet for YouthMoves).
+- #22: `multi-logic-model-pdf-v1.md` used `pageRange`/`partLabel`; shipped fields are
+  `sourcePageRange`/`splitPartLabel`. Fixed the doc. More substantively, the doc's promised
+  `sourceDocumentId`-keyed resume dedupe existed for the IndexedDB blob but not for `App.tsx`'s
+  `ensurePreviewImages` — opening N split siblings' source panes reconverted the shared source file
+  N times. This was a real, traced bug, not just doc drift: added an in-memory
+  `sourceDocumentId`-keyed cache in `App.tsx`, evicted when the last sibling for that id is removed
+  (both via `removeFile` and `treatAsSingleModel`, the two paths that remove split siblings).
+- #23: `MAX_CONCURRENT_EXTRACTS` gated extract and detect concurrency through two independent
+  counters, so up to 4 Gemini calls could run at once, not 2 as the name/comments claimed. Renamed
+  to `MAX_CONCURRENT_PER_STAGE` with a comment stating the real behavior; did not change the actual
+  concurrency limit (a product call, out of scope here). Updated the two other docs
+  (`multi-logic-model-pdf-v1.md`, `batch-resilience-v1.md`) that quoted the old name.
+- #24: `shared/documentBundleSlicing.ts` passed `bundle.warnings` through unchanged when slicing, so
+  a split part could show a page-numbered warning ("Page 6 of this document is...") referencing the
+  *original* document's page numbers, possibly for a page outside that part's own range entirely.
+  Fixed with a new `sliceWarningsByPage` that renumbers in-range page-scoped warnings and drops
+  out-of-range ones, mirroring how images/text are already handled; added regression tests for both
+  cases.
+
+**Tier 5 naming/terminology (#25–29)**:
+- #25: `LogicModelBoard.tsx`'s column headers said "Short-term"/"Medium-term"/"Long-term", while the
+  same UI's reassign dropdown and both CSV exports said "Short-Term Outcomes" etc. Board titles now
+  derive from `domainFieldLabel` (the same canonical source the dropdown uses) instead of a fourth,
+  independent label set. Live-verified: extracted a real document, confirmed the board renders
+  "SHORT-TERM OUTCOMES" / "MEDIUM-TERM OUTCOMES" / "LONG-TERM OUTCOMES" with no layout overflow.
+- #26: `App.tsx`'s `STATUS_LABELS` and `SessionFileList.tsx`'s `PROCESSING_LABELS` were parallel maps
+  disagreeing on `editing`/`completed` ("Ready to edit" vs "Ready") — the latter's two entries were
+  actually dead code (that component always renders `readySummary()` for those states, not the map),
+  but the drift was still real and would bite if that routing ever changed. Consolidated into one
+  `PROCESSING_STATUS_LABELS` export in `shared/processingFileDisplay.ts`.
+- #27: `SessionFileList.tsx`'s `readySummary` defaulted a missing `extractionConfidence` to `'high'`
+  — asserting the most reassuring value for a resumed/legacy record reconcile never ran on, instead
+  of an honest unknown. Now omits the confidence clause entirely when it's not actually known.
+- #28: `extractionLogExport.ts`'s `sourceFormatFromDisplayName` was always called with the real
+  filename, never a display name — correct as written, but its name invited a future caller to pass
+  `displayFileName(f)`, which for a split entry ends in `"— Part 2 of 7"` and would silently fall
+  through to `'pdf'`. Renamed to `sourceFormatFromRawFileName`.
+- #29: `docs/specs/README.md`'s index omitted 6 of 32 spec files. Added all 6 (including this audit
+  doc itself), plus a note explaining why `handoff-next-chat.md` stays unindexed (it's meant to be
+  pasted directly into a chat, not browsed).
+
+**Judgment calls (#10, #11)** — both explicitly flagged by the audit as needing a decision, not an
+automatic fix:
+- #10: the extract prompt (`constants.ts`) tells Gemini to never infer `impactStatement` from
+  wording alone; `promoteImpactStatementFromGroupedDomains` (`shared/extractNormalize.ts`) does
+  exactly that as a post-processing step, using the same weak classifier
+  (`looksLikeImpactStatementProse`) whose sibling use (`impactStatementHarvest.ts`'s front-matter
+  fallback) was already disarmed for corrupting a real document (Imagine That Philly). Decision:
+  **keep, not disarm** — unlike the disarmed sibling, this function already went through one real
+  corruption incident of its own (Eureka! College Readiness) and was deliberately narrowed, not
+  removed, with reasoning documented in code (`MAX_TOTAL_OUTCOME_ITEMS_FOR_PROMOTION = 3` — only
+  fires when the outcomes section is sparse, since that's real circumstantial evidence of a genuinely
+  dropped impact statement rather than ordinary outcome prose). Both sides of the tension are true
+  and don't actually conflict: the prompt rule governs how *Gemini* should decide from the page it's
+  looking at; this function post-processes Gemini's *output* using evidence the prompt has no way to
+  express. Made the tension explicit and cross-referenced from both sides (a new comment on
+  `promoteImpactStatementFromGroupedDomains` pointing at the prompt rule, and a new comment above
+  `getAiExtractionPrompt` in `constants.ts` pointing back) so it no longer reads as an accidental
+  contradiction. No behavior change; still covered by existing tests on both the positive
+  (promotion fires) and negative (correctly doesn't) sides.
+- #11: `normalizeExtractedLogicModel` ran twice per extraction — once server-side
+  (`server/geminiLogicModel.ts`, on the raw Gemini response) and again client-side (`App.tsx`'s
+  `runExtraction`, on the server's already-normalized result). Traced both call sites' inputs: same
+  `bundleImpliesLowLegibility`/`bundleUsedTextOnlyFallback` functions, same bundle fields (sent
+  verbatim over the wire), functionally-equivalent `sourceText` (the "server trims, client doesn't"
+  difference the audit flagged is real but immaterial — front-matter matching doesn't care about
+  surrounding whitespace). Confirmed `extractLogicModel` has no client-only code path that skips the
+  server. Decision: **remove the redundant client-side pass** rather than just document it — unlike
+  #10, there was no evidence this second pass was ever doing anything the first didn't, so keeping it
+  "just in case" would have been keeping unneeded complexity, not preserving a considered design.
+  This directly eliminates the fragility the audit flagged (a second pass re-reading derived
+  blockers as if Gemini-reported them) rather than leaving it as a latent risk. Live-verified: real
+  extraction against Oxford Circle, confirmed the server's `ok`/`high` result flows through to the
+  UI (`"44 items · high confidence"`) with no errors.
+
+Verification for the whole batch: `npm run typecheck` clean, `npm test` 163 pass / 1 skip (YouthMoves
+snapshot, intentional) / 0 fail, `npm run build` clean, `npm run verify:api` all 4 routes ok. Live
+Playwright passes against a real document for both UI-visible changes (#25's board labels, #11's
+normalize-path removal).
 
 ---
 
