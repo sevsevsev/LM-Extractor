@@ -25,7 +25,7 @@
  * (`services/extractionLogExport.ts`) so a batch's results can be attributed to the exact prompt
  * that produced them. Format: `YYYY-MM-DD.N`.
  */
-export const PROMPT_VERSION = '2026-09-19.2';
+export const PROMPT_VERSION = '2026-09-19.3';
 
 /** Same contract as `PROMPT_VERSION`, versioned separately — different call, different failure mode. */
 export const DETECT_PROMPT_VERSION = '2026-09-19.1';
@@ -232,15 +232,23 @@ ${hasTextTrack ? '       Cross-check header strings against Track A headings whe
 `;
 
 /**
- * Phase B extraction rules 1–6 (granularity, transcription, legibility, proper nouns, polarity,
+ * Phase B extraction rules 1–5 (granularity, transcription/legibility/proper-nouns, polarity,
  * positional assignment).
  *
- * EVIDENCE: rules 4 (proper nouns/numbers) and 5 (polarity) were added in friction-log session 2
- * after Oxford Circle produced "(Joseph J. Peter Institute)" → "(St. Christopher's, Peter's Place)"
- * and "Sustained reduction in trauma-related behaviors" → "Sustained use of…". Session 3 confirmed
- * rule 5 held (polarity fixed) but rule 4 did NOT — the same fabrication persisted, unflagged.
- * STATUS: rule 4 is the top known-failing rule. It is written as a prohibition; the agreed next
- * themed change is to rewrite rules 2/4/5 as transcription procedures (see file header, point 3).
+ * EVIDENCE: proper-noun and polarity discipline were added in friction-log session 2 after Oxford
+ * Circle produced "(Joseph J. Peter Institute)" → "(St. Christopher's, Peter's Place)" and
+ * "Sustained reduction in trauma-related behaviors" → "Sustained use of…". Session 3 confirmed the
+ * polarity rule held but the proper-noun rule did not — the same fabrication persisted, unflagged,
+ * even though that rule already asked for `verbatim: false` on an unclear name.
+ * STATUS (2026-09-19, batch of 10 real documents via fixtures/regression-set/): item-level
+ * verbatim:false/sourceNote fired on 1 of 436 items total — confirming the diagnosis at real-document
+ * scale, not just the earlier 17-doc census (docs/specs/friction-log.md session 4: 0/718). The old
+ * rules 3/4 already had an observable-output shape (they asked for `verbatim: false`) but treated it
+ * as the exception to reach for on obvious failure, not the default. Rule 3 here merges the old
+ * transcribe/legibility/proper-noun rules into one procedure that generalizes the LOW-RESOLUTION
+ * block's proven "default false, promote to true only on affirmative confidence" pattern to every
+ * document, not just renderer-flagged ones. RETIRE/REVISE IF a follow-up batch against these same
+ * bundles doesn't move the flagging rate.
  */
 const phaseBExtractionRulesSection = (hasTextTrack: boolean): string => `
     ---
@@ -256,17 +264,22 @@ const phaseBExtractionRulesSection = (hasTextTrack: boolean): string => `
        } **Never add items, partner names, organizations, numbers, or
        details that are not present in the source.** If you are unsure whether something is there,
        leave it out. Inventing plausible-sounding content is the worst possible error.
-    3. **Legibility & clipped text**: If text is too small/blurry to read confidently, or a box is visibly
-       **cut off / clipped**, transcribe exactly what is legible${
+    3. **Verbatim is the exception, not the default.** For every item, default \`verbatim\` to \`false\`
+       with a short \`sourceNote\`. Only set \`verbatim: true\` when you can point to the specific glyphs
+       on the page and they are unambiguous — no inference, no filling a gap, no matching to a known
+       real-world name. This applies regardless of whether the source was flagged low-resolution; a
+       crisp render can still contain a small, blurry, or partially clipped box.
+       - **Clipped or illegible text**: transcribe only what is legible${
          hasTextTrack ? ' (or the matching Track A string if reliable)' : ''
-       } — do **not** guess the missing part. Flag with \`verbatim: false\` and a short \`sourceNote\`.
-       When an item is a faithful, confident transcription, set \`verbatim: true\`.
-    4. **Proper nouns & numbers — never auto-complete from memory (CRITICAL)**: If a name/number is not
-       **clearly legible**, transcribe your best *literal* reading and set \`verbatim: false\` with a
-       \`sourceNote\`. **Never replace an unclear name with a more familiar real-world one.**
-    5. **Never flip direction / polarity words**: Copy "reduction / decrease" vs "increase / use / more"
+       } — do **not** guess the missing part.
+       - **Proper nouns & numbers**: transcribe your best literal reading. **Never replace an unclear
+         name with a more familiar real-world one** — a plausible-sounding correction is a worse error
+         than an odd-looking verbatim string.
+       - **Never "repair" odd-looking wording into something more idiomatic.** Odd wording is usually
+         the real wording.
+    4. **Never flip direction / polarity words**: Copy "reduction / decrease" vs "increase / use / more"
        **exactly**. If unclear, keep your literal reading and set \`verbatim: false\`.
-    6. **Assign by position**: A bullet belongs to the column whose header sits **directly above** it.
+    5. **Assign by position**: A bullet belongs to the column whose header sits **directly above** it.
 `;
 
 /**
