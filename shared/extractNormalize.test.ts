@@ -163,6 +163,72 @@ test('promotes Impact Statement prose from long-term outcomes item', () => {
   assert.ok(ltTexts.some(t => t.includes('Educational attainment')));
 });
 
+test('does not steal a legitimate outcome item when outcomes are richly itemized (Eureka regression)', () => {
+  // Real document: "Eureka! College Readiness" has no separate Impact section at all — just
+  // Inputs/Activities/Outputs/Outcomes(Short/Medium/Long), each richly itemized. The first
+  // Medium-Term Outcomes item happens to read like ordinary overview prose (population word +
+  // change verb), but with 9 total outcome items across all three tiers, this should never be
+  // mistaken for a dropped impact statement.
+  const eurekaShaped: LogicModel = {
+    organization: 'Girls Inc.',
+    program: 'Eureka! College Readiness',
+    mission: { content: '' },
+    targetPopulation: { content: '' },
+    inputs: { content: [] },
+    activities: { content: [] },
+    outputs: { content: [] },
+    shortTermOutcomes: {
+      content: [
+        {
+          name: 'General',
+          items: [
+            { text: 'Increase in awareness of different career pathways and industries' },
+            { text: 'Gain basic understanding of post-secondary options' },
+            {
+              text: 'Enhanced understanding of the education and skillsets needed for STEM and nontraditional STEM careers',
+            },
+          ],
+        },
+      ],
+    },
+    mediumTermOutcomes: {
+      content: [
+        {
+          name: 'General',
+          items: [
+            {
+              text: 'Increase in the number of participants in post-secondary education and planning future college visits',
+            },
+            { text: 'Increase academic motivation tied to post-secondary and career goals' },
+            {
+              text: 'Participate in Girls Inc. college and career workshops or experiences related to post-secondary goals',
+            },
+          ],
+        },
+      ],
+    },
+    longTermOutcomes: {
+      content: [
+        {
+          name: 'General',
+          items: [
+            { text: 'Graduation from college and secure job or internship training opportunities' },
+            { text: 'Growth of representation of women in STEM and nontraditional STEM fields' },
+            { text: 'Demonstrate economic mobility and career advancement potential' },
+          ],
+        },
+      ],
+    },
+    impact: { content: [] },
+  };
+
+  const m = normalizeExtractedLogicModel(structuredClone(eurekaShaped));
+  assert.equal(m.impactStatement?.content ?? '', '');
+  const mtTexts = m.mediumTermOutcomes.content.flatMap(g => g.items.map(i => i.text));
+  assert.equal(mtTexts.length, 3);
+  assert.ok(mtTexts.some(t => t.includes('Increase in the number of participants')));
+});
+
 test('looksLikeImpactStatementProse helper', () => {
   assert.equal(
     looksLikeImpactStatementProse(

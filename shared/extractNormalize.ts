@@ -80,9 +80,32 @@ function promoteImpactStatementFromMission(model: LogicModel): void {
   }
 }
 
+/**
+ * Only promote when the outcomes section overall is sparse (a handful of items total, across
+ * every outcome domain). Found via a real document (Eureka! College Readiness — no separate
+ * Impact section at all) where a legitimately-placed, specific Medium-Term Outcomes item
+ * ("Increase in the number of participants in post-secondary education...") was silently stolen
+ * into `impactStatement` purely because it shares ordinary population/change-verb vocabulary with
+ * mission-style prose — `looksLikeImpactStatementProse` can't tell "this reads like an overview
+ * sentence" from "this is a normal, well-formed outcome bullet," and richly-itemized outcomes
+ * (several short/medium/long-term bullets, as any well-structured logic model has) are strong
+ * evidence Gemini found the real grid rather than dumping one paragraph in its place. A genuinely
+ * dropped impact statement, by contrast, tends to show up alongside very few other outcome items.
+ */
+const MAX_TOTAL_OUTCOME_ITEMS_FOR_PROMOTION = 3;
+
+function countOutcomeItems(model: LogicModel): number {
+  let total = 0;
+  for (const domain of OUTCOME_DOMAINS) {
+    for (const g of getGroups(model[domain])) total += g.items.length;
+  }
+  return total;
+}
+
 /** Gemini sometimes drops page-1 Impact Statement into an outcome list item. */
 function promoteImpactStatementFromGroupedDomains(model: LogicModel): void {
   if (model.impactStatement?.content?.trim()) return;
+  if (countOutcomeItems(model) > MAX_TOTAL_OUTCOME_ITEMS_FOR_PROMOTION) return;
 
   for (const domain of OUTCOME_DOMAINS) {
     const field = model[domain];
