@@ -34,6 +34,67 @@ const IMAGE_PAINT_OPS = new Set<number>([
   pdfjsLib.OPS.paintSolidColorImageMask,
 ]);
 
+/** [a, b, c, d, e, f] — PDF content-stream matrix, row-vector convention. */
+type PdfMatrix = [number, number, number, number, number, number];
+const IDENTITY_MATRIX: PdfMatrix = [1, 0, 0, 1, 0, 0];
+
+/** `m1` applied first, then `m2` (matches how a PDF `cm` operator prepends into the CTM). */
+function multiplyPdfMatrix(m1: PdfMatrix, m2: PdfMatrix): PdfMatrix {
+  const [a1, b1, c1, d1, e1, f1] = m1;
+  const [a2, b2, c2, d2, e2, f2] = m2;
+  return [
+    a1 * a2 + b1 * c2,
+    a1 * b2 + b1 * d2,
+    c1 * a2 + d1 * c2,
+    c1 * b2 + d1 * d2,
+    e1 * a2 + f1 * c2 + e2,
+    e1 * b2 + f1 * d2 + f2,
+  ];
+}
+
+interface RasterPlacement {
+  id: string;
+  /** Rendered size of the image's unit square under the CTM at paint time, in PDF points. */
+  widthPt: number;
+  heightPt: number;
+}
+
+/**
+ * Replay `save`/`restore`/`transform` alongside each image paint op to recover the CTM in effect
+ * at paint time, then derive the on-page rendered size (in points) of that image's unit square —
+ * this is what lets `analyzePdfPage` compare a raster's native pixel count against how large it's
+ * actually displayed, instead of assuming a fixed absolute pixel floor regardless of placement.
+ */
+function trackImagePlacements(opList: { fnArray: number[]; argsArray: unknown[][] }): RasterPlacement[] {
+  const placements: RasterPlacement[] = [];
+  const stack: PdfMatrix[] = [IDENTITY_MATRIX];
+  for (let i = 0; i < opList.fnArray.length; i++) {
+    const fn = opList.fnArray[i];
+    if (fn === pdfjsLib.OPS.save) {
+      stack.push(stack[stack.length - 1]);
+    } else if (fn === pdfjsLib.OPS.restore) {
+      if (stack.length > 1) stack.pop();
+    } else if (fn === pdfjsLib.OPS.transform) {
+      const args = opList.argsArray[i] as number[];
+      if (args?.length === 6) {
+        const cm = args as PdfMatrix;
+        stack[stack.length - 1] = multiplyPdfMatrix(cm, stack[stack.length - 1]);
+      }
+    } else if (IMAGE_PAINT_OPS.has(fn)) {
+      const objId = opList.argsArray[i]?.[0];
+      if (typeof objId === 'string') {
+        const ctm = stack[stack.length - 1];
+        placements.push({
+          id: objId,
+          widthPt: Math.hypot(ctm[0], ctm[1]),
+          heightPt: Math.hypot(ctm[2], ctm[3]),
+        });
+      }
+    }
+  }
+  return placements;
+}
+
 /** Internal PDF render result before assembling DocumentBundle. */
 interface PdfRenderResult {
   images: string[];
@@ -57,9 +118,13 @@ const PROBE_SCALE = 1.25; // cheap pass to find the content box + column gutters
 const CONTENT_PAD_FRAC = 0.01; // padding around the detected content box
 const TEXT_DOMINANT_MIN_CHARS = 40; // fewer real characters ⇒ page is essentially an image
 const LEGIBILITY_FLOOR_PX = 1150; // image-page content narrower than this ⇒ warn the user
-/** See the "high-fidelity raster" check in analyzePdfPage. */
-const MIN_DISTINCT_RASTER_ASSETS_FOR_TRUST = 3;
-const RASTER_HIGH_FIDELITY_MIN_PX = 700;
+/**
+ * Native pixels per rendered inch, below which a raster asset is treated as genuinely
+ * resolution-limited (real scans/screenshots) rather than a crisp flattened export. See the
+ * "high-fidelity raster" check in analyzePdfPage. 300 DPI is a good scan; 150 is comfortably
+ * readable; below ~110 small print starts genuinely degrading — set conservatively above that.
+ */
+const RASTER_NATIVE_DPI_FLOOR = 120;
 const ENABLE_COLUMN_TILING = true;
 /**
  * A very tall, narrow column tile buries small print. Split such tiles into vertical bands so each
@@ -187,17 +252,12 @@ async function analyzePdfPage(
   const imageDominant = textChars < TEXT_DOMINANT_MIN_CHARS;
 
   let hasEmbeddedRaster = false;
-  let rasterObjIds: string[] = [];
+  let placements: RasterPlacement[] = [];
   if (imageDominant) {
     try {
       const opList = await page.getOperatorList();
-      for (let i = 0; i < opList.fnArray.length; i++) {
-        if (IMAGE_PAINT_OPS.has(opList.fnArray[i])) {
-          const objId = opList.argsArray[i]?.[0];
-          if (typeof objId === 'string') rasterObjIds.push(objId);
-        }
-      }
-      hasEmbeddedRaster = rasterObjIds.length > 0;
+      placements = trackImagePlacements(opList);
+      hasEmbeddedRaster = placements.length > 0;
     } catch {
       // Unknown either way — err toward the conservative (always-risky) treatment.
       hasEmbeddedRaster = true;
@@ -216,39 +276,45 @@ async function analyzePdfPage(
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   await page.render({ canvasContext: ctx, canvas, viewport }).promise;
 
-  // A page can have embedded raster content for two very different reasons: one big flattened
-  // scan/screenshot (genuinely resolution-limited), or several separately-exported high-DPI
-  // graphic assets (e.g. design-tool "cards" with rounded corners/shadows that don't translate to
-  // PDF vector ops, but each asset is well above screen resolution). Only the former is actually
-  // risky. Distinguishing requires ≥3 distinct assets (a single scan is virtually always one
-  // object) that are ALL comfortably high-resolution on their own — resolved via the page's own
-  // decoded image objects (populated by the render just above), never assumed.
+  // A page can have embedded raster content for two very different reasons: a genuine flattened
+  // scan/screenshot (resolution-limited — upscaling it to clear the render-size floor below just
+  // interpolates, it doesn't recover real detail) or a crisp flattened design-tool export (Canva,
+  // Figma, PowerPoint-to-PDF) that happens to have no real text layer but is natively high-DPI.
+  // Only the former is actually risky. Distinguish by comparing each raster asset's *native* pixel
+  // count against how large it's actually placed on the page (via the CTM in effect when it was
+  // painted, from `placements` above) — a real DPI-equivalent, not a fixed absolute pixel count,
+  // so it isn't fooled by a naturally-small/thin asset (e.g. a letterhead banner) that's genuinely
+  // high-resolution for its size. Applies regardless of how many raster objects the page has —
+  // found via a real batch audit that a single well-exported flattened page was getting the same
+  // "always risky" treatment as an actual low-DPI scan, discarding accurate extractions.
   if (hasEmbeddedRaster) {
-    const dedupIds = Array.from(new Set(rasterObjIds));
-    if (dedupIds.length >= MIN_DISTINCT_RASTER_ASSETS_FOR_TRUST) {
-      let allHighFidelity = true;
-      for (const id of dedupIds) {
-        try {
-          if (!page.objs.has(id)) {
-            allHighFidelity = false;
-            break;
-          }
-          const obj = page.objs.get(id) as { width?: number; height?: number } | null;
-          const w = typeof obj?.width === 'number' ? obj.width : 0;
-          const h = typeof obj?.height === 'number' ? obj.height : 0;
-          if (Math.min(w, h) < RASTER_HIGH_FIDELITY_MIN_PX) {
-            allHighFidelity = false;
-            break;
-          }
-        } catch {
-          allHighFidelity = false;
-          break;
-        }
+    const worstDpiById = new Map<string, number>();
+    for (const p of placements) {
+      if (p.widthPt <= 0 || p.heightPt <= 0) continue;
+      const obj = page.objs.has(p.id)
+        ? (page.objs.get(p.id) as { width?: number; height?: number } | null)
+        : null;
+      const nativeW = typeof obj?.width === 'number' ? obj.width : 0;
+      const nativeH = typeof obj?.height === 'number' ? obj.height : 0;
+      if (nativeW <= 0 || nativeH <= 0) {
+        worstDpiById.set(p.id, 0);
+        continue;
       }
-      // Trust it like vector content — fall through to the contentPx-vs-floor check instead of
-      // the blanket "always risky" treatment.
-      if (allHighFidelity) hasEmbeddedRaster = false;
+      const dpiX = nativeW / (p.widthPt / 72);
+      const dpiY = nativeH / (p.heightPt / 72);
+      const dpi = Math.min(dpiX, dpiY);
+      // A given asset can be painted more than once (e.g. tiled) — keep its worst (largest
+      // rendered, i.e. lowest-effective-DPI) instance, matching "trust only if ALL are
+      // comfortably high-resolution."
+      const prev = worstDpiById.get(p.id);
+      if (prev === undefined || dpi < prev) worstDpiById.set(p.id, dpi);
     }
+    const allHighFidelity =
+      worstDpiById.size > 0 &&
+      Array.from(worstDpiById.values()).every(dpi => dpi >= RASTER_NATIVE_DPI_FLOOR);
+    // Trust it like vector content — fall through to the contentPx-vs-floor check instead of
+    // the blanket "always risky" treatment.
+    if (allHighFidelity) hasEmbeddedRaster = false;
   }
 
   const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);

@@ -106,6 +106,53 @@ source: organization, program, impact statement text, and all six domains match)
 previously-verified real documents (Foster Grandparent Program, PHENND) re-ran with no change in
 outcome, confirming no regression on genuine cases the "always risky" path is meant to protect.
 
+## 7. Native-DPI check replaces the asset-count bypass (2026-09-19)
+
+Trigger: a real 112-file batch audit (see `docs/specs/tech-extraction-confidence-v1.md`) flagged a
+"flattened-raster hard-stop" cluster. Hand-verifying two of the hard-stopped files against their
+source PDFs — **Oxford Circle CCDA (Carnell FRC), the very document that motivated this whole
+guardrail**, and **LULAC National Educational Service Centers (Talent Search)** — found both
+page renders were crisp at 300 DPI with zero visible artifacts, and that **every single
+`verbatim: false` item Gemini flagged (15/15 across the two files) was an exact-match transcription
+of the source**. The pipeline discarded two fully-accurate extractions and told the operator to
+re-key them by hand.
+
+**Root cause**: the section 4 rendering fix (higher scale for image-dominant pages) had already
+fixed Carnell FRC's original 8px-text problem — but the `hasEmbeddedRaster` flag from section 6
+still forced `lowLegibility = true` unconditionally for *any* image-dominant page with raster paint
+ops, independent of how well it actually rendered. Carnell FRC page 2 has only 2 distinct raster
+assets (a thin letterhead banner + the grid content); LULAC Talent Search has 1. Both were far
+under the ≥3-distinct-assets bypass from section 6, so neither ever got a chance at the
+"comfortably high-resolution" trust check — despite that check's own per-asset floor (700px on the
+shorter side) being satisfiable by both, had it run. Worse, `lowLegibility = true` also flows into
+the extraction prompt's `LOW-RESOLUTION SOURCE` block (`constants.ts`), which **mandates**
+`verbatim: false` on any proper-noun/number item "to be safe" — manufacturing exactly the inflated
+non-verbatim ratio that then independently justified the low-confidence hard-stop, on a page that
+was actually being transcribed perfectly.
+
+**Fix** (`analyzePdfPage` in `services/fileService.ts`): replace the "≥3 assets, each ≥700px on its
+shorter side" bypass with a real DPI-equivalent check, applied regardless of asset count. Each
+raster paint op's operator-list position is replayed against a tracked CTM (`save`/`restore`/
+`transform`, via a small `trackImagePlacements` matrix-stack walk) to recover how large that
+asset's unit square was actually rendered on the page, in points. Native DPI = the asset's native
+pixel dimensions (from `page.objs`, populated by the probe render) divided by its rendered size in
+inches. `hasEmbeddedRaster` is only relaxed to `false` when every distinct asset's native DPI (its
+worst instance, if painted more than once) clears `RASTER_NATIVE_DPI_FLOOR` (120) — a threshold
+picked below both real documents' measured values with margin, while still well above the visible
+degradation point for printed text. This directly fixes the aspect-ratio blind spot in the old
+per-asset check too: a naturally thin/small asset (like a letterhead banner) is no longer penalized
+for its shape, only for genuinely low pixel density relative to its own placement.
+
+Verified live end-to-end (not just the DPI math in isolation): Carnell FRC's two assets measured
+177.7 and 186.3 DPI; LULAC Talent Search's one asset measured 138.0 DPI — both comfortably above
+the floor. Re-processing both through the real pipeline after the fix: `ok`/`high` confidence, zero
+blockers, ready to export — no rendering change, no prompt change, same Gemini call, just no longer
+told to distrust itself. The `RASTER_NATIVE_DPI_FLOOR` is a physical-quantity threshold (pixels per
+rendered inch), so a genuinely low-native-resolution scan is unaffected by this change and keeps
+the original hard-stop protection; no regression case was available to test directly (no confirmed
+bad-scan sample in hand), but the check now measures the quantity the original 700px/asset-count
+heuristics were only crudely approximating.
+
 ## Guardrails honoured
 - **Zero new dependencies** — uses existing `pdfjs-dist` + canvas.
 - **Secrets** — no change to key handling.
