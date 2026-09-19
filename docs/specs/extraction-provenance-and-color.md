@@ -153,6 +153,48 @@ the original hard-stop protection; no regression case was available to test dire
 bad-scan sample in hand), but the check now measures the quantity the original 700px/asset-count
 heuristics were only crudely approximating.
 
+## 8. Same fix ported to DOCX (2026-09-19)
+
+Trigger: re-running the full batch after §7 shipped (flag rate dropped 65% → 24%) surfaced **Girl
+Scouts of Eastern Pennsylvania** as a newly-visible false positive — a real 112-file batch audit
+round-trip catching the sibling bug immediately, one conversation turn later.
+
+**Root cause**: the DOCX renderer (`renderDocxVisionPages`/`analyzeDocxSection`) never shared §6/§7's
+raster-vs-vector distinction at all — it has its own, simpler image-dominance signal (`<img>`
+elements covering ≥35% of a section's rendered area, since a Word page can embed a raster but is
+never itself a flattened scan), but that signal alone directly set `lowLegibility = true` with zero
+resolution check of any kind — not even the old, narrow asset-count bypass PDF had before §7.
+
+Girl Scouts' single content image (`word/media/image1.png`, a Discover/Connect/Take Action outcomes
+diagram) is 948×786 native pixels, displayed at 624×517 CSS px — i.e. *downscaled* on the page, not
+upscaled. Extracted directly from the docx zip and viewed at native resolution: crisp, no artifacts.
+Yet it hard-stopped with the same "Low-resolution dense grid" message.
+
+**Fix**: added `hasLowResEmbeddedImage` to `DocxSectionAnalysis`, computed the same way as the PDF
+DPI check but simpler — a DOM `<img>` exposes `naturalWidth`/`naturalHeight` directly, no CTM replay
+needed. Display size (`getBoundingClientRect()`) is converted to inches via `DOCX_RENDER_WIDTH_PX`'s
+assumed physical page width (`DOCX_PAGE_WIDTH_IN = 8.5`, matching the fixed-width container
+`renderDocxVisionPages` already renders into), then compared against `RASTER_NATIVE_DPI_FLOOR` — the
+same constant and threshold as the PDF path, since it measures the same physical quantity. Kept
+`imageDominant` itself unchanged (it still independently decides render scale, same as PDF's
+`imageDominant`/`hasEmbeddedRaster` split) — only what drives `lowLegibility` changed.
+
+Verified live: Girl Scouts' image computed to 178.8 DPI (well above the 120 floor); re-processing
+after the fix gives `ok`/`high`, zero blockers, and the 22 extracted items match the source image
+exactly (6 activities, 15 medium-term outcomes across 3 named groups, 1 long-term outcome).
+
+A second file from the same re-run, **YMCA Teen Workforce Development Program**, also newly
+hard-stopped with a similarly-worded warning ("Page 2 ... contains a low-resolution embedded
+image") — but its docx zip has **zero embedded media** (`word/media/` is empty), and re-running it
+against this sandbox's dev server 4 times (before and after the fix) never reproduced the warning
+once; it processed cleanly every time. Its warning must come from `legibilityWarningFor`'s *other*
+trigger — small rendered content size alone (`contentPx < LEGIBILITY_FLOOR_PX`), independent of
+whether an image exists at all, which the warning text misleadingly always blames on "an embedded
+image." Left uninvestigated: not reproducible here, so no fix was attempted; flagging that this
+warning's wording can be inaccurate, and that DOCX content-size measurement may have its own
+run-to-run non-determinism (a plausible cause is `html2canvas` capturing before webfonts finish
+loading, though this is a guess, not confirmed) worth a closer look if it recurs.
+
 ## Guardrails honoured
 - **Zero new dependencies** — uses existing `pdfjs-dist` + canvas.
 - **Secrets** — no change to key handling.

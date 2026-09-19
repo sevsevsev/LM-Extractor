@@ -892,9 +892,20 @@ function sliceCanvasToJpegs(
 
 interface DocxSectionAnalysis {
   imageDominant: boolean;
+  /**
+   * True only when `imageDominant` AND at least one driving embedded image is genuinely
+   * low-resolution for how large it's displayed — see the native-DPI check below. Drives
+   * `lowLegibility`; kept separate from `imageDominant` (which still drives render scale — a
+   * bigger canvas never hurts, even for a crisp source image) the same way the PDF path separates
+   * `hasEmbeddedRaster` from `imageDominant`.
+   */
+  hasLowResEmbeddedImage: boolean;
   bboxFrac: Box | null;
   columnFracs: { start: number; end: number }[] | null;
 }
+
+/** Assumed physical page width behind `DOCX_RENDER_WIDTH_PX`, for converting display px to inches. */
+const DOCX_PAGE_WIDTH_IN = 8.5;
 
 /** Cheap probe render → content box + column bands + embedded-image dominance. Mirrors analyzePdfPage. */
 async function analyzeDocxSection(el: HTMLElement): Promise<DocxSectionAnalysis> {
@@ -904,7 +915,7 @@ async function analyzeDocxSection(el: HTMLElement): Promise<DocxSectionAnalysis>
     backgroundColor: '#ffffff',
   });
   const ctx = probe.getContext('2d', { willReadFrequently: true });
-  if (!ctx) return { imageDominant: false, bboxFrac: null, columnFracs: null };
+  if (!ctx) return { imageDominant: false, hasLowResEmbeddedImage: false, bboxFrac: null, columnFracs: null };
   const { data } = ctx.getImageData(0, 0, probe.width, probe.height);
   const { bbox, inkProfile } = analyzeCanvasPixels(data, probe.width, probe.height);
 
@@ -913,12 +924,41 @@ async function analyzeDocxSection(el: HTMLElement): Promise<DocxSectionAnalysis>
   // embed one, which carries the same small-print legibility risk.
   const elRect = el.getBoundingClientRect();
   const elArea = Math.max(1, elRect.width * elRect.height);
+  const images = Array.from(el.querySelectorAll('img'));
   let imgArea = 0;
-  for (const img of Array.from(el.querySelectorAll('img'))) {
+  for (const img of images) {
     const r = img.getBoundingClientRect();
     imgArea += Math.max(0, r.width) * Math.max(0, r.height);
   }
   const imageDominant = imgArea / elArea >= DOCX_IMAGE_AREA_DOMINANT_FRAC;
+
+  // Same false-positive shape as the PDF path (see extraction-provenance-and-color.md §7): a
+  // section can be "image-dominant" by area while its embedded image is natively high-resolution
+  // (a crisp infographic/diagram displayed at or below its native size) — only a genuinely
+  // low-density image should carry the "always risky" legibility treatment. `naturalWidth`/
+  // `naturalHeight` give the image's real pixel count directly (no CTM math needed, unlike PDF),
+  // compared against how large it's actually displayed, anchored to `DOCX_RENDER_WIDTH_PX`'s
+  // assumed physical page width.
+  let hasLowResEmbeddedImage = false;
+  if (imageDominant) {
+    const pxPerInch = DOCX_RENDER_WIDTH_PX / DOCX_PAGE_WIDTH_IN;
+    for (const img of images) {
+      const r = img.getBoundingClientRect();
+      if (r.width <= 0 || r.height <= 0) continue;
+      const nativeW = img.naturalWidth;
+      const nativeH = img.naturalHeight;
+      if (nativeW <= 0 || nativeH <= 0) {
+        hasLowResEmbeddedImage = true;
+        break;
+      }
+      const dpiX = nativeW / (r.width / pxPerInch);
+      const dpiY = nativeH / (r.height / pxPerInch);
+      if (Math.min(dpiX, dpiY) < RASTER_NATIVE_DPI_FLOOR) {
+        hasLowResEmbeddedImage = true;
+        break;
+      }
+    }
+  }
 
   let bboxFrac: Box | null = null;
   if (bbox) {
@@ -946,7 +986,7 @@ async function analyzeDocxSection(el: HTMLElement): Promise<DocxSectionAnalysis>
     }
   }
 
-  return { imageDominant, bboxFrac, columnFracs };
+  return { imageDominant, hasLowResEmbeddedImage, bboxFrac, columnFracs };
 }
 
 interface DocxSectionRenderResult {
@@ -1078,7 +1118,7 @@ async function renderDocxVisionPages(arrayBuffer: ArrayBuffer): Promise<DocxVisi
         const section = limited[i];
         const pageNum = i + 1;
         const analysis = await analyzeDocxSection(section);
-        if (analysis.imageDominant) lowLegibility = true;
+        if (analysis.hasLowResEmbeddedImage) lowLegibility = true;
 
         const scale = resolveContentScale(
           analysis.imageDominant,
@@ -1121,7 +1161,7 @@ async function renderDocxVisionPages(arrayBuffer: ArrayBuffer): Promise<DocxVisi
       // Single flow / no reliable page breaks — analyze once, then paginate by height.
       const target = pageSections[0] || container;
       const analysis = await analyzeDocxSection(target);
-      if (analysis.imageDominant) lowLegibility = true;
+      if (analysis.hasLowResEmbeddedImage) lowLegibility = true;
       const scale = resolveContentScale(
         analysis.imageDominant,
         1,
