@@ -196,7 +196,16 @@ ${hasTextTrack ? '       Cross-check header strings against Track A headings whe
       }
     - **Whitespace trap (common PPT→PDF):** Body text may sit near the **bottom** of a large empty box — still extract it.
     - Always finish overview pages **before** the multi-column grid. If page 1 says IMPACT STATEMENT, \`impactStatement\` must be non-empty.
-    - **\`mission\`** — Optional and distinct from Impact Statement; use \`""\` if absent.
+    - **\`mission\`** — Optional and distinct from Impact Statement. **Decide by heading, not by
+      wording**: prose under an explicit "Mission" / "Our Mission" / "Purpose" heading goes here —
+      regardless of whether it *sounds* forward-looking or aspirational. Plenty of ordinary mission
+      statements talk about future benefits ("...so students can achieve...", "...to help families
+      thrive...") without being an Impact Statement; the heading is what decides it, not the vocabulary.
+      Once you've placed prose under \`mission\` or \`impactStatement\`, do not move it to the other
+      field — decide once.
+    - **No heading at all** (no "Mission" or "Impact Statement" label anywhere): put unlabeled overview
+      prose in \`mission\`, never in \`impactStatement\` — that field requires an explicit heading (above);
+      never infer one from wording alone.
     - **\`targetPopulation\`** — Who is served.
 
     **COLUMN FIDELITY (HARD RULES)**:

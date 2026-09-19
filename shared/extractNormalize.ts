@@ -69,17 +69,6 @@ function inferOutputGroup(text: string): string {
   return 'General';
 }
 
-function promoteImpactStatementFromMission(model: LogicModel): void {
-  const missionText = model.mission?.content?.trim() ?? '';
-  const impactText = model.impactStatement?.content?.trim() ?? '';
-  if (!missionText || impactText) return;
-
-  if (looksLikeImpactStatementProse(missionText)) {
-    model.impactStatement = { content: model.mission.content };
-    model.mission = { ...model.mission, content: '' };
-  }
-}
-
 /**
  * Only promote when the outcomes section overall is sparse (a handful of items total, across
  * every outcome domain). Found via a real document (Eureka! College Readiness — no separate
@@ -187,7 +176,6 @@ export function normalizeExtractedLogicModel(
   // the always-present outcome fields instead of each needing its own undefined guard.
   if (!model.generalOutcomes) model.generalOutcomes = { content: [] };
   fillMissingImpactStatementFromSourceText(model, options?.sourceText);
-  promoteImpactStatementFromMission(model);
   promoteImpactStatementFromGroupedDomains(model);
   applySourceAwareMapping(model);
   reconcileExtractionFidelity(model, {

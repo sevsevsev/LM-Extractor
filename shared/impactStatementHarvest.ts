@@ -22,10 +22,6 @@ const POPULATION_WORDS =
 const CHANGE_WORDS =
   /\b(will|improve[sd]?|increase[sd]?|reduce[sd]?|achieve[sd]?|ensure[sd]?|foster[sd]?|build[s]?|strengthen(?:s|ed)?|transform(?:s|ed)?|experience[sd]?|empower(?:s|ed)?|support(?:s|ed)?)\b/i;
 
-/** How far into the document (chars) "front matter" is assumed to end — impact statements are
- * conventionally near the top of page 1, not deep in a later section. */
-const FRONT_MATTER_SCAN_CHARS = 2500;
-
 function collapseWs(s: string): string {
   return s.replace(/\s+/g, ' ').trim();
 }
@@ -68,15 +64,16 @@ export function harvestImpactStatementFromPlainText(text: string): string | null
     }
   }
 
-  // No usable heading — conservatively scan only the document's front matter (impact
-  // statements conventionally sit near the top of page 1) for prose that reads like one,
-  // rather than searching the whole document for one document's exact wording.
-  const frontMatter = normalized.slice(0, FRONT_MATTER_SCAN_CHARS);
-  const sentences = frontMatter.match(/[^.!?]+[.!?]+/g) || [];
-  for (const s of sentences) {
-    const c = collapseWs(s);
-    if (looksLikeImpactStatementProse(c)) return c;
-  }
-
+  // No usable heading — leave it to the model. `looksLikeImpactStatementProse` (population word +
+  // change verb, 80-600 chars) is too weak a classifier to guess an unlabeled sentence is "the"
+  // impact statement: it matches most ordinary mission-statement prose too. Confirmed live on a
+  // real document — Imagine That Philly's opening Mission sentence ("...provides resources that
+  // encourage children to learn...so we can organically foster...growth") got harvested here and
+  // duplicated into impactStatement, literal "## Page 1" markdown artifact and all, even though the
+  // extraction prompt now explicitly tells Gemini "no heading at all -> mission, never
+  // impactStatement" and Gemini correctly left impactStatement empty. A previous version of this
+  // fallback used to run unconditionally here; removed rather than tuned further, same reasoning as
+  // the sibling `promoteImpactStatementFromMission` removal (see extractNormalize.ts) — the model
+  // can see the actual document and heading, a front-matter regex can't.
   return null;
 }

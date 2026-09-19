@@ -62,10 +62,16 @@ const youthMovesMisparse: LogicModel = {
   },
 };
 
-test('promotes Impact Statement prose from mission', () => {
+test('no longer relabels mission prose as Impact Statement (heuristic removed in favor of prompt guidance)', () => {
+  // promoteImpactStatementFromMission was removed: `looksLikeImpactStatementProse` (population word +
+  // change verb, 80-600 chars) matches most ordinary mission-statement prose too — confirmed against a
+  // real document's verbatim mission text ("Imagine That Philly provides resources that encourage
+  // children to learn... so we can organically foster... growth") during a real-batch audit. The
+  // prompt's CONTEXT & OVERVIEW section now carries this distinction instead (decide by heading, not
+  // by wording) since Gemini can see the actual document, a regex over generic vocabulary can't.
   const m = normalizeExtractedLogicModel(structuredClone(youthMovesMisparse));
-  assert.ok(m.impactStatement?.content?.includes('Through sustained participation'));
-  assert.equal(m.mission.content, '');
+  assert.ok(m.mission.content.includes('Through sustained participation'));
+  assert.equal(m.impactStatement?.content ?? '', '');
 });
 
 test('normalizeExtractedLogicModel initializes generalOutcomes even when Gemini omitted it', () => {

@@ -180,6 +180,65 @@ Omit row when empty. Domain column = `"Impact Statement"` (distinct from grouped
 
 ---
 
+## 9. Client-side promotion heuristics — added later, removed 2026-09-19
+
+At some point after this spec shipped, `shared/extractNormalize.ts` and `shared/impactStatementHarvest.ts`
+grew three **undocumented** client-side "repair" mechanisms, layered on top of §2's prompt-only design,
+that would silently move text between fields after Gemini's response came back:
+
+1. `promoteImpactStatementFromMission` — if `mission` was non-empty and `impactStatement` empty, and
+   the mission text matched a generic "reads like impact-statement prose" pattern (a population word
+   + a change verb, 80-600 chars), the whole mission was relabeled as Impact Statement and `mission`
+   wiped to `""`.
+2. `promoteImpactStatementFromGroupedDomains` — the same pattern match, but scanning items already
+   placed in `shortTermOutcomes`/`mediumTermOutcomes`/`longTermOutcomes`/`generalOutcomes`/`impact`
+   and stealing the first match out of its group into `impactStatement`.
+3. `harvestImpactStatementFromPlainText`'s front-matter fallback — when no literal "impact statement"
+   heading existed in the raw text layer, it scanned the document's first 2500 characters for any
+   sentence matching the same loose pattern and used that as a guessed Impact Statement.
+
+None of these were part of the 2026-07-28 design (§2's rule was one-directional: "never copy Impact
+Statement into mission," never the reverse) and none were covered by the YouthMoves gold fixture.
+
+**Removed after a real-batch audit found all three misfiring** on real documents:
+
+- §2 of `tech-extraction-confidence-v1.md` — (2) confirmed live: a legitimately-placed Medium-Term
+  Outcomes item on Eureka! College Readiness (a document with no Impact section at all) was silently
+  relocated into `impactStatement`.
+- (1) confirmed via direct testing: Imagine That Philly's real, verbatim Mission text ("...provides
+  resources that encourage children to learn...so we can organically foster...growth") matches the
+  same heuristic — an entirely ordinary present-tense mission statement, nothing impact-statement-
+  shaped about it.
+- (3) confirmed live: the same document's Mission sentence was independently re-harvested from the raw
+  text track and duplicated into `impactStatement`, literal `## Page 1` markdown marker included, via
+  a completely different code path than (1) — proving the underlying heuristic (not just one call
+  site) was the problem.
+
+All three were removed rather than tuned further — the root issue is that "population word + change
+verb, medium length" describes most ordinary nonprofit-report prose (mission statements, outcome
+bullets, activity descriptions alike), so it can't reliably distinguish "this is an impact statement"
+from "this is any other well-formed sentence in the document."
+
+**Replacement**: strengthened the CONTEXT & OVERVIEW section of the extract prompt (`constants.ts`)
+with the missing symmetric rule — decide Mission vs. Impact Statement **by heading, not by wording**;
+don't relabel ordinary mission prose as Impact Statement just because it mentions future benefits; and
+made explicit what was previously only implied: unlabeled overview prose (no heading at all) belongs
+in `mission`, never `impactStatement`, since that field requires an explicit heading per §2. This
+gives Gemini the same kind of structural (not vocabulary-based) test that fixed the
+`documentTypeAssessment` gap — and Gemini can actually see the document's real headings, which a
+regex over extracted text never could.
+
+`promoteImpactStatementFromGroupedDomains` (2, above) was kept, but tightened with a threshold instead
+of removed — see `tech-extraction-confidence-v1.md` §"Determinism..." for why a single string field
+(mission) and a list of grid items don't have the same safe corroborating signal available.
+
+**Verified live** against three real documents after both the prompt and code changes: Oxford Circle
+Carnell FRC (has separate, explicitly labeled Mission and Impact Statement sections) still correctly
+separates both — no regression on the legitimate case this whole design exists for; Imagine That
+Philly (Mission heading only) now correctly keeps its mission text in `mission` with `impactStatement`
+empty, no duplication, no markdown leakage; Eureka (no Mission or Impact Statement heading at all)
+correctly leaves both empty.
+
 ## Implementation sequence
 
 1. `types.ts` + Gemini schemas  

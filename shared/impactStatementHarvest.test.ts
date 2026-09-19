@@ -37,7 +37,13 @@ test('returns null when no impact statement present', () => {
   );
 });
 
-test('recovers prose fingerprint without clean heading when signals match', () => {
+test('returns null without an explicit heading, even when prose reads like an impact statement', () => {
+  // The front-matter fallback (scan for any sentence matching population+change vocabulary when no
+  // "impact statement" heading exists) was removed: confirmed live that it duplicated an ordinary
+  // Mission sentence into impactStatement on a real document (Imagine That Philly), markdown page
+  // marker and all, even though the extraction prompt already correctly left impactStatement empty.
+  // Requiring an explicit heading avoids guessing at unlabeled prose Gemini already declined to
+  // treat as an impact statement.
   const got = harvestImpactStatementFromPlainText(`Page 1 overview. ${YOUTHMOVES_PROSE}`);
-  assert.ok(got?.includes('affirming environment'));
+  assert.equal(got, null);
 });
