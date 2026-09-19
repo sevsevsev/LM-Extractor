@@ -25,7 +25,7 @@
  * (`services/extractionLogExport.ts`) so a batch's results can be attributed to the exact prompt
  * that produced them. Format: `YYYY-MM-DD.N`.
  */
-export const PROMPT_VERSION = '2026-09-19.3';
+export const PROMPT_VERSION = '2026-09-19.4';
 
 /** Same contract as `PROMPT_VERSION`, versioned separately — different call, different failure mode. */
 export const DETECT_PROMPT_VERSION = '2026-09-19.1';
@@ -244,11 +244,28 @@ ${hasTextTrack ? '       Cross-check header strings against Track A headings whe
  * verbatim:false/sourceNote fired on 1 of 436 items total — confirming the diagnosis at real-document
  * scale, not just the earlier 17-doc census (docs/specs/friction-log.md session 4: 0/718). The old
  * rules 3/4 already had an observable-output shape (they asked for `verbatim: false`) but treated it
- * as the exception to reach for on obvious failure, not the default. Rule 3 here merges the old
- * transcribe/legibility/proper-noun rules into one procedure that generalizes the LOW-RESOLUTION
- * block's proven "default false, promote to true only on affirmative confidence" pattern to every
- * document, not just renderer-flagged ones. RETIRE/REVISE IF a follow-up batch against these same
- * bundles doesn't move the flagging rate.
+ * as the exception to reach for on obvious failure, not the default.
+ *
+ * 2026-09-19.3 tried to fix that by defaulting `verbatim` to `false` on EVERY item. That version was
+ * withdrawn unrun: `verbatim: false` is not just a note to a human, it is the input to the fidelity
+ * rollup in `shared/extractionFidelity.ts`, whose thresholds were tuned when `false` was rare.
+ * `nonVerbatim / total >= 0.15` pushes `ok` -> `partial`; `>= 0.40` drives confidence to `low`;
+ * `low` is `shouldHardStopExtraction`, and `App.tsx` turns a hard stop into `status: 'error'` with
+ * `result: undefined` — the extraction is DISCARDED. Replaying the ten committed baselines through
+ * the real rollup with every item flagged puts 9 of 10 into that state. So .3 had no safe operating
+ * point: under 15% flagging it changes nothing, at 40% it throws the batch away, and it asked for
+ * 100%. The more it worked, the worse the outcome.
+ *
+ * Rule 3 here (2026-09-19.4) keeps the .3 insight — flagging is a procedure, not a last resort —
+ * but bounds the trigger to something the model can actually perceive: "did I read this, or did I
+ * reconstruct it?". That matters because the file header's prohibition-vs-procedure framing is
+ * slightly too broad. Rule 4 (polarity) is a pure prohibition and session 3 confirmed it HELD,
+ * because "reduction" vs "increase" is a discrete, visible lexical choice. "Never fabricate" fails
+ * not because it is a prohibition but because its trigger is imperceptible. Reconstruction is
+ * perceptible; fabrication-in-the-abstract is not.
+ * REVISE IF a batch shows the flagging rate still ~0, or shows it above ~0.4 on documents that were
+ * actually legible (that would mean the trigger is reading as "any uncertainty" again, and the
+ * rollup arithmetic above applies).
  */
 const phaseBExtractionRulesSection = (hasTextTrack: boolean): string => `
     ---
@@ -264,11 +281,14 @@ const phaseBExtractionRulesSection = (hasTextTrack: boolean): string => `
        } **Never add items, partner names, organizations, numbers, or
        details that are not present in the source.** If you are unsure whether something is there,
        leave it out. Inventing plausible-sounding content is the worst possible error.
-    3. **Verbatim is the exception, not the default.** For every item, default \`verbatim\` to \`false\`
-       with a short \`sourceNote\`. Only set \`verbatim: true\` when you can point to the specific glyphs
-       on the page and they are unambiguous — no inference, no filling a gap, no matching to a known
-       real-world name. This applies regardless of whether the source was flagged low-resolution; a
-       crisp render can still contain a small, blurry, or partially clipped box.
+    3. **Flag every item you reconstructed rather than read.** After writing each item's \`text\`, ask
+       one question: did you read every character of it, or did you reconstruct part of it — from
+       context, from a familiar real-world name, or from what the phrase "should" say? If any part
+       was reconstructed, set \`verbatim: false\` and add a short \`sourceNote\` naming the unclear part
+       (e.g. "second word unclear", "partner name not fully legible"). If you read all of it, set
+       \`verbatim: true\`. Judge this per item, not per document — a crisp render can still contain a
+       small, blurry, or partially clipped box, and proper nouns, numbers, and durations are where
+       reconstruction is most likely and most costly.
        - **Clipped or illegible text**: transcribe only what is legible${
          hasTextTrack ? ' (or the matching Track A string if reliable)' : ''
        } — do **not** guess the missing part.

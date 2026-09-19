@@ -2,13 +2,13 @@
   {
     "id": "oxford-circle-carnell-frc",
     "label": "Oxford Circle CCDA — Carnell FRC",
-    "covers": "vision+text · colour-coded boxes, real horizontal track bands. CORRECTION (2026-09-19): the Drive-sourced PDF for this label is a clean 2-page vector export — it does NOT trigger +lowleg (no warnings, ok/high confidence). The original flattened ~142 DPI raster from friction-log sessions 1-3 that motivated this fixture's inclusion is not in the partner Drive folder; this entry no longer covers the lowleg gap it was added for. See art-thru-youth for real +lowleg coverage instead.",
+    "covers": "vision+text · colour-coded boxes, real horizontal track bands. CORRECTION (2026-09-19): the Drive-sourced PDF for this label is a clean 2-page vector export — it does NOT trigger +lowleg (no warnings, ok/high confidence). The original flattened ~142 DPI raster from friction-log sessions 1-3 that motivated this fixture's inclusion is not in the partner Drive folder; this entry no longer covers the lowleg gap it was added for. See art-thru-youth for real +lowleg coverage instead. CORRECTION 2 (2026-09-19, session 5): the \"real horizontal track bands\" claim is also wrong. The committed baseline has group \"General\" in every grid domain; the only sub-groups are the four Resources buckets in `inputs`, which PHASE A rule 3 explicitly says are NOT tracks. This fixture exercises the correct ABSENCE of tracks, not their detection.",
     "bundle": "oxford-circle-carnell-frc.json"
   },
   {
     "id": "performance-garage-youthmoves",
     "label": "Performance Garage — YouthMoves",
-    "covers": "CORRECTION (2026-09-19): labeled vision+text but actually runs text-only — this PPTX's LibreOffice PPTX-to-PDF conversion fails the same way firsthand-pptx's does (0 images, textTrack only). Currently a second text-only data point, not a distinct vision+text one, until PPTX conversion is fixed or this entry is replaced with a PDF/DOCX source.",
+    "covers": "CORRECTION (2026-09-19): labeled vision+text but actually runs text-only — this PPTX's LibreOffice PPTX-to-PDF conversion fails the same way firsthand-pptx's does (0 images, textTrack only). Currently a second text-only data point, not a distinct vision+text one, until PPTX conversion is fixed or this entry is replaced with a PDF/DOCX source. CORRECTION 2 (2026-09-19, session 5): CONTAMINATED FOR GROUPING. PHASE A rule 3 in constants.ts names this document's own Activities group labels as its worked example (\"YouthMoves at FLC\", \"Summer Intensive\", \"Student Produced Concert\") — the exact three groups in this baseline. The model can emit them from the prompt without reading the document, so any grouping diff on this fixture is uninterpretable. Do not read a group change here as a grouping regression. See friction-log session 5, Finding 2.",
     "bundle": "performance-garage-youthmoves.json"
   },
   {

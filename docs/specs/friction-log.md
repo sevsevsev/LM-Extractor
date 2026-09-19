@@ -254,6 +254,148 @@ problem. Treat this batch as the baseline, not as a pass.
 
 ---
 
+## Session 5 — static audit of constants.ts (no batch run)
+
+```
+Date:                     2026-09-19
+Operator:                 agent session (claude/loving-hawking-r436g3)
+Files:                    none — see "Blocker" below
+Prompt version:           reviewed 2026-09-19.3; shipped 2026-09-19.4
+Host mode:                npm test / npm run typecheck only
+Method:                   full critical read of constants.ts + simulation of the fidelity rollup
+                          against the ten committed regression baselines. No Gemini calls.
+
+--- Blocker: the Tier-1 harness could not run ---
+`fixtures/regression-set/bundles/` is gitignored, so a fresh clone has no bundles and
+`regression:check` reports all 11 documents "bundle not captured" and exits 2 before any API
+call. Anything in this session that would need a replay is unverified by construction. The
+bundles live only on whichever machine captured them — that is a single point of failure for
+the whole revision loop.                                                        | cause: setup
+
+--- Finding 1: 2026-09-19.3 would have discarded most of the batch (WITHDRAWN) ---
+Rule 3 of .3 said "For every item, default `verbatim` to `false`". `verbatim:false` is not only
+a note to a human — it feeds `shared/extractionFidelity.ts`, whose thresholds were tuned when
+`false` was rare:
+    nonVerbatim/total >= 0.15  ->  extractionStatus ok -> partial
+    nonVerbatim/total >= 0.40  ->  extractionConfidence low
+    confidence low             ->  shouldHardStopExtraction
+    hard stop (App.tsx:531)    ->  status 'error', result UNDEFINED — extraction discarded
+Replaying the ten committed baselines through the real `reconcileExtractionFidelity` with every
+item flagged puts 9 of 10 into the discard path (the tenth has N=0, below the N>=6 gate).
+
+So .3 had no safe operating point: under 15% flagging it changes nothing, at 40% it throws the
+batch away, and it asked for 100%. The more the rule worked, the worse the outcome. Its own
+stated failure condition ("RETIRE/REVISE IF a batch doesn't move the flagging rate") was
+watching for the wrong thing.                                                   | cause: prompt
+
+Shipped 2026-09-19.4 in response: same observable-output procedure, but the trigger is bounded
+to something the model can perceive — "did I read every character, or did I reconstruct part of
+it?" — instead of an unconditional default. STILL UNVALIDATED; needs a replay.
+
+Diagnostic for whoever has the bundles: `extractionDiff.ts` diffs `extractionStatus` and
+`extractionConfidence`. If the .2 -> .3 run showed no `ok -> partial` lines, then .3's flagging
+never crossed 0.15 and its headline intent did not land at all — while its side effects did.
+
+--- Finding 2: the prompt names one regression document's own group labels ---
+PHASE A rule 3's worked example is, verbatim: "YouthMoves at FLC", "Summer Intensive",
+"Student Produced Concert". Those are exactly the three Activities group names in the committed
+Performance Garage baseline. The fixture cannot measure grouping, because the model can emit
+those labels from the prompt without reading the document.
+
+This reframes the open "Performance Garage Activities collapsed to General under .3"
+observation: .3 added ~265 chars directly below that example, and if the model stopped echoing
+it and fell back to GROUPING GATE 1 ("Default is General"), the .2 baseline was the artifact and
+.3 may be the more faithful read. Not resolvable from JSON — needs the source.
+                                                                                | cause: setup
+
+--- Finding 3: the Healthy NewsWorks prefix may be a partial FIX, not a regression ---
+Observed under .3: Core Reporter's Outputs items gained a "Student Publications: " prefix.
+"Student Publications" does not appear in the Core Reporter baseline at all — but it IS a real
+Outputs group in the sibling Cub Reporter baseline (5 items, and it spans all three outcome
+domains). And Core Reporter's .2 Outputs sit under "Program Delivery", a label carried over from
+its Activities column — which GROUPING GATE 3/4 forbids. Four of those six items are plainly
+publications ("40+ school newspapers published", "2 magazines published", "6+ videos",
+"20+ interviews with health experts").
+
+Best reading: the source does have a "Student Publications" sub-heading, .2 missed it and
+carried a label across columns instead, and .3 began finding it but rendered it as item text
+instead of a `Group.name`. If so the defect is placement, not grouping. Needs the source.
+
+Real prompt gap either way: nothing in the file says a sub-heading belongs in `Group.name` and
+must not ALSO be concatenated into `text`.                                      | cause: prompt
+
+--- Finding 4: prohibition-vs-procedure is the wrong axis ---
+The file header says a rule the model can't verify it's obeying has "repeatedly failed". But
+rule 4 (polarity) is a pure prohibition and session 3 confirmed it HELD. The difference is not
+prohibition vs procedure — it is whether the TRIGGER is perceptible. "reduction" vs "increase"
+is a discrete visible lexical choice; "did I fabricate?" has no perceptible trigger at all.
+Rule 2 ("Never add items... If you are unsure whether something is there, leave it out") is the
+canonical imperceptible-trigger rule, it is marked (CRITICAL), it sits directly above rule 3 —
+and the .3 change, whose whole theme was prohibitions -> procedures, left it untouched.
+                                                                                | cause: prompt
+
+--- Finding 5: rules that compete (file header point 4, measured) ---
+a. Include-or-omit conflict. Rule 2 says "if unsure, leave it out" (omit); rule 3 says flag and
+   keep (include); the LOW-RESOLUTION block says "prefer a partial transcription" (include).
+   Two say include, the (CRITICAL)-marked one says omit. An ambiguous include/omit instruction
+   is a plausible contributor to the Cub Reporter 111-vs-115 instability that is currently
+   attributed wholly to sampling noise.
+b. Rule 3 vs EXTRACTION FIDELITY STATUS: fidelity marks a document `partial` when "many items
+   must be verbatim:false" and `ok` on "mostly confident verbatim transcriptions". Under .3,
+   `ok` was unreachable by construction. (Finding 1 restated inside the prompt itself.)
+c. The text-only variant contradicts itself. Line 6 says "no page images"; PHASE A step 0 says
+   "You may receive multiple images for one document". Rule 3 told a text-only run to "point to
+   the specific glyphs on the page". `possiblyMissedRegions` is defined entirely over "each
+   TRACK B image", making it STRUCTURALLY UNREACHABLE in text-only — which is part of why it
+   fired 0/17 in session 4. Root cause: only `inputTracksSection` and `colourAndEmphasisSection`
+   take `isVision`; every other section keys off `hasTextTrack` alone, which is true for
+   text-only documents, so they inherit dual-track language.
+d. GROUPING GATE 5 ends "when unsure, prefer General". A global uncertainty default composes
+   with that mechanically — a third candidate mechanism for Finding 2's collapse.
+                                                                                | cause: prompt
+
+--- Finding 6: EVIDENCE notes that have gone stale ---
+- The LOW-RESOLUTION block was partly dead under .3: rule 3's "every item" default was strictly
+  broader than the block's proper-noun/number/duration trigger, and "never repair an odd-looking
+  phrase" was stated TWICE in the +lowleg variants. Commit 22cc776 was specifically "remove
+  duplicated rule statements"; .3 reintroduced that class of redundancy. .4 narrows rule 3 again,
+  so the block is load-bearing once more — but its RETIRE IF still doesn't cover being made
+  redundant by a rule above it.
+- COLOUR CODING is miscategorised by session 4's Finding 1, which lumps `fillColor 0/718` in
+  with `verbatim 0/718` as one failure. The baselines disagree: Oxford Circle captures colour on
+  44/44 items with genuine per-box variation (orange/purple/coral mixed WITHIN groups) — exactly
+  what the rule asks for. The other nine documents have no coloured boxes. Same number, opposite
+  diagnosis: the colour rule is working.
+- SOURCE LOCATION's "plumbing fixed 2026-09-19 in server/apiCore.ts" is unverified. Baselines
+  captured AFTER that fix carry `sourcePage` on only 3 of 10 documents, and 4 of the 7 blanks are
+  `vision+text`, where image labels should exist. (The two text-only blanks are correct.)
+
+--- Actions taken (this session) ---
+- constants.ts: rule 3 rewritten, PROMPT_VERSION 2026-09-19.3 -> 2026-09-19.4. One themed change;
+  +265 chars, identical across all 9 prompt variants, nothing else moved.
+- manifest.json: two more `covers` corrections (Oxford Circle's "real horizontal track bands"
+  claim, and Performance Garage's prompt contamination per Finding 2).
+- No fixes applied for Findings 3, 4, 5 or 6 — each is a separate themed change.
+
+--- Next (queued, one per batch, not bundled) ---
+1. Replay .4 against the bundles. Nothing here is validated until someone does.
+2. Fix the variant gating (Finding 5c) — give the remaining sections `isVision` so text-only
+   stops receiving image language. Pure correctness; touches no vision behaviour.
+3. Separate `Group.name` from item `text` (Finding 3).
+4. Resolve the rule 2 / rule 3 include-or-omit conflict (Finding 5a).
+5. Proceduralize rule 2 via the existing `sourcePage`/`sourceColumn` fields (Finding 4).
+6. De-duplicate the LOW-RESOLUTION block against rule 3 (Finding 6) — a prune, not an add.
+7. Get `possiblyMissedRegions` off its self-confidence gate and its explicit opt-out.
+
+--- Notes ---
+The two grouping observations that opened this session both look, on the evidence available,
+like they may point the opposite way from how they were first read. Neither can be settled by
+diffing JSON — both need the source documents and a human eye. That is the session-4 lesson
+holding: the CSV/JSON tells you something changed, never whether it got better.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -262,3 +404,4 @@ problem. Treat this batch as the baseline, not as a pass.
 | 2 | 2026-07-30 | PDF | extract (OCR) | doc-quality + prompt | N |
 | 3 | 2026-07-30 | PDF + CSV | extract (small print + colour) | doc-quality + prompt | N |
 | 4 | 2026-09-19 | batch (17) | extract (flagging silent; variant coverage) | prompt + setup | N |
+| 5 | 2026-09-19 | n/a (static audit) | extract (.3 would discard 9/10; harness unrunnable) | prompt + setup | N |
