@@ -7,6 +7,7 @@ import JSZip from 'jszip';
 import TurndownService from 'turndown';
 import { findColumnBands } from './columnDetect';
 import {
+  bundleImpliesLowLegibility,
   DocumentBundle,
   LOW_LEGIBILITY_WARNING,
   type SourceImageRef,
@@ -750,10 +751,11 @@ function assembleDocumentBundle(
   imageRefs?: SourceImageRef[]
 ): DocumentBundle {
   const mergedWarnings = [...warnings];
-  if (
-    lowLegibility &&
-    !mergedWarnings.some(w => w.includes('flattened-raster') || w.includes('low-resolution'))
-  ) {
+  // Dedupe against `bundleImpliesLowLegibility`'s own matcher (types.ts) rather than a second,
+  // independent one — a hyphen-only/case-sensitive copy here previously missed the DOCX embedded-image
+  // warning's spaced "low resolution" wording, so this pushed LOW_LEGIBILITY_WARNING on top of it
+  // instead of deduping — found via codebase audit (docs/specs/codebase-audit-2026-09-19.md #9).
+  if (lowLegibility && !bundleImpliesLowLegibility({ warnings: mergedWarnings })) {
     mergedWarnings.push(LOW_LEGIBILITY_WARNING);
   }
   const previews =

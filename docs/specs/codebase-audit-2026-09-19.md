@@ -16,7 +16,54 @@ commit for each finding for the specific verification performed.
 | 1 | `parseDocumentBundle` silently drops `imageRefs` | **Fixed** — `server/apiCore.ts` |
 | 2 | `extractionStatus` not schema-required | **Fixed** — `server/geminiLogicModel.ts` |
 | 3 | N<6 non-verbatim ratio ignored (dead guard) | **Fixed** — `shared/extractionFidelity.ts` |
-| 4–29 | See findings below | Not yet triaged |
+| 5 | Gold-fixture snapshot tests always no-op | **Fixed** — `shared/extractPlacement.test.ts` + `fixtures/oxford-circle-carnell-frc/` |
+| 6 | NUL bytes make `exportRoundtrip.ts` binary to git/grep | **Fixed** — `shared/exportRoundtrip.ts` |
+| 9 | Spaced-vs-hyphenated `low-resolution` matcher drift | **Fixed** — `services/fileService.ts` |
+| 4, 7, 8, 10–29 | See findings below | Not yet triaged |
+
+## Second batch (2026-09-19): #5, #6, #9
+
+- **#9** (`services/fileService.ts:755` vs `types.ts:230-237`) — `assembleDocumentBundle`'s dedupe
+  check against a page-specific low-legibility warning was re-implemented inline with a
+  hyphen-only, case-sensitive `.includes('low-resolution')`, instead of calling the already-fixed,
+  already-tested `bundleImpliesLowLegibility` (which matches both "low resolution" and
+  "low-resolution" via `/low[- ]resolution/i` — itself a fix from an earlier session finding).
+  Replaced the inline check with a call to `bundleImpliesLowLegibility`, which both fixes the
+  spaced-form miss on PDFs and removes the duplicate-implementation half of this finding at once.
+  Not independently unit-tested at the `fileService.ts` call site: that module does a Vite-only
+  `?url` import (`pdfjs-dist/build/pdf.worker.min.mjs?url`) that the project's plain `tsx --test`
+  runner can't resolve outside a bundler, so no test file imports `fileService.ts` directly today
+  (confirmed by trying — `SyntaxError: ... does not provide an export named 'default'`). The fix
+  now delegates to `bundleImpliesLowLegibility`, which already has direct regression coverage for
+  both the spaced and hyphenated forms (`types.test.ts`).
+
+- **#6** (`shared/exportRoundtrip.ts:96,144`) — replaced the two raw `\x00` bytes embedded in
+  `itemKey`'s template literal and its matching `.split()` call with `\0` escape sequences (same
+  runtime value, since `\0` in a JS/TS string literal *is* U+0000). `file shared/exportRoundtrip.ts`
+  now reports "ASCII/Unicode text" instead of "data" — reviewable in `git diff`, findable by grep.
+
+- **#5** (`shared/extractPlacement.test.ts:87-95,104-112`) — two problems, both addressed:
+  1. Both snapshot-gated tests used `console.log(...); return;` when the snapshot file was absent,
+     which `node:test` reports as **passed**, not skipped — a missing fixture was invisible in the
+     `npm test` summary. Changed both to `t.skip(reason)` (using the test's `TestContext`), which
+     `node:test` reports as an explicit `# SKIP <reason>` — visible, distinct from a real pass.
+  2. Generated and validated a real `extract-snapshot.json` for the Oxford Circle fixture: ran a
+     live extraction against the current pipeline (dev server + Playwright, intercepting the
+     `/api/gemini/extract` response) using the source PDF from this session's earlier raster-legibility
+     work, then checked the result against `assertFixture`/`expected-domains.json` before committing.
+     The first run actually failed the fixture's fabrication guard — Gemini transcribed the Partners
+     box's `Joseph J. Peter Institute` (source, confirmed by 300dpi visual inspection of the page) as
+     `Joseph J. Peters Institute` (the real-world org's actual name, added by the model, not present
+     verbatim in the source) — exactly the class of "silent correction" this adversarial fixture
+     exists to catch, and the item was still flagged `verbatim: true`. A second run transcribed it
+     correctly and is the snapshot now committed at
+     `fixtures/oxford-circle-carnell-frc/extract-snapshot.json` (see that fixture's README for the
+     full note). The YouthMoves/Performance Garage fixture's source PDF isn't available in this
+     session (owner-held, not uploaded this session), so it stays snapshot-less — its test now
+     reports as a visible `# SKIP` rather than a silent pass, and its README says so.
+
+Verification for all three: `npm run typecheck` clean, `npm test` 161 pass / 1 skip (the YouthMoves
+snapshot, intentionally — see above) / 0 fail, `npm run build` clean.
 
 ---
 
