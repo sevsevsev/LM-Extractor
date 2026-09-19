@@ -25,7 +25,7 @@
  * (`services/extractionLogExport.ts`) so a batch's results can be attributed to the exact prompt
  * that produced them. Format: `YYYY-MM-DD.N`.
  */
-export const PROMPT_VERSION = '2026-09-19.1';
+export const PROMPT_VERSION = '2026-09-19.2';
 
 /** Same contract as `PROMPT_VERSION`, versioned separately — different call, different failure mode. */
 export const DETECT_PROMPT_VERSION = '2026-09-19.1';
@@ -210,14 +210,10 @@ ${
        List every visible grid column header in order. Typical set:
        Resources/Inputs | Activities | Outputs | Short-Term Outcomes | Medium-Term Outcomes | Long-Term Outcomes | (optional) Impact
        Record **exactly** which headers exist. If the rightmost header is **"Long-Term Outcomes"** and there is **no** column titled **"Impact"**, then there is **no Impact column**.
-       **Single combined outcomes column**: some source documents have only ONE outcomes column/section
-       (header literally just "Outcomes", or no time-horizon qualifier at all) instead of separate
-       Short/Medium/Long-Term columns. When that's what the source actually shows, **do not guess** a
-       time horizon for those items — see \`generalOutcomes\` under COLUMN FIDELITY below.
-       **Alternate outcome taxonomy**: some sources split outcomes into columns/sections by a *different*
-       organizing idea instead of time — e.g. "Attitudes" / "Behaviors" / "Conditions" (a recognized
-       evaluation framework), or similar. These are still outcomes, just not on the short/medium/long
-       axis — see \`generalOutcomes\` under COLUMN FIDELITY below for how to preserve each one's own label.
+       **Outcome columns that are not short/medium/long-term** — a single combined "Outcomes" header,
+       or a different organizing axis entirely (e.g. "Attitudes" / "Behaviors" / "Conditions") — are
+       still outcomes. Record each header exactly as written and route them per COLUMN FIDELITY 7/7b
+       below; **do not guess** a time horizon here.
 ${hasTextTrack ? '       Cross-check header strings against Track A headings when present.\n' : ''}
     3. **Row / track inventory (top → bottom) — ONLY IF REAL**
        A "track" is a horizontal band with the **same label** that lines up across MULTIPLE columns
@@ -366,14 +362,11 @@ const columnFidelitySection = `
  */
 const knownFailureModesSection = (hasTextTrack: boolean): string => `
     **KNOWN FAILURE MODES TO AVOID**:
-    - Copying Resources-column sub-headings into other columns; inventing content; swapping familiar names.
-    - Defaulting a single combined outcomes section into \`shortTermOutcomes\` — use \`generalOutcomes\`.
-    - Force-fitting an alternate outcome taxonomy (e.g. Attitudes/Behaviors/Conditions columns) into
-      \`shortTermOutcomes\`/\`mediumTermOutcomes\`/\`longTermOutcomes\` by position, or flattening those
-      columns into one undifferentiated \`"General"\` group instead of naming each group after its own
-      column header.
-    - Flipping outcome direction; fluent rewrites of small text; stamping one colour per column.
-    - Treating colour as a horizontal track; guessing clipped text; omitting page-1 Impact Statement.
+    - Inventing content; swapping an unclear name for a familiar one; guessing clipped text.
+    - Flipping outcome direction; fluent rewrites of small text.
+    - Stamping one colour per column; treating colour as a horizontal track.
+    - Copying Resources-column sub-headings into other columns; omitting page-1 Impact Statement.
+    - Guessing a time horizon for outcome columns that do not state one (COLUMN FIDELITY 7/7b).
 ${
   hasTextTrack
     ? '    - **Ignoring Track A** for exact wording or **ignoring Track B** for colour/layout — both are required when supplied.\n'
@@ -395,10 +388,8 @@ const groupingGateSection = `
     3. NEVER carry a label across columns unless it is a real repeated track band.
     4. NEVER copy Resources-column sub-headings into other columns.
     5. Do not rename or merge labels; when unsure, prefer "General".
-    6. **Exception — alternate outcome taxonomy (rule 7b above)**: when routing multiple non-time-horizon
-       outcome columns into \`generalOutcomes\`, the *column's own header itself* becomes the group name
-       (not an in-column sub-heading this time) — this is the one case where a top-level column header,
-       not a sub-label inside it, is the group name.
+    6. **One exception** — COLUMN FIDELITY 7b: for non-time-horizon outcome columns routed into
+       \`generalOutcomes\`, the column's own header becomes the group name.
 
     **INPUTS**: Use Resources sub-headings exactly as shown; otherwise Human / Financial / Material / Knowledge Resources.
 `;
