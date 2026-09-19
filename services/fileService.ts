@@ -7,6 +7,13 @@ import JSZip from 'jszip';
 import TurndownService from 'turndown';
 import { findColumnBands } from './columnDetect';
 import {
+  parseSharedStrings,
+  parseSheetGrid,
+  parseSheetNames,
+  sheetsToMarkdown,
+  type XlsxSheet,
+} from '../shared/xlsxGrid';
+import {
   bundleImpliesLowLegibility,
   DocumentBundle,
   LOW_LEGIBILITY_WARNING,
@@ -1419,21 +1426,139 @@ export const extractTextFromPptx = async (file: File): Promise<string> => {
   }
 };
 
+/**
+ * XLSX -> Track A Markdown tables.
+ *
+ * A logic model in a spreadsheet IS a grid, so the column a value sits in carries the meaning.
+ * Rendering to Markdown tables keeps that alignment; a flat cell dump destroys it (verified
+ * against a real partner workbook — Puentes de Salud's "Results Framework", whose WELLNESS /
+ * CULTURAL / ACADEMIC columns collapse into one comma run under flat text rendering).
+ *
+ * There are no page rasters here, so an XLSX runs the `text-only` prompt variant.
+ */
+export const xlsxToTextTrack = async (arrayBuffer: ArrayBuffer): Promise<string> => {
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  const workbookXml = (await zip.file('xl/workbook.xml')?.async('string')) ?? '';
+  const sharedStringsXml = (await zip.file('xl/sharedStrings.xml')?.async('string')) ?? '';
+  const sharedStrings = parseSharedStrings(sharedStringsXml);
+  const names = parseSheetNames(workbookXml);
+
+  const sheetFiles = Object.keys(zip.files)
+    .filter(name => /^xl\/worksheets\/sheet\d+\.xml$/.test(name))
+    .sort((a, b) => {
+      const n = (x: string) => Number(/sheet(\d+)\.xml$/.exec(x)?.[1] ?? 0);
+      return n(a) - n(b);
+    });
+
+  const sheets: XlsxSheet[] = [];
+  for (let i = 0; i < sheetFiles.length; i++) {
+    const xml = (await zip.file(sheetFiles[i])?.async('string')) ?? '';
+    sheets.push({ name: names[i] || `Sheet ${i + 1}`, grid: parseSheetGrid(xml, sharedStrings) });
+  }
+
+  const markdown = sheetsToMarkdown(sheets);
+  if (!markdown.trim()) throw new Error('This spreadsheet has no readable cells.');
+  return markdown;
+};
+
+/** XLSX ingest: Markdown tables only (no rasters) — the `text-only` prompt variant. */
+export const convertXlsxToBundle = async (file: File): Promise<DocumentBundle> => {
+  try {
+    const textTrack = await xlsxToTextTrack(await file.arrayBuffer());
+    return assembleDocumentBundle('xlsx', [], [], false, textTrack, undefined, undefined);
+  } catch (error) {
+    console.error('XLSX Conversion Error:', error);
+    throw new Error(
+      error instanceof Error && /no readable cells/.test(error.message)
+        ? error.message
+        : 'Failed to read this spreadsheet.'
+    );
+  }
+};
+
+/**
+ * PNG/JPEG ingest: one page raster, no text track — the `vision-only` prompt variant.
+ *
+ * An uploaded image of a logic model is the same hazard class as a flattened PDF page (Oxford
+ * Circle), so it reuses the same legibility floor: below `LEGIBILITY_FLOOR_PX` of real width the
+ * bundle is flagged low-legibility, which turns on the prompt's LOW-RESOLUTION procedure block.
+ * Unlike a PDF there is no placement geometry to derive a DPI from, so pixel width is the only
+ * honest signal available.
+ */
+export const convertImageToBundle = async (file: File): Promise<DocumentBundle> => {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error('Image could not be decoded.'));
+      el.src = url;
+    });
+
+    const nativeWidth = img.naturalWidth || img.width;
+    const nativeHeight = img.naturalHeight || img.height;
+    if (nativeWidth <= 0 || nativeHeight <= 0) throw new Error('Image has no dimensions.');
+
+    const budgetBytes = isLocalHost() ? Number.POSITIVE_INFINITY : 3_800_000;
+    const warnings: string[] = [];
+
+    let encoded = '';
+    let scale = 1;
+    for (const attempt of [1, 0.8, 0.65, 0.5]) {
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(nativeWidth * attempt));
+      canvas.height = Math.max(1, Math.round(nativeHeight * attempt));
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas unavailable for image conversion.');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      encoded = encodeCanvas(canvas, attempt === 1 ? 0.92 : 0.8);
+      scale = attempt;
+      if (totalPayloadBytes([encoded]) <= budgetBytes) break;
+    }
+    if (scale < 1) {
+      warnings.push(
+        `This image was downscaled to ${Math.round(scale * 100)}% to fit the upload limit; small text may be harder to read.`
+      );
+    }
+
+    const effectiveWidth = nativeWidth * scale;
+    const lowLegibility = effectiveWidth < LEGIBILITY_FLOOR_PX;
+    if (lowLegibility) {
+      warnings.push(
+        `This image is ${Math.round(effectiveWidth)}px wide, which is low resolution for a dense logic model, so small text may be misread. Verify the extracted wording against the original.`
+      );
+    }
+
+    return assembleDocumentBundle('image', [encoded], warnings, lowLegibility, '', [encoded], [
+      { page: 1 },
+    ]);
+  } catch (error) {
+    console.error('Image Conversion Error:', error);
+    throw new Error('Failed to read this image.');
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+};
+
 export const convertFileToMarkdown = async (file: File): Promise<string> => {
   const name = file.name.toLowerCase();
   if (name.endsWith('.pdf')) return extractTextFromPdf(file);
   if (name.endsWith('.docx')) return extractTextFromDocx(file);
   if (name.endsWith('.pptx')) return extractTextFromPptx(file);
+  if (name.endsWith('.xlsx')) return xlsxToTextTrack(await file.arrayBuffer());
   throw new Error(`Unsupported file format: ${file.name}`);
 };
 
-/** Infer sourceFormat from filename for text-only DocumentBundle fallbacks. */
-export const sourceFormatFromFileName = (fileName: string): DocumentBundle['sourceFormat'] => {
-  const name = fileName.toLowerCase();
-  if (name.endsWith('.docx')) return 'docx';
-  if (name.endsWith('.pptx')) return 'pptx';
-  return 'pdf';
-};
+// Format rules live in shared/uploadFormats.ts (dependency-free, so the upload control and the
+// extraction log can share them without pulling in this module's pdfjs/mammoth/jszip graph).
+export {
+  SUPPORTED_UPLOAD_EXTENSIONS,
+  isImageFileName,
+  isSupportedUploadName,
+  sourceFormatFromFileName,
+} from '../shared/uploadFormats';
 
 /** Build a text-only DocumentBundle when vision conversion fails. */
 export const textOnlyDocumentBundle = (

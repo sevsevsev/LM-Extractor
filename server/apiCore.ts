@@ -37,8 +37,16 @@ function errorResult(error: unknown): ApiResult {
   return { status: 500, body: { error: message } };
 }
 
+const SOURCE_FORMATS: readonly DocumentBundle['sourceFormat'][] = [
+  'pdf',
+  'docx',
+  'pptx',
+  'image',
+  'xlsx',
+];
+
 function isSourceFormat(value: unknown): value is DocumentBundle['sourceFormat'] {
-  return value === 'pdf' || value === 'docx' || value === 'pptx';
+  return typeof value === 'string' && (SOURCE_FORMATS as readonly string[]).includes(value);
 }
 
 /**

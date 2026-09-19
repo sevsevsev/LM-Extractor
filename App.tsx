@@ -426,6 +426,8 @@ const App: React.FC = () => {
             convertPdfToImages,
             convertDocxToImages,
             convertPptxToImages,
+            convertImageToBundle,
+            convertXlsxToBundle,
           } = await import('./services/fileService');
 
           if (fileName.endsWith('.pdf')) {
@@ -434,6 +436,12 @@ const App: React.FC = () => {
             bundle = await convertDocxToImages(pendingFile.file);
           } else if (fileName.endsWith('.pptx')) {
             bundle = await convertPptxToImages(pendingFile.file);
+          } else if (/\.(png|jpe?g)$/.test(fileName)) {
+            // A logic model uploaded as a picture: one raster, no text layer (vision-only variant).
+            bundle = await convertImageToBundle(pendingFile.file);
+          } else if (fileName.endsWith('.xlsx')) {
+            // A workbook has no pages to rasterise; its grid becomes Markdown tables (text-only).
+            bundle = await convertXlsxToBundle(pendingFile.file);
           } else {
             throw new Error('Unsupported format for vision');
           }

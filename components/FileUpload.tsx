@@ -1,4 +1,12 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
+
+import {
+  SUPPORTED_UPLOAD_LABEL,
+  UPLOAD_ACCEPT_ATTRIBUTE,
+  isSupportedUploadName,
+} from '../shared/uploadFormats';
+
+const isAccepted = (file: File): boolean => isSupportedUploadName(file.name);
 
 interface FileUploadProps {
   onFilesSelected: (files: File[]) => void;
@@ -8,20 +16,19 @@ interface FileUploadProps {
 }
 
 const FileUpload: React.FC<FileUploadProps> = ({ onFilesSelected, disabled, compact }) => {
+  const [rejected, setRejected] = useState<string[]>([]);
+
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
       if (disabled) return;
 
-      const droppedFiles = Array.from<File>(e.dataTransfer.files).filter(
-        file =>
-          file.type === 'application/pdf' ||
-          file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-          file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
-          file.name.endsWith('.pdf') ||
-          file.name.endsWith('.docx') ||
-          file.name.endsWith('.pptx')
-      );
+      const all = Array.from<File>(e.dataTransfer.files);
+      const droppedFiles = all.filter(isAccepted);
+      // Say so when files are turned away. This used to filter silently and then no-op on an empty
+      // result, so dropping a folder of unsupported files (the partner corpus has PNG and XLSX
+      // logic models) looked exactly like the drop not registering at all.
+      setRejected(all.filter(f => !isAccepted(f)).map(f => f.name));
 
       if (droppedFiles.length > 0) {
         onFilesSelected(droppedFiles);
@@ -36,16 +43,30 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFilesSelected, disabled, comp
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (disabled || !e.target.files) return;
-    const selectedFiles = Array.from<File>(e.target.files);
-    onFilesSelected(selectedFiles);
+    const all = Array.from<File>(e.target.files);
+    // Filter here too. The picker's `accept` attribute is a hint a user can override ("All files"),
+    // and an unsupported file used to queue and then fail deep in conversion with a generic error.
+    const selectedFiles = all.filter(isAccepted);
+    setRejected(all.filter(f => !isAccepted(f)).map(f => f.name));
+    if (selectedFiles.length > 0) onFilesSelected(selectedFiles);
     e.target.value = '';
   };
+
+  const rejectedNotice =
+    rejected.length > 0 ? (
+      <p className="mt-2 text-xs text-amber-800" role="status">
+        {rejected.length === 1
+          ? `Skipped "${rejected[0]}" — unsupported format.`
+          : `Skipped ${rejected.length} files — unsupported format.`}{' '}
+        Accepts {SUPPORTED_UPLOAD_LABEL}.
+      </p>
+    ) : null;
 
   const input = (
     <input
       type="file"
       multiple
-      accept=".pdf,.docx,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+      accept={UPLOAD_ACCEPT_ATTRIBUTE}
       onChange={handleInputChange}
       disabled={disabled}
       className="hidden"
@@ -70,8 +91,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFilesSelected, disabled, comp
           className={`flex items-center gap-3 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
         >
           <span className="text-sm font-bold text-brand-navy">Add files</span>
-          <span className="text-xs text-brand-gray">PDF, Word, or PowerPoint — or drop them here</span>
+          <span className="text-xs text-brand-gray">PDF, Word, PowerPoint, Excel, or image — or drop them here</span>
         </label>
+        {rejectedNotice}
       </div>
     );
   }
@@ -100,10 +122,12 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFilesSelected, disabled, comp
             <span className="text-brand-gray"> or drag and drop</span>
           </div>
           <p className="text-sm text-brand-gray">
-            PDF, Word (.docx), or PowerPoint (.pptx). PDF usually preserves layout best.
+            PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx), or an image (.png/.jpg).
+            PDF usually preserves layout best.
           </p>
         </div>
       </label>
+      {rejectedNotice}
     </div>
   );
 };

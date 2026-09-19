@@ -209,7 +209,12 @@ export interface DocumentBundle {
   textTrack: string;
   /** Non-blocking fidelity notes (e.g. low resolution, truncated pages). */
   warnings: string[];
-  sourceFormat: 'pdf' | 'docx' | 'pptx';
+  /**
+   * `image` = a PNG/JPEG uploaded directly (a flattened logic model with no text layer — the
+   * `vision-only` prompt variant). `xlsx` = a workbook rendered to Markdown tables, which has no
+   * page rasters at all and so runs `text-only`. Both are real shapes in the partner corpus.
+   */
+  sourceFormat: 'pdf' | 'docx' | 'pptx' | 'image' | 'xlsx';
 }
 
 /**

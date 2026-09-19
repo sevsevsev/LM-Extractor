@@ -4,6 +4,9 @@ import { countMappedItems } from '../shared/sourceMapping.js';
 import { qaStatusLabel } from '../shared/qaStatus.js';
 import { displayFileName } from '../shared/processingFileDisplay.js';
 import { isExportReady } from '../shared/sessionQueue.js';
+// Dependency-free by design, so this static import does not pull pdfjs/mammoth/jszip into the
+// initial bundle the way importing services/fileService.ts would.
+import { sourceFormatFromFileName } from '../shared/uploadFormats.js';
 
 /**
  * Per-document QA log — one row per processed file, not per content item (unlike the granular
