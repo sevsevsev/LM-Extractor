@@ -13,10 +13,21 @@ npm run regression:check -- --only=oxford
 ## Why this works at ten documents
 
 `server/geminiSeed.ts` keys Gemini's seed on **document content only** — never the prompt — and
-extraction runs at `temperature: 0`. So re-running an unchanged prompt reproduces the same output,
-and any difference the runner reports is attributable to the prompt change rather than to sampling
-noise. That turns "estimate a rate, which needs ~100 documents per arm" into "diff ten outputs",
-which needs no statistics at all.
+extraction runs at `temperature: 0`. So re-running an unchanged prompt is *intended* to reproduce
+the same output, so that any difference the runner reports is attributable to the prompt change
+rather than to sampling noise. That turns "estimate a rate, which needs ~100 documents per arm"
+into "diff ten outputs" — in the common case, with no statistics needed.
+
+**This is not absolute, and it's been observed to matter in practice.** `geminiSeed.ts`'s own
+comment is upfront that Gemini's seed is "mostly deterministic... not a guaranteed absolute
+deterministic behavior" — a stabilizer for sampling noise, not a hard guarantee. Confirmed
+2026-09-19: running `regression:check` twice in a row against the **same** prompt version and the
+**same** committed bundles produced two different item counts on more than one document (e.g. Cub
+Reporter 111 vs. 115 items). So a single diff can mix real prompt effects with residual sampling
+noise, and a document that changes between runs isn't automatically evidence the prompt made things
+worse (or better) — check whether it *also* moves under an unchanged prompt before trusting the
+diff. For a change you're not sure about, re-run `regression:check` once more without `--update`
+against the same prompt version before concluding anything from a single pass.
 
 Estimating an actual error *rate* still needs the full corpus. That's a milestone activity (Tier 3),
 not something to do on every change. See `docs/specs/friction-log.md` session 4.
@@ -46,22 +57,29 @@ they are what the diff is against.
 The console helpers exist only in dev builds (`import.meta.env.DEV`); see
 `captureRegressionBundle` in `App.tsx`.
 
-## Why these ten
+## Why these eleven
 
 The set is chosen, not sampled — a random ten over-samples the easy middle. Each entry's `covers`
 field in `manifest.json` says which prompt variant and which failure class it is there for. The
-2026-09-19 batch ran 15 `vision+text` and 2 `text-only` documents and **zero** `vision-only` or
-`+lowleg`, leaving the two variants where the known failures live completely untested — Oxford
-Circle is in this set specifically to close that gap.
+2026-09-19 17-doc batch ran 15 `vision+text` and 2 `text-only` documents and **zero** `vision-only`
+or `+lowleg`, leaving the two variants where the known failures live completely untested.
 
-Coverage today:
+Real-document validation (2026-09-19, same day) against actual Drive-sourced files found two of
+this set's own entries didn't cover what their `covers` field claimed — see the `CORRECTION` notes
+on `oxford-circle-carnell-frc` and `performance-garage-youthmoves` in `manifest.json`. Neither
+currently exercises `+lowleg`; `performance-garage-youthmoves` runs `text-only`, not `vision+text`.
+`art-thru-youth` was added the same day to give `vision-only`/`+lowleg` real, verified coverage —
+it's a genuine hard-stop case, not a hypothetical one.
+
+Coverage today (actual, confirmed against the committed bundles — see `CORRECTION` notes above for
+what changed from the original design intent):
 
 | Variant | Documents |
 |---|---|
-| `vision+text` | 8 |
-| `vision+text+lowleg` | 1 (Oxford Circle) |
-| `text-only` | 1 (FirstHand PPTX) |
-| `vision-only` | **0 — gap**, add an image-only PDF with no text layer |
+| `vision+text` | 7 |
+| `text-only` | 2 (FirstHand, Performance Garage) |
+| `vision-only+lowleg` | 1 (Art Thru Youth — hard-stop case) |
+| `vision+text`, clean/no-lowleg raster gap | Oxford Circle no longer covers this; still open |
 
 ## Reading the output
 

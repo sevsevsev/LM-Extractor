@@ -2,13 +2,13 @@
   {
     "id": "oxford-circle-carnell-frc",
     "label": "Oxford Circle CCDA — Carnell FRC",
-    "covers": "vision+text+lowleg · flattened ~142 DPI raster, colour-coded with no legend, fabrication-prone",
+    "covers": "vision+text · colour-coded boxes, real horizontal track bands. CORRECTION (2026-09-19): the Drive-sourced PDF for this label is a clean 2-page vector export — it does NOT trigger +lowleg (no warnings, ok/high confidence). The original flattened ~142 DPI raster from friction-log sessions 1-3 that motivated this fixture's inclusion is not in the partner Drive folder; this entry no longer covers the lowleg gap it was added for. See art-thru-youth for real +lowleg coverage instead.",
     "bundle": "oxford-circle-carnell-frc.json"
   },
   {
     "id": "performance-garage-youthmoves",
     "label": "Performance Garage — YouthMoves",
-    "covers": "vision+text · real horizontal track bands across columns (the one layout where tracks are genuine)",
+    "covers": "CORRECTION (2026-09-19): labeled vision+text but actually runs text-only — this PPTX's LibreOffice PPTX-to-PDF conversion fails the same way firsthand-pptx's does (0 images, textTrack only). Currently a second text-only data point, not a distinct vision+text one, until PPTX conversion is fixed or this entry is replaced with a PDF/DOCX source.",
     "bundle": "performance-garage-youthmoves.json"
   },
   {
@@ -58,5 +58,11 @@
     "label": "SEAMAAC — Urban Arts Entrepreneurship",
     "covers": "vision+text · very short activity labels ('DJ', 'Dance') that must not be dropped or expanded",
     "bundle": "seamaac-urban-arts.json"
+  },
+  {
+    "id": "art-thru-youth",
+    "label": "Art Thru Youth — Art Thru Youth",
+    "covers": "vision-only+lowleg · added 2026-09-19 to close the vision-only gap (see README). A real hard-stop case: a 1024px standalone PNG that the app correctly refuses to extract (\"Low-resolution dense grid — transcription is not reliable enough to continue\"). No baseline snapshot committed yet — capture one with `npm run regression:check -- --only=art-thru-youth --update` once you're on the prompt version you want as the reference.",
+    "bundle": "art-thru-youth.json"
   }
 ]
