@@ -120,6 +120,12 @@ const extractModelSchema: Schema = {
     // program brochure) that got the call silently skipped instead, leaving the field undefined
     // rather than the intended "not_logic_model" flag.
     'documentTypeAssessment',
+    // Same bug class, sibling field: constants.ts's EXTRACTION FIDELITY STATUS section also calls
+    // this "REQUIRED", but it wasn't schema-required either — found via codebase audit. Missing
+    // `extractionStatus` silently defaults to 'ok' in `reconcileExtractionFidelity`
+    // (shared/extractionFidelity.ts), which skips the entire abstain-handling branch: a document
+    // Gemini tried to abstain on would present as a high-confidence success instead.
+    'extractionStatus',
   ],
 };
 

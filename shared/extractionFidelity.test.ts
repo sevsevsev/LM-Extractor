@@ -58,6 +58,31 @@ test('ok + few non-verbatim → high', () => {
   assert.equal(shouldSoftGateCodingExport(model), false);
 });
 
+test('a small extract (N<6) with any non-verbatim item drops to medium, not high (audit fix)', () => {
+  // Regression: N=5, Vf=4 (80% flagged unreadable) used to come back ok/high with no blocker —
+  // the small-doc branch only checked `status !== 'ok' || L`, so status stayed 'ok' (nothing else
+  // upgrades it for N<6) and the case fell straight to the `high` default. A `Vf === 0` override
+  // below that branch looked like it guarded this, but every path reaching it had already been
+  // assigned `high` by that same default, so it was dead code — found via codebase audit.
+  const model = baseModel({
+    activities: { content: groups(manyItems(5, 4)) },
+  });
+  reconcileExtractionFidelity(model);
+  assert.equal(model.extractionConfidence, 'medium');
+  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.nonVerbatimShare));
+  assert.equal(shouldShowFidelityBanner(model), true);
+});
+
+test('a small extract (N<6) with zero non-verbatim items stays high (no over-correction)', () => {
+  const model = baseModel({
+    activities: { content: groups(manyItems(5, 0)) },
+  });
+  reconcileExtractionFidelity(model);
+  assert.equal(model.extractionConfidence, 'high');
+  assert.ok(!model.extractionBlockers?.includes(FIDELITY_BLOCKERS.nonVerbatimShare));
+  assert.equal(shouldShowFidelityBanner(model), false);
+});
+
 test('V_f/N >= 0.15 upgrades ok → partial and medium', () => {
   const model = baseModel({
     activities: { content: groups(manyItems(10, 2)) }, // 0.20

@@ -334,7 +334,9 @@ export function reconcileExtractionFidelity(
   }
   if (N >= 6 && ratio >= 0.4) {
     pushBlocker(blockers, seen, FIDELITY_BLOCKERS.highNonVerbatim);
-  } else if (N >= 6 && ratio >= 0.15) {
+  } else if ((N >= 6 && ratio >= 0.15) || (N < 6 && Vf > 0)) {
+    // The N<6 arm matches the small-doc confidence bump above — without it, a small extract with a
+    // non-verbatim item would drop to `medium` confidence with no stated reason in the banner.
     pushBlocker(blockers, seen, FIDELITY_BLOCKERS.nonVerbatimShare);
   }
   if (M) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.mismatch);
@@ -367,14 +369,17 @@ export function reconcileExtractionFidelity(
     (L && Vf >= 1)
   ) {
     confidence = 'medium';
-  } else if (N < 6 && (status !== 'ok' || L)) {
+  } else if (N < 6 && (status !== 'ok' || L || Vf > 0)) {
+    // A small extract (<6 items) with any non-verbatim item still needs a review nudge, same as a
+    // large one crossing the ratio threshold above — found via codebase audit: this branch
+    // previously only checked `status !== 'ok' || L`, so a document with e.g. 5 items and 4 flagged
+    // non-verbatim fell straight to the `high` default below with no blocker at all, since `status`
+    // stays `ok` (nothing else upgrades it) and low legibility wasn't in play. The `Vf === 0`
+    // override that used to sit below this block was meant to guard exactly this case, but every
+    // path that reached it had already been assigned `high` by the same default — dead code that
+    // looked like a guard. Removed; this condition is the actual fix.
     confidence = 'medium';
   } else {
-    confidence = 'high';
-  }
-
-  // Small docs: high only when ok and not L (already handled); if ok, not L, N<6 → high
-  if (N < 6 && status === 'ok' && !L && !M && !Uunk && Vf === 0) {
     confidence = 'high';
   }
 

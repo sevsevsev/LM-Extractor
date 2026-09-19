@@ -1,4 +1,4 @@
-import type { DetectLogicModelGroupsInput, DocumentBundle } from '../types';
+import type { DetectLogicModelGroupsInput, DocumentBundle, SourceImageRef } from '../types';
 import { extractLogicModelOnServer } from './geminiLogicModel.js';
 import { detectLogicModelGroupsOnServer } from './geminiLogicModelGroups.js';
 
@@ -41,6 +41,12 @@ function isSourceFormat(value: unknown): value is DocumentBundle['sourceFormat']
   return value === 'pdf' || value === 'docx' || value === 'pptx';
 }
 
+function isSourceImageRef(value: unknown): value is SourceImageRef {
+  if (!value || typeof value !== 'object') return false;
+  const r = value as Record<string, unknown>;
+  return typeof r.page === 'number' && (r.column === undefined || typeof r.column === 'number');
+}
+
 /** Normalize request body into a DocumentBundle (dual-track extract contract). */
 export function parseDocumentBundle(rawBody: unknown): DocumentBundle | null {
   const body = parseJsonBody(rawBody);
@@ -54,9 +60,19 @@ export function parseDocumentBundle(rawBody: unknown): DocumentBundle | null {
     const warnings = Array.isArray(body.warnings)
       ? body.warnings.filter((w): w is string => typeof w === 'string')
       : [];
+    // Parallel to `images` by position (see DocumentBundle.imageRefs) — labels each Track B image
+    // with its real document page/column so Gemini's SOURCE LOCATION prompt instructions have a
+    // real label to read from. Only accepted whole (not entry-by-entry repaired): a partially
+    // invalid array would silently misalign `imageRefs[i]` with `images[i]` for every index after
+    // the bad entry, which is worse than falling back to the no-label default.
+    const imageRefs =
+      Array.isArray(body.imageRefs) && body.imageRefs.every(isSourceImageRef)
+        ? (body.imageRefs as SourceImageRef[])
+        : undefined;
     if (images.length === 0 && !textTrack.trim()) return null;
     return {
       images,
+      imageRefs,
       textTrack,
       warnings,
       sourceFormat: body.sourceFormat,
