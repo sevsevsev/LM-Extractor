@@ -370,28 +370,106 @@ d. GROUPING GATE 5 ends "when unsure, prefer General". A global uncertainty defa
   captured AFTER that fix carry `sourcePage` on only 3 of 10 documents, and 4 of the 7 blanks are
   `vision+text`, where image labels should exist. (The two text-only blanks are correct.)
 
+--- RESOLVED (same session — owner supplied the three source documents) ---
+Findings 2 and 3 above were inferences from JSON alone. With the sources in hand, BOTH were
+partly wrong. Recording the original reasoning and its correction, because the error is the
+instructive part: JSON-only inference produced confident, coherent, wrong structural stories.
+
+Finding 3 (Healthy NewsWorks) — WRONG ON CAUSE, and the truth is more useful.
+The Core Reporter Outputs column nests three levels:
+    [x=250] Program Delivery                                  <- group heading
+    [x=253] * Lessons delivered to 600 students in 24 classrooms
+    [x=253] * Student Publications                            <- level-1 BULLET, not a heading
+    [x=267]   o 40+ school newspapers published
+    [x=267]   o 2 magazines published
+    [x=267]   o 6+ videos
+    [x=267]   o 20+ interviews with health experts
+    [x=267]   o 7,000 students, teachers, family members reached
+    [x=250] Teacher Training                                   <- group heading
+    [x=253] * In-person and online teacher trainings held
+Two claims in Finding 3 are retracted:
+  - "Program Delivery is carried over from Activities, violating GROUPING GATE 3/4" is FALSE.
+    Both columns print both headings at their own heading indent (x=135 Activities, x=250
+    Outputs). No rule is violated; by PHASE A rule 3 they are a genuine two-column band.
+  - "The source has a Student Publications sub-heading that .2 missed" is FALSE. It is a
+    level-1 bullet with five level-2 children.
+The real defect: the source has THREE levels, `LogicModel` has TWO (Group.name -> items[]).
+.2 dropped the middle level (the parent label vanishes, its children become siblings of
+"Lessons delivered..."). .3 inlined it as a text prefix. Neither is a grouping regression;
+both are lossy encodings of unrepresentable structure, and .3's is the LESS lossy one — it
+preserves a label .2 silently discarded. Nothing in constants.ts says what to do when source
+nesting exceeds two levels. That is the actual gap.
+The sibling confirms the phrase is level-ambiguous ACROSS documents: in Cub Reporter,
+"Student Publications" IS a group heading, spanning Outputs + all three outcome columns
+(x=379/533/683/827). Both extractions were right about their own document.
+Cub Reporter also confirms session 4 Finding #A: its title is "Healthy NewsWorks Logic Model:
+Core Reporters & Cub Reporters" — the document genuinely covers two programs, so the merged
+`program` value was correct, not a bleed.                                       | cause: prompt
+
+Finding 2 (Performance Garage) — CONTAMINATION REAL, CONCLUSION BACKWARDS.
+Shape coordinates in ppt/slides/slide2.xml resolve the grid:
+    row y~1.70M  YouthMoves at FLC        -> Outputs, Short, Medium, Long all present
+    row y~3.12M  Summer Intensive         -> same
+    row y~4.80M  Student Produced Concert -> same
+The three labels are REAL horizontal bands spanning five columns. PHASE A rule 3's example is
+not a coincidence — it was written FROM this document in session 1.
+So the inference that ".2 may be the artifact and .3 the more faithful read" is retracted. The
+labels are correct. The .2 baseline is ALREADY WRONG in the other direction: it captures the
+bands in Activities only and uses "General" for Outputs and all three outcome columns. A
+collapse in Activities too would move it from right in 1 of 5 columns to 0 of 5 — a real
+regression, not a de-contamination.
+Root cause is modality, not prompt: the band label is printed once, physically inside the
+leftmost (Activities) shape; shapes 9/17/20/24 carry bullets and no label. This document runs
+text-only (PPTX vision conversion fails), so no coordinates exist to carry the label rightward.
+A text-only pipeline structurally CANNOT recover horizontal tracks here. The fixture is invalid
+for track-band behaviour until PPTX conversion works — and the prompt contamination remains a
+separate reason not to read grouping results off it.
+Also visible: .2 merged two source paragraphs ("Performances (Apr + June)" and "students
+participate in DanceVisions events") into one item, against EXTRACTION RULES 1.
+                                                                                | cause: setup
+
+--- What this changes about the queue ---
+- "Separate Group.name from item text" is NOT the right next change. The problem is three
+  source levels into two schema levels. Decide the policy first (drop the parent? inline it?
+  flatten to `<parent> — <child>`? extend the schema?), then write the rule. A prompt rule that
+  says "don't inline" without saying where the level goes just reinstates .2's silent drop.
+- No fixture in the set can currently validate track-band detection: Oxford Circle has no
+  bands, Performance Garage has real ones the text-only path cannot see. That gap is now
+  measured, not suspected.
+
+
 --- Actions taken (this session) ---
 - constants.ts: rule 3 rewritten, PROMPT_VERSION 2026-09-19.3 -> 2026-09-19.4. One themed change;
   +265 chars, identical across all 9 prompt variants, nothing else moved.
-- manifest.json: two more `covers` corrections (Oxford Circle's "real horizontal track bands"
-  claim, and Performance Garage's prompt contamination per Finding 2).
+- manifest.json: three `covers` corrections (Oxford Circle's "real horizontal track bands" claim;
+  Performance Garage's contamination AND its invalidity as a track fixture; Core Reporter's
+  three-level Outputs nesting).
 - No fixes applied for Findings 3, 4, 5 or 6 — each is a separate themed change.
+- Sources for Performance Garage + both Healthy NewsWorks documents read; Findings 2 and 3
+  corrected above (see RESOLVED). manifest.json notes revised to match.
 
 --- Next (queued, one per batch, not bundled) ---
 1. Replay .4 against the bundles. Nothing here is validated until someone does.
 2. Fix the variant gating (Finding 5c) — give the remaining sections `isVision` so text-only
    stops receiving image language. Pure correctness; touches no vision behaviour.
-3. Separate `Group.name` from item `text` (Finding 3).
+3. Decide the over-nesting policy (RESOLVED, Finding 3): three source levels into two schema
+   levels. Pick where the middle level goes BEFORE writing any rule.
 4. Resolve the rule 2 / rule 3 include-or-omit conflict (Finding 5a).
 5. Proceduralize rule 2 via the existing `sourcePage`/`sourceColumn` fields (Finding 4).
 6. De-duplicate the LOW-RESOLUTION block against rule 3 (Finding 6) — a prune, not an add.
 7. Get `possiblyMissedRegions` off its self-confidence gate and its explicit opt-out.
 
 --- Notes ---
-The two grouping observations that opened this session both look, on the evidence available,
-like they may point the opposite way from how they were first read. Neither can be settled by
-diffing JSON — both need the source documents and a human eye. That is the session-4 lesson
-holding: the CSV/JSON tells you something changed, never whether it got better.
+The two grouping observations that opened this session were settled the moment the sources
+arrived, and both had been read wrongly — including by this session's own first pass, which
+produced two confident, internally coherent, wrong structural stories from JSON alone. Neither
+turned out to be a grouping regression: one is a two-level schema meeting a three-level source,
+the other is a text-only pipeline that structurally cannot see horizontal bands.
+
+The session-4 lesson holds harder than before. JSON tells you something changed; it does not
+tell you what the document says, and a plausible reconstruction of the document from its
+extraction is not evidence. Two of the four things this session was asked to investigate could
+only be answered by opening the file. Budget for that rather than for more diffing.
 ```
 
 ---
