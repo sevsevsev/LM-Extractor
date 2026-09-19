@@ -1,7 +1,7 @@
 import type { LogicModel, LogicModelGroup } from '../types';
 import { qaStatusLabel } from './qaStatus.js';
-import { itemNeedsReview } from './provenance.js';
 import { documentTypeFlagLabel } from './extractionFidelity.js';
+import { itemNeedsReview } from './provenance.js';
 
 export function stringDomainHasContent(content?: string): boolean {
   return Boolean(content?.trim());
@@ -124,7 +124,7 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
             domain,
             group: g.name,
             content: text,
-            needsReview: flaggedForReview ? 'Yes' : '',
+            needsReview: itemNeedsReview(item) ? 'Yes' : '',
             sourceNote: item.sourceNote?.trim() || '',
             fillColor: item.fillColor?.trim() || '',
             borderColor: item.borderColor?.trim() || '',

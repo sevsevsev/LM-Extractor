@@ -1,7 +1,6 @@
 import type { LogicModel, LogicModelGroup } from '../types';
 import {
   harvestImpactStatementFromPlainText,
-  hasImpactStatementHeading,
   looksLikeImpactStatementProse,
 } from './impactStatementHarvest.js';
 import { applySourceAwareMapping } from './sourceMapping.js';
@@ -32,42 +31,8 @@ const OUTCOME_DOMAINS: GroupedDomain[] = [
   'impact',
 ];
 
-/** Text patterns that usually indicate Outputs column content, not outcomes. Kept for tests/diagnostics. */
-const OUTPUT_TEXT_PATTERNS: RegExp[] = [
-  /attendance\s+(is\s+)?maintained/i,
-  /attendance\s+at\s+\d/i,
-  /implementation\s+\d+\s+of/i,
-  /implementation\s+of\s+.*(curriculum|dance|youth\s*moves)/i,
-  /interactions?\s+\(\d+/i,
-  /interaction\s+with\s+master/i,
-  /student\s+choreography\s+driven/i,
-];
-
-/** @deprecated Fixture-era track hints — no longer used to rebucket; retained for test helpers. */
-const OUTPUT_TRACK_HINTS: { pattern: RegExp; group: string }[] = [
-  { pattern: /attendance\s+at\s+90/i, group: 'YouthMoves at FLC' },
-  { pattern: /implementation\s+5/i, group: 'YouthMoves at FLC' },
-  { pattern: /interactions?\s+\(\s*3\s+events\s*\)\s*w\/\s*res/i, group: 'YouthMoves at FLC' },
-  { pattern: /attendance\s+is\s+maintained/i, group: 'Summer Intensive' },
-  { pattern: /implementation\s+2/i, group: 'Summer Intensive' },
-  { pattern: /interaction\s+with\s+master\s+teachers/i, group: 'Summer Intensive' },
-  { pattern: /student\s+choreography/i, group: 'Student Produced Concert' },
-  { pattern: /implementation\s+of\s+flc\s+dance/i, group: 'Student Produced Concert' },
-];
-
 function norm(s: string): string {
   return s.toLowerCase().replace(/\s+/g, ' ').trim();
-}
-
-function isOutputLikeText(text: string): boolean {
-  return OUTPUT_TEXT_PATTERNS.some(p => p.test(text));
-}
-
-function inferOutputGroup(text: string): string {
-  for (const { pattern, group } of OUTPUT_TRACK_HINTS) {
-    if (pattern.test(text)) return group;
-  }
-  return 'General';
 }
 
 /**
@@ -95,18 +60,24 @@ function countOutcomeItems(model: LogicModel): number {
 /**
  * Gemini sometimes drops page-1 Impact Statement into an outcome list item.
  *
- * Gated on heading evidence whenever a text layer is available. The extraction prompt tells the
- * model `impactStatement` "requires an explicit heading … never infer one from wording alone"
- * (see CONTEXT & OVERVIEW in constants.ts) — so when the source text demonstrably has no such
- * heading, promoting an outcome item here would manufacture exactly what the prompt forbids, and
- * silently overwrite a correct empty answer. `looksLikeImpactStatementProse` cannot tell an
- * overview sentence from a well-formed outcome bullet; the heading can. When there is no text
- * layer to check (vision-only bundles), behavior is unchanged — we have no evidence either way,
- * and the `MAX_TOTAL_OUTCOME_ITEMS_FOR_PROMOTION` gate still applies.
+ * Known tension with the extract prompt (`constants.ts`'s "no heading at all ... never infer one
+ * from wording alone"), surfaced via codebase audit (docs/specs/codebase-audit-2026-09-19.md #10):
+ * the prompt's rule is about how *Gemini* should decide the field from the page it's looking at;
+ * this function post-processes Gemini's *output*, using the same weak `looksLikeImpactStatementProse`
+ * classifier the disarmed sibling (`impactStatementHarvest.ts`'s front-matter fallback) used to run
+ * unconditionally and got disarmed for. The two are not identical hazards, though: that sibling ran
+ * on every extract, regardless of shape; this one only runs when `countOutcomeItems <= 3` — gated
+ * from a real corruption of its own (Eureka! College Readiness, see the constant below), and kept
+ * narrowed rather than removed because a sparse outcome section is real, if imperfect, circumstantial
+ * evidence Gemini actually dropped a real impact statement rather than that this is ordinary outcome
+ * prose. Decision: keep as a deliberately narrow, evidence-gated exception rather than disarm to
+ * match the sibling — revisit only if a real document surfaces a false promotion under the current
+ * gate (matching how the sibling and the gate below were each disarmed/narrowed: from a real
+ * document, not from principle alone).
  */
-function promoteImpactStatementFromGroupedDomains(model: LogicModel, sourceText?: string): void {
+function promoteImpactStatementFromGroupedDomains(model: LogicModel): void {
+
   if (model.impactStatement?.content?.trim()) return;
-  if (sourceText?.trim() && !hasImpactStatementHeading(sourceText)) return;
   if (countOutcomeItems(model) > MAX_TOTAL_OUTCOME_ITEMS_FOR_PROMOTION) return;
 
   for (const domain of OUTCOME_DOMAINS) {
@@ -189,7 +160,7 @@ export function normalizeExtractedLogicModel(
   // the always-present outcome fields instead of each needing its own undefined guard.
   if (!model.generalOutcomes) model.generalOutcomes = { content: [] };
   fillMissingImpactStatementFromSourceText(model, options?.sourceText);
-  promoteImpactStatementFromGroupedDomains(model, options?.sourceText);
+  promoteImpactStatementFromGroupedDomains(model);
   applySourceAwareMapping(model);
   reconcileExtractionFidelity(model, {
     lowLegibility: options?.lowLegibility,
@@ -198,4 +169,4 @@ export function normalizeExtractedLogicModel(
   return model;
 }
 
-export { isOutputLikeText, looksLikeImpactStatementProse, inferOutputGroup };
+export { looksLikeImpactStatementProse };

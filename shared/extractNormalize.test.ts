@@ -1,10 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import {
-  normalizeExtractedLogicModel,
-  isOutputLikeText,
-  looksLikeImpactStatementProse,
-} from './extractNormalize.ts';
+import { normalizeExtractedLogicModel, looksLikeImpactStatementProse } from './extractNormalize.ts';
 import type { LogicModel } from '../types.ts';
 
 const youthMovesMisparse: LogicModel = {
@@ -121,11 +117,6 @@ test('does not force rebucket Concert-shaped text from long-term (spatial trust)
 test('preserves Impact column items (does not consolidate into long-term)', () => {
   const m = normalizeExtractedLogicModel(structuredClone(youthMovesMisparse));
   assert.ok(m.impact.content.some(g => g.items.some(i => /Sustain careers/.test(i.text))));
-});
-
-test('isOutputLikeText helper', () => {
-  assert.equal(isOutputLikeText('Attendance is maintained at 90%'), true);
-  assert.equal(isOutputLikeText('Master dance technique'), false);
 });
 
 const youthMovesFourthTryMisparse: LogicModel = {
@@ -267,11 +258,10 @@ test('fills Impact Statement from source text when vision omitted it', () => {
 });
 
 /**
- * The extraction prompt states `impactStatement` "requires an explicit heading … never infer one
- * from wording alone" (CONTEXT & OVERVIEW in constants.ts). Post-processing used to contradict
- * that: `promoteImpactStatementFromGroupedDomains` promoted any outcome item whose wording looked
- * like overview prose, which could silently overwrite a correct empty answer. These tests pin the
- * agreement between the two.
+ * `promoteImpactStatementFromGroupedDomains` is a deliberately narrow exception to the extract
+ * prompt's "never infer [impactStatement] from wording alone" rule — see that function's comment
+ * for the owner split (the prompt governs Gemini's read of the page; this governs its output).
+ * These pin the two behaviours that exception depends on.
  */
 const OVERVIEW_PROSE =
   'Through sustained participation, students in the community will improve their educational outcomes and build lasting creative confidence across the neighborhood.';
@@ -292,18 +282,8 @@ function modelWithOutcomeProse(): LogicModel {
   };
 }
 
-test('impact-statement promotion is blocked when the text layer has no impact heading', () => {
-  const result = normalizeExtractedLogicModel(modelWithOutcomeProse(), {
-    sourceText: '## Page 1\nOur Mission\nWe serve families across the city.\n\nOutcomes\n' + OVERVIEW_PROSE,
-  });
-  assert.equal(result.impactStatement?.content ?? '', '');
-  assert.equal(result.shortTermOutcomes.content[0].items[0].text, OVERVIEW_PROSE);
-});
-
-test('impact-statement promotion still runs when the text layer does have an impact heading', () => {
-  // Heading present but its body is not recoverable from the text layer (the usual reason the
-  // promotion path exists at all: vision captured the prose, the text layer did not). The
-  // heading is the evidence that an impact statement exists, so promotion is allowed.
+test('impact-statement promotion runs when a heading exists but its body is unrecoverable', () => {
+  // The usual reason this path exists: vision captured the prose, the text layer did not.
   const result = normalizeExtractedLogicModel(modelWithOutcomeProse(), {
     sourceText: '## Page 1\nIMPACT STATEMENT\nMission\nWe help local families.',
   });

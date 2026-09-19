@@ -84,9 +84,12 @@ test('expected-domains.json loads and has placements', () => {
   assert.ok(fixture.placements.length >= 5);
 });
 
-test('extract-snapshot.json passes fixture when present', () => {
+test('extract-snapshot.json passes fixture when present', t => {
+  // A real `test.skip()` rather than a `console.log` + early return — found via codebase audit
+  // (docs/specs/codebase-audit-2026-09-19.md #5): the old form reports SKIPPED as PASSED in the
+  // `npm test` summary, so a missing snapshot silently looks like a validated regression guard.
   if (!fs.existsSync(SNAPSHOT_PATH)) {
-    console.log('skip: no extract-snapshot.json — run live extract and commit snapshot');
+    t.skip('no extract-snapshot.json — run live extract and commit snapshot (see fixture README)');
     return;
   }
   const model = JSON.parse(fs.readFileSync(SNAPSHOT_PATH, 'utf8')) as LogicModel;
@@ -101,9 +104,9 @@ test('oxford circle expected-domains.json loads with regression guards', () => {
   assert.ok(Array.isArray(fixture.groupsMustBeGeneralOnly));
 });
 
-test('oxford circle snapshot passes fixture when present', () => {
+test('oxford circle snapshot passes fixture when present', t => {
   if (!fs.existsSync(OXFORD_SNAPSHOT)) {
-    console.log('skip: no oxford-circle extract-snapshot.json — run live extract and commit snapshot');
+    t.skip('no oxford-circle extract-snapshot.json — run live extract and commit snapshot (see fixture README)');
     return;
   }
   const model = JSON.parse(fs.readFileSync(OXFORD_SNAPSHOT, 'utf8')) as LogicModel;

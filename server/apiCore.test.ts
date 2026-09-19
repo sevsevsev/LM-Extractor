@@ -49,6 +49,7 @@ test('parseDocumentBundle drops malformed imageRefs rather than guessing', () =>
     [{ page: 0 }, { page: 2 }],
     [{ page: 1 }, null],
     [{ page: 1 }, { page: Number.NaN }],
+    [{ page: 1 }, { page: 2, column: 1.5 }],
     'not-an-array',
   ]) {
     const bundle = parseDocumentBundle({ ...base, imageRefs: bad });
@@ -57,13 +58,14 @@ test('parseDocumentBundle drops malformed imageRefs rather than guessing', () =>
   }
 });
 
-test('parseDocumentBundle rounds fractional page/column and omits an absent column', () => {
-  const bundle = parseDocumentBundle({
-    ...base,
-    imageRefs: [{ page: 2.4, column: 3.6 }, { page: 5, column: 0 }],
-  });
-  assert.ok(bundle);
-  assert.deepEqual(bundle!.imageRefs, [{ page: 2, column: 4 }, { page: 5 }]);
+test('parseDocumentBundle rejects non-integer or zero page/column rather than coercing', () => {
+  // A fractional or 0-based ref would render a nonsense label ("document page 2.4"), which is
+  // exactly the kind of confidently-wrong input the SOURCE LOCATION rules would then act on.
+  for (const bad of [[{ page: 2.4 }, { page: 5 }], [{ page: 1, column: 0 }, { page: 2 }]]) {
+    const bundle = parseDocumentBundle({ ...base, imageRefs: bad });
+    assert.ok(bundle);
+    assert.equal(bundle!.imageRefs, undefined, `expected refs dropped for ${JSON.stringify(bad)}`);
+  }
 });
 
 test('parseDocumentBundle omits imageRefs for a text-only bundle', () => {
@@ -96,4 +98,65 @@ test('parseDetectLogicModelGroupsInput requires previewImages and a source forma
     textTrack: 't',
   });
   assert.deepEqual(ok, { previewImages: ['a', 'b'], textTrack: 't', sourceFormat: 'pdf' });
+});
+
+// --- Cases contributed by the parallel audit-fix workstream ---
+
+test('parseDocumentBundle passes imageRefs through when valid', () => {
+  // Regression: the server used to rebuild DocumentBundle from only images/textTrack/warnings/
+  // sourceFormat, silently dropping imageRefs even though the client always sends it — so every
+  // Track B image lost its page/column label downstream in geminiLogicModel.ts.
+  const bundle = parseDocumentBundle({
+    sourceFormat: 'pdf',
+    images: ['img1', 'img2'],
+    imageRefs: [{ page: 1 }, { page: 1, column: 2 }],
+    textTrack: '',
+    warnings: [],
+  });
+  assert.deepEqual(bundle?.imageRefs, [{ page: 1 }, { page: 1, column: 2 }]);
+});
+
+test('parseDocumentBundle omits imageRefs when absent (backward compatible)', () => {
+  const bundle = parseDocumentBundle({
+    sourceFormat: 'pdf',
+    images: ['img1'],
+    textTrack: '',
+    warnings: [],
+  });
+  assert.equal(bundle?.imageRefs, undefined);
+});
+
+test('parseDocumentBundle falls back to undefined for a malformed imageRefs array rather than partially repairing it', () => {
+  // A partial fix (dropping only the bad entries) would silently misalign imageRefs[i] with
+  // images[i] for every index after the bad one — worse than the no-label fallback.
+  const bundle = parseDocumentBundle({
+    sourceFormat: 'pdf',
+    images: ['img1', 'img2'],
+    imageRefs: [{ page: 1 }, { page: 'not-a-number' }],
+    textTrack: '',
+    warnings: [],
+  });
+  assert.equal(bundle?.imageRefs, undefined);
+});
+
+test('parseDocumentBundle accepts an entry with only page, no column', () => {
+  const bundle = parseDocumentBundle({
+    sourceFormat: 'pdf',
+    images: ['img1'],
+    imageRefs: [{ page: 3 }],
+    textTrack: '',
+    warnings: [],
+  });
+  assert.deepEqual(bundle?.imageRefs, [{ page: 3 }]);
+});
+
+test('parseDocumentBundle still requires images or textTrack, unaffected by imageRefs', () => {
+  const bundle = parseDocumentBundle({
+    sourceFormat: 'pdf',
+    images: [],
+    imageRefs: [],
+    textTrack: '',
+    warnings: [],
+  });
+  assert.equal(bundle, null);
 });

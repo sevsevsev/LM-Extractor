@@ -267,6 +267,40 @@ entropy than free text, even at temperature 0 + a fixed seed). After-School All-
 after the seed-range fix, now also correctly returns `"not_logic_model"` (previously silently
 `undefined`, per the open gap noted in the session that first found it).
 
+## Determinism: two more schema/logic gaps found via codebase audit (2026-09-19)
+
+Trigger: `docs/specs/codebase-audit-2026-09-19.md` #2 and #3, an independent audit commissioned
+specifically to catch what a session anchored on its own prior work would miss — it worked: both are
+the same bug class as fixes already made in this doc, in code this doc's own fixes sat right next to
+without the pattern being generalized.
+
+**#2 — `extractionStatus` not schema-required.** The prompt's EXTRACTION FIDELITY STATUS section
+heads itself `(REQUIRED — NOT DOCUMENT QUALITY)`, and the abstain path depends on Gemini actually
+emitting `extractionStatus: "abstained"`. It was never in `extractModelSchema`'s `required` array —
+exactly the `documentTypeAssessment` gap fixed earlier this same day (see the "Determinism..."
+section above), on the field sitting right next to it, missed at the time. Missing
+`extractionStatus` silently defaults to `'ok'` in `reconcileExtractionFidelity`, skipping the entire
+abstain-handling branch: a document Gemini tried to refuse would present as a high-confidence
+success with no indication anything was wrong. Fixed by adding it to `required`, same as
+`documentTypeAssessment`.
+
+**#3 — small extracts (N<6) ignored their own non-verbatim ratio.** The confidence rollup's small-
+doc branch only checked `status !== 'ok' || L` — with status staying `'ok'` (nothing else upgrades
+it below N=6) and legibility uninvolved, a 5-item extract with 4 non-verbatim items still fell
+through to `high` confidence with zero blockers. A `Vf === 0` override a few lines below looked like
+it guarded exactly this case, but every code path that could reach it had already been assigned
+`high` by the same default — dead code shaped like a safety check. Fixed by adding `Vf > 0` to the
+small-doc branch's condition (`N < 6 && (status !== 'ok' || L || Vf > 0)`) and removing the now-fully-
+redundant override; added a matching arm to the blocker logic so the resulting `medium` confidence
+carries a stated reason (`nonVerbatimShare`) instead of an unexplained banner. Verified with two new
+unit tests (N=5/Vf=4 → medium with blocker; N=5/Vf=0 → high, unchanged, confirming no over-
+correction) plus the full existing suite (162/162 passing, no regressions — the old suite had no
+test covering this exact combination at all).
+
+Both verified live where relevant (#2 is pure schema/rollup logic, covered by unit tests only; #1 in
+the same audit — see `tech-source-review-v1.md` — got the live Gemini re-run since it's a wire-format
+change). No regression in either case.
+
 ## Out of tech scope (v1)
 
 - Second Gemini verify pass / dual extract  

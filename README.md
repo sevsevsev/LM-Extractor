@@ -28,9 +28,18 @@ Builds the client, then serves API + `dist` from Express on `:3011` (override wi
 The same API is exposed two ways so one codebase serves both targets:
 
 - **Local:** Express (`server.ts`) on `:3011`
-- **Vercel:** serverless functions in `api/` (`/api/health`, `/api/gemini/extract`)
+- **Vercel:** serverless functions in `api/` (`/api/health`, `/api/gemini/extract`,
+  `/api/gemini/detect-logic-models`, `/api/convert/pptx-to-pdf`)
 
-Both delegate to `server/apiCore.ts`, so behavior stays identical.
+The Gemini extract and detect routes delegate to shared handlers in `server/apiCore.ts`, so their
+request/response behavior stays identical between the two paths. `/api/health` and the PPTX convert
+route diverge: `/api/health` shares only `getApiKey()` — `server.ts`'s handler additionally reports
+`libreOfficeWasm` and a `'production'|'development'` `mode`, while `api/health.ts` omits
+`libreOfficeWasm` entirely and reports `mode` from `VERCEL_ENV || NODE_ENV || 'unknown'`. The PPTX
+convert route shares `server/pptxConvertApi.ts`'s `handlePptxToPdfRequest`, but the two entry points
+parse the request body differently (Express uses `express.raw`; the Vercel function hands the
+handler whatever Vercel itself already parsed) — found via codebase audit
+(`docs/specs/codebase-audit-2026-09-19.md` #18).
 
 Setup:
 

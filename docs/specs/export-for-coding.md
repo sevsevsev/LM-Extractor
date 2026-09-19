@@ -12,7 +12,9 @@ From editable extract results, download a CSV the Qualitative Outcomes Coder acc
 ## IN
 - UI control: **Export for coding** (enabled when ≥1 editable result, same gate as full CSV)
 - One CSV (batch = all editable files’ outcome rows)
-- Domain filter (v1): `Short-Term Outcomes`, `Medium-Term Outcomes`, `Long-Term Outcomes`
+- Domain filter: `Short-Term Outcomes`, `Medium-Term Outcomes`, `Long-Term Outcomes`, `General
+  Outcomes` (added v1.4 — a source with one combined outcomes column and no time-horizon labeling;
+  a coder assigns short/medium/long-term during coding, same as any other unmapped outcome text)
 - Column map:
 
 | Coding CSV | Source |
@@ -40,12 +42,14 @@ From editable extract results, download a CSV the Qualitative Outcomes Coder acc
 
 ## Acceptance criteria
 1. Exported CSV uploads into Qualitative Outcomes Coder without header errors.
-2. Only the three outcome domains appear (unless rubric/export docs bump version).
+2. Only the four outcome domains listed above appear (unless rubric/export docs bump version).
 3. Full **Export CSV** unchanged (all domains + quality fields).
 4. Empty outcome set → disabled control or clear message (no empty bogus file).
 
 ## Tweak later
 Domain list and columns live in this doc; bump a one-line version note when changing filter (e.g. add Impact).
+
+**Version:** v1.4 — 2026-09-19 — added `General Outcomes` to the domain filter (`services/codingExport.ts`'s `CODING_EXPORT_DOMAINS`/`DOMAIN_FIELDS` already shipped this; this doc's AC #2 and domain list were not updated at the time, violating this doc's own "bump a one-line version note when changing filter" rule — found via codebase audit, `docs/specs/codebase-audit-2026-09-19.md` #17). Also fixed the empty-export message (`services/codingExport.ts`), which still said "No short-, medium-, or long-term outcome rows."
 
 **Version:** v1.3 — 2026-09-18 — added `document_type_flag` column (appended, so existing column positions are unchanged).
 

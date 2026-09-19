@@ -4,17 +4,7 @@ import { countExtractionItems } from '../shared/extractionFidelity';
 import { shouldSuggestMismatch } from '../shared/sourceMapping';
 import { isExportReady, isPipelineBusy } from '../shared/sessionQueue';
 import { needsQaReview } from '../shared/qaStatus';
-import { displayFileName } from '../shared/processingFileDisplay';
-
-const PROCESSING_LABELS: Record<ProcessingFile['status'], string> = {
-  pending: 'Queued',
-  converting: 'Reading layout',
-  detecting: 'Checking for multiple logic models',
-  extracting: 'Extracting',
-  editing: 'Ready',
-  completed: 'Ready',
-  error: 'Needs attention',
-};
+import { displayFileName, PROCESSING_STATUS_LABELS } from '../shared/processingFileDisplay';
 
 function isFlagged(file: ProcessingFile): boolean {
   if (file.status === 'error') return true;
@@ -43,8 +33,12 @@ function flagReason(file: ProcessingFile): string {
 function readySummary(file: ProcessingFile): string {
   if (!file.result) return '';
   const { total } = countExtractionItems(file.result);
-  const confidence = file.result.extractionConfidence || 'high';
-  return `${total} item${total === 1 ? '' : 's'} · ${confidence} confidence`;
+  const itemsLabel = `${total} item${total === 1 ? '' : 's'}`;
+  // A record with no computed confidence (a resumed/legacy record reconcile never ran on) has no
+  // honest value to report — defaulting to 'high' asserted the most reassuring answer instead of an
+  // unknown one. Found via codebase audit (docs/specs/codebase-audit-2026-09-19.md #27).
+  const confidence = file.result.extractionConfidence;
+  return confidence ? `${itemsLabel} · ${confidence} confidence` : itemsLabel;
 }
 
 interface FileRowProps {
@@ -86,7 +80,7 @@ const FileRow: React.FC<FileRowProps> = ({ file, selected, onSelect, variant }) 
           )}
           {variant === 'busy' && (
             <span className="block text-xs text-brand-gray truncate">
-              {file.progressMsg || PROCESSING_LABELS[file.status]}
+              {file.progressMsg || PROCESSING_STATUS_LABELS[file.status]}
             </span>
           )}
         </span>

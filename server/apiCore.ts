@@ -1,4 +1,4 @@
-import type { DetectLogicModelGroupsInput, DocumentBundle } from '../types';
+import type { DetectLogicModelGroupsInput, DocumentBundle, SourceImageRef } from '../types';
 import { extractLogicModelOnServer } from './geminiLogicModel.js';
 import { detectLogicModelGroupsOnServer } from './geminiLogicModelGroups.js';
 
@@ -42,28 +42,17 @@ function isSourceFormat(value: unknown): value is DocumentBundle['sourceFormat']
 }
 
 /**
- * Parse the client's `imageRefs` (document page / column for each extract JPEG).
- *
- * `server/geminiLogicModel.ts` labels each Track B image with its real page/column from this, and
- * the extraction prompt's SOURCE LOCATION rules tell the model to read `sourcePage` off that
- * label. This parser used to drop the field entirely, so the labels degraded to bare ordinals
- * ("TRACK B image 1 of 2") and every `sourcePage` the model returned was a guess — which then fed
- * the source-review page jump and the spot-check chips. Returns undefined unless the array is
- * well-formed AND parallel to `images`, since a misaligned ref is worse than none.
+ * One `imageRefs` entry: the document page (and optional column) a Track B JPEG came from.
+ * Pages/columns are 1-based integers — a fractional or zero page would produce a nonsense label.
  */
-function parseImageRefs(raw: unknown, imageCount: number): DocumentBundle['imageRefs'] {
-  if (!Array.isArray(raw) || raw.length !== imageCount || imageCount === 0) return undefined;
-  const refs: NonNullable<DocumentBundle['imageRefs']> = [];
-  for (const entry of raw) {
-    if (!entry || typeof entry !== 'object') return undefined;
-    const rec = entry as Record<string, unknown>;
-    const page = rec.page;
-    if (typeof page !== 'number' || !Number.isFinite(page) || page < 1) return undefined;
-    const column = rec.column;
-    const hasColumn = typeof column === 'number' && Number.isFinite(column) && column >= 1;
-    refs.push(hasColumn ? { page: Math.round(page), column: Math.round(column) } : { page: Math.round(page) });
-  }
-  return refs;
+function isSourceImageRef(value: unknown): value is SourceImageRef {
+  if (!value || typeof value !== 'object') return false;
+  const r = value as Record<string, unknown>;
+  const pageOk = typeof r.page === 'number' && Number.isInteger(r.page) && r.page >= 1;
+  const columnOk =
+    r.column === undefined ||
+    (typeof r.column === 'number' && Number.isInteger(r.column) && r.column >= 1);
+  return pageOk && columnOk;
 }
 
 /** Normalize request body into a DocumentBundle (dual-track extract contract). */
@@ -79,10 +68,22 @@ export function parseDocumentBundle(rawBody: unknown): DocumentBundle | null {
     const warnings = Array.isArray(body.warnings)
       ? body.warnings.filter((w): w is string => typeof w === 'string')
       : [];
+    // Parallel to `images` by position (see DocumentBundle.imageRefs) — labels each Track B image
+    // with its real document page/column so Gemini's SOURCE LOCATION prompt instructions have a
+    // real label to read from. Only accepted whole (not entry-by-entry repaired): a partially
+    // invalid array would silently misalign `imageRefs[i]` with `images[i]` for every index after
+    // the bad entry, which is worse than falling back to the no-label default.
+    const imageRefs =
+      Array.isArray(body.imageRefs) &&
+      body.imageRefs.length === images.length &&
+      images.length > 0 &&
+      body.imageRefs.every(isSourceImageRef)
+        ? (body.imageRefs as SourceImageRef[])
+        : undefined;
     if (images.length === 0 && !textTrack.trim()) return null;
     return {
       images,
-      imageRefs: parseImageRefs(body.imageRefs, images.length),
+      imageRefs,
       textTrack,
       warnings,
       sourceFormat: body.sourceFormat,

@@ -75,15 +75,6 @@ export function documentTypeFlagLabel(model: LogicModel): string {
   return '';
 }
 
-export function getExtractionFidelity(model: LogicModel): ExtractionFidelity | undefined {
-  if (!isExtractionStatus(model.extractionStatus)) return undefined;
-  const confidence = isExtractionConfidence(model.extractionConfidence)
-    ? model.extractionConfidence
-    : 'medium';
-  const blockers = normalizeBlockers(model.extractionBlockers);
-  return { status: model.extractionStatus, confidence, blockers };
-}
-
 export function applyExtractionFidelity(model: LogicModel, fidelity: ExtractionFidelity): LogicModel {
   model.extractionStatus = fidelity.status;
   model.extractionConfidence = fidelity.confidence;
@@ -334,7 +325,9 @@ export function reconcileExtractionFidelity(
   }
   if (N >= 6 && ratio >= 0.4) {
     pushBlocker(blockers, seen, FIDELITY_BLOCKERS.highNonVerbatim);
-  } else if (N >= 6 && ratio >= 0.15) {
+  } else if ((N >= 6 && ratio >= 0.15) || (N < 6 && Vf > 0)) {
+    // The N<6 arm matches the small-doc confidence bump above — without it, a small extract with a
+    // non-verbatim item would drop to `medium` confidence with no stated reason in the banner.
     pushBlocker(blockers, seen, FIDELITY_BLOCKERS.nonVerbatimShare);
   }
   if (M) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.mismatch);
@@ -367,14 +360,17 @@ export function reconcileExtractionFidelity(
     (L && Vf >= 1)
   ) {
     confidence = 'medium';
-  } else if (N < 6 && (status !== 'ok' || L)) {
+  } else if (N < 6 && (status !== 'ok' || L || Vf > 0)) {
+    // A small extract (<6 items) with any non-verbatim item still needs a review nudge, same as a
+    // large one crossing the ratio threshold above — found via codebase audit: this branch
+    // previously only checked `status !== 'ok' || L`, so a document with e.g. 5 items and 4 flagged
+    // non-verbatim fell straight to the `high` default below with no blocker at all, since `status`
+    // stays `ok` (nothing else upgrades it) and low legibility wasn't in play. The `Vf === 0`
+    // override that used to sit below this block was meant to guard exactly this case, but every
+    // path that reached it had already been assigned `high` by the same default — dead code that
+    // looked like a guard. Removed; this condition is the actual fix.
     confidence = 'medium';
   } else {
-    confidence = 'high';
-  }
-
-  // Small docs: high only when ok and not L (already handled); if ok, not L, N<6 → high
-  if (N < 6 && status === 'ok' && !L && !M && !Uunk && Vf === 0) {
     confidence = 'high';
   }
 
@@ -393,6 +389,11 @@ export function shouldHardStopExtraction(model: LogicModel): boolean {
   return model.extractionStatus === 'abstained' || model.extractionConfidence === 'low';
 }
 
+/**
+ * The "partial or medium" rule — single source of truth for the fidelity banner, the coding-export
+ * soft-gate, and App.tsx's source-pane auto-open, so tuning it can't leave those three disagreeing
+ * about the same document (codebase-audit-2026-09-19.md #7).
+ */
 export function shouldSoftGateCodingExport(model: LogicModel): boolean {
   // `low` hard-stops before edit; soft-gate covers proceed-with-caution partial/medium.
   return model.extractionStatus === 'partial' || model.extractionConfidence === 'medium';
@@ -400,11 +401,7 @@ export function shouldSoftGateCodingExport(model: LogicModel): boolean {
 
 export function shouldShowFidelityBanner(model: LogicModel): boolean {
   if (shouldHardStopExtraction(model)) return false;
-  const status = model.extractionStatus;
-  const confidence = model.extractionConfidence;
-  if (status === 'partial') return true;
-  if (confidence === 'medium') return true;
-  return false;
+  return shouldSoftGateCodingExport(model);
 }
 
 export function formatHardStopMessage(blockers: string[]): string {
@@ -416,10 +413,5 @@ export function formatHardStopMessage(blockers: string[]): string {
     return `Extraction stopped: ${list[0]}`;
   }
   return `Extraction stopped: ${list[0]} (${list.length - 1} more reason${list.length > 2 ? 's' : ''})`;
-}
-
-/** @deprecated Prefer formatHardStopMessage — kept for callers that only handle abstain. */
-export function formatAbstainMessage(blockers: string[]): string {
-  return formatHardStopMessage(blockers);
 }
 

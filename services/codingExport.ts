@@ -5,7 +5,7 @@ import { displayFileName } from '../shared/processingFileDisplay.js';
 import { itemNeedsReview } from '../shared/provenance.js';
 
 /** Domains included in Export for coding — see docs/specs/export-for-coding.md */
-export const CODING_EXPORT_DOMAINS = [
+const CODING_EXPORT_DOMAINS = [
   'Short-Term Outcomes',
   'Medium-Term Outcomes',
   'Long-Term Outcomes',
@@ -96,7 +96,10 @@ export function buildCodingExportCsv(files: ProcessingFile[]): string | null {
 export function downloadCodingExportCsv(files: ProcessingFile[]): { ok: true } | { ok: false; reason: string } {
   const csv = buildCodingExportCsv(files);
   if (!csv) {
-    return { ok: false, reason: 'No short-, medium-, or long-term outcome rows to export for coding.' };
+    return {
+      ok: false,
+      reason: 'No short-, medium-, long-term, or general outcome rows to export for coding.',
+    };
   }
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);

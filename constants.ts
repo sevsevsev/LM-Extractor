@@ -277,8 +277,12 @@ const phaseBExtractionRulesSection = (hasTextTrack: boolean): string => `
  * from repeated confusion between a page-level Impact Statement, a grid "Impact" column, and an
  * ordinary Mission statement. The "No heading at all → mission" rule was added after Imagine That
  * Philly had mission prose harvested into impactStatement.
- * NOTE: `shared/extractNormalize.ts` also decides this field. Keep the two in agreement — see
- * `promoteImpactStatementFromGroupedDomains`, which now requires the same heading evidence.
+ * NOTE — deliberate, documented exception: `shared/extractNormalize.ts`'s
+ * `promoteImpactStatementFromGroupedDomains` may still promote an outcome item into this field
+ * without a heading. That is not a violation of the rule above: this rule governs how *Gemini*
+ * decides the field from the page it is looking at; that function post-processes Gemini's
+ * *output*, under its own narrow `countOutcomeItems <= 3` gate. See that function's comment for
+ * the full reasoning (codebase audit #10, docs/specs/codebase-audit-2026-09-19.md).
  */
 const contextAndOverviewSection = (hasTextTrack: boolean): string => `
     **HEADER EXTRACTION**:

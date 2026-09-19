@@ -1,8 +1,20 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import type { LogicModel, LogicModelGroup } from '../types';
 import { checkExportRoundtrip, diffReconstitution, reconstituteFromExportRows } from './exportRoundtrip.js';
 import { buildGranularExportRows, type GranularExportEntry } from './domainPresence.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const OXFORD_SNAPSHOT = path.join(
+  __dirname,
+  '..',
+  'fixtures',
+  'oxford-circle-carnell-frc',
+  'extract-snapshot.json'
+);
 
 function groups(entries: [string, string[]][]): LogicModelGroup[] {
   return entries.map(([name, items]) => ({ name, items: items.map(text => ({ text })) }));
@@ -103,6 +115,21 @@ test('two files sharing identical organization+program are told apart by source 
   assert.equal(reconstituted.size, 2, 'files with distinct filenames reconstitute separately');
   assert.deepEqual(diffReconstitution(a, reconstituted.get('a.pdf')), []);
   assert.deepEqual(diffReconstitution(b, reconstituted.get('b.pdf')), []);
+});
+
+test('a real extracted model (Oxford Circle gold fixture) round-trips through export with zero discrepancies', t => {
+  // Every other test here uses hand-built synthetic models — this is the one case that runs the
+  // checker against the real granular CSV export path fed by an actual Gemini extraction (colors,
+  // sourceNote, mappedBy, multi-group domains, and all), which is what the module's own docstring
+  // claims it validates. Found via codebase audit (docs/specs/codebase-audit-2026-09-19.md #14) that
+  // this never actually happened. Depends on the committed gold snapshot from finding #5.
+  if (!fs.existsSync(OXFORD_SNAPSHOT)) {
+    t.skip('no oxford-circle extract-snapshot.json — see fixtures/oxford-circle-carnell-frc/README.md');
+    return;
+  }
+  const model = JSON.parse(fs.readFileSync(OXFORD_SNAPSHOT, 'utf8')) as LogicModel;
+  const [{ issues }] = checkExportRoundtrip([entry(model, 'oxford-circle.pdf')]);
+  assert.deepEqual(issues, []);
 });
 
 test('two files sharing both organization+program AND filename still collide (filename is the id)', () => {

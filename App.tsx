@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
-import {
-  ProcessingFile,
-  LogicModel,
-  DocumentBundle,
-  bundleImpliesLowLegibility,
-  bundleUsedTextOnlyFallback,
-} from './types';
+import { ProcessingFile, LogicModel, DocumentBundle, bundleImpliesLowLegibility } from './types';
 import FileUpload from './components/FileUpload';
 import LogicModelEditor from './components/LogicModelEditor';
 import SessionFileList from './components/SessionFileList';
@@ -18,7 +12,7 @@ import { countExtractionLogRows, downloadExtractionLogCsv } from './services/ext
 import { normalizeExtractedLogicModel } from './shared/extractNormalize';
 import { buildGranularExportRows } from './shared/domainPresence';
 import { sliceDocumentBundle } from './shared/documentBundleSlicing';
-import { displayFileName } from './shared/processingFileDisplay';
+import { displayFileName, PROCESSING_STATUS_LABELS } from './shared/processingFileDisplay';
 import { brand } from './config/brand';
 import { shouldSuggestMismatch } from './shared/sourceMapping';
 import {
@@ -121,18 +115,14 @@ function persistedRecordToProcessingFile(record: PersistedFileRecord): Processin
   };
 }
 
-const MAX_CONCURRENT_EXTRACTS = 2;
+// Applies independently to each pipeline stage (extract, detect) via its own counter below — up to
+// this many detects AND up to this many extracts can run at once, so total concurrent Gemini calls
+// can reach 2x this value, not this value. The name/comments here used to claim a single, batch-wide
+// cap of 2 — found via codebase audit (docs/specs/codebase-audit-2026-09-19.md #23). Whether 4
+// concurrent Gemini calls is the right ceiling is a product call or not; this fix is renaming/
+// documenting reality, not changing it.
+const MAX_CONCURRENT_PER_STAGE = 2;
 const PERSIST_DEBOUNCE_MS = 1200;
-
-const STATUS_LABELS: Record<ProcessingFile['status'], string> = {
-  pending: 'Queued',
-  converting: 'Reading layout',
-  detecting: 'Checking for multiple logic models',
-  extracting: 'Extracting',
-  editing: 'Ready to edit',
-  completed: 'Ready to edit',
-  error: 'Needs attention',
-};
 
 const friendlyError = (error: unknown): string => {
   const message = error instanceof Error ? error.message : String(error || 'Something went wrong');
@@ -180,6 +170,16 @@ const App: React.FC = () => {
   const dispatchedExtractIds = useRef<Set<string>>(new Set());
   const pendingBundles = useRef<Record<string, DocumentBundle>>({});
   const regeneratingPreviewsRef = useRef<Set<string>>(new Set());
+  /**
+   * Resumed split siblings (same `sourceDocumentId`) each re-convert the shared source PDF/DOCX
+   * independently in `ensurePreviewImages` below — opening the source pane on each of N split parts
+   * re-ran the full conversion N times. `multi-logic-model-pdf-v1.md` §4 always specified a
+   * sourceDocumentId-keyed dedupe for exactly this; it existed for the IndexedDB blob but not for
+   * this in-memory reconversion path — found via codebase audit
+   * (docs/specs/codebase-audit-2026-09-19.md #22). Keyed by sourceDocumentId, holding the
+   * *unsliced* bundle so each sibling can still re-slice to its own pageRange.
+   */
+  const sourceDocumentPreviewCache = useRef<Map<string, DocumentBundle>>(new Map());
   // Multi-logic-model detection — see docs/specs/multi-logic-model-pdf-v1.md.
   const detectingCountRef = useRef(0);
   const dispatchedDetectIds = useRef<Set<string>>(new Set());
@@ -272,6 +272,7 @@ const App: React.FC = () => {
   };
 
   const removeFile = (fileId: string) => {
+    const removed = files.find(f => f.id === fileId);
     setFiles(prev => prev.filter(f => f.id !== fileId));
     if (selectedFileId === fileId) setSelectedFileId(null);
     if (previewFileId === fileId) setPreviewFileId(null);
@@ -285,6 +286,11 @@ const App: React.FC = () => {
     persistTimers.current.delete(fileId);
     lastPersistedHash.current.delete(fileId);
     void deleteSavedFile(fileId);
+    // Drop the shared preview cache once no split sibling for this source document is left.
+    const cacheKey = removed?.sourceDocumentId;
+    if (cacheKey && !files.some(f => f.id !== fileId && f.sourceDocumentId === cacheKey)) {
+      sourceDocumentPreviewCache.current.delete(cacheKey);
+    }
   };
 
   /**
@@ -299,6 +305,7 @@ const App: React.FC = () => {
       if (!target) return prev;
       const groupId = target.sourceDocumentId ?? fileId;
       const isSibling = (f: ProcessingFile) => (f.sourceDocumentId ?? f.id) === groupId;
+      sourceDocumentPreviewCache.current.delete(groupId);
       for (const sibling of prev.filter(isSibling)) {
         if (selectedFileId === sibling.id) setSelectedFileId(null);
         if (previewFileId === sibling.id) setPreviewFileId(null);
@@ -355,7 +362,7 @@ const App: React.FC = () => {
   // Pipelined batch processing: conversion (CPU-heavy canvas rendering) stays strictly serial —
   // running several concurrently would just contend for the same resources — but a file's extract
   // call (mostly network wait) no longer blocks the next file's conversion from starting. Extract
-  // calls overlap in the background, bounded by MAX_CONCURRENT_EXTRACTS so the batch doesn't
+  // calls overlap in the background, bounded by MAX_CONCURRENT_PER_STAGE so the batch doesn't
   // hammer Gemini; existing per-call retry/backoff absorbs any rate-limit hiccups this surfaces.
   useEffect(() => {
     const startConversion = async () => {
@@ -460,15 +467,21 @@ const App: React.FC = () => {
     const runExtraction = async (fileId: string, bundle: DocumentBundle) => {
       try {
         const extractBundle: DocumentBundle = { ...bundle, previewImages: undefined };
-        const lowLegibility = bundleImpliesLowLegibility(bundle);
-        const textOnlyFallback = bundleUsedTextOnlyFallback(bundle);
-        const extracted = await extractLogicModel(extractBundle);
-        const { promptVersion, promptVariant } = extracted;
-        const extractedResult = normalizeExtractedLogicModel(extracted.model, {
-          sourceText: bundle.textTrack || undefined,
-          lowLegibility,
-          textOnlyFallback,
-        });
+        // `extractLogicModel` always calls the server (`/api/gemini/extract`), which already runs
+        // `normalizeExtractedLogicModel` on the raw Gemini response (server/geminiLogicModel.ts)
+        // before returning it — using the same `bundleImpliesLowLegibility`/`bundleUsedTextOnlyFallback`
+        // functions on the same bundle fields this file sent over the wire. Re-normalizing here was a
+        // pure duplicate: same computation, same inputs, on an already-normalized model — safe today
+        // only because normalize happens to be idempotent, not because it does anything new. Removed
+        // rather than kept "just in case" — found via codebase audit
+        // (docs/specs/codebase-audit-2026-09-19.md #11); see that finding for the fragility this
+        // avoids (a second pass re-reading derived blockers as if Gemini-reported, and a sourceText
+        // trim mismatch between the two call sites).
+        //
+        // The server also reports which prompt it used, so the extraction log can attribute a
+        // result to an exact PROMPT_VERSION + variant rather than pooling unlike documents.
+        const { model: extractedResult, promptVersion, promptVariant } =
+          await extractLogicModel(extractBundle);
 
         if (shouldHardStopExtraction(extractedResult)) {
           const blockers = extractedResult.extractionBlockers ?? [];
@@ -491,9 +504,9 @@ const App: React.FC = () => {
           return;
         }
 
-        const fidelityNeedsReview =
-          extractedResult.extractionStatus === 'partial' ||
-          extractedResult.extractionConfidence === 'medium';
+        // Same "partial or medium" rule as the coding-export gate — reuse it so the banner, the
+        // export gate, and this auto-open behavior can't drift apart (codebase-audit-2026-09-19.md #7).
+        const fidelityNeedsReview = shouldSoftGateCodingExport(extractedResult);
 
         setFiles(prev =>
           prev.map(f =>
@@ -535,7 +548,7 @@ const App: React.FC = () => {
       for (const f of files) {
         if (f.status !== 'extracting') continue;
         if (dispatchedExtractIds.current.has(f.id)) continue;
-        if (extractingCountRef.current >= MAX_CONCURRENT_EXTRACTS) break;
+        if (extractingCountRef.current >= MAX_CONCURRENT_PER_STAGE) break;
         const bundle = pendingBundles.current[f.id];
         if (!bundle) continue; // conversion result not yet stashed on this pass
         dispatchedExtractIds.current.add(f.id);
@@ -624,7 +637,7 @@ const App: React.FC = () => {
       for (const f of files) {
         if (f.status !== 'detecting') continue;
         if (dispatchedDetectIds.current.has(f.id)) continue;
-        if (detectingCountRef.current >= MAX_CONCURRENT_EXTRACTS) break;
+        if (detectingCountRef.current >= MAX_CONCURRENT_PER_STAGE) break;
         const bundle = pendingBundles.current[f.id];
         if (!bundle) continue; // conversion result not yet stashed on this pass
         dispatchedDetectIds.current.add(f.id);
@@ -653,15 +666,23 @@ const App: React.FC = () => {
     if (regeneratingPreviewsRef.current.has(fileId)) return;
     regeneratingPreviewsRef.current.add(fileId);
     try {
-      const { convertPdfToImages, convertDocxToImages, convertPptxToImages } = await import(
-        './services/fileService'
-      );
-      const fileName = target.file.name.toLowerCase();
-      let bundle: DocumentBundle;
-      if (fileName.endsWith('.pdf')) bundle = await convertPdfToImages(target.file);
-      else if (fileName.endsWith('.docx')) bundle = await convertDocxToImages(target.file);
-      else if (fileName.endsWith('.pptx')) bundle = await convertPptxToImages(target.file);
-      else return;
+      const cacheKey = target.sourceDocumentId;
+      let bundle: DocumentBundle | undefined = cacheKey
+        ? sourceDocumentPreviewCache.current.get(cacheKey)
+        : undefined;
+      if (!bundle) {
+        const { convertPdfToImages, convertDocxToImages, convertPptxToImages } = await import(
+          './services/fileService'
+        );
+        const fileName = target.file.name.toLowerCase();
+        if (fileName.endsWith('.pdf')) bundle = await convertPdfToImages(target.file);
+        else if (fileName.endsWith('.docx')) bundle = await convertDocxToImages(target.file);
+        else if (fileName.endsWith('.pptx')) bundle = await convertPptxToImages(target.file);
+        else return;
+        // Cache the unsliced bundle for any other split sibling sharing this source document,
+        // so re-opening N split parts' source panes converts the shared PDF/DOCX once, not N times.
+        if (cacheKey) sourceDocumentPreviewCache.current.set(cacheKey, bundle);
+      }
       // A resumed split entry only knows its own page range within the shared original file —
       // slice back down to it (same as the live pipeline does on first conversion).
       if (target.sourcePageRange) bundle = sliceDocumentBundle(bundle, target.sourcePageRange);
@@ -1137,7 +1158,7 @@ const App: React.FC = () => {
                             : 'bg-brand-sky/30 text-brand-navy'
                       }`}
                     >
-                      {STATUS_LABELS[file.status]}
+                      {PROCESSING_STATUS_LABELS[file.status]}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2 shrink-0">
@@ -1385,7 +1406,7 @@ const App: React.FC = () => {
                   <div className="bg-white border border-gray-200 rounded-md px-4 py-10 flex flex-col items-center justify-center space-y-3" aria-live="polite">
                     <div className="animate-spin rounded-full h-10 w-10 border-4 border-brand-blue border-t-transparent" aria-hidden="true" />
                     <p className="font-bold text-brand-navy">
-                      {file.progressMsg || STATUS_LABELS[file.status]}
+                      {file.progressMsg || PROCESSING_STATUS_LABELS[file.status]}
                     </p>
                   </div>
                 )}

@@ -1,4 +1,3 @@
-import type { IncomingMessage } from 'http';
 import { convertPptxBufferToPdf } from './libreOfficeConverter.js';
 import type { ApiResult } from './apiCore.js';
 
@@ -49,19 +48,4 @@ export async function handlePptxToPdfRequest(
     console.error('[LibreOffice WASM] PPTX→PDF failed:', error);
     return errorResult(error);
   }
-}
-
-/** Read raw body from a Node IncomingMessage when not using express.raw. */
-export async function readRawBody(req: IncomingMessage, limitBytes: number): Promise<Buffer> {
-  const chunks: Buffer[] = [];
-  let total = 0;
-  for await (const chunk of req) {
-    const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-    total += buf.length;
-    if (total > limitBytes) {
-      throw new Error(`Request body exceeds ${limitBytes} bytes.`);
-    }
-    chunks.push(buf);
-  }
-  return Buffer.concat(chunks);
 }

@@ -15,9 +15,9 @@ Living plan. Updated **2026-08-31** (session navigator + L→R column review sco
 | **1 — Real-doc validation** | Parallel | 5–10 real SDP LMs; friction log; extraction accuracy checked against source via `extraction-verification-protocol-v1.md` | Top pains ranked; ≥3 documents fully scored |
 | **2 — Colleague onboarding** | Ready | Short runbook | Colleague solo success |
 | **4a — Export for coding** | **Done** | Coder-shaped CSV button | `export-for-coding.md` AC |
-| **4b — Overall LM quality** | **Done** | S/A/W + rationale; rubric doc | `lm-quality-rubric.md` AC |
-| **Multi-column extract fidelity** | **Implemented** | Prompt + impactStatement + fixture tests | Re-run YouthMoves PDF; commit snapshot |
-| **Raster/provenance/colour fidelity** | **Implemented** | Provenance + colour fields; raster crop/upscale + column tiling; prompt anti-fabrication | Re-run Oxford Circle PDF; commit snapshot (`fixtures/oxford-circle-carnell-frc/`) |
+| **4b — Overall LM quality** | **Done — deprecated 2026-09** | S/A/W + rationale; rubric doc | `lm-quality-rubric.md` AC |
+| **Multi-column extract fidelity** | **Implemented** | Prompt + impactStatement + fixture tests | Re-run YouthMoves PDF; commit snapshot — **still unmet** (source PDF not available; see `fixtures/performance-garage-youthmoves/README.md`) |
+| **Raster/provenance/colour fidelity** | **Implemented** | Provenance + colour fields; raster crop/upscale + column tiling; prompt anti-fabrication | Re-run Oxford Circle PDF; commit snapshot (`fixtures/oxford-circle-carnell-frc/`) — **met 2026-09-19** |
 | **Source-aware mapping v1** | **Implemented (local)** | Source sections metadata + synonym remap; unmapped + dropdown/note; mismatch banner; correction export; stopped destructive Impact/YouthMoves rebucket | Re-run mismatched + Oxford docs; tune thresholds from correction CSV |
 | **Source review v1** | **Implemented (local)** | Side-by-side source page rasters + soft item→page/column anchors; no bboxes | AC in `source-review-v1.md`; validate in next 3 real-doc sessions |
 | **Extraction confidence + abstention v1** | **Implemented (local)** | Document `ok`/`partial`/`abstained` + categorical confidence rollup; fidelity banner; soft-gate coding export; separate from Overall quality | AC in `extraction-confidence-v1.md`; validate on next 3–5 real docs |
