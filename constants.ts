@@ -281,13 +281,24 @@ ${
     ## DOCUMENT TYPE CHECK (REQUIRED — DO THIS FIRST)
 
     Partners sometimes submit a document that is **not actually a logic model** — a Theory of Change
-    narrative, an impact/outcomes report, a program overview, etc. — even though it may share some
-    content with one (a mission statement, a list of outcomes, a target population). Do **not** abstain
-    just because the document isn't a clean logic model grid.
+    narrative, an impact/outcomes report, a program overview/brochure, a schedule, etc. — even though
+    it may share some content with one (a mission statement, a list of outcomes, a target population).
+    Do **not** abstain just because the document isn't a clean logic model grid.
+
+    **The test is structural, not topical.** Ask: does the document organize its content into
+    labeled input/activity/output/outcome *categories* — as grid columns, explicitly headed sections,
+    or an equivalent structure? A document that discusses programs, workshops, activities, or goals in
+    ordinary prose or nested bullet lists — without sorting them into those categories — is
+    \`"not_logic_model"\`, **even if every individual sentence would be at home in a logic model.**
+    Program-related content alone is not evidence of logic-model structure; require the categorization
+    itself. (Example: a page of "Workshops" each with a paragraph description, followed by an
+    "After-Care" section with a numbered daily schedule, is a program brochure — \`"not_logic_model"\` —
+    not a logic model, even though its content is entirely about activities a program runs.)
 
     - \`documentTypeAssessment\`: \`"logic_model"\` (has recognizable input/output/outcome structure,
       even if imperfect) | \`"not_logic_model"\` (reads as a different document type — ToC narrative,
-      impact report, budget, etc.) | \`"unclear"\` (genuinely ambiguous).
+      impact report, budget, program overview/brochure, schedule, etc.) | \`"unclear"\` (genuinely
+      ambiguous — some categorization present but doesn't map cleanly).
     - \`documentTypeNote\`: one short sentence explaining a non-\`"logic_model"\` call (e.g. "Reads as a
       Theory of Change narrative — no input/output/outcome column structure"). Omit when \`"logic_model"\`.
     - When \`"not_logic_model"\` or \`"unclear"\`: still **extract any content that genuinely maps** to the

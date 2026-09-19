@@ -220,6 +220,53 @@ from every `low`/`abstained` condition — same ceiling as `mismatch`/`unknownLa
 unvalidated against real documents; it could only ever push `ok` → `partial` / `medium`. The
 Gemini-self-report replacement keeps the same ceiling.
 
+## Determinism: seed + temperature=0, and a schema-required gap (2026-09-19)
+
+Trigger: recurring-improvement audit found the batch's per-file results weren't stable — re-running
+the same 112 files a day apart gave a different result for at least one file (Imagine That Philly:
+33 items one run, 11 the next, both from a genuinely narrative, non-grid document — see the
+`documentTypeAssessment` finding below for why that document is high-variance by nature).
+
+Neither Gemini call set a `seed`, and extraction ran at `temperature: 0.1` (the detect-logic-models
+pre-pass was already at 0). Added `server/geminiSeed.ts`'s `deriveGeminiSeed()` — a SHA-256 hash of
+the exact request content (prompt + text track + all images), reduced to a signed 32-bit int via
+`Buffer.readInt32BE` — and wired it into both `server/geminiLogicModel.ts` and
+`server/geminiLogicModelGroups.ts`, alongside dropping extraction's temperature to 0. Same document
+re-run now gets the same seed, so results are reproducible as far as Gemini's own contract allows
+("mostly deterministic... not a guaranteed absolute deterministic behavior" — this stabilizes
+sampling noise, it does not resolve genuine prompt ambiguity in how a document's content should be
+structured).
+
+**Real bug found while verifying this**: `hash.readUInt32BE(0)` can exceed `INT32_MAX`, but Gemini's
+`seed` field is a *signed* `TYPE_INT32`. Caught live, not in a unit test — a large real batch file
+(After-School All-Stars, 15 images) produced a seed of 3867915212 and the API rejected the whole
+request with `400 INVALID_ARGUMENT`. Fixed by switching to `readInt32BE` (reinterprets the same 4
+bytes as signed, always in-range by construction); regression-guarded with a 200-input range check
+in `geminiSeed.test.ts` rather than one fixed case, since the bug was about the *range* of possible
+outputs, not any single input.
+
+**Second, unrelated finding from the same investigation**: Imagine That Philly's actual PDF turned
+out to be a pure program brochure (Mission/Vision/Workshops/Before-Care/After-Care/Summer-Camp,
+all prose and nested bullets — no input/output/outcome grid at all), and `documentTypeAssessment`
+was silently coming back `undefined` instead of `"not_logic_model"` — the exact gap already noted
+against After-School All-Stars earlier in this doc's history. Root cause: the prompt calls the field
+"REQUIRED — DO THIS FIRST", but it was never in the schema's `required` array, so Gemini's
+structured-output mode (which only enforces schema-required fields, not prose instructions) could
+freely skip it. Added `'documentTypeAssessment'` to `extractModelSchema`'s `required` list. Also
+tightened the DOCUMENT TYPE CHECK prompt section itself (`constants.ts`) to state the test as
+**structural, not topical** — a document can be entirely about programs/activities/goals in prose
+or nested bullets and still be `"not_logic_model"`, since the earlier wording's closed example list
+("ToC narrative, impact report, budget") didn't include anything resembling a program brochure, so
+the model had nothing to pattern-match against and defaulted to `"logic_model"`.
+
+Verified live end-to-end, both fixes together: Imagine That Philly now returns
+`documentTypeAssessment: "not_logic_model"` with an accurate note, 0 fabricated items, and identical
+structural output (status/confidence/blockers/item count) across repeated runs — only the free-text
+note's exact wording still varies slightly, which is expected (categorical fields are far lower-
+entropy than free text, even at temperature 0 + a fixed seed). After-School All-Stars, re-tested
+after the seed-range fix, now also correctly returns `"not_logic_model"` (previously silently
+`undefined`, per the open gap noted in the session that first found it).
+
 ## Out of tech scope (v1)
 
 - Second Gemini verify pass / dual extract  

@@ -3,6 +3,7 @@ import { getDetectLogicModelGroupsPrompt } from '../constants.js';
 import type { DetectLogicModelGroupsInput, LogicModelPageGroup } from '../types.js';
 import { normalizeLogicModelPageGroups } from '../shared/logicModelPageGroups.js';
 import { withRetry } from './geminiRetry.js';
+import { deriveGeminiSeed } from './geminiSeed.js';
 
 /** Same rolling alias as extraction — see server/geminiLogicModel.ts for why. */
 const DETECT_MODEL_ID = 'gemini-flash-latest';
@@ -52,6 +53,8 @@ export async function detectLogicModelGroupsOnServer(
     parts.push({ inlineData: { mimeType: 'image/jpeg', data: input.previewImages[i] } });
   }
 
+  const seed = deriveGeminiSeed([prompt, textTrack, ...input.previewImages]);
+
   let raw: unknown;
   try {
     const response = await withRetry(() =>
@@ -62,6 +65,7 @@ export async function detectLogicModelGroupsOnServer(
           responseMimeType: 'application/json',
           responseSchema: detectSchema,
           temperature: 0,
+          seed,
         },
       })
     );

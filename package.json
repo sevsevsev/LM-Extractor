@@ -10,7 +10,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test *.test.ts shared/**/*.test.ts services/**/*.test.ts components/**/*.test.ts",
+    "test": "tsx --test *.test.ts shared/**/*.test.ts services/**/*.test.ts components/**/*.test.ts server/**/*.test.ts",
     "verify:api": "node scripts/verify-api.mjs",
     "start": "npm run build && node scripts/start-prod.mjs"
   },

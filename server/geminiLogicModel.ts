@@ -8,6 +8,7 @@ import {
 import { parseLogicModelResponse } from '../shared/logicModelValidate.js';
 import { normalizeExtractedLogicModel } from '../shared/extractNormalize.js';
 import { withRetry } from './geminiRetry.js';
+import { deriveGeminiSeed } from './geminiSeed.js';
 
 /**
  * Use Google's rolling `-latest` aliases, not a dated snapshot (e.g. `gemini-2.5-flash`) — pinned
@@ -114,6 +115,11 @@ const extractModelSchema: Schema = {
     'mediumTermOutcomes',
     'longTermOutcomes',
     'impact',
+    // The prompt's DOCUMENT TYPE CHECK section calls this "REQUIRED — DO THIS FIRST", but structured
+    // output only actually enforces what's schema-required — found via a real document (a narrative
+    // program brochure) that got the call silently skipped instead, leaving the field undefined
+    // rather than the intended "not_logic_model" flag.
+    'documentTypeAssessment',
   ],
 };
 
@@ -172,6 +178,10 @@ export async function extractLogicModelOnServer(
     ];
   }
 
+  // Same bundle (images + text) re-run gets the same seed, so re-processing a document is
+  // reproducible as far as Gemini's best-effort seed contract allows — see geminiSeed.ts.
+  const seed = deriveGeminiSeed([prompt, textTrack, ...images]);
+
   const response = await withRetry(() =>
     ai.models.generateContent({
       model: EXTRACT_MODEL_ID,
@@ -179,7 +189,8 @@ export async function extractLogicModelOnServer(
       config: {
         responseMimeType: 'application/json',
         responseSchema: extractModelSchema,
-        temperature: 0.1,
+        temperature: 0,
+        seed,
       },
     })
   );
