@@ -189,13 +189,23 @@ ${hasTextTrack ? '       Cross-check header strings against Track A headings whe
 
     **CONTEXT & OVERVIEW (NOT GRID COLUMNS)**:
     - **\`impactStatement\`** — **CRITICAL when labeled.** Extract ONLY when an explicit heading exists outside
-      the outcomes grid (often **page 1**). Put that prose in \`impactStatement.content\`.${
+      the outcomes grid (often **page 1**). Organizations label this concept differently — recognize any of
+      these as the same field, not just the literal phrase: "Impact Statement", "Intended Impact",
+      "Anticipated Impact", "Long-Term Impact", "Ultimate Goal", "Overall Goal", "Goal Statement". They all
+      name the same thing (the aggregate, aspirational change the whole effort is oriented toward) under
+      different house style — **still a heading-based rule, not a wording-based one**: a heading from this
+      list, not aspirational-sounding prose with no heading at all (see "No heading at all" below).
+      **Do not confuse with a grid column** — a *column* header that just says "Impact" (part of the
+      Inputs→Activities→Outputs→Outcomes→Impact grid) is different from a page-level overview heading in
+      this list; that's the \`impact\` grid domain per COLUMN FIDELITY rule 5, never \`impactStatement\`.
+      Put matched overview prose in \`impactStatement.content\`.${
         hasTextTrack
           ? ' Track A often preserves this prose more reliably than a dense grid image — use it.'
           : ''
       }
     - **Whitespace trap (common PPT→PDF):** Body text may sit near the **bottom** of a large empty box — still extract it.
-    - Always finish overview pages **before** the multi-column grid. If page 1 says IMPACT STATEMENT, \`impactStatement\` must be non-empty.
+    - Always finish overview pages **before** the multi-column grid. If page 1 has any of the impact-statement
+      headings above, \`impactStatement\` must be non-empty.
     - **\`mission\`** — Optional and distinct from Impact Statement. **Decide by heading, not by
       wording**: prose under an explicit "Mission" / "Our Mission" / "Purpose" heading goes here —
       regardless of whether it *sounds* forward-looking or aspirational. Plenty of ordinary mission
@@ -203,9 +213,9 @@ ${hasTextTrack ? '       Cross-check header strings against Track A headings whe
       thrive...") without being an Impact Statement; the heading is what decides it, not the vocabulary.
       Once you've placed prose under \`mission\` or \`impactStatement\`, do not move it to the other
       field — decide once.
-    - **No heading at all** (no "Mission" or "Impact Statement" label anywhere): put unlabeled overview
-      prose in \`mission\`, never in \`impactStatement\` — that field requires an explicit heading (above);
-      never infer one from wording alone.
+    - **No heading at all** (no "Mission" label and none of the impact-statement headings above appear
+      anywhere): put unlabeled overview prose in \`mission\`, never in \`impactStatement\` — that field
+      requires an explicit heading from the list above; never infer one from wording alone.
     - **\`targetPopulation\`** — Who is served.
 
     **COLUMN FIDELITY (HARD RULES)**:

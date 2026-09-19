@@ -30,6 +30,32 @@ test('harvests when heading and prose are on one collapsed line', () => {
   assert.ok(!got?.includes('Dance Teacher'));
 });
 
+test('harvests under "Intended Impact" heading (synonym)', () => {
+  const got = harvestImpactStatementFromPlainText(`Intended Impact ${YOUTHMOVES_PROSE} Resources`);
+  assert.ok(got?.includes('Through sustained participation'));
+});
+
+test('harvests under "Long-Term Impact" heading (synonym, hyphenated)', () => {
+  const got = harvestImpactStatementFromPlainText(`Long-Term Impact ${YOUTHMOVES_PROSE} Resources`);
+  assert.ok(got?.includes('Through sustained participation'));
+});
+
+test('harvests under "Anticipated Impact" heading (synonym)', () => {
+  const got = harvestImpactStatementFromPlainText(`Anticipated Impact ${YOUTHMOVES_PROSE} Resources`);
+  assert.ok(got?.includes('Through sustained participation'));
+});
+
+test('does not treat a bare "Ultimate Goal" mention as a heading (client-side regex stays conservative)', () => {
+  // "Ultimate Goal" / "Overall Goal" / "Goal Statement" are recognized in the extraction prompt
+  // (Gemini can see whether it's a styled heading vs. an incidental phrase) but deliberately left
+  // out of this raw-text regex, which has no such visual context and could false-positive on
+  // ordinary body prose like "our ultimate goal is...".
+  const got = harvestImpactStatementFromPlainText(
+    `Resources Activities. Our ultimate goal is to help every student succeed. Outputs Short-Term`
+  );
+  assert.equal(got, null);
+});
+
 test('returns null when no impact statement present', () => {
   assert.equal(
     harvestImpactStatementFromPlainText('Resources Activities Outputs Short-Term Outcomes'),

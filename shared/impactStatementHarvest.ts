@@ -4,7 +4,16 @@
  * (large empty boxes) and Gemini drops it entirely.
  */
 
-const IMPACT_STATEMENT_HEADING = /impact\s+statement\b/i;
+/**
+ * Matches "Impact Statement" and a conservative subset of its prompt-recognized synonyms (see
+ * `constants.ts`'s CONTEXT & OVERVIEW block) — only phrases containing "impact" itself, since those
+ * are unlikely to appear as ordinary mid-sentence phrasing in unrelated body text. Broader synonyms
+ * like "Ultimate Goal" / "Overall Goal" / "Goal Statement" are deliberately left prompt-only: Gemini
+ * can see whether such a phrase is a styled page heading vs. an incidental mention ("our goal is
+ * to..." inside an Activities bullet); this regex, running on flattened raw text with no visual
+ * context, cannot make that distinction safely.
+ */
+const IMPACT_STATEMENT_HEADING = /(?:impact\s+statement|(?:intended|anticipated|long[- ]term)\s+impact)\b/i;
 
 const SECTION_STOP =
   /\b(mission\s*(statement|\/|overview)?|purpose|program\s+overview|target\s+population|who\s+we\s+serve|resources|inputs|activities|outputs|short[- ]term|medium[- ]term|long[- ]term|##\s*page\s*\d)\b/i;

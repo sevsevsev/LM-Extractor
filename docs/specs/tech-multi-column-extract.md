@@ -239,6 +239,44 @@ Philly (Mission heading only) now correctly keeps its mission text in `mission` 
 empty, no duplication, no markdown leakage; Eureka (no Mission or Impact Statement heading at all)
 correctly leaves both empty.
 
+## 10. Impact Statement heading synonyms (2026-09-19, same day as §9)
+
+Trigger: product discussion — §2's field semantics require the literal phrase "Impact Statement" (or
+an equivalent Gemini has to infer on its own from an unenumerated "explicit heading"). "Impact" as a
+concept is one of the least standardized parts of the logic-model convention across organizations —
+unlike Inputs/Activities/Outputs, which are near-universal — so a document using a different house-
+style label for the same aggregate/aspirational-change concept (e.g. "Ultimate Goal") could fall
+through the gap between Long-Term Outcomes and Impact Statement, going unrecognized even though the
+content genuinely belongs in `impactStatement`.
+
+**Design constraint carried over from §9**: this had to be solved without reintroducing a vocabulary-
+matching heuristic (the exact failure mode §9 just removed) — the fix couldn't be "guess from wording
+that a sentence sounds impact-statement-shaped," only "recognize more heading labels for the same
+still-heading-anchored rule."
+
+**Prompt** (`constants.ts`, CONTEXT & OVERVIEW): `impactStatement` now recognizes any of "Impact
+Statement", "Intended Impact", "Anticipated Impact", "Long-Term Impact", "Ultimate Goal", "Overall
+Goal", "Goal Statement" as the same field — explicitly still a heading-based rule ("a heading from this
+list, not aspirational-sounding prose with no heading at all"), and explicitly disambiguated from a
+grid *column* header that just says "Impact" (COLUMN FIDELITY rule 5), which is a completely different
+field (`impact`, not `impactStatement`).
+
+**Client-side text-layer recovery** (`impactStatementHarvest.ts`'s `IMPACT_STATEMENT_HEADING`): widened
+to the subset of synonyms that contain the word "impact" itself ("Intended/Anticipated/Long-Term
+Impact") — these are unlikely to appear as incidental mid-sentence phrasing. Deliberately left out
+"Ultimate Goal" / "Overall Goal" / "Goal Statement": Gemini can see whether such a phrase is a styled
+page heading vs. an offhand mention ("our ultimate goal is to..." inside an Activities bullet); a regex
+over flattened raw text has no such visual context and would risk exactly the kind of false-positive
+this doc's §9 just spent a lot of words removing. Prompt-only for those three.
+
+**Verified live** with a synthetic test document (Playwright-rendered HTML → PDF: a "Mission" section
+plus a separately-labeled "Ultimate Goal" section, no literal "impact statement"/"impact" text
+anywhere in the document) — confirms this is genuinely Gemini's own recognition from the widened
+prompt, not an accidental match via the (deliberately narrower) client-side fallback regex, which
+excludes "Ultimate Goal" by design. Result: `mission` and `impactStatement` both populated correctly
+from their respective headings, `ok`/`high` confidence, no penalty for the unusual heading choice.
+Re-ran Oxford Circle Carnell FRC (literal "Impact Statement" heading) as a regression check — unchanged.
+
 ## Implementation sequence
 
 1. `types.ts` + Gemini schemas  
