@@ -1,0 +1,475 @@
+{
+  "id": "healthy-newsworks-core-reporter",
+  "promptVersion": "2026-09-19.2",
+  "promptVariant": "vision+text",
+  "capturedAt": "2026-09-19T20:58:53.739Z",
+  "model": {
+    "organization": "Healthy NewsWorks",
+    "program": "Core Reporter Program",
+    "mission": {
+      "content": "Healthy NewsWorks empowers elementary and middle school students to become researchers, writers, critical thinkers, and confident communicators who advance health understanding and literacy through their factual publications and digital media."
+    },
+    "targetPopulation": {
+      "content": "Elementary and middle school teachers and students (Core Reporters 4-8th Grade; Cub Reporters K-3rd Grade) in Philadelphia, Norristown, Pennsauken, Chester, and Camden (NJ)\nServes 2,000+ students annually"
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "Human Resources",
+          "items": [
+            {
+              "text": "HNW Board Members, Leadership, Staff, and Volunteers",
+              "verbatim": true,
+              "sourceHeader": "Human Resources",
+              "sourceSection": "Human Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "School personnel, students, and families",
+              "verbatim": true,
+              "sourceHeader": "Human Resources",
+              "sourceSection": "Human Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Consultants",
+              "verbatim": true,
+              "sourceHeader": "Human Resources",
+              "sourceSection": "Human Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Local and national health experts",
+              "verbatim": true,
+              "sourceHeader": "Human Resources",
+              "sourceSection": "Human Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            }
+          ]
+        },
+        {
+          "name": "Material Resources",
+          "items": [
+            {
+              "text": "Curriculum aligned to national educational standards and leveled; updated annually",
+              "verbatim": true,
+              "sourceHeader": "Material Resources",
+              "sourceSection": "Material Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Teacher training materials",
+              "verbatim": true,
+              "sourceHeader": "Material Resources",
+              "sourceSection": "Material Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "ACT 48 provider approval",
+              "verbatim": true,
+              "sourceHeader": "Material Resources",
+              "sourceSection": "Material Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Website",
+              "verbatim": true,
+              "sourceHeader": "Material Resources",
+              "sourceSection": "Material Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Technology and Equipment",
+              "verbatim": true,
+              "sourceHeader": "Material Resources",
+              "sourceSection": "Material Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            }
+          ]
+        },
+        {
+          "name": "Financial Resources",
+          "items": [
+            {
+              "text": "Foundation grants",
+              "verbatim": true,
+              "sourceHeader": "Financial Resources",
+              "sourceSection": "Financial Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Private donations",
+              "verbatim": true,
+              "sourceHeader": "Financial Resources",
+              "sourceSection": "Financial Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Direct services",
+              "verbatim": true,
+              "sourceHeader": "Financial Resources",
+              "sourceSection": "Financial Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Mission-aligned sponsors",
+              "verbatim": true,
+              "sourceHeader": "Financial Resources",
+              "sourceSection": "Financial Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            }
+          ]
+        },
+        {
+          "name": "Knowledge Resources",
+          "items": [
+            {
+              "text": "Journalism and health experts",
+              "verbatim": true,
+              "sourceHeader": "Knowledge Resources",
+              "sourceSection": "Knowledge Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Educational expertise",
+              "verbatim": true,
+              "sourceHeader": "Knowledge Resources",
+              "sourceSection": "Knowledge Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "Program Delivery",
+          "items": [
+            {
+              "text": "Deliver classroom lessons",
+              "verbatim": true,
+              "sourceHeader": "Program Delivery",
+              "sourceSection": "Program Delivery",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Hands-on guidance provided to students and teachers on research, interviewing, and writing print and digital media",
+              "verbatim": true,
+              "sourceHeader": "Program Delivery",
+              "sourceSection": "Program Delivery",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Coordinate interviews with experts",
+              "verbatim": true,
+              "sourceHeader": "Program Delivery",
+              "sourceSection": "Program Delivery",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Develop student-created videos",
+              "verbatim": true,
+              "sourceHeader": "Program Delivery",
+              "sourceSection": "Program Delivery",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Edit, design, print, and disseminate newspaper editions for each school",
+              "verbatim": true,
+              "sourceHeader": "Program Delivery",
+              "sourceSection": "Program Delivery",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Edit, design, print, and disseminate magazines",
+              "verbatim": true,
+              "sourceHeader": "Program Delivery",
+              "sourceSection": "Program Delivery",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Teacher Training",
+          "items": [
+            {
+              "text": "Provide one-on-one mentoring",
+              "verbatim": true,
+              "sourceHeader": "Teacher Training",
+              "sourceSection": "Teacher Training",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Hold in-person and online training",
+              "verbatim": true,
+              "sourceHeader": "Teacher Training",
+              "sourceSection": "Teacher Training",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "Program Delivery",
+          "items": [
+            {
+              "text": "Lessons delivered to more than 600 students in 24 classrooms",
+              "verbatim": true,
+              "sourceHeader": "Program Delivery",
+              "sourceSection": "Program Delivery",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "40+ school newspapers published",
+              "verbatim": true,
+              "sourceHeader": "Program Delivery",
+              "sourceSection": "Program Delivery",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "2 magazines published",
+              "verbatim": true,
+              "sourceHeader": "Program Delivery",
+              "sourceSection": "Program Delivery",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "6+ videos",
+              "verbatim": true,
+              "sourceHeader": "Program Delivery",
+              "sourceSection": "Program Delivery",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "20+ interviews with health experts",
+              "verbatim": true,
+              "sourceHeader": "Program Delivery",
+              "sourceSection": "Program Delivery",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "7,000 students, teachers, family members reached",
+              "verbatim": true,
+              "sourceHeader": "Program Delivery",
+              "sourceSection": "Program Delivery",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Teacher Training",
+          "items": [
+            {
+              "text": "In-person and online teacher trainings held",
+              "verbatim": true,
+              "sourceHeader": "Teacher Training",
+              "sourceSection": "Teacher Training",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": [
+        {
+          "name": "Student Reporters",
+          "items": [
+            {
+              "text": "Increased academic skill development (e.g., writing, research, identifying trustworthy information, interviewing skills, and communication)",
+              "verbatim": true,
+              "sourceHeader": "Student Reporters",
+              "sourceSection": "Student Reporters",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased soft skills (e.g., social-emotional learning skills and confidence)",
+              "verbatim": true,
+              "sourceHeader": "Student Reporters",
+              "sourceSection": "Student Reporters",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased health knowledge",
+              "verbatim": true,
+              "sourceHeader": "Student Reporters",
+              "sourceSection": "Student Reporters",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Teachers",
+          "items": [
+            {
+              "text": "Increase in teacher knowledge of health and journalism",
+              "verbatim": true,
+              "sourceHeader": "Teachers",
+              "sourceSection": "Teachers",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Development of new teaching skills",
+              "verbatim": true,
+              "sourceHeader": "Teachers",
+              "sourceSection": "Teachers",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased teacher confidence in their teaching practice",
+              "verbatim": true,
+              "sourceHeader": "Teachers",
+              "sourceSection": "Teachers",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "mediumTermOutcomes": {
+      "content": [
+        {
+          "name": "Student Reporters",
+          "items": [
+            {
+              "text": "Improved academic and literacy skills",
+              "verbatim": true,
+              "sourceHeader": "Student Reporters",
+              "sourceSection": "Student Reporters",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Demonstrate understanding of soft skills, including social-emotional learning skills",
+              "verbatim": true,
+              "sourceHeader": "Student Reporters",
+              "sourceSection": "Student Reporters",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Application of health knowledge and health behavior in real-world contexts",
+              "verbatim": true,
+              "sourceHeader": "Student Reporters",
+              "sourceSection": "Student Reporters",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Teachers",
+          "items": [
+            {
+              "text": "Sustained integration of health and media literacy into classroom instruction",
+              "verbatim": true,
+              "sourceHeader": "Teachers",
+              "sourceSection": "Teachers",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased knowledge in health and media literacy skills",
+              "verbatim": true,
+              "sourceHeader": "Teachers",
+              "sourceSection": "Teachers",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "longTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Sustained teaching workforce equipped to integrate health and media literacy in instructional practice",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students demonstrate ongoing academic success, critical thinking skills, and health literacy skills",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students show improved ability to evaluate health information, leading to reduced susceptibility to misinformation",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Improved health knowledge and norms within school communities",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "impact": {
+      "content": []
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "ok",
+    "colorLegend": "",
+    "generalOutcomes": {
+      "content": []
+    },
+    "impactStatement": {
+      "content": "In collaboration with teachers and school leadership, Healthy NewsWorks supports teacher skill development and builds students’ capacity to research, write, and publish factual health content, leading to increased media and health literacy, greater confidence and social-emotional skills, and reduced susceptibility to misinformation."
+    },
+    "layoutFamily": "vertical_columns",
+    "unmapped": {
+      "content": []
+    },
+    "mappingCorrections": [],
+    "extractionConfidence": "high"
+  }
+}

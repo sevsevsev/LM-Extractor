@@ -1,0 +1,351 @@
+{
+  "id": "seamaac-urban-arts",
+  "promptVersion": "2026-09-19.2",
+  "promptVariant": "vision+text",
+  "capturedAt": "2026-09-19T21:00:24.677Z",
+  "model": {
+    "organization": "SEAMAAC",
+    "program": "Urban Arts Entrepreneurship",
+    "mission": {
+      "content": ""
+    },
+    "targetPopulation": {
+      "content": "Youth"
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "Human",
+          "items": [
+            {
+              "text": "Teaching Artists",
+              "verbatim": true,
+              "sourceHeader": "Human",
+              "sourceSection": "Human",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Program Coordinator",
+              "verbatim": true,
+              "sourceHeader": "Human",
+              "sourceSection": "Human",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Volunteers/Mentors",
+              "verbatim": true,
+              "sourceHeader": "Human",
+              "sourceSection": "Human",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Knowledge",
+          "items": [
+            {
+              "text": "Curriculum: Arts, Career Readiness, Financial Literacy",
+              "verbatim": true,
+              "sourceHeader": "Knowledge",
+              "sourceSection": "Knowledge",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Material",
+          "items": [
+            {
+              "text": "Art Supplies",
+              "verbatim": true,
+              "sourceHeader": "Material",
+              "sourceSection": "Material",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Technology/Equipment",
+              "verbatim": true,
+              "sourceHeader": "Material",
+              "sourceSection": "Material",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Studio/Classroom Space",
+              "verbatim": true,
+              "sourceHeader": "Material",
+              "sourceSection": "Material",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Financial",
+          "items": [
+            {
+              "text": "Grant Funding",
+              "verbatim": true,
+              "sourceHeader": "Financial",
+              "sourceSection": "Financial",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Program Budget",
+              "verbatim": true,
+              "sourceHeader": "Financial",
+              "sourceSection": "Financial",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Community Partnership",
+              "verbatim": true,
+              "sourceHeader": "Financial",
+              "sourceSection": "Financial",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "Arts Skill Building",
+          "items": [
+            {
+              "text": "Instruction in: Visual Arts",
+              "verbatim": true,
+              "sourceHeader": "Arts Skill Building",
+              "sourceSection": "Arts Skill Building",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Instruction in: Dance",
+              "verbatim": true,
+              "sourceHeader": "Arts Skill Building",
+              "sourceSection": "Arts Skill Building",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Instruction in: Filmmaking",
+              "verbatim": true,
+              "sourceHeader": "Arts Skill Building",
+              "sourceSection": "Arts Skill Building",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Instruction in: Music",
+              "verbatim": true,
+              "sourceHeader": "Arts Skill Building",
+              "sourceSection": "Arts Skill Building",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Instruction in: DJ",
+              "verbatim": true,
+              "sourceHeader": "Arts Skill Building",
+              "sourceSection": "Arts Skill Building",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Creative Projects",
+          "items": [
+            {
+              "text": "Showcases",
+              "verbatim": true,
+              "sourceHeader": "Creative Projects",
+              "sourceSection": "Creative Projects",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Exhibitions",
+              "verbatim": true,
+              "sourceHeader": "Creative Projects",
+              "sourceSection": "Creative Projects",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Performances",
+              "verbatim": true,
+              "sourceHeader": "Creative Projects",
+              "sourceSection": "Creative Projects",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Career Exploration and Financial Literacy",
+          "items": [
+            {
+              "text": "Workshops",
+              "verbatim": true,
+              "sourceHeader": "Career Exploration and Financial Literacy",
+              "sourceSection": "Career Exploration and Financial Literacy",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "College Awareness Activities",
+              "verbatim": true,
+              "sourceHeader": "Career Exploration and Financial Literacy",
+              "sourceSection": "Career Exploration and Financial Literacy",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Hours of project-based learning delivered",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Number of students served",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Number of creative projects completed",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Hours of instruction given",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Number of students served",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Increased artistic knowledge and skills",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased engagement and connection to positive peers and adult mentors",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased knowledge of career, college and financial pathways",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "mediumTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Increased confidence in self expression",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Improved decision-making and goal setting",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased school and program participation",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Stronger leadership, teamwork and communication skills",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "longTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Youth are prepared for post-secondary education and careers",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "impact": {
+      "content": []
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "ok",
+    "colorLegend": "",
+    "generalOutcomes": {
+      "content": []
+    },
+    "impactStatement": {
+      "content": "Through arts programming, UAEP equips youth with the tools to participate, lead and thrive in their communities."
+    },
+    "layoutFamily": "vertical_columns",
+    "unmapped": {
+      "content": []
+    },
+    "mappingCorrections": [],
+    "extractionConfidence": "high"
+  }
+}

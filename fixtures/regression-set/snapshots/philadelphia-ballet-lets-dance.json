@@ -1,0 +1,57 @@
+{
+  "id": "philadelphia-ballet-lets-dance",
+  "promptVersion": "2026-09-19.2",
+  "promptVariant": "vision+text",
+  "capturedAt": "2026-09-19T20:59:33.070Z",
+  "model": {
+    "organization": "Philadelphia Ballet",
+    "program": "Community Engagement Projects",
+    "mission": {
+      "content": ""
+    },
+    "targetPopulation": {
+      "content": "K-12 school students across Philadelphia"
+    },
+    "inputs": {
+      "content": []
+    },
+    "activities": {
+      "content": []
+    },
+    "outputs": {
+      "content": []
+    },
+    "shortTermOutcomes": {
+      "content": []
+    },
+    "mediumTermOutcomes": {
+      "content": []
+    },
+    "longTermOutcomes": {
+      "content": []
+    },
+    "impact": {
+      "content": []
+    },
+    "documentTypeAssessment": "not_logic_model",
+    "extractionStatus": "partial",
+    "colorLegend": "",
+    "documentTypeNote": "Reads as a program assessment and evaluation report with narrative findings and recommendations rather than a logic model structure.",
+    "generalOutcomes": {
+      "content": []
+    },
+    "impactStatement": {
+      "content": ""
+    },
+    "layoutFamily": "prose_sections",
+    "unmapped": {
+      "content": []
+    },
+    "mappingCorrections": [],
+    "extractionConfidence": "medium",
+    "extractionBlockers": [
+      "No inputs/activities/outputs/outcomes items were extracted — verify this document actually has a logic-model grid",
+      "Document may not be a logic model — verify before treating extraction as reliable (Reads as a program assessment and evaluation report with narrative findings and recommendations rather than a logic model structure.)"
+    ]
+  }
+}

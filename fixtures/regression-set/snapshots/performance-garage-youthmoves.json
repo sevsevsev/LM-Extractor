@@ -1,0 +1,428 @@
+{
+  "id": "performance-garage-youthmoves",
+  "promptVersion": "2026-09-19.2",
+  "promptVariant": "text-only",
+  "capturedAt": "2026-09-19T20:58:44.748Z",
+  "model": {
+    "organization": "The Performance Garage",
+    "program": "YouthMoves",
+    "mission": {
+      "content": ""
+    },
+    "targetPopulation": {
+      "content": "student-dancers"
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "Knowledge",
+          "items": [
+            {
+              "text": "Dance Technique Expertise",
+              "verbatim": true,
+              "sourceHeader": "Knowledge",
+              "sourceSection": "Knowledge",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Dance/Movement Research",
+              "verbatim": true,
+              "sourceHeader": "Knowledge",
+              "sourceSection": "Knowledge",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Dance Literacy Expertise",
+              "verbatim": true,
+              "sourceHeader": "Knowledge",
+              "sourceSection": "Knowledge",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Material",
+          "items": [
+            {
+              "text": "PG free space",
+              "verbatim": true,
+              "sourceHeader": "Material",
+              "sourceSection": "Material",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "FLC Facility",
+              "verbatim": true,
+              "sourceHeader": "Material",
+              "sourceSection": "Material",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "OSP/SDP partnership",
+              "verbatim": true,
+              "sourceHeader": "Material",
+              "sourceSection": "Material",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Human",
+          "items": [
+            {
+              "text": "Student-Dancers",
+              "verbatim": true,
+              "sourceHeader": "Human",
+              "sourceSection": "Human",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Dance Teacher",
+              "verbatim": true,
+              "sourceHeader": "Human",
+              "sourceSection": "Human",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Program Director",
+              "verbatim": true,
+              "sourceHeader": "Human",
+              "sourceSection": "Human",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "PG Exec Director",
+              "verbatim": true,
+              "sourceHeader": "Human",
+              "sourceSection": "Human",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Financial",
+          "items": [
+            {
+              "text": "Sponsorships",
+              "verbatim": true,
+              "sourceHeader": "Financial",
+              "sourceSection": "Financial",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Grants",
+              "verbatim": true,
+              "sourceHeader": "Financial",
+              "sourceSection": "Financial",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Ind Contrib",
+              "verbatim": true,
+              "sourceHeader": "Financial",
+              "sourceSection": "Financial",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "YouthMoves at FLC",
+          "items": [
+            {
+              "text": "35 Classes, 35 Rehearsals (7 mos)",
+              "verbatim": true,
+              "sourceHeader": "YouthMoves at FLC",
+              "sourceSection": "YouthMoves at FLC",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Performances (Apr + June) students participate in DanceVisions events",
+              "verbatim": true,
+              "sourceHeader": "YouthMoves at FLC",
+              "sourceSection": "YouthMoves at FLC",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Summer Intensive",
+          "items": [
+            {
+              "text": "YouthMoves for incoming first year FLC Dance Majors (2 wks in August)",
+              "verbatim": true,
+              "sourceHeader": "Summer Intensive",
+              "sourceSection": "Summer Intensive",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Pilates, Yoga, Ballet, Modern, Hip Hop, Dunham Techniques",
+              "verbatim": true,
+              "sourceHeader": "Summer Intensive",
+              "sourceSection": "Summer Intensive",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Student Produced Concert",
+          "items": [
+            {
+              "text": "Full length evening concert highlighting Senior Composition Project Requirements",
+              "verbatim": true,
+              "sourceHeader": "Student Produced Concert",
+              "sourceSection": "Student Produced Concert",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Attendance at 90%",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Implementation 5 of Curriculum units",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Interactions (3 events) w/ Res Artist",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Attendance is maintained at 90%",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Implementation 2 of Curriculum units",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Interaction with master teachers",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Student choreography driven by selected research topics",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Implementation of FLC Dance & Youth Moves Curriculum Units",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Master dance technique",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Gain creative expression + develop artistic voice",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Learn teamwork, collaboration, and accountability",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Learn dance techniques",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Preparation for Long-term Pre-professional dance training",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased confidence, well-being and self-worth",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Develop skills of technical production through instruction with Performance Garage Staff",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Management of peers and professionals",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "mediumTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Build portfolio, audition skills needed for BFA programs",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Audition for dance companies, jobs",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Greater personal agency, goal-setting capacity, and resilience in academic + artistic pursuits",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Strong foundations for high school transition process",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Experience in artistic leadership",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Exposure to production and directorial processes similar to grant and fellowship proposals",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "longTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Sustain careers in creative industries, apply creative thinking skills in diverse prof fields",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Succeed in high energy environments",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Graduate, continue to dance/teach",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Excell, tour, work with notable choreographers/ artists",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Leadership in prof, artistic, community contexts, contribute positively to collaborative workplaces + civic life",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Educational attainment, career advancement, overall life stability",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "impact": {
+      "content": []
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "partial",
+    "colorLegend": "",
+    "extractionConfidence": "medium",
+    "generalOutcomes": {
+      "content": []
+    },
+    "impactStatement": {
+      "content": "Through sustained participation in YouthMoves, student-dancers will experience an affirming environment for creative expression that fosters artistic growth, collaboration, resilience, and self-worth—expanding their educational pathways and long-term career opportunities in the arts and beyond."
+    },
+    "layoutFamily": "vertical_columns",
+    "unmapped": {
+      "content": []
+    },
+    "mappingCorrections": [],
+    "extractionBlockers": [
+      "Extracted from text only — the document could not be read as images, so layout-based columns and formatting may be less reliable"
+    ]
+  }
+}

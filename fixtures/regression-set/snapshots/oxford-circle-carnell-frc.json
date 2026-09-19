@@ -1,0 +1,530 @@
+{
+  "id": "oxford-circle-carnell-frc",
+  "promptVersion": "2026-09-19.2",
+  "promptVariant": "vision+text",
+  "capturedAt": "2026-09-19T20:58:24.476Z",
+  "model": {
+    "organization": "Oxford Circle Christian Community Development Association",
+    "program": "Carnell FRC",
+    "mission": {
+      "content": ""
+    },
+    "targetPopulation": {
+      "content": ""
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "Frontline Staff",
+          "items": [
+            {
+              "text": "Part-time Coordinator",
+              "fillColor": "yellow",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "verbatim": true,
+              "sourceHeader": "Frontline Staff",
+              "sourceSection": "Frontline Staff",
+              "mappedBy": "auto",
+              "mappingConfidence": "subbucket"
+            },
+            {
+              "text": "Part-time SEL Educator/Case Manager",
+              "fillColor": "yellow",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "verbatim": true,
+              "sourceHeader": "Frontline Staff",
+              "sourceSection": "Frontline Staff",
+              "mappedBy": "auto",
+              "mappingConfidence": "subbucket"
+            },
+            {
+              "text": "1 Social Work Intern",
+              "fillColor": "yellow",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "verbatim": true,
+              "sourceHeader": "Frontline Staff",
+              "sourceSection": "Frontline Staff",
+              "mappedBy": "auto",
+              "mappingConfidence": "subbucket"
+            },
+            {
+              "text": "1 Volunteer ELL Instructor",
+              "fillColor": "yellow",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "verbatim": true,
+              "sourceHeader": "Frontline Staff",
+              "sourceSection": "Frontline Staff",
+              "mappedBy": "auto",
+              "mappingConfidence": "subbucket"
+            }
+          ]
+        },
+        {
+          "name": "Partners",
+          "items": [
+            {
+              "text": "Carnell Elementary (site)",
+              "fillColor": "yellow",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "verbatim": true,
+              "sourceHeader": "Partners",
+              "sourceSection": "Partners",
+              "mappedBy": "auto",
+              "mappingConfidence": "subbucket"
+            },
+            {
+              "text": "Part-time Therapist (Joseph J. Peter Institute)",
+              "fillColor": "yellow",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "verbatim": true,
+              "sourceHeader": "Partners",
+              "sourceSection": "Partners",
+              "mappedBy": "auto",
+              "mappingConfidence": "subbucket"
+            },
+            {
+              "text": "4-6 Parent Cafe Facilitators (Catholic Community Services)",
+              "fillColor": "yellow",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "verbatim": true,
+              "sourceHeader": "Partners",
+              "sourceSection": "Partners",
+              "mappedBy": "auto",
+              "mappingConfidence": "subbucket"
+            }
+          ]
+        },
+        {
+          "name": "Material & Financial Resources",
+          "items": [
+            {
+              "text": "Shared classroom-sized space",
+              "fillColor": "yellow",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "verbatim": true,
+              "sourceHeader": "Material & Financial Resources",
+              "sourceSection": "Material & Financial Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Modified Second Step SEL curriculum",
+              "fillColor": "yellow",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "verbatim": true,
+              "sourceHeader": "Material & Financial Resources",
+              "sourceSection": "Material & Financial Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Arts & crafts supplies",
+              "fillColor": "yellow",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "verbatim": true,
+              "sourceHeader": "Material & Financial Resources",
+              "sourceSection": "Material & Financial Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Language Line",
+              "fillColor": "yellow",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "verbatim": true,
+              "sourceHeader": "Material & Financial Resources",
+              "sourceSection": "Material & Financial Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "School Bilingual Counseling Assistants",
+              "fillColor": "yellow",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "verbatim": true,
+              "sourceHeader": "Material & Financial Resources",
+              "sourceSection": "Material & Financial Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "1-year donation",
+              "fillColor": "yellow",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "verbatim": true,
+              "sourceHeader": "Material & Financial Resources",
+              "sourceSection": "Material & Financial Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            }
+          ]
+        },
+        {
+          "name": "Knowledge Resources",
+          "items": [
+            {
+              "text": "Master-level Social Workers on staff",
+              "fillColor": "yellow",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "verbatim": true,
+              "sourceHeader": "Knowledge Resources",
+              "sourceSection": "Knowledge Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Multi-lingual staff",
+              "fillColor": "yellow",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "verbatim": true,
+              "sourceHeader": "Knowledge Resources",
+              "sourceSection": "Knowledge Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Weekly in-class Social-Emotional Learning (SEL) in K and 2nd grade",
+              "fillColor": "orange",
+              "sourceColumn": 2,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "SEL focus groups for referred students of all grade bands",
+              "fillColor": "orange",
+              "sourceColumn": 2,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Individual family case management sessions",
+              "fillColor": "purple",
+              "sourceColumn": 2,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Adult English Language Learning (ELL) sessions",
+              "fillColor": "purple",
+              "sourceColumn": 2,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Referrals to Trauma-focused Cognitive Behavioral Therapy (TF-CBT) for students of all",
+              "fillColor": "orange",
+              "sourceColumn": 2,
+              "sourceNote": "Box text cuts off at 'all'",
+              "sourcePage": 2,
+              "verbatim": false,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Parent Cafes",
+              "fillColor": "purple",
+              "sourceColumn": 2,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "No. of unique students reached per grade band",
+              "fillColor": "orange",
+              "sourceColumn": 3,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "No. and type of SEL activities facilitated",
+              "fillColor": "orange",
+              "sourceColumn": 3,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Demographic background of students (age, ethnicity, language)",
+              "fillColor": "orange",
+              "sourceColumn": 3,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "No. of unique parents/caregivers and adults reached",
+              "fillColor": "purple",
+              "sourceColumn": 3,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "No. and type of family engagement activities facilitated/hosted",
+              "fillColor": "purple",
+              "sourceColumn": 3,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "No. of unique students referred to TF-CBT and average no. of sessions facilitated per student",
+              "fillColor": "orange",
+              "sourceColumn": 3,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "No. of teachers present during SEL push-ins",
+              "fillColor": "coral",
+              "sourceColumn": 3,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "End-of-the-year surveys with parents and teachers (satisfaction)",
+              "fillColor": "coral",
+              "sourceColumn": 3,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Increased awareness of emotions and how they present themselves",
+              "fillColor": "orange",
+              "sourceColumn": 4,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Improved understanding of problem-solving steps",
+              "fillColor": "orange",
+              "sourceColumn": 4,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased knowledge of positive parenting strategies",
+              "fillColor": "purple",
+              "sourceColumn": 4,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Greater awareness of available school and community supports",
+              "fillColor": "purple",
+              "sourceColumn": 4,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Improved foundational English vocabulary and confidence",
+              "fillColor": "purple",
+              "sourceColumn": 4,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased understanding among school staff about SEL programming",
+              "fillColor": "coral",
+              "sourceColumn": 4,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "mediumTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Increased use of emotional-regulation strategies",
+              "fillColor": "orange",
+              "sourceColumn": 5,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Sustained reduction in trauma-related behaviors",
+              "fillColor": "orange",
+              "sourceColumn": 5,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Parents demonstrate stronger communication skills and supportive parenting",
+              "fillColor": "purple",
+              "sourceColumn": 5,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased participation in school-based family programs and community resources",
+              "fillColor": "purple",
+              "sourceColumn": 5,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "SEL-aligned practices are implemented consistently across classrooms",
+              "fillColor": "coral",
+              "sourceColumn": 5,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "longTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Students are more successful in managing stress associated with major lifetime transitions",
+              "fillColor": "orange",
+              "sourceColumn": 6,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students enter new classrooms/schools better able to focus and follow routines for academic success",
+              "fillColor": "orange",
+              "sourceColumn": 6,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Families experience greater stability, and are able to provide each other meaningful support",
+              "fillColor": "purple",
+              "sourceColumn": 6,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Trauma-informed practices are institutionalized, resulting in a safe, supportive, and responsive learning environment year to year",
+              "fillColor": "coral",
+              "sourceColumn": 6,
+              "sourcePage": 2,
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "impact": {
+      "content": []
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "ok",
+    "colorLegend": "",
+    "extractionConfidence": "high",
+    "generalOutcomes": {
+      "content": []
+    },
+    "impactStatement": {
+      "content": "Students at Carnell Elementary School show improved emotional regulation and problem-solving, while families gaining stronger support networks - creating a safer, more resilient school community. To achieve this, the FRC provides SEL education, and linkage to mental and behavioral health support and family resources."
+    },
+    "layoutFamily": "vertical_columns",
+    "unmapped": {
+      "content": []
+    },
+    "mappingCorrections": []
+  }
+}
