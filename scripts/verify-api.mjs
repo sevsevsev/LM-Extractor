@@ -18,6 +18,12 @@ const outDir = path.join(root, 'tmp-api-verify');
 const ROUTES = [
   { route: '/api/health', file: 'api/health.js', probeMethod: 'GET', expect: 200 },
   { route: '/api/gemini/extract', file: 'api/gemini/extract.js', probeMethod: 'DELETE', expect: 405 },
+  {
+    route: '/api/gemini/detect-logic-models',
+    file: 'api/gemini/detect-logic-models.js',
+    probeMethod: 'DELETE',
+    expect: 405,
+  },
   { route: '/api/convert/pptx-to-pdf', file: 'api/convert/pptx-to-pdf.js', probeMethod: 'DELETE', expect: 405 },
 ];
 

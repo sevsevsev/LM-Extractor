@@ -287,6 +287,15 @@ export interface ProcessingFile {
   sourcePageRange?: { start: number; end: number };
   splitPartLabel?: string;
   /**
+   * Which extraction prompt actually produced `result`, as reported by the server
+   * (`PROMPT_VERSION` / `promptVariantLabel` in constants.ts). Recorded per file because a batch
+   * can span several prompt variants — a text-only fallback and a low-legibility vision document
+   * receive materially different prompts, and pooling them into one error rate makes that rate
+   * uninterpretable. Surfaced in the extraction-log CSV for offline analysis.
+   */
+  promptVersion?: string;
+  promptVariant?: string;
+  /**
    * Set by the "Treat as one logic model" revert action (or could be set some other way in
    * future) — when a file with this flag reaches conversion, the multi-logic-model detection
    * pre-pass is skipped entirely and it's extracted as a single logic model, exactly like the

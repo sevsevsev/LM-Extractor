@@ -2,6 +2,7 @@ import type { LogicModel, LogicModelGroup, ProcessingFile } from '../types';
 import { qaStatusLabel } from '../shared/qaStatus.js';
 import { documentTypeFlagLabel } from '../shared/extractionFidelity.js';
 import { displayFileName } from '../shared/processingFileDisplay.js';
+import { itemNeedsReview } from '../shared/provenance.js';
 
 /** Domains included in Export for coding — see docs/specs/export-for-coding.md */
 export const CODING_EXPORT_DOMAINS = [
@@ -47,7 +48,7 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
           const color = [item.fillColor?.trim(), item.borderColor?.trim() ? `border:${item.borderColor.trim()}` : '']
             .filter(Boolean)
             .join(' ');
-          const needsReview = item.verbatim === false || Boolean(item.sourceNote?.trim()) ? 'Yes' : '';
+          const needsReview = itemNeedsReview(item) ? 'Yes' : '';
           rows.push([
             rowId,
             m.organization || '',

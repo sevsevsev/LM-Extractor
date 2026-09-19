@@ -27,6 +27,9 @@ export interface PersistedFileRecord {
   sourcePageRange?: { start: number; end: number };
   splitPartLabel?: string;
   forceSingleModel?: boolean;
+  /** Which prompt produced `result` — kept so a resumed session still exports an honest log. */
+  promptVersion?: string;
+  promptVariant?: string;
 }
 
 /** As actually stored in the `files` object store — `file` omitted for a split entry. */

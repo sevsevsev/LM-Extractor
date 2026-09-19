@@ -48,10 +48,22 @@ async function postJson<T extends { error?: string }>(url: string, body: unknown
   throw lastError instanceof Error ? lastError : new Error('Gemini request failed.');
 }
 
-export const extractLogicModel = async (bundle: DocumentBundle): Promise<LogicModel> => {
-  const data = await postJson<{ model?: LogicModel; error?: string }>('/api/gemini/extract', bundle);
+export interface ExtractLogicModelResult {
+  model: LogicModel;
+  /** Prompt wording version + variant the server actually used — see constants.ts. */
+  promptVersion?: string;
+  promptVariant?: string;
+}
+
+export const extractLogicModel = async (bundle: DocumentBundle): Promise<ExtractLogicModelResult> => {
+  const data = await postJson<{
+    model?: LogicModel;
+    promptVersion?: string;
+    promptVariant?: string;
+    error?: string;
+  }>('/api/gemini/extract', bundle);
   if (!data.model) throw new Error('Server response missing logic model.');
-  return data.model;
+  return { model: data.model, promptVersion: data.promptVersion, promptVariant: data.promptVariant };
 };
 
 /**

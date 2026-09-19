@@ -1,3 +1,35 @@
+/**
+ * Extraction prompt — the single largest lever on output quality in this app.
+ *
+ * ## How to change this file
+ *
+ * Rules here were tuned from expensive real-document batch runs, not from first principles.
+ * Each section below carries an EVIDENCE note naming the document and friction-log session that
+ * motivated it, so a rule can be judged — and retired — on its record rather than kept forever
+ * because nobody remembers why it exists. See `docs/specs/friction-log.md`.
+ *
+ * Working agreement (see the revision approach agreed 2026-09-19):
+ * 1. **One themed change per batch run.** Changing four things at once makes the next batch's
+ *    results unattributable, and a batch is expensive.
+ * 2. **Bump `PROMPT_VERSION`** on any wording change, then run `npm run prompt:snapshot` and
+ *    review the snapshot diff — that diff is the real record of what Gemini's input became.
+ * 3. **Prefer procedures to prohibitions.** A rule the model can't verify it's obeying ("never
+ *    fabricate a name") has repeatedly failed; a rule with an observable output ("transcribe what
+ *    you can read, set `verbatim: false`, add a `sourceNote`") has worked. See the LOW-RESOLUTION
+ *    block, which is the pattern that measurably stuck (friction-log session 3).
+ * 4. **Prune before adding.** These prompts run 20–25k characters; rules compete for attention.
+ */
+
+/**
+ * Bump on ANY change to extraction prompt wording. Emitted into the extraction-log CSV
+ * (`services/extractionLogExport.ts`) so a batch's results can be attributed to the exact prompt
+ * that produced them. Format: `YYYY-MM-DD.N`.
+ */
+export const PROMPT_VERSION = '2026-09-19.1';
+
+/** Same contract as `PROMPT_VERSION`, versioned separately — different call, different failure mode. */
+export const DETECT_PROMPT_VERSION = '2026-09-19.1';
+
 export interface ExtractionPromptOptions {
   /** Renderer detected a flattened, low-resolution raster page — bias hard toward flagging. */
   lowLegibility?: boolean;
@@ -8,11 +40,38 @@ export interface ExtractionPromptOptions {
   hasTextTrack?: boolean;
 }
 
-export const getAiExtractionPrompt = (
-  isVision: boolean,
-  options?: ExtractionPromptOptions
-): string => {
-  const lowLegibilityBlock = options?.lowLegibility
+export interface PromptVariantInput {
+  isVision: boolean;
+  hasTextTrack: boolean;
+  lowLegibility?: boolean;
+}
+
+/**
+ * Short label for the prompt variant a document actually received.
+ *
+ * `getAiExtractionPrompt` emits materially different text depending on these flags (currently 6
+ * reachable combinations, 20.5k–24.7k characters). Pooling documents that got different prompts
+ * into one error rate makes that rate uninterpretable, so this label ships in the extraction-log
+ * CSV and analysis should group by it. `constants.test.ts` asserts one label ↔ one prompt text.
+ */
+export function promptVariantLabel(v: PromptVariantInput): string {
+  const base = v.isVision ? (v.hasTextTrack ? 'vision+text' : 'vision-only') : 'text-only';
+  return v.lowLegibility ? `${base}+lowleg` : base;
+}
+
+/**
+ * Renderer-triggered block for flattened, low-DPI raster pages.
+ *
+ * EVIDENCE: Oxford Circle CCDA (friction-log session 3, 2026-07-30) — page 2 is a ~142 DPI
+ * embedded raster; the model rewrote small print fluently and reported confidence
+ * ("Arts & crafts supplies" → "Therapy curriculum"), flagging 1 of 45 rows against ~11 misreads.
+ * This block is the project's most successful rule shape: it states a *procedure* with an
+ * observable output rather than a prohibition. Session 3 confirmed the polarity/scope rules from
+ * the same round actually held.
+ * RETIRE IF: two consecutive batches show no fluent-rewrite errors on low-DPI documents.
+ */
+const lowLegibilitySection = (on: boolean): string =>
+  on
     ? `
     **⚠ LOW-RESOLUTION SOURCE (renderer-detected) — FLAGGING IS MANDATORY**:
     This document contains at least one **flattened, low-resolution image page**. At this resolution you
@@ -27,11 +86,17 @@ export const getAiExtractionPrompt = (
 `
     : '';
 
-  const hasTextTrack = Boolean(options?.hasTextTrack);
-
-  const dualTrackBlock =
-    isVision && hasTextTrack
-      ? `
+/**
+ * Input-shape section: how to fuse Track A (structural text) and Track B (page rasters), or what
+ * to do when only one is present.
+ *
+ * EVIDENCE: dual-track ingest spec, `docs/specs/tech-multi-column-extract.md`. Track A exists
+ * because vision alone mis-transcribes dense grids; Track B exists because text alone loses
+ * column position and colour.
+ */
+const inputTracksSection = (isVision: boolean, hasTextTrack: boolean): string =>
+  isVision && hasTextTrack
+    ? `
     ---
     ## DUAL-TRACK INPUT (DocumentBundle) — READ BEFORE EXTRACTING
 
@@ -70,15 +135,15 @@ export const getAiExtractionPrompt = (
     4. **Never fabricate** to reconcile tracks. If tracks disagree and you cannot resolve, transcribe the clearer
        source, set \`verbatim: false\`, and note the conflict briefly in \`sourceNote\`.
 `
-      : isVision
-        ? `
+    : isVision
+      ? `
     ---
     ## VISION INPUT
     You receive page/slide images only (no separate text track). Extract from what is visible. For coloured
     boxes, set \`fillColor\` / \`borderColor\`. Treat visually bold/header-styled text as key entities (headers or
     group names), not as a new schema field.
 `
-        : `
+      : `
     ---
     ## TEXT-ONLY INPUT (Track A)
     You receive structural document text / Markdown only (no page images). Extract from headings, lists, and
@@ -86,15 +151,14 @@ export const getAiExtractionPrompt = (
     states a colour key. Bold Markdown (\`**…**\`) marks key entities / headers.
 `;
 
-  const roleSource = isVision
-    ? hasTextTrack
-      ? 'a dual-track DocumentBundle (page images + structural Markdown/text)'
-      : 'visual document images'
-    : 'text content';
-
-  return `Role: You are an expert Logic Model Analyst extracting structured JSON from ${roleSource}.
-${lowLegibilityBlock}
-${dualTrackBlock}
+/**
+ * Goal + presence-first policy (don't invent domains to fill the schema).
+ *
+ * EVIDENCE: `docs/specs/structure-aware-extract.md` (owner decisions 2026-07-28). Forcing a full
+ * template was producing invented Mission / Medium-Term / Impact content on documents that simply
+ * don't have those columns.
+ */
+const goalAndPresenceFirstSection = `
 
     **GOAL**: High-fidelity **spatial** extraction. No critiques. **Column headers and row bands beat semantics.** Never reclassify an item because it "sounds like" an outcome or output. Output **only** the LogicModel JSON schema — no critique/rating fields and no extra keys.
 
@@ -108,7 +172,19 @@ ${dualTrackBlock}
     - **No Mission block** — leave \`mission.content\` as \`""\`; do not move Impact Statement or outcomes into Mission.
     - **No Impact column** — leave \`impact.content\` as \`[]\`; Long-Term column items stay in \`longTermOutcomes\`.
     - **Labeled but empty** is different from absent: if a column header exists but cells are blank, still use \`[]\` for that domain (do not pull content from other columns).
+`;
 
+/**
+ * Phase A — build a layout map (column header inventory, row/track inventory) before extracting.
+ *
+ * EVIDENCE: Performance Garage YouthMoves + Oxford Circle (friction-log sessions 1–3). Session 1's
+ * worst failure was inventing horizontal "tracks" from colour coding and copying the Resources
+ * column's sub-headings across every other column. The "colour is NOT proof of a track" rule and
+ * the "most logic models have NO tracks" default both come directly from that.
+ * The alternate-outcome-taxonomy guidance (Attitudes/Behaviors/Conditions) was added later for
+ * sources that split outcomes on a non-time axis.
+ */
+const phaseALayoutMapSection = (isVision: boolean, hasTextTrack: boolean): string => `
     ---
     ## PHASE A — LAYOUT MAP (DO THIS FIRST — BEFORE ANY CONTENT EXTRACTION)
 
@@ -120,12 +196,12 @@ ${dualTrackBlock}
        every image as part of the **same** document. Do **not** count an item twice if it appears in more
        than one image (e.g. both a full page and a column crop of that page).
 ${
-    isVision && hasTextTrack
-      ? `       When Track A is present, skim it for heading inventory and exact strings, then map those labels onto
+  isVision && hasTextTrack
+    ? `       When Track A is present, skim it for heading inventory and exact strings, then map those labels onto
        Track B column positions. Do not assign domains from Track A reading order alone.
 `
-      : ''
-  }
+    : ''
+}
     1. **Page roles**
        - Which page(s) have overview prose (Impact Statement / Mission)?
        - Which page(s) have the multi-column logic-model **grid**?
@@ -157,7 +233,20 @@ ${hasTextTrack ? '       Cross-check header strings against Track A headings whe
          other columns.
 
     4. **Only after** headers and tracks are identified, extract cell bullets into the matching domain + group.
+`;
 
+/**
+ * Phase B extraction rules 1–6 (granularity, transcription, legibility, proper nouns, polarity,
+ * positional assignment).
+ *
+ * EVIDENCE: rules 4 (proper nouns/numbers) and 5 (polarity) were added in friction-log session 2
+ * after Oxford Circle produced "(Joseph J. Peter Institute)" → "(St. Christopher's, Peter's Place)"
+ * and "Sustained reduction in trauma-related behaviors" → "Sustained use of…". Session 3 confirmed
+ * rule 5 held (polarity fixed) but rule 4 did NOT — the same fabrication persisted, unflagged.
+ * STATUS: rule 4 is the top known-failing rule. It is written as a prohibition; the agreed next
+ * themed change is to rewrite rules 2/4/5 as transcription procedures (see file header, point 3).
+ */
+const phaseBExtractionRulesSection = (hasTextTrack: boolean): string => `
     ---
     ## PHASE B — FILL JSON USING THE LAYOUT MAP
 
@@ -182,7 +271,20 @@ ${hasTextTrack ? '       Cross-check header strings against Track A headings whe
     5. **Never flip direction / polarity words**: Copy "reduction / decrease" vs "increase / use / more"
        **exactly**. If unclear, keep your literal reading and set \`verbatim: false\`.
     6. **Assign by position**: A bullet belongs to the column whose header sits **directly above** it.
+`;
 
+/**
+ * Header extraction + the overview fields that sit outside the grid (impactStatement, mission,
+ * targetPopulation).
+ *
+ * EVIDENCE: the impactStatement synonym list and the "decide by heading, not by wording" rule come
+ * from repeated confusion between a page-level Impact Statement, a grid "Impact" column, and an
+ * ordinary Mission statement. The "No heading at all → mission" rule was added after Imagine That
+ * Philly had mission prose harvested into impactStatement.
+ * NOTE: `shared/extractNormalize.ts` also decides this field. Keep the two in agreement — see
+ * `promoteImpactStatementFromGroupedDomains`, which now requires the same heading evidence.
+ */
+const contextAndOverviewSection = (hasTextTrack: boolean): string => `
     **HEADER EXTRACTION**:
     - **Organization**: From logos, titles, footers; infer if unlabeled but clear.
     - **Program**: Specific program/initiative name.
@@ -217,7 +319,17 @@ ${hasTextTrack ? '       Cross-check header strings against Track A headings whe
       anywhere): put unlabeled overview prose in \`mission\`, never in \`impactStatement\` — that field
       requires an explicit heading from the list above; never infer one from wording alone.
     - **\`targetPopulation\`** — Who is served.
+`;
 
+/**
+ * Column fidelity hard rules — the positional contract that keeps items in their source column.
+ *
+ * EVIDENCE: rules 1–6 come from YouthMoves/Oxford Circle miscategorization (friction-log session 1).
+ * Rules 7 and 7b (`generalOutcomes`) were added for sources with a single combined outcomes column,
+ * and for sources that split outcomes on a non-time axis (Attitudes/Behaviors/Conditions) — both
+ * were previously force-fitted into `shortTermOutcomes` by left-to-right position.
+ */
+const columnFidelitySection = `
     **COLUMN FIDELITY (HARD RULES)**:
     1. **Outputs column → \`outputs\` only.** Never move Outputs bullets into outcome domains.
     2. **Do not read across columns.** Stay in the vertical lane of the header above.
@@ -242,7 +354,17 @@ ${hasTextTrack ? '       Cross-check header strings against Track A headings whe
        these into a time horizon later. Do **not** force-fit them into \`shortTermOutcomes\` /
        \`mediumTermOutcomes\` / \`longTermOutcomes\` by left-to-right position — a differently-named column
        is not a time-horizon guess, however many outcome-shaped columns there are.
+`;
 
+/**
+ * Known failure modes — a recap list of the errors real documents actually produced.
+ *
+ * EVIDENCE: every bullet here maps to a logged friction-log failure.
+ * NOTE: this section deliberately restates rules stated above. That redundancy was added when
+ * recall was poor; it has never been measured against a version without it, and it is the first
+ * candidate for the agreed "prune before adding" pass.
+ */
+const knownFailureModesSection = (hasTextTrack: boolean): string => `
     **KNOWN FAILURE MODES TO AVOID**:
     - Copying Resources-column sub-headings into other columns; inventing content; swapping familiar names.
     - Defaulting a single combined outcomes section into \`shortTermOutcomes\` — use \`generalOutcomes\`.
@@ -253,10 +375,20 @@ ${hasTextTrack ? '       Cross-check header strings against Track A headings whe
     - Flipping outcome direction; fluent rewrites of small text; stamping one colour per column.
     - Treating colour as a horizontal track; guessing clipped text; omitting page-1 Impact Statement.
 ${
-    hasTextTrack
-      ? '    - **Ignoring Track A** for exact wording or **ignoring Track B** for colour/layout — both are required when supplied.\n'
-      : ''
-  }
+  hasTextTrack
+    ? '    - **Ignoring Track A** for exact wording or **ignoring Track B** for colour/layout — both are required when supplied.\n'
+    : ''
+}`;
+
+/**
+ * Grouping gate + Inputs sub-bucket policy.
+ *
+ * EVIDENCE: Oxford Circle (friction-log session 1) — the only sub-headings in that source are the
+ * four Resources buckets, and they were copied across every other column. "Default is General"
+ * plus "a group name must be VISIBLE in that same column" fixed it (confirmed session 2).
+ * `shared/domainSynonyms.ts` encodes the same sub-bucket list in code.
+ */
+const groupingGateSection = `
     **GROUPING GATE**:
     1. **Default is "General"** when no in-column sub-heading/track is visible.
     2. A group name must be **VISIBLE in that same column** (including visually bold / Track A \`**bold**\` labels).
@@ -269,7 +401,18 @@ ${
        not a sub-label inside it, is the group name.
 
     **INPUTS**: Use Resources sub-headings exactly as shown; otherwise Human / Financial / Material / Knowledge Resources.
+`;
 
+/**
+ * Colour capture + visual emphasis.
+ *
+ * EVIDENCE: Oxford Circle (friction-log sessions 1 and 3). Colour is a real cross-cutting axis in
+ * that document (orange = student-focused, purple = family-focused) with NO printed legend, and
+ * the model first ignored it, then stamped one colour per column. "Colour is per BOX, not per
+ * column" comes from session 3, where Activities came back all "blue" for genuinely mixed boxes.
+ * `shared/colorAxis.ts` detects the stamped-column failure downstream.
+ */
+const colourAndEmphasisSection = (isVision: boolean): string => `
     **COLOUR CODING (capture, never interpret, never reclassify)**${isVision ? ' — **Track B / images only**' : ''}:
     - Record per-box \`fillColor\` (e.g. blue fill → \`"fillColor": "blue"\`) and differing \`borderColor\`.
     - Colour is per BOX, not per column. Never stamp one colour on every item in a column when fills actually vary.
@@ -280,7 +423,18 @@ ${
     **VISUAL EMPHASIS (bold / key entities)**:
     - Visually bold/header-styled text is a key entity → map to \`Group.name\`, headers, or item \`text\` only.
     - Do **not** add schema properties for bold/italic. Track A \`**bold**\` confirms emphasis.
+`;
 
+/**
+ * Item shape + source-location anchors + unmapped/layout.
+ *
+ * EVIDENCE: `docs/specs/source-review-v1.md` / `tech-source-review-v1.md`.
+ * The SOURCE LOCATION rules depend on `server/geminiLogicModel.ts` labeling each image with its
+ * document page/column from `DocumentBundle.imageRefs`. That plumbing was broken (the API layer
+ * dropped `imageRefs`), which made every `sourcePage` a guess; fixed 2026-09-19 in
+ * `server/apiCore.ts`. If these rules are ever removed, remove the labeling with them.
+ */
+const itemShapeAndLocationSection = `
     ---
     **ITEM SHAPE** (strict LogicModel schema — no extra keys):
     { "text": "verbatim item text", "verbatim": true | false, "sourceNote": "why to verify",
@@ -295,7 +449,19 @@ ${
     **UNMAPPED + LAYOUT**:
     - \`unmapped\` only for clearly non-standard labeled sections (Assumptions, External Factors, etc.).
     - \`layoutFamily\`: \`vertical_columns\` | \`horizontal_rows\` | \`diagram\` | \`prose_sections\` | \`unknown\`.
+`;
 
+/**
+ * Document-type check — is this actually a logic model?
+ *
+ * EVIDENCE: Imagine That Philly and After-School All-Stars (2026-09-19) were program brochures with
+ * no input/output/outcome structure, and both silently returned `documentTypeAssessment: undefined`
+ * and a confident-looking extraction. Two fixes shipped together: the field was added to the Gemini
+ * schema's `required` array (prose alone does not bind structured output), and the test here was
+ * restated as **structural, not topical** — the earlier closed example list had nothing resembling
+ * a brochure to pattern-match against.
+ */
+const documentTypeCheckSection = `
     ---
     ## DOCUMENT TYPE CHECK (REQUIRED — DO THIS FIRST)
 
@@ -324,7 +490,19 @@ ${
       LogicModel fields below (mission, target population, outcomes, etc.) — best effort, same verbatim
       rules as always. Leave a field empty rather than force-fitting unrelated prose into it. A human
       will review the flag before trusting the extraction.
+`;
 
+/**
+ * Extraction fidelity self-report (status / blockers / possibly-missed regions).
+ *
+ * EVIDENCE: `docs/specs/extraction-confidence-v1.md`. `possiblyMissedRegions` became the ONLY
+ * source of the "spot-check for missed content" signal after the client-side line-counting
+ * heuristic was removed (2026-09-18) for firing 3-for-3 false positives across a 112-file batch.
+ * KNOWN WEAKNESS: self-reported confidence has repeatedly under-fired — Oxford Circle flagged
+ * 1 of 45 rows against ~11 real misreads. Generation and self-assessment happen in the same pass,
+ * so this section cannot be expected to catch confident fabrication on its own.
+ */
+const fidelityStatusSection = `
     ---
     ## EXTRACTION FIDELITY STATUS (REQUIRED — NOT DOCUMENT QUALITY)
 
@@ -358,7 +536,10 @@ ${
     **Ok** when core visible domains are populated with mostly confident verbatim transcriptions.
 
     Prefer empty domains and honest flags over fluent invention. Never use critique/quality language here.
+`;
 
+/** Output shape example. Mirrors `extractModelSchema` in `server/geminiLogicModel.ts`. */
+const outputFormatSection = `
     **OUTPUT FORMAT** (JSON only — LogicModel schema; no critique/rating fields; no extra keys):
     {
       "organization": "...",
@@ -384,6 +565,36 @@ ${
     }
     Use "General" unless a real in-column label/track is visible. Prefer empty \`impact.content\` over inventing Impact items.
     `;
+
+export const getAiExtractionPrompt = (
+  isVision: boolean,
+  options?: ExtractionPromptOptions
+): string => {
+  const hasTextTrack = Boolean(options?.hasTextTrack);
+
+  const roleSource = isVision
+    ? hasTextTrack
+      ? 'a dual-track DocumentBundle (page images + structural Markdown/text)'
+      : 'visual document images'
+    : 'text content';
+
+  return (
+    `Role: You are an expert Logic Model Analyst extracting structured JSON from ${roleSource}.
+${lowLegibilitySection(Boolean(options?.lowLegibility))}
+${inputTracksSection(isVision, hasTextTrack)}` +
+    goalAndPresenceFirstSection +
+    phaseALayoutMapSection(isVision, hasTextTrack) +
+    phaseBExtractionRulesSection(hasTextTrack) +
+    contextAndOverviewSection(hasTextTrack) +
+    columnFidelitySection +
+    knownFailureModesSection(hasTextTrack) +
+    groupingGateSection +
+    colourAndEmphasisSection(isVision) +
+    itemShapeAndLocationSection +
+    documentTypeCheckSection +
+    fidelityStatusSection +
+    outputFormatSection
+  );
 };
 
 /**
@@ -393,6 +604,9 @@ ${
  * for why this is deliberately biased hard toward "still one" — a false split actively breaks a
  * document that should have stayed together, while a false "still one" just reproduces the
  * pipeline's pre-existing single-model behavior, which is not a regression.
+ *
+ * Versioned separately from `PROMPT_VERSION` (`DETECT_PROMPT_VERSION`): a change here affects
+ * split decisions, not extraction content, and the two should not share a version in analysis.
  */
 export const getDetectLogicModelGroupsPrompt = (pageCount: number): string => `
     You are shown ${pageCount} page image(s) from ONE uploaded document, in page order, plus its

@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Schema } from '@google/genai';
-import { getAiExtractionPrompt } from '../constants.js';
+import { PROMPT_VERSION, getAiExtractionPrompt, promptVariantLabel } from '../constants.js';
 import {
   bundleImpliesLowLegibility,
   type DocumentBundle,
@@ -123,10 +123,21 @@ const extractModelSchema: Schema = {
   ],
 };
 
+export interface ServerExtractResult {
+  model: LogicModel;
+  /** Exact prompt wording version that produced `model` — see `PROMPT_VERSION` in constants.ts. */
+  promptVersion: string;
+  /**
+   * Which of the prompt's variants this document actually received. Reported by the server rather
+   * than re-derived on the client, so the extraction log records what was really sent.
+   */
+  promptVariant: string;
+}
+
 export async function extractLogicModelOnServer(
   apiKey: string,
   bundle: DocumentBundle
-): Promise<LogicModel> {
+): Promise<ServerExtractResult> {
   const ai = new GoogleGenAI({ apiKey });
   const images = Array.isArray(bundle.images) ? bundle.images.filter(Boolean) : [];
   const textTrack = typeof bundle.textTrack === 'string' ? bundle.textTrack.trim() : '';
@@ -195,9 +206,15 @@ export async function extractLogicModelOnServer(
     })
   );
 
-  return normalizeExtractedLogicModel(parseLogicModelResponse(response.text), {
+  const model = normalizeExtractedLogicModel(parseLogicModelResponse(response.text), {
     sourceText: textTrack || undefined,
     lowLegibility,
     textOnlyFallback: !isVision,
   });
+
+  return {
+    model,
+    promptVersion: PROMPT_VERSION,
+    promptVariant: promptVariantLabel({ isVision, hasTextTrack, lowLegibility }),
+  };
 }

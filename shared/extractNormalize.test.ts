@@ -265,3 +265,55 @@ test('fills Impact Statement from source text when vision omitted it', () => {
   const m = normalizeExtractedLogicModel(structuredClone(emptyOverview), { sourceText });
   assert.ok(m.impactStatement?.content?.includes('Through sustained participation'));
 });
+
+/**
+ * The extraction prompt states `impactStatement` "requires an explicit heading … never infer one
+ * from wording alone" (CONTEXT & OVERVIEW in constants.ts). Post-processing used to contradict
+ * that: `promoteImpactStatementFromGroupedDomains` promoted any outcome item whose wording looked
+ * like overview prose, which could silently overwrite a correct empty answer. These tests pin the
+ * agreement between the two.
+ */
+const OVERVIEW_PROSE =
+  'Through sustained participation, students in the community will improve their educational outcomes and build lasting creative confidence across the neighborhood.';
+
+function modelWithOutcomeProse(): LogicModel {
+  return {
+    organization: 'O',
+    program: 'P',
+    mission: { content: '' },
+    targetPopulation: { content: '' },
+    inputs: { content: [] },
+    activities: { content: [] },
+    outputs: { content: [] },
+    shortTermOutcomes: { content: [{ name: 'General', items: [{ text: OVERVIEW_PROSE }] }] },
+    mediumTermOutcomes: { content: [] },
+    longTermOutcomes: { content: [] },
+    impact: { content: [] },
+  };
+}
+
+test('impact-statement promotion is blocked when the text layer has no impact heading', () => {
+  const result = normalizeExtractedLogicModel(modelWithOutcomeProse(), {
+    sourceText: '## Page 1\nOur Mission\nWe serve families across the city.\n\nOutcomes\n' + OVERVIEW_PROSE,
+  });
+  assert.equal(result.impactStatement?.content ?? '', '');
+  assert.equal(result.shortTermOutcomes.content[0].items[0].text, OVERVIEW_PROSE);
+});
+
+test('impact-statement promotion still runs when the text layer does have an impact heading', () => {
+  // Heading present but its body is not recoverable from the text layer (the usual reason the
+  // promotion path exists at all: vision captured the prose, the text layer did not). The
+  // heading is the evidence that an impact statement exists, so promotion is allowed.
+  const result = normalizeExtractedLogicModel(modelWithOutcomeProse(), {
+    sourceText: '## Page 1\nIMPACT STATEMENT\nMission\nWe help local families.',
+  });
+  assert.equal(result.impactStatement?.content, OVERVIEW_PROSE);
+  assert.equal(result.shortTermOutcomes.content.length, 0);
+});
+
+test('impact-statement promotion is unchanged when there is no text layer to check', () => {
+  // Vision-only bundle: no evidence either way, so behavior stays as it was — the sparse-outcomes
+  // gate is still the only guard.
+  const result = normalizeExtractedLogicModel(modelWithOutcomeProse(), {});
+  assert.equal(result.impactStatement?.content, OVERVIEW_PROSE);
+});

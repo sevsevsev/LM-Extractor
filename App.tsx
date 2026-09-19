@@ -69,6 +69,8 @@ function toPersistedRecord(f: ProcessingFile): PersistedFileRecord {
     sourcePageRange: f.sourcePageRange,
     splitPartLabel: f.splitPartLabel,
     forceSingleModel: f.forceSingleModel,
+    promptVersion: f.promptVersion,
+    promptVariant: f.promptVariant,
   };
 }
 
@@ -114,6 +116,8 @@ function persistedRecordToProcessingFile(record: PersistedFileRecord): Processin
     sourcePageRange: record.sourcePageRange,
     splitPartLabel: record.splitPartLabel,
     forceSingleModel: record.forceSingleModel,
+    promptVersion: record.promptVersion,
+    promptVariant: record.promptVariant,
   };
 }
 
@@ -458,7 +462,9 @@ const App: React.FC = () => {
         const extractBundle: DocumentBundle = { ...bundle, previewImages: undefined };
         const lowLegibility = bundleImpliesLowLegibility(bundle);
         const textOnlyFallback = bundleUsedTextOnlyFallback(bundle);
-        const extractedResult = normalizeExtractedLogicModel(await extractLogicModel(extractBundle), {
+        const extracted = await extractLogicModel(extractBundle);
+        const { promptVersion, promptVariant } = extracted;
+        const extractedResult = normalizeExtractedLogicModel(extracted.model, {
           sourceText: bundle.textTrack || undefined,
           lowLegibility,
           textOnlyFallback,
@@ -496,6 +502,8 @@ const App: React.FC = () => {
                   ...f,
                   status: 'editing',
                   result: extractedResult,
+                  promptVersion,
+                  promptVariant,
                   progressMsg: undefined,
                   error: undefined,
                   extractionBlockers: undefined,
@@ -690,6 +698,9 @@ const App: React.FC = () => {
     if (!confirmIncompleteExport('CSV export')) return;
 
     const headers = [
+      // Stable per-item key, same scheme as the coding export's `row_id`, so a filled-in
+      // verification scorecard joins back to both CSVs without fuzzy text matching.
+      'Row ID',
       'Organization',
       'Program',
       'Domain',
@@ -714,9 +725,14 @@ const App: React.FC = () => {
     ];
 
     const exportRows = buildGranularExportRows(
-      completed.map(f => ({ model: modelForExport(f.result!, f.warnings), sourceFilename: displayFileName(f) }))
+      completed.map(f => ({
+        model: modelForExport(f.result!, f.warnings),
+        sourceFilename: displayFileName(f),
+        fileId: f.id,
+      }))
     );
     const rows = exportRows.map(r => [
+      r.rowId,
       r.organization,
       r.program,
       r.domain,

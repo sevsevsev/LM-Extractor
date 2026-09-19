@@ -1,5 +1,6 @@
 import type { LogicModel, LogicModelGroup } from '../types';
 import { qaStatusLabel } from './qaStatus.js';
+import { itemNeedsReview } from './provenance.js';
 import { documentTypeFlagLabel } from './extractionFidelity.js';
 
 export function stringDomainHasContent(content?: string): boolean {
@@ -11,6 +12,15 @@ export function groupedDomainHasContent(groups?: LogicModelGroup[]): boolean {
 }
 
 export interface GranularExportRow {
+  /**
+   * Stable per-item key: `<fileId>-<modelField>-<groupIndex>-<itemIndex>` for grouped domains and
+   * `<fileId>-<modelField>` for the single-string ones. Deliberately the SAME scheme
+   * `services/codingExport.ts` uses, so the granular CSV, the coding CSV and a filled-in
+   * verification scorecard all join on one key instead of on free-text item wording (which is
+   * itself what a review is checking, and changes between runs). Empty when no `fileId` was
+   * supplied by the caller.
+   */
+  rowId: string;
   organization: string;
   program: string;
   domain: string;
@@ -48,13 +58,15 @@ export interface GranularExportRow {
 export interface GranularExportEntry {
   model: LogicModel;
   sourceFilename: string;
+  /** `ProcessingFile.id` — supplies the `rowId` prefix. Omit only in tests that don't need a key. */
+  fileId?: string;
 }
 
 /** Build full CSV rows — omit domains with no content (presence-first export). */
 export function buildGranularExportRows(entries: GranularExportEntry[]): GranularExportRow[] {
   const rows: GranularExportRow[] = [];
 
-  for (const { model: m, sourceFilename } of entries) {
+  for (const { model: m, sourceFilename, fileId } of entries) {
     const colorLegend = m.colorLegend?.trim() || '';
     const extractionStatus = m.extractionStatus || '';
     const extractionConfidence = m.extractionConfidence || '';
@@ -65,9 +77,15 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
     const qaStatus = qaStatusLabel(m);
     const documentTypeFlag = documentTypeFlagLabel(m);
 
-    const pushStringField = (domain: string, field: { content: string }) => {
+    const rowIdFor = (modelField: string, gi?: number, ii?: number): string => {
+      if (!fileId) return '';
+      return gi === undefined ? `${fileId}-${modelField}` : `${fileId}-${modelField}-${gi}-${ii}`;
+    };
+
+    const pushStringField = (domain: string, modelField: string, field: { content: string }) => {
       if (!stringDomainHasContent(field.content)) return;
       rows.push({
+        rowId: rowIdFor(modelField),
         organization: m.organization,
         program: m.program,
         domain,
@@ -92,14 +110,15 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
       });
     };
 
-    const pushField = (domain: string, field: { content: LogicModelGroup[] }) => {
+    const pushField = (domain: string, modelField: string, field: { content: LogicModelGroup[] }) => {
       if (!groupedDomainHasContent(field.content)) return;
-      for (const g of field.content) {
-        for (const item of g.items) {
+      field.content.forEach((g, gi) => {
+        g.items.forEach((item, ii) => {
           const text = item.text?.trim();
-          if (!text) continue;
-          const flaggedForReview = item.verbatim === false || Boolean(item.sourceNote?.trim());
+          if (!text) return;
+          const flaggedForReview = itemNeedsReview(item);
           rows.push({
+            rowId: rowIdFor(modelField, gi, ii),
             organization: m.organization,
             program: m.program,
             domain,
@@ -122,24 +141,24 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
             qaStatus,
             documentTypeFlag,
           });
-        }
-      }
+        });
+      });
     };
 
     if (m.impactStatement?.content?.trim()) {
-      pushStringField('Impact Statement', m.impactStatement);
+      pushStringField('Impact Statement', 'impactStatement', m.impactStatement);
     }
-    pushStringField('Mission / Overview', m.mission);
-    pushStringField('Target Population', m.targetPopulation);
-    pushField('Inputs', m.inputs);
-    pushField('Activities', m.activities);
-    pushField('Outputs', m.outputs);
-    pushField('Short-Term Outcomes', m.shortTermOutcomes);
-    pushField('Medium-Term Outcomes', m.mediumTermOutcomes);
-    pushField('Long-Term Outcomes', m.longTermOutcomes);
-    if (m.generalOutcomes) pushField('General Outcomes', m.generalOutcomes);
-    pushField('Impact', m.impact);
-    if (m.unmapped) pushField('Unmapped', m.unmapped);
+    pushStringField('Mission / Overview', 'mission', m.mission);
+    pushStringField('Target Population', 'targetPopulation', m.targetPopulation);
+    pushField('Inputs', 'inputs', m.inputs);
+    pushField('Activities', 'activities', m.activities);
+    pushField('Outputs', 'outputs', m.outputs);
+    pushField('Short-Term Outcomes', 'shortTermOutcomes', m.shortTermOutcomes);
+    pushField('Medium-Term Outcomes', 'mediumTermOutcomes', m.mediumTermOutcomes);
+    pushField('Long-Term Outcomes', 'longTermOutcomes', m.longTermOutcomes);
+    if (m.generalOutcomes) pushField('General Outcomes', 'generalOutcomes', m.generalOutcomes);
+    pushField('Impact', 'impact', m.impact);
+    if (m.unmapped) pushField('Unmapped', 'unmapped', m.unmapped);
   }
 
   return rows;

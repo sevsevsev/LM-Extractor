@@ -15,6 +15,20 @@
  */
 const IMPACT_STATEMENT_HEADING = /(?:impact\s+statement|(?:intended|anticipated|long[- ]term)\s+impact)\b/i;
 
+/**
+ * Does this document's text layer contain a labeled Impact Statement heading at all?
+ *
+ * Used as a *permission gate*, not as an extractor: the extraction prompt states that
+ * `impactStatement` "requires an explicit heading … never infer one from wording alone", so
+ * post-processing must not manufacture one on a document that has no such heading. Deliberately
+ * reuses the same conservative pattern as the harvest above rather than introducing a second
+ * definition of what counts as the heading.
+ */
+export function hasImpactStatementHeading(text: string | undefined): boolean {
+  if (!text?.trim()) return false;
+  return IMPACT_STATEMENT_HEADING.test(collapseWs(text));
+}
+
 const SECTION_STOP =
   /\b(mission\s*(statement|\/|overview)?|purpose|program\s+overview|target\s+population|who\s+we\s+serve|resources|inputs|activities|outputs|short[- ]term|medium[- ]term|long[- ]term|##\s*page\s*\d)\b/i;
 

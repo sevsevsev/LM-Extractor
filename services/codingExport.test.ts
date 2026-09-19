@@ -151,3 +151,54 @@ test('coding export returns null when no outcome text', () => {
   });
   assert.equal(buildCodingExportCsv([fakeFile('f1', empty)]), null);
 });
+
+/**
+ * The offline analysis loop (run a batch → export CSVs → diff against source documents) depends on
+ * one stable key shared by every artifact for a given item. Without it, matching a scorecard row
+ * back to an extraction means fuzzy-matching item text — which is itself the thing under review,
+ * and changes between runs whenever the model rewords something.
+ */
+test('granular and coding exports mint the same row_id for the same outcome item', async () => {
+  const { buildGranularExportRows } = await import('../shared/domainPresence.ts');
+
+  const model = sampleModel();
+  const file = fakeFile('f1', model);
+
+  const codingIds = new Set(buildCodingExportRows([file]).map(r => r[0]));
+  const granularById = new Map(
+    buildGranularExportRows([{ model, sourceFilename: 'f1.pdf', fileId: 'f1' }]).map(r => [
+      r.rowId,
+      r,
+    ])
+  );
+
+  assert.equal(codingIds.size, 3);
+  for (const id of codingIds) {
+    const granular = granularById.get(id);
+    assert.ok(granular, `coding row_id "${id}" has no matching granular row`);
+  }
+
+  // And the matched rows really are the same item, not just a coincidental key collision.
+  const shortTermId = 'f1-shortTermOutcomes-0-0';
+  assert.ok(codingIds.has(shortTermId));
+  assert.equal(granularById.get(shortTermId)!.content, 'Increased awareness of reading');
+  assert.equal(granularById.get(shortTermId)!.domain, 'Short-Term Outcomes');
+});
+
+test('granular row_id is stable and unique across domains, and blank without a fileId', async () => {
+  const { buildGranularExportRows } = await import('../shared/domainPresence.ts');
+  const model = sampleModel();
+
+  const rows = buildGranularExportRows([{ model, sourceFilename: 'f1.pdf', fileId: 'f1' }]);
+  const ids = rows.map(r => r.rowId);
+  assert.equal(new Set(ids).size, ids.length, 'row_ids must be unique within a file');
+  assert.ok(ids.includes('f1-mission'), 'string domains get a fileId-field key');
+  assert.ok(ids.includes('f1-impact-0-0'));
+
+  // Indices must reflect the real array positions, so a blank item does not shift later keys.
+  assert.ok(ids.includes('f1-mediumTermOutcomes-0-0'));
+
+  const withoutId = buildGranularExportRows([{ model, sourceFilename: 'f1.pdf' }]);
+  assert.ok(withoutId.every(r => r.rowId === ''));
+  assert.equal(withoutId.length, rows.length, 'omitting fileId must not change which rows exist');
+});

@@ -11,9 +11,14 @@ import { isExportReady } from '../shared/sessionQueue.js';
  * triggered which fidelity signals, so a sample can be pulled and handed over for root-causing.
  * Not partner-facing — see docs/specs/extraction-log-export-v1.md.
  */
-const HEADERS = [
+export const EXTRACTION_LOG_HEADERS = [
   'source_filename',
   'pipeline_status',
+  // Which prompt actually produced this row. A batch routinely spans several prompt variants
+  // (a text-only fallback and a low-legibility vision document get materially different text),
+  // so any aggregate error rate must be grouped by these before it means anything.
+  'prompt_version',
+  'prompt_variant',
   'organization',
   'program',
   'qa_status',
@@ -63,6 +68,8 @@ export function buildExtractionLogRows(files: ProcessingFile[]): string[][] {
     rows.push([
       displayFileName(f),
       f.status,
+      f.promptVersion || '',
+      f.promptVariant || '',
       m?.organization || '',
       m?.program || '',
       m ? qaStatusLabel(m) : 'Error',
@@ -98,7 +105,7 @@ export function buildExtractionLogCsv(files: ProcessingFile[]): string | null {
   const rows = buildExtractionLogRows(files);
   if (rows.length === 0) return null;
   const escape = (c: string) => `"${String(c).replace(/"/g, '""')}"`;
-  return [HEADERS.map(escape).join(','), ...rows.map(row => row.map(escape).join(','))].join('\n');
+  return [EXTRACTION_LOG_HEADERS.map(escape).join(','), ...rows.map(row => row.map(escape).join(','))].join('\n');
 }
 
 export function downloadExtractionLogCsv(

@@ -41,6 +41,31 @@ function isSourceFormat(value: unknown): value is DocumentBundle['sourceFormat']
   return value === 'pdf' || value === 'docx' || value === 'pptx';
 }
 
+/**
+ * Parse the client's `imageRefs` (document page / column for each extract JPEG).
+ *
+ * `server/geminiLogicModel.ts` labels each Track B image with its real page/column from this, and
+ * the extraction prompt's SOURCE LOCATION rules tell the model to read `sourcePage` off that
+ * label. This parser used to drop the field entirely, so the labels degraded to bare ordinals
+ * ("TRACK B image 1 of 2") and every `sourcePage` the model returned was a guess — which then fed
+ * the source-review page jump and the spot-check chips. Returns undefined unless the array is
+ * well-formed AND parallel to `images`, since a misaligned ref is worse than none.
+ */
+function parseImageRefs(raw: unknown, imageCount: number): DocumentBundle['imageRefs'] {
+  if (!Array.isArray(raw) || raw.length !== imageCount || imageCount === 0) return undefined;
+  const refs: NonNullable<DocumentBundle['imageRefs']> = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== 'object') return undefined;
+    const rec = entry as Record<string, unknown>;
+    const page = rec.page;
+    if (typeof page !== 'number' || !Number.isFinite(page) || page < 1) return undefined;
+    const column = rec.column;
+    const hasColumn = typeof column === 'number' && Number.isFinite(column) && column >= 1;
+    refs.push(hasColumn ? { page: Math.round(page), column: Math.round(column) } : { page: Math.round(page) });
+  }
+  return refs;
+}
+
 /** Normalize request body into a DocumentBundle (dual-track extract contract). */
 export function parseDocumentBundle(rawBody: unknown): DocumentBundle | null {
   const body = parseJsonBody(rawBody);
@@ -57,6 +82,7 @@ export function parseDocumentBundle(rawBody: unknown): DocumentBundle | null {
     if (images.length === 0 && !textTrack.trim()) return null;
     return {
       images,
+      imageRefs: parseImageRefs(body.imageRefs, images.length),
       textTrack,
       warnings,
       sourceFormat: body.sourceFormat,
@@ -82,8 +108,8 @@ export async function handleExtractRequest(rawBody: unknown): Promise<ApiResult>
       };
     }
 
-    const model = await extractLogicModelOnServer(apiKey, bundle);
-    return { status: 200, body: { model } };
+    const { model, promptVersion, promptVariant } = await extractLogicModelOnServer(apiKey, bundle);
+    return { status: 200, body: { model, promptVersion, promptVariant } };
   } catch (error) {
     return errorResult(error);
   }

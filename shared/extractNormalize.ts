@@ -1,6 +1,7 @@
 import type { LogicModel, LogicModelGroup } from '../types';
 import {
   harvestImpactStatementFromPlainText,
+  hasImpactStatementHeading,
   looksLikeImpactStatementProse,
 } from './impactStatementHarvest.js';
 import { applySourceAwareMapping } from './sourceMapping.js';
@@ -91,9 +92,21 @@ function countOutcomeItems(model: LogicModel): number {
   return total;
 }
 
-/** Gemini sometimes drops page-1 Impact Statement into an outcome list item. */
-function promoteImpactStatementFromGroupedDomains(model: LogicModel): void {
+/**
+ * Gemini sometimes drops page-1 Impact Statement into an outcome list item.
+ *
+ * Gated on heading evidence whenever a text layer is available. The extraction prompt tells the
+ * model `impactStatement` "requires an explicit heading … never infer one from wording alone"
+ * (see CONTEXT & OVERVIEW in constants.ts) — so when the source text demonstrably has no such
+ * heading, promoting an outcome item here would manufacture exactly what the prompt forbids, and
+ * silently overwrite a correct empty answer. `looksLikeImpactStatementProse` cannot tell an
+ * overview sentence from a well-formed outcome bullet; the heading can. When there is no text
+ * layer to check (vision-only bundles), behavior is unchanged — we have no evidence either way,
+ * and the `MAX_TOTAL_OUTCOME_ITEMS_FOR_PROMOTION` gate still applies.
+ */
+function promoteImpactStatementFromGroupedDomains(model: LogicModel, sourceText?: string): void {
   if (model.impactStatement?.content?.trim()) return;
+  if (sourceText?.trim() && !hasImpactStatementHeading(sourceText)) return;
   if (countOutcomeItems(model) > MAX_TOTAL_OUTCOME_ITEMS_FOR_PROMOTION) return;
 
   for (const domain of OUTCOME_DOMAINS) {
@@ -176,7 +189,7 @@ export function normalizeExtractedLogicModel(
   // the always-present outcome fields instead of each needing its own undefined guard.
   if (!model.generalOutcomes) model.generalOutcomes = { content: [] };
   fillMissingImpactStatementFromSourceText(model, options?.sourceText);
-  promoteImpactStatementFromGroupedDomains(model);
+  promoteImpactStatementFromGroupedDomains(model, options?.sourceText);
   applySourceAwareMapping(model);
   reconcileExtractionFidelity(model, {
     lowLegibility: options?.lowLegibility,
