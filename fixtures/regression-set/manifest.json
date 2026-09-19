@@ -1,0 +1,62 @@
+[
+  {
+    "id": "oxford-circle-carnell-frc",
+    "label": "Oxford Circle CCDA — Carnell FRC",
+    "covers": "vision+text+lowleg · flattened ~142 DPI raster, colour-coded with no legend, fabrication-prone",
+    "bundle": "oxford-circle-carnell-frc.json"
+  },
+  {
+    "id": "performance-garage-youthmoves",
+    "label": "Performance Garage — YouthMoves",
+    "covers": "vision+text · real horizontal track bands across columns (the one layout where tracks are genuine)",
+    "bundle": "performance-garage-youthmoves.json"
+  },
+  {
+    "id": "healthy-newsworks-core-reporter",
+    "label": "Healthy NewsWorks — Core Reporter",
+    "covers": "vision+text · clean multi-column grid with in-column sub-groups; baseline good case",
+    "bundle": "healthy-newsworks-core-reporter.json"
+  },
+  {
+    "id": "healthy-newsworks-cub-reporter",
+    "label": "Healthy NewsWorks — Cub Reporter",
+    "covers": "vision+text · 116 rows vs 49 for its sibling, program name merged, Medium/Long-Term duplicates (2026-09-19 batch)",
+    "bundle": "healthy-newsworks-cub-reporter.json"
+  },
+  {
+    "id": "harlem-lacrosse",
+    "label": "Harlem Lacrosse — Philadelphia",
+    "covers": "vision+text · Theory-of-Change infographic; document-type flag + heavy unmapped",
+    "bundle": "harlem-lacrosse.json"
+  },
+  {
+    "id": "philadelphia-ballet-lets-dance",
+    "label": "Philadelphia Ballet — Let's Dance",
+    "covers": "vision+text · not a logic model; must extract 0 grid items without inventing any",
+    "bundle": "philadelphia-ballet-lets-dance.json"
+  },
+  {
+    "id": "firsthand-pptx",
+    "label": "University City Science Center — FirstHand",
+    "covers": "text-only · PPTX whose vision conversion fails; guards the text-only prompt variant",
+    "bundle": "firsthand-pptx.json"
+  },
+  {
+    "id": "ymca-youth-civic-engagement",
+    "label": "Greater Philadelphia YMCA — Youth Civic Engagement",
+    "covers": "vision+text · prose_sections DOCX, long unmapped narrative blocks",
+    "bundle": "ymca-youth-civic-engagement.json"
+  },
+  {
+    "id": "a-new-dawn",
+    "label": "A New Dawn Incorporated",
+    "covers": "vision+text · DOCX prose_sections that still yields a full 60-item grid",
+    "bundle": "a-new-dawn.json"
+  },
+  {
+    "id": "seamaac-urban-arts",
+    "label": "SEAMAAC — Urban Arts Entrepreneurship",
+    "covers": "vision+text · very short activity labels ('DJ', 'Dance') that must not be dropped or expanded",
+    "bundle": "seamaac-urban-arts.json"
+  }
+]

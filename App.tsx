@@ -121,6 +121,42 @@ function persistedRecordToProcessingFile(record: PersistedFileRecord): Processin
 // cap of 2 — found via codebase audit (docs/specs/codebase-audit-2026-09-19.md #23). Whether 4
 // concurrent Gemini calls is the right ceiling is a product call or not; this fix is renaming/
 // documenting reality, not changing it.
+/**
+ * Dev-only: keep the exact bundle sent to the server so it can be saved as a Tier-1 regression
+ * fixture (`fixtures/regression-set/`). Conversion is browser-only — pdfjs, canvas and html2canvas
+ * have no Node equivalent here — so this is the only place a real bundle can be captured, which is
+ * why the regression runner replays bundles rather than source files.
+ *
+ * In the browser console:
+ *   __lmRegressionBundles                // names captured this session
+ *   __lmSaveRegressionBundle('<name>')   // downloads one as JSON
+ *
+ * Compiled out of production builds: `import.meta.env.DEV` is statically false there, so neither
+ * the retained bundles nor the globals exist in an `npm start` build.
+ */
+function captureRegressionBundle(file: ProcessingFile | undefined, bundle: DocumentBundle): void {
+  if (!import.meta.env.DEV || typeof window === 'undefined') return;
+  const w = window as unknown as {
+    __lmRegressionBundles?: Record<string, DocumentBundle>;
+    __lmSaveRegressionBundle?: (name: string) => void;
+  };
+  w.__lmRegressionBundles = w.__lmRegressionBundles ?? {};
+  w.__lmRegressionBundles[file ? displayFileName(file) : bundle.sourceFormat] = bundle;
+  w.__lmSaveRegressionBundle ??= (name: string) => {
+    const target = w.__lmRegressionBundles?.[name];
+    if (!target) {
+      console.warn(`No captured bundle "${name}". Available:`, Object.keys(w.__lmRegressionBundles ?? {}));
+      return;
+    }
+    const url = URL.createObjectURL(new Blob([JSON.stringify(target)], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+}
+
 const MAX_CONCURRENT_PER_STAGE = 2;
 const PERSIST_DEBOUNCE_MS = 1200;
 
@@ -467,6 +503,7 @@ const App: React.FC = () => {
     const runExtraction = async (fileId: string, bundle: DocumentBundle) => {
       try {
         const extractBundle: DocumentBundle = { ...bundle, previewImages: undefined };
+        captureRegressionBundle(files.find(f => f.id === fileId), extractBundle);
         // `extractLogicModel` always calls the server (`/api/gemini/extract`), which already runs
         // `normalizeExtractedLogicModel` on the raw Gemini response (server/geminiLogicModel.ts)
         // before returning it — using the same `bundleImpliesLowLegibility`/`bundleUsedTextOnlyFallback`

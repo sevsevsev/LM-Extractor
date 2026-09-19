@@ -195,9 +195,9 @@ export async function extractLogicModelOnServer(
     ];
   }
 
-  // Same bundle (images + text) re-run gets the same seed, so re-processing a document is
-  // reproducible as far as Gemini's best-effort seed contract allows — see geminiSeed.ts.
-  const seed = deriveGeminiSeed([prompt, textTrack, ...images]);
+  // Document content only — deliberately NOT the prompt, so that two PROMPT_VERSIONs run against
+  // the same document share a seed and the comparison between them is paired. See geminiSeed.ts.
+  const seed = deriveGeminiSeed([textTrack, ...images]);
 
   const response = await withRetry(() =>
     ai.models.generateContent({

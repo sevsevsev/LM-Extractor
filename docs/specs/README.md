@@ -8,7 +8,8 @@
 - **[tech-overall-quality-and-coding-export.md](./tech-overall-quality-and-coding-export.md)** — implementer blueprint — §1 (overall quality) **deprecated 2026-09**, §2 (coding export) active
 - **[roadmap.md](./roadmap.md)** — living roadmap + agent check-ins
 - **[friction-log-template.md](./friction-log-template.md)** — real-doc validation template
-- **[friction-log.md](./friction-log.md)** — populated running validation log
+- **[friction-log.md](./friction-log.md)** — populated running validation log (session 4 = first instrumented batch, 2026-09-19: item-level flagging fired 0/718)
+- **[../../fixtures/regression-set/README.md](../../fixtures/regression-set/README.md)** — Tier-1 regression set: 10 chosen documents, `npm run regression:check`, why 10 is enough
 - **[extraction-provenance-and-color.md](./extraction-provenance-and-color.md)** — provenance flags, colour axis, raster legibility + column tiling (2026-07-30)
 - **[source-aware-mapping-v1.md](./source-aware-mapping-v1.md)** — source sections, synonym map, unmapped UI, mismatch suggest, correction capture (scoped 2026-07-31)
 - **[source-review-v1.md](./source-review-v1.md)** — side-by-side source rasters + item→page anchors for validation (scoped 2026-07-31)

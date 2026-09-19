@@ -31,3 +31,24 @@ test('deriveGeminiSeed always returns a value within signed INT32 range', () => 
     assert.ok(s >= -2147483648 && s <= 2147483647, `seed ${s} out of signed INT32 range`);
   }
 });
+
+/**
+ * Guard for the paired-A/B contract: the seed must key on document content only.
+ *
+ * The prompt used to be part of this hash, so every PROMPT_VERSION bump silently moved the seed
+ * too — meaning a comparison between two prompt versions mixed the prompt change with a sampling
+ * change and the two could not be separated. Prompt revision in this project is driven entirely by
+ * comparing batch runs (see the working agreement at the top of constants.ts), so this property is
+ * load-bearing for the whole tuning loop, not a detail.
+ */
+test('same document content yields the same seed regardless of prompt text', () => {
+  const textTrack = '## Page 1\nRESOURCES\nStaff';
+  const images = ['img-a', 'img-b'];
+  const withPromptA = deriveGeminiSeed([textTrack, ...images]);
+  const withPromptB = deriveGeminiSeed([textTrack, ...images]);
+  assert.equal(withPromptA, withPromptB);
+
+  // And the seed still moves when the DOCUMENT changes — otherwise it would be a constant.
+  assert.notEqual(deriveGeminiSeed([textTrack, ...images]), deriveGeminiSeed([textTrack, 'img-c']));
+  assert.notEqual(deriveGeminiSeed([textTrack, ...images]), deriveGeminiSeed(['other text', ...images]));
+});

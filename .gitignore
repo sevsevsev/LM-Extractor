@@ -29,3 +29,6 @@ tmp-api-verify
 
 # Local-only Drive/Jotform sidecar (parked 2026-08-31 — not part of the Extractor)
 scripts/drive-manifest-sync/
+
+# Regression-set bundles are multi-MB base64 page rasters — captured locally, never committed.
+fixtures/regression-set/bundles/

@@ -163,6 +163,97 @@ under-fires, next lever is native embedded-image extraction (no re-compression) 
 
 ---
 
+## Session 4 — first instrumented batch (17 documents)
+
+```
+Date:                     2026-09-19
+Operator:                 owner
+Files:                    17-document batch (11 PDF, 4 DOCX, 2 PPTX)
+Prompt version:           2026-09-19.2 (all 17 — first run with prompt_version / prompt_variant)
+Host mode:                npm run dev
+Method:                   extraction-log CSV + granular CSV analysed together; no source documents
+                          pulled yet, so this is a signal census, not an accuracy measurement.
+
+--- Outcome ---
+qa_status:                13 Successfully Processed / 4 Needs Review
+extraction_status:        13 ok / 4 partial          confidence: 13 high / 4 medium
+Items:                    685 grid items (+33 overview rows) across 17 documents
+
+--- Finding 1: item-level flagging produced nothing at all ---
+Needs Review (verbatim:false)   0 / 718 rows
+Source Note                     0 / 718 rows
+possibly_missed_regions         0 / 17 documents
+fillColor / borderColor / legend 0 / 718 rows
+
+All four `partial/medium` documents were flagged by DOCUMENT-level signals only — two text-only
+fallbacks, two `not_logic_model`. Not one document was flagged because of anything about an item.
+
+This is friction-log session 3's "flagging under-fires" measured at batch scale: session 3 was
+1-of-45, this is 0-of-718. Note which rules were actually in play: the batch contains ZERO
+`+lowleg` documents, so the LOW-RESOLUTION procedure block — the one rule shape that has
+demonstrably worked — never fired. The only rules asking for `verbatim:false` here were
+EXTRACTION RULES 3/4/5, which are written as prohibitions. They produced nothing on 718 items.
+                                                                              | cause: prompt
+
+--- Finding 2: the batch tested two of six prompt variants ---
+vision+text 15 · text-only 2 · vision-only 0 · +lowleg 0
+
+The two untested variants are exactly where the known failures live (Oxford Circle-class rasters,
+image-only PDFs). Aggregate rates from this batch say nothing about them.        | cause: other
+
+--- Finding 3: 100% PPTX vision-conversion failure ---
+Both PPTX files fell back to text-only (pages_processed blank, conversion warning on both). Any
+PPTX tuning done against this batch is accidentally tuning the text-only variant. Pipeline issue,
+not a prompt issue — LibreOffice->PDF path, and the browser-WASM fallback structurally cannot work
+(codebase audit #16).                                                            | cause: setup
+
+--- Finding 4: candidate extraction errors visible without the sources ---
+#A 7_31 Healthy NewsWorks Cub Reporter — 116 rows vs 49 for its sibling 7_30 Core Reporter;
+   `program` came back "Core Reporters & Cub Reporters" (not the filename's program); groups
+   `Core Reporters` AND `Cub Reporters` each span four outcome domains; no Impact Statement and no
+   Mission while the sibling has both. Either the document genuinely covers two programs (in which
+   case detection arguably should have split it) or content bled.
+#B Cross-column read-across, same file: identical text in two time horizons —
+   "students will demonstrate improvements in/increased: health knowledge" and
+   "improved community-wide healthy behaviors" both in Medium-Term AND Long-Term;
+   "annual updates" in both Inputs and Activities. COLUMN FIDELITY rule 2 violation; both copies
+   would ship to the coding CSV as distinct outcomes.
+#C Within-domain duplicates surviving `pushItem` dedupe (so, different groups): "sopa staff" x2,
+   "avg student gains" x2, "number of students served" x2, "quantitative and qualitative
+   evaluation" x2. Could be legitimate or double-counting across column tiles — needs the source.
+
+--- What this batch does NOT tell us ---
+Completeness. CSVs cannot show what was never extracted; that needs Pass 1 of
+`extraction-verification-protocol-v1.md` by eye on a handful of documents. Do not read the
+"13 Successfully Processed" as evidence that nothing was missed.
+
+--- Actions taken (this session) ---
+- server/geminiSeed.ts: seed now keys on DOCUMENT CONTENT ONLY, never the prompt. The prompt used
+  to be in the hash, so every PROMPT_VERSION bump also moved the seed and an A/B between prompt
+  versions mixed a prompt change with a sampling change. Prompt revision here is driven entirely
+  by comparing runs, so this property is load-bearing for the whole loop.
+- fixtures/regression-set/ + `npm run regression:check`: Tier-1 harness. Ten chosen (not sampled)
+  documents replayed through the extract API and diffed against committed snapshots. Because the
+  seed is document-keyed and temperature is 0, an unchanged prompt reproduces exactly, so any
+  reported difference is attributable to the prompt change — no statistics needed. Oxford Circle is
+  in the set specifically to close the `+lowleg` gap from Finding 2.
+- shared/extractionDiff.ts reports a relocated item as a MOVE rather than remove+add, so placement
+  changes stay distinguishable from recall/invention changes.
+
+--- Next ---
+1. Capture bundles for the ten regression-set documents; add an image-only PDF for `vision-only`.
+2. Pull sources for #A and #B — that decides whether read-across is general or one-document.
+3. THEN make Step 4 (EXTRACTION RULES 3/4/5 from prohibitions to transcription procedures) the
+   single themed change for the next run, against this baseline.
+
+--- Notes ---
+Would you stop using the tool over this? No. But "13 of 17 Successfully Processed" is not evidence
+of accuracy — it is evidence that the flags never fired, which Finding 1 shows is the actual
+problem. Treat this batch as the baseline, not as a pass.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -170,3 +261,4 @@ under-fires, next lever is native embedded-image extraction (no re-compression) 
 | 1 | 2026-07-30 | PDF | extract | prompt + doc-quality | N |
 | 2 | 2026-07-30 | PDF | extract (OCR) | doc-quality + prompt | N |
 | 3 | 2026-07-30 | PDF + CSV | extract (small print + colour) | doc-quality + prompt | N |
+| 4 | 2026-09-19 | batch (17) | extract (flagging silent; variant coverage) | prompt + setup | N |

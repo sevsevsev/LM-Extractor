@@ -53,7 +53,9 @@ export async function detectLogicModelGroupsOnServer(
     parts.push({ inlineData: { mimeType: 'image/jpeg', data: input.previewImages[i] } });
   }
 
-  const seed = deriveGeminiSeed([prompt, textTrack, ...input.previewImages]);
+  // Document content only, not the prompt — see geminiSeed.ts. Page count is already implied by
+  // previewImages, so nothing about this call's shape is lost by excluding the prompt text.
+  const seed = deriveGeminiSeed([textTrack, ...input.previewImages]);
 
   let raw: unknown;
   try {
