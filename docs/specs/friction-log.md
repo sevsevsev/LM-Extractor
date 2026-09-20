@@ -1241,6 +1241,29 @@ message as a multi-line block and the grep pattern only matched single-line ones
 - The census's own noisy 2-pass verdict (session 11, Finding 3) is unchanged — `--passes=3` is
   still a thing a person has to remember to type.
 
+
+--- Addendum (same session): the census no longer over-claims ---
+Session 11 Finding 3 recorded that a 2-pass census verdict is noisy and that `--passes=3` is
+needed before trusting it — and then left that correction living in a person's memory and this
+log, which is precisely the failure mode the rest of this session was closing.
+
+scripts/stability-census.ts now refuses to print STABLE below `--passes=3`. Two passes report "no
+differences seen in 2 runs — NOT proof of stability", the marker is `?` rather than `=`, and the
+summary lists those documents with a prompt to re-run. Default stays 2, because 2 passes are the
+cheap way to FIND instability and the problem was never that they exist — it was the tool
+reporting them as more than they are. Every verdict now carries its run count.
+
+THE CHANGE DEMONSTRATED ITSELF, UNPLANNED. Verifying the new wording on Performance Garage — a
+document unstable in EVERY prior census, 0 of 3 pairs — it produced two matching runs. Under the
+old wording that would have printed "STABLE — byte-identical" and been wrong. Given a third pass
+it then produced three matching runs and earned the word STABLE under the new rule too.
+
+So `MIN_PASSES_FOR_STABLE = 3` is a floor for the word being allowed, not a standard of proof, and
+the summary line was changed from "proven stable N" to "held across N runs N" on the strength of
+that observation. No pass count proves stability; more runs only narrow the window a flip can hide
+in. The honest fix was to make every claim carry its sample size rather than to pick a threshold
+and call it settled.                                                              | cause: other
+
 --- Notes ---
 Every guard here encodes a mistake that was actually made in the last three sessions, two of them
 by this session. That is the right selection criterion: not "what could go wrong in principle",

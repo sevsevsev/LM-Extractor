@@ -37,6 +37,16 @@ So the wobble is not (only) seed non-determinism — it is the model re-rolling 
 choice about how to flatten 3-4 source levels into this schema's two (`Group.name` -> `items[]`),
 which nothing in the prompt specifies. Seed noise would not sort itself by nesting depth.
 
+**The census will not call a document stable on two runs (2026-09-20).** The asymmetry is the
+whole point: runs that DIFFER prove instability, runs that MATCH only fail to disprove it. So
+`npm run census` prints `STABLE` only at `--passes=3` or more; below that it says "no differences
+seen in 2 runs — NOT proof of stability" and lists those documents at the end. Two passes stay the
+default because they are the cheap way to FIND instability.
+
+Even three is a floor for the word, not a standard of proof. While this was being built,
+Performance Garage — unstable in every prior census — produced two matching runs and then three
+matching runs in a row. That is why every verdict states the run count it is based on.
+
 Two consequences. First, "re-run once more before concluding anything" is not a general remedy:
 for a deeply nested document a re-run is another roll of the same die, not a tiebreak. Prefer
 running the *unchanged* prompt twice as an explicit control arm, and compare the prompt-change

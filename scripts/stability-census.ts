@@ -1,6 +1,13 @@
 /**
- * Stability census: run every regression-set document through the extract API TWICE on the
+ * Stability census: run every regression-set document through the extract API SEVERAL TIMES on the
  * CURRENT prompt, and report whether each one reproduces.
+ *
+ * Read the verdicts knowing the asymmetry: passes that DIFFER prove a document unstable, passes
+ * that MATCH only fail to disprove it — at ANY run count, which is why every verdict here states
+ * how many runs it is based on and none of them claims more than that. So this prints STABLE only at `--passes=3` or more, and
+ * below that says "no differences seen — NOT proof of stability" and lists those documents at the
+ * end. Two passes remain the default because they are the cheap way to FIND instability, which is
+ * most of what this is for.
  *
  * Why this is separate from `regression:check`: that tool answers "did output change since the
  * baseline?", which is only meaningful for a document that reproduces in the first place.
@@ -15,7 +22,8 @@
  *   npx tsx scripts/stability-census.ts
  *   npx tsx scripts/stability-census.ts --only=cub --passes=3
  *
- * Costs 2 Gemini extract calls per document (3 with --passes=3). Documents with no captured
+ * Costs one Gemini extract call per document per pass (so 2 by default, 3 with --passes=3).
+ * Documents with no captured
  * bundle are reported loudly, never silently skipped — same posture as `regression:check`. Use
  * `scripts/capture-bundles.mjs` to rebuild missing bundles from the source documents.
  */
@@ -36,6 +44,21 @@ const onlyArg = args.find(a => a.startsWith('--only='));
 const only = onlyArg ? onlyArg.slice('--only='.length) : null;
 const passesArg = args.find(a => a.startsWith('--passes='));
 const passes = Math.max(2, Number(passesArg?.slice('--passes='.length) ?? 2));
+
+/**
+ * Passes required before this tool will use the word STABLE at all.
+ *
+ * NO pass count proves stability — more runs only narrow the window a flip can hide in. This was
+ * demonstrated while building this change: Performance Garage, which had been unstable in EVERY
+ * prior census (0 of 3 pairs), produced two matching runs and then three matching runs in a row.
+ * Three is therefore a floor for the word being allowed, not a standard of proof, which is why
+ * every verdict and the summary line carry the run count instead of an unqualified "stable".
+ *
+ * Raising the default from 2 was considered and rejected: 2 passes are the cheap way to FIND
+ * instability, which is most of what this tool is for, and the problem was never that 2-pass runs
+ * exist — it was the tool reporting them as more than they are.
+ */
+const MIN_PASSES_FOR_STABLE = 3;
 
 interface ManifestEntry { id: string; label: string; covers: string; bundle: string }
 
@@ -80,6 +103,8 @@ async function main(): Promise<void> {
 
   const missing: ManifestEntry[] = [];
   const unstable: string[] = [];
+  /** Looked stable, but on too few passes for that to mean anything. */
+  const thinEvidence: string[] = [];
   let stable = 0;
 
   for (const entry of entries) {
@@ -106,22 +131,51 @@ async function main(): Promise<void> {
     const identical = runs.every(r => diffExtractions(runs[0], r).unchanged);
     const violations = runs.reduce((n, r) => n + findNestingViolations(r).length, 0);
 
-    const verdict = identical
-      ? 'STABLE — byte-identical'
-      : !sameGroups
-        ? 'UNSTABLE — grouping differs between runs'
-        : !sameCount
-          ? 'UNSTABLE — item count differs'
-          : 'stable items — scalar field drift only';
-    if (identical || (sameCount && sameGroups)) stable += 1;
+    const looksStable = identical || (sameCount && sameGroups);
+
+    // A run of N passes that all agree does NOT prove stability, and the asymmetry is the whole
+    // point of this tool: passes that DIFFER prove instability outright, while passes that MATCH
+    // only fail to disprove it. A document that flips between two groupings agrees with itself a
+    // fair fraction of the time by chance, so at 2 passes "they matched" is weak evidence — which
+    // is exactly how friction-log session 11 got Oxford Circle reported STABLE and then UNSTABLE,
+    // and Trinity the other way round, with no prompt change in between.
+    //
+    // So the word STABLE is only printed once it has been earned by MIN_PASSES_FOR_STABLE runs.
+    // Below that the tool reports what it actually observed and says so. Nothing here stops anyone
+    // running 2 passes; it stops 2 passes being reported as more than it is.
+    const provenStable = looksStable && passes >= MIN_PASSES_FOR_STABLE;
+    if (looksStable && !provenStable) thinEvidence.push(entry.id);
+
+    const verdict = provenStable
+      ? identical
+        ? `STABLE — byte-identical across ${passes} runs`
+        : `STABLE — same items and grouping across ${passes} runs (scalar fields drift)`
+      : looksStable
+        ? identical
+          ? `no differences seen in ${passes} runs — NOT proof of stability`
+          : `no item or grouping differences in ${passes} runs (scalar fields drift) — NOT proof of stability`
+        : !sameGroups
+          ? 'UNSTABLE — grouping differs between runs'
+          : !sameCount
+            ? 'UNSTABLE — item count differs'
+            : 'UNSTABLE — scalar fields differ';
+    if (looksStable) stable += 1;
     else unstable.push(entry.id);
 
-    console.log(`  ${identical || (sameCount && sameGroups) ? '=' : '~'} ${entry.label}`);
+    console.log(`  ${provenStable ? '=' : looksStable ? '?' : '~'} ${entry.label}`);
     console.log(`      items ${counts.join(' / ')}   ${verdict}${violations ? `   rule-9 violations: ${violations}` : ''}`);
   }
 
   console.log('\n---');
-  console.log(`stable ${stable}   unstable ${unstable.length}`);
+  const held = stable - thinEvidence.length;
+  console.log(
+    `held across ${passes} runs ${held}   no differences seen (too few runs to say) ${thinEvidence.length}   unstable ${unstable.length}`
+  );
+  if (thinEvidence.length) {
+    console.log(`\nThese showed no differences, but ${passes} passes cannot prove stability — only`);
+    console.log(`disprove it. Re-run with --passes=${MIN_PASSES_FOR_STABLE} before treating a diff on them as meaningful:`);
+    for (const id of thinEvidence) console.log(`  - ${id}`);
+  }
   if (unstable.length) {
     console.log('\nA regression diff on these documents is NOT trustworthy — they change without any');
     console.log('prompt change. Reproduce a suspected regression against a same-prompt control first:');
