@@ -8,6 +8,7 @@ const GROUPED: Array<CanonicalGroupedDomain | 'unmapped'> = [
   'shortTermOutcomes',
   'mediumTermOutcomes',
   'longTermOutcomes',
+  'generalOutcomes',
   'impact',
   'unmapped',
 ];

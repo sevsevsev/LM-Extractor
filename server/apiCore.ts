@@ -1,5 +1,6 @@
-import type { DocumentBundle, LogicModel } from '../types';
-import { critiqueLogicModelOnServer, extractLogicModelOnServer } from './geminiLogicModel.js';
+import type { DetectLogicModelGroupsInput, DocumentBundle, SourceImageRef } from '../types';
+import { extractLogicModelOnServer } from './geminiLogicModel.js';
+import { detectLogicModelGroupsOnServer } from './geminiLogicModelGroups.js';
 
 export interface ApiResult {
   status: number;
@@ -36,8 +37,30 @@ function errorResult(error: unknown): ApiResult {
   return { status: 500, body: { error: message } };
 }
 
+const SOURCE_FORMATS: readonly DocumentBundle['sourceFormat'][] = [
+  'pdf',
+  'docx',
+  'pptx',
+  'image',
+  'xlsx',
+];
+
 function isSourceFormat(value: unknown): value is DocumentBundle['sourceFormat'] {
-  return value === 'pdf' || value === 'docx' || value === 'pptx';
+  return typeof value === 'string' && (SOURCE_FORMATS as readonly string[]).includes(value);
+}
+
+/**
+ * One `imageRefs` entry: the document page (and optional column) a Track B JPEG came from.
+ * Pages/columns are 1-based integers — a fractional or zero page would produce a nonsense label.
+ */
+function isSourceImageRef(value: unknown): value is SourceImageRef {
+  if (!value || typeof value !== 'object') return false;
+  const r = value as Record<string, unknown>;
+  const pageOk = typeof r.page === 'number' && Number.isInteger(r.page) && r.page >= 1;
+  const columnOk =
+    r.column === undefined ||
+    (typeof r.column === 'number' && Number.isInteger(r.column) && r.column >= 1);
+  return pageOk && columnOk;
 }
 
 /** Normalize request body into a DocumentBundle (dual-track extract contract). */
@@ -53,9 +76,22 @@ export function parseDocumentBundle(rawBody: unknown): DocumentBundle | null {
     const warnings = Array.isArray(body.warnings)
       ? body.warnings.filter((w): w is string => typeof w === 'string')
       : [];
+    // Parallel to `images` by position (see DocumentBundle.imageRefs) — labels each Track B image
+    // with its real document page/column so Gemini's SOURCE LOCATION prompt instructions have a
+    // real label to read from. Only accepted whole (not entry-by-entry repaired): a partially
+    // invalid array would silently misalign `imageRefs[i]` with `images[i]` for every index after
+    // the bad entry, which is worse than falling back to the no-label default.
+    const imageRefs =
+      Array.isArray(body.imageRefs) &&
+      body.imageRefs.length === images.length &&
+      images.length > 0 &&
+      body.imageRefs.every(isSourceImageRef)
+        ? (body.imageRefs as SourceImageRef[])
+        : undefined;
     if (images.length === 0 && !textTrack.trim()) return null;
     return {
       images,
+      imageRefs,
       textTrack,
       warnings,
       sourceFormat: body.sourceFormat,
@@ -81,25 +117,40 @@ export async function handleExtractRequest(rawBody: unknown): Promise<ApiResult>
       };
     }
 
-    const model = await extractLogicModelOnServer(apiKey, bundle);
-    return { status: 200, body: { model } };
+    const { model, promptVersion, promptVariant } = await extractLogicModelOnServer(apiKey, bundle);
+    return { status: 200, body: { model, promptVersion, promptVariant } };
   } catch (error) {
     return errorResult(error);
   }
 }
 
-export async function handleCritiqueRequest(rawBody: unknown): Promise<ApiResult> {
+/** Narrower than `parseDocumentBundle` — only needs `previewImages` (whole pages), not Track B. */
+export function parseDetectLogicModelGroupsInput(rawBody: unknown): DetectLogicModelGroupsInput | null {
+  const body = parseJsonBody(rawBody);
+  if (!isSourceFormat(body.sourceFormat)) return null;
+  const previewImages = Array.isArray(body.previewImages)
+    ? body.previewImages.filter((img): img is string => typeof img === 'string' && img.length > 0)
+    : [];
+  if (previewImages.length === 0) return null;
+  const textTrack = typeof body.textTrack === 'string' ? body.textTrack : '';
+  return { previewImages, textTrack, sourceFormat: body.sourceFormat };
+}
+
+export async function handleDetectLogicModelGroupsRequest(rawBody: unknown): Promise<ApiResult> {
   const apiKey = getApiKey();
   if (!apiKey) return missingKeyResult();
 
   try {
-    const { model } = parseJsonBody(rawBody) as { model?: LogicModel | string };
-    if (model == null) {
-      return { status: 400, body: { error: 'Request must include model.' } };
+    const input = parseDetectLogicModelGroupsInput(rawBody);
+    if (!input) {
+      return {
+        status: 400,
+        body: { error: 'Request must include sourceFormat and a non-empty previewImages[].' },
+      };
     }
 
-    const result = await critiqueLogicModelOnServer(apiKey, model);
-    return { status: 200, body: { model: result } };
+    const groups = await detectLogicModelGroupsOnServer(apiKey, input);
+    return { status: 200, body: { groups } };
   } catch (error) {
     return errorResult(error);
   }

@@ -8,7 +8,7 @@ import {
 } from '../shared/colorAxis';
 import { itemNeedsReview } from '../shared/provenance';
 import { domainFieldLabel, type CanonicalGroupedDomain } from '../shared/domainSynonyms';
-import { ColorSwatch, DomainAssignControls, ratingBadgeClass, swatchColor } from './itemChrome';
+import { ColorSwatch, DomainAssignControls, swatchColor } from './itemChrome';
 
 export type BoardItemRef = {
   domain: CanonicalGroupedDomain | 'unmapped';
@@ -16,20 +16,31 @@ export type BoardItemRef = {
   itemIndex: number;
 };
 
-const CORE_COLUMNS: { key: CanonicalGroupedDomain; title: string }[] = [
-  { key: 'inputs', title: 'Inputs' },
-  { key: 'activities', title: 'Activities' },
-  { key: 'outputs', title: 'Outputs' },
-  { key: 'shortTermOutcomes', title: 'Short-term' },
-  { key: 'mediumTermOutcomes', title: 'Medium-term' },
-  { key: 'longTermOutcomes', title: 'Long-term' },
+// Titles derive from `domainFieldLabel` — the same canonical label the reassign dropdown and both
+// CSV exports use — rather than a fourth, independent set of column-header strings. Previously
+// hardcoded as "Short-term"/"Medium-term"/"Long-term" (no "Outcomes" suffix, lowercase second word),
+// which disagreed with "Short-Term Outcomes" everywhere else, including this same board's own
+// reassign dropdown rendered right next to it — found via codebase audit
+// (docs/specs/codebase-audit-2026-09-19.md #25).
+const CORE_COLUMN_KEYS: CanonicalGroupedDomain[] = [
+  'inputs',
+  'activities',
+  'outputs',
+  'shortTermOutcomes',
+  'mediumTermOutcomes',
+  'longTermOutcomes',
 ];
+const CORE_COLUMNS: { key: CanonicalGroupedDomain; title: string }[] = CORE_COLUMN_KEYS.map(key => ({
+  key,
+  title: domainFieldLabel(key),
+}));
 
 const itemRefKey = (ref: BoardItemRef) => `${ref.domain}:${ref.groupIndex}:${ref.itemIndex}`;
 
 const groupsFor = (model: LogicModel, domain: CanonicalGroupedDomain | 'unmapped'): LogicModelGroup[] => {
   if (domain === 'unmapped') return model.unmapped?.content ?? [];
-  return model[domain].content ?? [];
+  // generalOutcomes is optional (most models never set it); the rest are always present.
+  return model[domain]?.content ?? [];
 };
 
 export function getBoardItem(model: LogicModel, ref: BoardItemRef): LogicModelItem | null {
@@ -84,8 +95,9 @@ const LogicModelBoard: React.FC<LogicModelBoardProps> = ({ model, onUpdate, onFo
   const [selected, setSelected] = useState<BoardItemRef | null>(null);
   const [colorFilter, setColorFilter] = useState<string | null>(null);
   const showImpact = groupedDomainHasContent(model.impact.content);
+  const showGeneralOutcomes = groupedDomainHasContent(model.generalOutcomes?.content);
   const showUnmapped = groupedDomainHasContent(model.unmapped?.content);
-  const columnCount = 6 + (showImpact ? 1 : 0);
+  const columnCount = 6 + (showGeneralOutcomes ? 1 : 0) + (showImpact ? 1 : 0);
   const colorAxis = useMemo(() => analyzeColorAxis(model), [model]);
   const colorNotes = useMemo(() => colorAxisNotes(colorAxis), [colorAxis]);
   const showColorMeta = colorAxis.kind === 'cross_cutting';
@@ -115,7 +127,10 @@ const LogicModelBoard: React.FC<LogicModelBoardProps> = ({ model, onUpdate, onFo
 
   const handleItemTextChange = (ref: BoardItemRef, newText: string) => {
     const groups = groupsFor(model, ref.domain);
-    const field = ref.domain === 'unmapped' ? model.unmapped ?? { content: [] } : model[ref.domain];
+    const field =
+      ref.domain === 'unmapped'
+        ? (model.unmapped ?? { content: [] })
+        : (model[ref.domain] ?? { content: [] });
     const newGroups = groups.map((group, i) => {
       if (i !== ref.groupIndex) return group;
       return {
@@ -132,7 +147,10 @@ const LogicModelBoard: React.FC<LogicModelBoardProps> = ({ model, onUpdate, onFo
 
   const markItemReviewed = (ref: BoardItemRef) => {
     const groups = groupsFor(model, ref.domain);
-    const field = ref.domain === 'unmapped' ? model.unmapped ?? { content: [] } : model[ref.domain];
+    const field =
+      ref.domain === 'unmapped'
+        ? (model.unmapped ?? { content: [] })
+        : (model[ref.domain] ?? { content: [] });
     const newGroups = groups.map((group, i) => {
       if (i !== ref.groupIndex) return group;
       return {
@@ -161,8 +179,14 @@ const LogicModelBoard: React.FC<LogicModelBoardProps> = ({ model, onUpdate, onFo
   };
 
   const columns = useMemo(
-    () => [...CORE_COLUMNS, ...(showImpact ? [{ key: 'impact' as const, title: 'Impact' }] : [])],
-    [showImpact]
+    () => [
+      ...CORE_COLUMNS,
+      ...(showGeneralOutcomes
+        ? [{ key: 'generalOutcomes' as const, title: 'General Outcomes' }]
+        : []),
+      ...(showImpact ? [{ key: 'impact' as const, title: 'Impact' }] : []),
+    ],
+    [showGeneralOutcomes, showImpact]
   );
 
   return (
@@ -221,6 +245,7 @@ const LogicModelBoard: React.FC<LogicModelBoardProps> = ({ model, onUpdate, onFo
       )}
       {showUnmapped && (
         <section
+          id="unmapped-section"
           className="rounded-lg border border-brand-accent/50 bg-brand-sky/15 p-3"
           aria-label="Unmapped items"
         >
@@ -262,7 +287,6 @@ const LogicModelBoard: React.FC<LogicModelBoardProps> = ({ model, onUpdate, onFo
               title={col.title}
               domain={col.key}
               groups={groupsFor(model, col.key)}
-              rating={model[col.key].rating}
               selected={selected}
               onSelect={handleSelect}
               showColorMeta={showColorMeta}
@@ -290,22 +314,16 @@ const BoardColumn: React.FC<{
   title: string;
   domain: CanonicalGroupedDomain;
   groups: LogicModelGroup[];
-  rating?: string;
   selected: BoardItemRef | null;
   onSelect: (ref: BoardItemRef) => void;
   showColorMeta: boolean;
   colorFilter: string | null;
-}> = ({ title, domain, groups, rating, selected, onSelect, showColorMeta, colorFilter }) => {
+}> = ({ title, domain, groups, selected, onSelect, showColorMeta, colorFilter }) => {
   const itemCount = groups.reduce((n, g) => n + g.items.filter(i => i.text?.trim()).length, 0);
   return (
     <section className="min-w-0 rounded-md border border-gray-200 bg-brand-muted/60 flex flex-col" aria-label={title}>
       <header className="px-2 py-2 border-b border-gray-200 bg-white rounded-t-md">
-        <div className="flex items-start justify-between gap-1">
-          <h4 className="text-[11px] font-bold uppercase tracking-wide text-brand-navy leading-tight">{title}</h4>
-          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase shrink-0 ${ratingBadgeClass(rating)}`}>
-            {rating || '—'}
-          </span>
-        </div>
+        <h4 className="text-[11px] font-bold uppercase tracking-wide text-brand-navy leading-tight">{title}</h4>
         <p className="text-[10px] text-slate-500 mt-0.5">
           {itemCount} {itemCount === 1 ? 'item' : 'items'}
         </p>
@@ -395,10 +413,6 @@ const ItemInspector: React.FC<{
   }
 
   const needsReview = itemNeedsReview(item);
-  const isItemPassing = item.rating === 'Strong' || item.rating === 'Adequate';
-  const itemCritiqueStyles = isItemPassing
-    ? 'bg-emerald-50 text-emerald-800 border-emerald-100'
-    : 'bg-amber-50 text-amber-800 border-amber-100';
 
   return (
     <aside
@@ -475,12 +489,6 @@ const ItemInspector: React.FC<{
         model={model}
         onUpdate={onUpdate}
       />
-      {item.critique && (
-        <div className={`mt-3 text-xs p-2 rounded border ${itemCritiqueStyles} flex items-start space-x-2`}>
-          <strong className="uppercase text-[9px] mt-0.5 tracking-wider">{item.rating}:</strong>
-          <span className="italic">{item.critique}</span>
-        </div>
-      )}
     </aside>
   );
 };

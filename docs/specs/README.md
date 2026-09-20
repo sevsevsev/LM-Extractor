@@ -1,13 +1,15 @@
 ﻿# Specs
 
+- **[scope-extraction-only-2026-09.md](./scope-extraction-only-2026-09.md)** — scope decision: app is extraction-only; document-quality critique deprecated (2026-09-15)
 - **[current-prd.md](./current-prd.md)** — active MVP PRD (2-person local) + scoped next
 - **[pipeline-context.md](./pipeline-context.md)** — intake/coding flowchart mapping
-- **[lm-quality-rubric.md](./lm-quality-rubric.md)** — overall S/A/W + rationale (tweakable)
+- **[lm-quality-rubric.md](./lm-quality-rubric.md)** — overall S/A/W + rationale — **deprecated 2026-09**
 - **[export-for-coding.md](./export-for-coding.md)** — coding CSV button scope
-- **[tech-overall-quality-and-coding-export.md](./tech-overall-quality-and-coding-export.md)** — implementer blueprint
+- **[tech-overall-quality-and-coding-export.md](./tech-overall-quality-and-coding-export.md)** — implementer blueprint — §1 (overall quality) **deprecated 2026-09**, §2 (coding export) active
 - **[roadmap.md](./roadmap.md)** — living roadmap + agent check-ins
 - **[friction-log-template.md](./friction-log-template.md)** — real-doc validation template
-- **[friction-log.md](./friction-log.md)** — populated running validation log
+- **[friction-log.md](./friction-log.md)** — populated running validation log (session 4 = first instrumented batch, 2026-09-19: item-level flagging fired 0/718)
+- **[../../fixtures/regression-set/README.md](../../fixtures/regression-set/README.md)** — Tier-1 regression set: 10 chosen documents, `npm run regression:check`, why 10 is enough
 - **[extraction-provenance-and-color.md](./extraction-provenance-and-color.md)** — provenance flags, colour axis, raster legibility + column tiling (2026-07-30)
 - **[source-aware-mapping-v1.md](./source-aware-mapping-v1.md)** — source sections, synonym map, unmapped UI, mismatch suggest, correction capture (scoped 2026-07-31)
 - **[source-review-v1.md](./source-review-v1.md)** — side-by-side source rasters + item→page anchors for validation (scoped 2026-07-31)
@@ -22,7 +24,18 @@
 - **[phase-2-cloud.md](./phase-2-cloud.md)** — draft only (auth/cloud) — not approved
 - **[multi-column-extract-patterns.md](./multi-column-extract-patterns.md)** — @pattern-analyst pattern benchmark (Phase 1 ✓)
 - **[tech-multi-column-extract.md](./tech-multi-column-extract.md)** — @architect implementer spec (Phase 2 ✓)
-- **[structure-aware-extract.md](./structure-aware-extract.md)** — presence-first extract & critique (owner decisions 2026-07-28)
+- **[structure-aware-extract.md](./structure-aware-extract.md)** — presence-first extract & critique (owner decisions 2026-07-28; critique portions deprecated 2026-09)
+- **[causal-chain-critique-v1.md](./causal-chain-critique-v1.md)** — CMO-lens critique for mechanism/context leaks + chain coherence, deterministic overall-quality guardrail — **deprecated 2026-09**
+- **[extraction-verification-protocol-v1.md](./extraction-verification-protocol-v1.md)** — human-verified extraction accuracy against source documents (completeness / non-invention / placement / text fidelity); scorecard + missed-items CSV templates included (active 2026-09-14)
 - **[multi-column-extract-patterns.md](./multi-column-extract-patterns.md)** — @pattern-analyst benchmark + MVP pick (prompt-only)
+- **[multi-column-extract-fidelity.md](./multi-column-extract-fidelity.md)** — PRD slice scoping multi-column extraction fidelity, from Performance Garage YouthMoves calibration (2026-07-28)
+- **[batch-resilience-v1.md](./batch-resilience-v1.md)** — checkpoint/resume, pipelined extract concurrency, progress bar (implemented 2026-09-15)
+- **[spot-check-highlighting-v1.md](./spot-check-highlighting-v1.md)** — color-coded region highlights for possibly-missed content on the source preview (implemented 2026-09-15; see its own "Update (2026-09-18)" for a since-removed half of the design)
+- **[multi-logic-model-pdf-v1.md](./multi-logic-model-pdf-v1.md)** — auto-split one upload containing more than one logic model into N (implemented 2026-09-18)
+- **[extraction-log-export-v1.md](./extraction-log-export-v1.md)** — per-document QA log CSV, one row per file (implemented 2026-09-18)
+- **[codebase-audit-2026-09-19.md](./codebase-audit-2026-09-19.md)** — independent codebase inconsistency audit, 29 findings; status table tracks fixes
 
-Use `@product` to revise PRD scope; `@lm-quality` / `@critique-prompt` for assessment prompts; agents update `roadmap.md` when guidance changes.
+Not indexed above: **[handoff-next-chat.md](./handoff-next-chat.md)** is meant to be pasted directly
+into a fresh agent chat, not browsed from here — see its own staleness banner before using it.
+
+Use `@product` to revise PRD scope; agents update `roadmap.md` when guidance changes.

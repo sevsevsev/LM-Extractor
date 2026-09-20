@@ -1,8 +1,13 @@
-export type QualityRating = 'Strong' | 'Adequate' | 'Weak';
-
-/** Document-level extraction fidelity — not LM document quality (`overallQuality`). */
+/** Document-level extraction fidelity. */
 export type ExtractionStatus = 'ok' | 'partial' | 'abstained';
 export type ExtractionConfidence = 'high' | 'medium' | 'low';
+/**
+ * Gemini's self-report on whether the source looks like a logic model at all, vs. a partner
+ * submitting an overlapping-but-different document (theory of change, impact report, etc.).
+ * `not_logic_model` / `unclear` never abstain the extraction — best-effort extraction still runs
+ * for any genuinely overlapping content, this just flags the file for a human to confirm.
+ */
+export type DocumentTypeAssessment = 'logic_model' | 'not_logic_model' | 'unclear';
 
 export interface ExtractionFidelity {
   status: ExtractionStatus;
@@ -13,15 +18,20 @@ export interface ExtractionFidelity {
 
 export interface LogicModelItem {
   text: string;
-  critique?: string;
-  rating?: QualityRating;
   /**
-   * Provenance flags — see docs/specs/extraction-provenance-and-color.md.
-   * `verbatim: false` means the wording was paraphrased, reconstructed, or read from
-   * low-legibility / clipped source and should be verified against the original.
+   * HUMAN-SET provenance flag — see docs/specs/extraction-provenance-and-color.md.
+   *
+   * Gemini is NOT asked for this. It was a model-answered field until friction-log session 20,
+   * by which point no prompt instruction had defined it since PROMPT_VERSION 2026-09-20.2, so the
+   * model was guessing — and the guess fed the ratio that could discard an extraction. Now the
+   * only writer is `LogicModelBoard`, which sets `verbatim: true` when an operator edits an item.
+   *
+   * Nothing currently sets it to `false`. Keeping the field (and `sourceNote`) means reinstating
+   * item-level flagging is a prompt instruction plus a schema line, not a type rebuild — but land
+   * those two together, or `shared/extractionFidelity.ts` reads a guess again.
    */
   verbatim?: boolean;
-  /** Short note on any transcription uncertainty (e.g. "source text appears clipped"). */
+  /** Short note on any transcription uncertainty. Dormant: see `verbatim` above — nothing sets it. */
   sourceNote?: string;
   /**
    * Model-reported box fill colour (name or hex) when items are visually colour-coded.
@@ -83,19 +93,30 @@ export interface LogicModelGroup {
 
 export interface LogicModelField<T> {
   content: T;
-  critique?: string;
-  rating?: QualityRating;
-}
-
-/** Model-level qualitative assessment — see docs/specs/lm-quality-rubric.md */
-export interface OverallQuality {
-  rating: QualityRating;
-  rationale: string[];
 }
 
 export interface LogicModel {
   organization: string;
   program: string;
+  /**
+   * The three scalar prose fields below are COMPOSED, not necessarily transcribed, and nothing in
+   * the data records which happened. Measured across the batch-2 random sample (friction-log
+   * session 20): 4 of 9 documents had no labelled "who the program serves" box at all, and the
+   * model built `targetPopulation` from spans of other sections — 1812's stitches a phrase from
+   * PROBLEM STATEMENT to one from CONTEXT / RATIONALE with connective words present in neither.
+   * Every composed value checked was faithful to the document's content; the issue is that a
+   * reader cannot tell a quotation from a summary.
+   *
+   * Grouped-domain ITEMS carry `mappedBy` and `mappingConfidence` for exactly this reason. These
+   * scalars carry nothing equivalent, and the prompt was deliberately NOT changed to add it
+   * (session 21): these fields reach no CSV — not the full export, not the coding export, not the
+   * extraction log — so the coding pipeline is unaffected, and a prompt change of unproven benefit
+   * is what session 18 warned against making without evidence it helps.
+   *
+   * They DO reach the operator through the editor and `LogicModelPdfTemplate`. If any of them is
+   * ever added to an export, decide first how a consumer is meant to tell read-from-source from
+   * composed-by-the-app, because at that point the distinction starts to matter.
+   */
   /** Explicit labeled Impact Statement in source — optional; see docs/specs/tech-multi-column-extract.md */
   impactStatement?: LogicModelField<string>;
   mission: LogicModelField<string>;
@@ -106,6 +127,18 @@ export interface LogicModel {
   shortTermOutcomes: LogicModelField<LogicModelGroup[]>;
   mediumTermOutcomes: LogicModelField<LogicModelGroup[]>;
   longTermOutcomes: LogicModelField<LogicModelGroup[]>;
+  /**
+   * Outcomes from a source document that doesn't distinguish short/medium/long-term — either one
+   * combined outcomes column/section (e.g. a single "Outcomes" header), or multiple outcome
+   * columns on a different organizing axis entirely (e.g. "Attitudes" / "Behaviors" / "Conditions").
+   * In the latter case each source column's own header is kept as its `LogicModelGroup.name`
+   * (see COLUMN FIDELITY rule 7b in constants.ts) rather than collapsed to "General", so a coder
+   * can see the source's own categorization while still assigning a real time horizon. Not a
+   * Gemini-required field; absent/empty when the source does distinguish time horizons.
+   * Deliberately separate from `unmapped` — these are confirmed outcomes, just without a known
+   * time horizon, and are expected to reach human review (coding export) for that assignment.
+   */
+  generalOutcomes?: LogicModelField<LogicModelGroup[]>;
   impact: LogicModelField<LogicModelGroup[]>;
   /**
    * Free-text capture of a colour key/legend when the source document explicitly provides one
@@ -113,7 +146,6 @@ export interface LogicModel {
    * are then recorded per item without an inferred meaning. See docs/specs/extraction-provenance-and-color.md.
    */
   colorLegend?: string;
-  overallQuality?: OverallQuality;
   /**
    * Items whose source header did not synonym-map (or were returned by the user).
    * Not a Gemini-required field — filled by source-aware mapping / human assignment.
@@ -124,18 +156,62 @@ export interface LogicModel {
   /** Session correction log for offline review / synonym iteration. */
   mappingCorrections?: MappingCorrectionEvent[];
   /**
-   * Extraction fidelity (separate from overallQuality). See `extraction-confidence-v1.md`.
+   * Extraction fidelity. See `extraction-confidence-v1.md`.
    * Flat fields for Gemini schema / CSV; use helpers in `shared/extractionFidelity.ts`.
    */
   extractionStatus?: ExtractionStatus;
   extractionConfidence?: ExtractionConfidence;
   extractionBlockers?: string[];
+  /**
+   * Gemini's self-reported document-type check (see `DocumentTypeAssessment`). Absent/`logic_model`
+   * means no concern; `not_logic_model`/`unclear` feed into `reconcileExtractionFidelity` as a
+   * (partial/medium, never hard-stop) review flag — see `shared/extractionFidelity.ts`.
+   */
+  documentTypeAssessment?: DocumentTypeAssessment;
+  /** Brief reason for a non-`logic_model` assessment (e.g. "reads as a Theory of Change narrative"). */
+  documentTypeNote?: string;
+  /**
+   * Pages (and, when known, the horizontal span on that page) that may contain content the
+   * extraction missed — drives the "spot-check for missed content" fidelity blocker's
+   * source-pane highlight. See `shared/extractionFidelity.ts` (Gemini self-report only).
+   * Unvalidated signal, same trust level as `possiblyIncomplete` in `extractionBlockers` — never
+   * used to hard-stop or gate anything, purely a "look here" cue.
+   */
+  possiblyMissedRegions?: PossiblyMissedRegion[];
+}
+
+export interface PossiblyMissedRegion {
+  /** 1-based, matches `sourcePage` / `DocumentBundle.previewImages` indexing. */
+  page: number;
+  /**
+   * Approximate horizontal span [0,1] of the page width, when Gemini could estimate one by eye
+   * (it's shown the whole page, not a cropped tile — there's no retained geometry to look up).
+   * Omit both when unknown; the UI falls back to highlighting the full page width.
+   */
+  xStart?: number;
+  xEnd?: number;
+  /** Short human-readable reason, when available (e.g. from Gemini's self-report). */
+  note?: string;
 }
 
 /** Locates one extract JPEG within the source document (1-based page / column). */
 export interface SourceImageRef {
   page: number;
   column?: number;
+}
+
+/**
+ * One page range Gemini identified as containing a single, complete logic model, from the
+ * `detect-logic-models` pre-pass (see `docs/specs/multi-logic-model-pdf-v1.md`). 1-based,
+ * inclusive, matching `DocumentBundle.previewImages` indexing for the *original*, unsliced
+ * document. Groups from one detection call always cover every page exactly once, in order —
+ * see `shared/logicModelPageGroups.ts`.
+ */
+export interface LogicModelPageGroup {
+  startPage: number;
+  endPage: number;
+  /** Organization/program name for this range, only when confidently legible — UI label only. */
+  label?: string;
 }
 
 /**
@@ -159,7 +235,23 @@ export interface DocumentBundle {
   textTrack: string;
   /** Non-blocking fidelity notes (e.g. low resolution, truncated pages). */
   warnings: string[];
-  sourceFormat: 'pdf' | 'docx' | 'pptx';
+  /**
+   * `image` = a PNG/JPEG uploaded directly (a flattened logic model with no text layer — the
+   * `vision-only` prompt variant). `xlsx` = a workbook rendered to Markdown tables, which has no
+   * page rasters at all and so runs `text-only`. Both are real shapes in the partner corpus.
+   */
+  sourceFormat: 'pdf' | 'docx' | 'pptx' | 'image' | 'xlsx';
+}
+
+/**
+ * Input to the `detect-logic-models` pre-pass — deliberately narrower than `DocumentBundle`: it
+ * needs one whole-page image per page (`previewImages`, already computed for the source-review
+ * pane), not Track B's possibly column-tiled `images`.
+ */
+export interface DetectLogicModelGroupsInput {
+  previewImages: string[];
+  textTrack: string;
+  sourceFormat: DocumentBundle['sourceFormat'];
 }
 
 /** Canonical warning when image-dominant / flattened pages are present (drives extract prompt). */
@@ -168,14 +260,26 @@ export const LOW_LEGIBILITY_WARNING =
 
 export function bundleImpliesLowLegibility(bundle: Pick<DocumentBundle, 'warnings'>): boolean {
   return bundle.warnings.some(
-    w => w.includes('flattened-raster') || /low resolution/i.test(w)
+    // `[- ]` catches both "low resolution" and "low-resolution" — found via real-batch log
+    // analysis that the DOCX embedded-image warning (services/fileService.ts) uses the hyphenated
+    // form while this regex only matched the spaced form, so it silently never fired.
+    w => w.includes('flattened-raster') || /low[- ]resolution/i.test(w)
   );
+}
+
+/**
+ * True when Track B (page rasters) is empty — extraction ran on text alone, with no vision pass
+ * to verify layout, columns, or anything visual. Structural (checks `images.length`), not a
+ * warning-text match, so it can't silently break the way `bundleImpliesLowLegibility` did above.
+ */
+export function bundleUsedTextOnlyFallback(bundle: Pick<DocumentBundle, 'images'>): boolean {
+  return bundle.images.length === 0;
 }
 
 export interface ProcessingFile {
   id: string;
   file: File;
-  status: 'pending' | 'converting' | 'extracting' | 'analyzing' | 'editing' | 'completed' | 'error';
+  status: 'pending' | 'converting' | 'detecting' | 'extracting' | 'editing' | 'completed' | 'error';
   progressMsg?: string;
   error?: string;
   result?: LogicModel;
@@ -203,4 +307,30 @@ export interface ProcessingFile {
   /** User collapsed the source pane for this file (session). */
   /** When true (or undefined treated as collapsed in UI), source preview is hidden. Default collapsed. */
   sourcePaneCollapsed?: boolean;
+  /**
+   * Multi-logic-model split (see `docs/specs/multi-logic-model-pdf-v1.md`). Set together — a file
+   * carries all three, or none. `sourceDocumentId` groups siblings split from the same upload
+   * (the original upload's own `id`, reused as the group key); `sourcePageRange` is 1-based,
+   * inclusive, and refers to page numbers in the *original* uploaded document (not this entry's
+   * own re-numbered bundle); `splitPartLabel` is a display string like `"Part 2 of 7"`.
+   */
+  sourceDocumentId?: string;
+  sourcePageRange?: { start: number; end: number };
+  splitPartLabel?: string;
+  /**
+   * Which extraction prompt actually produced `result`, as reported by the server
+   * (`PROMPT_VERSION` / `promptVariantLabel` in constants.ts). Recorded per file because a batch
+   * can span several prompt variants — a text-only fallback and a low-legibility vision document
+   * receive materially different prompts, and pooling them into one error rate makes that rate
+   * uninterpretable. Surfaced in the extraction-log CSV for offline analysis.
+   */
+  promptVersion?: string;
+  promptVariant?: string;
+  /**
+   * Set by the "Treat as one logic model" revert action (or could be set some other way in
+   * future) — when a file with this flag reaches conversion, the multi-logic-model detection
+   * pre-pass is skipped entirely and it's extracted as a single logic model, exactly like the
+   * pipeline behaved before this feature existed.
+   */
+  forceSingleModel?: boolean;
 }

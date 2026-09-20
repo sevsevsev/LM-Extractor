@@ -4,6 +4,7 @@ import type { LogicModel, LogicModelGroup, LogicModelItem } from '../types';
 import {
   FIDELITY_BLOCKERS,
   countExtractionItems,
+  documentTypeFlagLabel,
   formatHardStopMessage,
   reconcileExtractionFidelity,
   shouldHardStopExtraction,
@@ -57,47 +58,62 @@ test('ok + few non-verbatim → high', () => {
   assert.equal(shouldSoftGateCodingExport(model), false);
 });
 
-test('V_f/N >= 0.15 upgrades ok → partial and medium', () => {
-  const model = baseModel({
-    activities: { content: groups(manyItems(10, 2)) }, // 0.20
-  });
+/**
+ * The four tests that used to sit here pinned the non-verbatim RATIO: 0.15 upgraded ok -> partial,
+ * 0.40 on a partial drove confidence to `low`, and `low` hard-stops the extraction in App.tsx.
+ *
+ * That ratio counted `item.verbatim === false` — a field the prompt stopped defining in
+ * PROMPT_VERSION 2026-09-20.2 while the response schema went on asking Gemini for it. So the input
+ * to the discard decision was a field the model answered with no instruction to answer it against.
+ * It never fired only because the model happened to answer `true` on 100% of items measured
+ * (friction-log sessions 19-20). Gemini is no longer asked for it at all, and nothing but a human
+ * edit can set it, so those thresholds are gone rather than merely unreachable.
+ *
+ * What replaces them is the inverse guarantee: item-level `verbatim` must NOT move the gate.
+ */
+test('items marked non-verbatim no longer change status or confidence', () => {
+  const flagged = baseModel({ activities: { content: groups(manyItems(10, 5)) } }); // would have been 0.50
+  const clean = baseModel({ activities: { content: groups(manyItems(10, 0)) } });
+  reconcileExtractionFidelity(flagged);
+  reconcileExtractionFidelity(clean);
+  assert.equal(flagged.extractionStatus, clean.extractionStatus);
+  assert.equal(flagged.extractionConfidence, clean.extractionConfidence);
+  assert.equal(flagged.extractionConfidence, 'high');
+});
+
+test('a flawless extraction is never discarded because items carry verbatim:false', () => {
+  // The exact shape of the withdrawn 2026-09-19.3 hazard: every item flagged, nothing else wrong.
+  // Before session 20 this returned `low`, and `low` means App.tsx throws the extraction away.
+  const model = baseModel({ activities: { content: groups(manyItems(10, 10)) } });
   reconcileExtractionFidelity(model);
-  assert.equal(model.extractionStatus, 'partial');
+  assert.notEqual(model.extractionConfidence, 'low');
+  assert.equal(shouldHardStopExtraction(model), false);
+});
+
+test('a small extract with no other problem stays high whatever verbatim says', () => {
+  const model = baseModel({ activities: { content: groups(manyItems(5, 4)) } });
+  reconcileExtractionFidelity(model);
+  assert.equal(model.extractionConfidence, 'high');
+  assert.equal(shouldShowFidelityBanner(model), false);
+});
+
+test('small low-legibility extract is flagged, never discarded', () => {
+  const model = baseModel({
+    activities: { content: groups([item('A'), item('B'), item('C')]) },
+  });
+  reconcileExtractionFidelity(model, { lowLegibility: true });
   assert.equal(model.extractionConfidence, 'medium');
-  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.nonVerbatimShare));
-  assert.equal(shouldSoftGateCodingExport(model), true);
+  assert.equal(shouldHardStopExtraction(model), false);
   assert.equal(shouldShowFidelityBanner(model), true);
 });
 
-test('V_f/N >= 0.40 on partial → low hard-stop', () => {
-  const model = baseModel({
-    activities: { content: groups(manyItems(10, 5)) }, // 0.50
-  });
-  reconcileExtractionFidelity(model);
-  assert.equal(model.extractionStatus, 'partial');
-  assert.equal(model.extractionConfidence, 'low');
-  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.highNonVerbatim));
-  assert.equal(shouldHardStopExtraction(model), true);
-});
-
-test('small low-legibility extract with non-verbatim → low hard-stop', () => {
-  const model = baseModel({
-    activities: { content: groups([item('A', false), item('B', true), item('C', true)]) },
-  });
+test('a dense low-legibility extract warns loudly but still reaches the operator', () => {
+  const model = baseModel({ activities: { content: groups(manyItems(8, 0)) } });
   reconcileExtractionFidelity(model, { lowLegibility: true });
-  assert.equal(model.extractionStatus, 'partial');
-  assert.equal(model.extractionConfidence, 'low');
-  assert.equal(shouldHardStopExtraction(model), true);
-});
-
-test('L + high non-verbatim share → low', () => {
-  const model = baseModel({
-    activities: { content: groups(manyItems(8, 3)) }, // 0.375 >= 0.25
-  });
-  reconcileExtractionFidelity(model, { lowLegibility: true });
-  assert.equal(model.extractionConfidence, 'low');
-  assert.ok(model.extractionBlockers?.some(b => /low-resolution|dense grid/i.test(b)));
-  assert.equal(shouldHardStopExtraction(model), true);
+  assert.equal(model.extractionConfidence, 'medium');
+  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.lowLegibilityDense));
+  assert.equal(shouldHardStopExtraction(model), false);
+  assert.equal(shouldShowFidelityBanner(model), true);
 });
 
 test('mismatch true → partial upgrade + medium', () => {
@@ -176,21 +192,45 @@ test('shouldHardStopExtraction on low even if status ok', () => {
   assert.equal(shouldSoftGateCodingExport(model), false);
 });
 
-test('dense low-legibility grid forces low even when all verbatim (Oxford-class)', () => {
+/**
+ * The art-thru-youth case (friction-log session 11). A 1024px PNG extracted string-for-string
+ * against its source, with zero inventions, and was discarded anyway because this branch forced
+ * `low`. Low legibility is a reason to CHECK an extraction, not a reason to throw it away — the
+ * conversion warning that triggers it literally says "verify the extracted wording against the
+ * original". It must still shout: the same document returns 18/17/13 items across three runs.
+ */
+test('dense low-legibility grid warns loudly and still reaches the operator (Oxford-class)', () => {
   const model = baseModel({
     activities: { content: groups(manyItems(10, 0)) },
   });
   reconcileExtractionFidelity(model, { lowLegibility: true });
   assert.equal(model.extractionStatus, 'partial');
-  assert.equal(model.extractionConfidence, 'low');
+  assert.equal(model.extractionConfidence, 'medium');
   assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.lowLegibilityDense));
-  assert.equal(shouldHardStopExtraction(model), true);
-  assert.equal(shouldShowFidelityBanner(model), false); // never reaches editor
+  assert.equal(shouldHardStopExtraction(model), false);
+  assert.equal(shouldShowFidelityBanner(model), true); // operator sees extraction + warning
 });
 
-test('formatHardStopMessage', () => {
-  assert.match(formatHardStopMessage([]), /stopped/i);
+/** The boundary: `low` still means "nothing worth showing", and those cases still hard-stop. */
+test('low legibility does not hard-stop, but abstained and no-content still do', () => {
+  const legible = baseModel({ activities: { content: groups(manyItems(10, 0)) } });
+  reconcileExtractionFidelity(legible, { lowLegibility: true });
+  assert.equal(shouldHardStopExtraction(legible), false);
+
+  const abstained = baseModel({ extractionStatus: 'abstained' });
+  reconcileExtractionFidelity(abstained, { lowLegibility: true });
+  assert.equal(shouldHardStopExtraction(abstained), true);
+
+  const empty = baseModel({});
+  reconcileExtractionFidelity(empty, { lowLegibility: true });
+  assert.equal(shouldHardStopExtraction(empty), true);
+});
+
+test('formatHardStopMessage explains in plain language and keeps the reason verbatim', () => {
+  assert.match(formatHardStopMessage([]), /could not extract/i);
+  // The reason is operator-facing copy — pass it through untouched rather than re-casing it.
   assert.match(formatHardStopMessage(['Illegible grid']), /Illegible grid/);
+  assert.match(formatHardStopMessage(['One', 'Two', 'Three']), /2 other reasons/);
 });
 
 test('countExtractionItems includes unmapped', () => {
@@ -198,5 +238,165 @@ test('countExtractionItems includes unmapped', () => {
     activities: { content: groups([item('a', true)]) },
     unmapped: { content: groups([item('b', false)], 'Other') },
   });
-  assert.deepEqual(countExtractionItems(model), { total: 2, nonVerbatim: 1 });
+  assert.deepEqual(countExtractionItems(model), { total: 2 });
 });
+
+// The client-side text-line-counting heuristic that used to live here (comparing candidate
+// bullet/numbered lines in Track A against extracted item counts) was removed after auditing a
+// real 112-file batch: hand-verifying 3 flagged documents against their source PDFs found it
+// firing on wrapped multi-column table lines, numbered academic references, and legitimate
+// secondary sections (evaluation frameworks, stat-tile infographics) — 3 for 3 false positives,
+// driving the majority of that batch's "Needs Review" flags. Gemini's own per-image self-report
+// (tested via `possiblyMissedRegions` on the model directly, below) is the only remaining source.
+test('possiblyMissedRegions on the model (Gemini self-report) drives possiblyIncomplete; a model with none never flags on its own', () => {
+  const clean = baseModel({ activities: { content: groups(manyItems(9, 0)) } });
+  reconcileExtractionFidelity(clean);
+  assert.equal(clean.extractionStatus, 'ok');
+  assert.equal(clean.extractionConfidence, 'high');
+  assert.ok(!clean.extractionBlockers?.includes(FIDELITY_BLOCKERS.possiblyIncomplete));
+
+  const flagged = baseModel({
+    activities: { content: groups(manyItems(9, 0)) },
+    possiblyMissedRegions: [{ page: 1, note: 'A labeled box on this image was not transcribed' }],
+  });
+  reconcileExtractionFidelity(flagged);
+  assert.equal(flagged.extractionStatus, 'partial');
+  assert.equal(flagged.extractionConfidence, 'medium');
+  assert.ok(flagged.extractionBlockers?.includes(FIDELITY_BLOCKERS.possiblyIncomplete));
+  assert.equal(shouldHardStopExtraction(flagged), false);
+});
+
+test('documentTypeAssessment "not_logic_model" flags for review, never hard-stops', () => {
+  const model = baseModel({
+    documentTypeAssessment: 'not_logic_model',
+    documentTypeNote: 'Reads as a Theory of Change narrative',
+    mission: { content: 'Through sustained investment, ...' },
+  });
+  reconcileExtractionFidelity(model);
+  assert.equal(model.extractionStatus, 'partial');
+  assert.equal(model.extractionConfidence, 'medium');
+  assert.ok(model.extractionBlockers?.some(b => /may not be a logic model/i.test(b)));
+  assert.ok(model.extractionBlockers?.some(b => b.includes('Theory of Change narrative')));
+  assert.equal(shouldHardStopExtraction(model), false);
+  assert.equal(shouldShowFidelityBanner(model), true);
+  assert.match(documentTypeFlagLabel(model), /^Not a logic model — the app sorted these items into columns/);
+});
+
+test('documentTypeAssessment "unclear" also flags for review', () => {
+  const model = baseModel({
+    documentTypeAssessment: 'unclear',
+    mission: { content: 'Overview text' },
+  });
+  reconcileExtractionFidelity(model);
+  assert.equal(model.extractionStatus, 'partial');
+  assert.equal(shouldHardStopExtraction(model), false);
+  assert.match(documentTypeFlagLabel(model), /^Unclear document type — some columns may have been assigned/);
+});
+
+test('documentTypeAssessment "logic_model" (or absent) never flags', () => {
+  const clean = baseModel({
+    documentTypeAssessment: 'logic_model',
+    activities: { content: groups(manyItems(8, 0)) },
+  });
+  reconcileExtractionFidelity(clean);
+  assert.equal(clean.extractionStatus, 'ok');
+  assert.equal(documentTypeFlagLabel(clean), '');
+
+  const absent = baseModel({ activities: { content: groups(manyItems(8, 0)) } });
+  reconcileExtractionFidelity(absent);
+  assert.equal(absent.extractionStatus, 'ok');
+  assert.equal(documentTypeFlagLabel(absent), '');
+});
+
+test('textOnlyFallback flags for review, never hard-stops, even with clean-looking content', () => {
+  const model = baseModel({
+    activities: { content: groups(manyItems(8, 0)) },
+  });
+  reconcileExtractionFidelity(model, { textOnlyFallback: true });
+  assert.equal(model.extractionStatus, 'partial');
+  assert.equal(model.extractionConfidence, 'medium');
+  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.textOnlyFallback));
+  assert.equal(shouldHardStopExtraction(model), false);
+  assert.equal(shouldShowFidelityBanner(model), true);
+});
+
+test('textOnlyFallback: false (or absent) never flags on its own', () => {
+  const model = baseModel({ activities: { content: groups(manyItems(8, 0)) } });
+  reconcileExtractionFidelity(model, { textOnlyFallback: false });
+  assert.equal(model.extractionStatus, 'ok');
+
+  const absent = baseModel({ activities: { content: groups(manyItems(8, 0)) } });
+  reconcileExtractionFidelity(absent);
+  assert.equal(absent.extractionStatus, 'ok');
+});
+
+test('zero grid items with recovered overview text flags for review instead of passing as ok/high', () => {
+  // Real gap found via a 112-file batch run: hasRecoveredLogicModelContent() is satisfied by
+  // mission/target/impact text alone, so a document that extracted zero inputs/activities/
+  // outputs/outcomes items could previously report "Successfully Processed" / high confidence.
+  const model = baseModel({
+    mission: { content: 'A real mission statement was recovered.' },
+    targetPopulation: { content: 'Youth in grades 6-12' },
+  });
+  reconcileExtractionFidelity(model);
+  assert.equal(model.extractionStatus, 'partial');
+  assert.equal(model.extractionConfidence, 'medium');
+  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.noGridItems));
+  assert.equal(shouldHardStopExtraction(model), false);
+});
+
+test('a genuinely empty result (no overview text either) still gets the stricter noContent treatment', () => {
+  const model = baseModel();
+  reconcileExtractionFidelity(model);
+  assert.equal(model.extractionStatus, 'partial');
+  assert.equal(model.extractionConfidence, 'low');
+  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.noContent));
+  assert.ok(!model.extractionBlockers?.includes(FIDELITY_BLOCKERS.noGridItems));
+  assert.equal(shouldHardStopExtraction(model), true);
+});
+
+test('Gemini-reported possiblyMissedRegions are normalized and deduped', () => {
+  const items: LogicModelItem[] = [{ text: 'Item 1', sourcePage: 1 }];
+  const model = baseModel({
+    activities: { content: groups(items) },
+    possiblyMissedRegions: [
+      { page: 2, xStart: 0.1, xEnd: 0.3, note: 'Left column looks cut off' },
+      { page: 0, note: 'invalid page, must be dropped' },
+      { page: 2, xStart: 0.1, xEnd: 0.3, note: 'duplicate of the first entry, must be deduped' },
+      { page: 3, xStart: 0.5, xEnd: 0.2, note: 'invalid span (end before start), span must be dropped' },
+    ],
+  });
+  reconcileExtractionFidelity(model);
+  assert.equal(model.extractionStatus, 'partial');
+  assert.deepEqual(model.possiblyMissedRegions, [
+    { page: 2, xStart: 0.1, xEnd: 0.3, note: 'Left column looks cut off' },
+    { page: 3, note: 'invalid span (end before start), span must be dropped' },
+  ]);
+});
+
+/**
+ * FIDELITY_BLOCKERS is the text an operator reads in the banner and beside a flagged file. It was
+ * rewritten out of schema/NLP vocabulary in friction-log session 13 ("Model abstained from
+ * extraction", "Layout family unknown", "Share of items flagged non-verbatim is high"). This keeps
+ * the next addition from quietly reintroducing it.
+ */
+{
+  const banned = [
+    'verbatim', 'schema', 'enum', 'domain', 'json', 'null', 'undefined', 'nlp', 'token',
+    'prompt', 'parse', 'layout family', 'abstain', 'legibility', 'fidelity', 'non-verbatim',
+  ];
+
+  for (const [key, text] of Object.entries(FIDELITY_BLOCKERS)) {
+    test(`blocker copy: ${key} avoids jargon and tells the operator something`, () => {
+      // "the model" is how these used to refer to Gemini; "the AI" is what a reader outside this
+      // codebase understands. "logic model" is the domain term and is fine.
+      const probe = text.toLowerCase().replace(/logic model/g, '');
+      for (const word of banned) {
+        assert.ok(!probe.includes(word), `blocker "${key}" contains "${word}": ${text}`);
+      }
+      assert.ok(!/\bthe model\b/.test(probe), `blocker "${key}" says "the model" — say "the AI": ${text}`);
+      assert.ok(text.length >= 25, `blocker "${key}" is too terse to act on: ${text}`);
+      assert.ok(/^[A-Z]/.test(text), `blocker "${key}" should read as a sentence: ${text}`);
+    });
+  }
+}

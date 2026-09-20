@@ -30,6 +30,32 @@ test('harvests when heading and prose are on one collapsed line', () => {
   assert.ok(!got?.includes('Dance Teacher'));
 });
 
+test('harvests under "Intended Impact" heading (synonym)', () => {
+  const got = harvestImpactStatementFromPlainText(`Intended Impact ${YOUTHMOVES_PROSE} Resources`);
+  assert.ok(got?.includes('Through sustained participation'));
+});
+
+test('harvests under "Long-Term Impact" heading (synonym, hyphenated)', () => {
+  const got = harvestImpactStatementFromPlainText(`Long-Term Impact ${YOUTHMOVES_PROSE} Resources`);
+  assert.ok(got?.includes('Through sustained participation'));
+});
+
+test('harvests under "Anticipated Impact" heading (synonym)', () => {
+  const got = harvestImpactStatementFromPlainText(`Anticipated Impact ${YOUTHMOVES_PROSE} Resources`);
+  assert.ok(got?.includes('Through sustained participation'));
+});
+
+test('does not treat a bare "Ultimate Goal" mention as a heading (client-side regex stays conservative)', () => {
+  // "Ultimate Goal" / "Overall Goal" / "Goal Statement" are recognized in the extraction prompt
+  // (Gemini can see whether it's a styled heading vs. an incidental phrase) but deliberately left
+  // out of this raw-text regex, which has no such visual context and could false-positive on
+  // ordinary body prose like "our ultimate goal is...".
+  const got = harvestImpactStatementFromPlainText(
+    `Resources Activities. Our ultimate goal is to help every student succeed. Outputs Short-Term`
+  );
+  assert.equal(got, null);
+});
+
 test('returns null when no impact statement present', () => {
   assert.equal(
     harvestImpactStatementFromPlainText('Resources Activities Outputs Short-Term Outcomes'),
@@ -37,7 +63,13 @@ test('returns null when no impact statement present', () => {
   );
 });
 
-test('recovers prose fingerprint without clean heading when signals match', () => {
+test('returns null without an explicit heading, even when prose reads like an impact statement', () => {
+  // The front-matter fallback (scan for any sentence matching population+change vocabulary when no
+  // "impact statement" heading exists) was removed: confirmed live that it duplicated an ordinary
+  // Mission sentence into impactStatement on a real document (Imagine That Philly), markdown page
+  // marker and all, even though the extraction prompt already correctly left impactStatement empty.
+  // Requiring an explicit heading avoids guessing at unlabeled prose Gemini already declined to
+  // treat as an impact statement.
   const got = harvestImpactStatementFromPlainText(`Page 1 overview. ${YOUTHMOVES_PROSE}`);
-  assert.ok(got?.includes('affirming environment'));
+  assert.equal(got, null);
 });

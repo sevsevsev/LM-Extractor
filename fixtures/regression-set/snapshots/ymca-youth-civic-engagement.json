@@ -1,0 +1,203 @@
+{
+  "id": "ymca-youth-civic-engagement",
+  "promptVersion": "2026-09-19.2",
+  "promptVariant": "vision+text",
+  "capturedAt": "2026-09-19T20:59:59.310Z",
+  "model": {
+    "organization": "Great Philadelphia YMCA",
+    "program": "Youth Civic Engagement",
+    "mission": {
+      "content": "The mission of the Greater Philadelphia YMCA’s Youth Civic Engagement (YCE) program is to empower youth to become informed, engaged citizens who are capable of making meaningful contributions to society. Through interactive civic education programs, including Youth and Government (YAG) and Model United Nations (MUN), YCE aims to develop critical civic knowledge, leadership, and social-emotional skills, preparing students for lifelong civic engagement and leadership roles."
+    },
+    "targetPopulation": {
+      "content": ""
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Resources: Funding, partnerships with schools, community organizations, and government entities.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Trained Staff and Volunteers: Trained facilitators skilled in civic education, social-emotional learning (SEL), and youth engagement.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Curriculum and Materials: Structured lesson plans, visual aids, and interactive tools for civic education and SEL development.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Facilities: Physical and virtual spaces for weekly sessions, pre-conferences, and main conferences.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Weekly Sessions: 1-1.5 hour interactive sessions from September to April on topics such as debate, policy-making, and public speaking, fostering SEL and leadership.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Pre-Conferences: Held in November and February, these gatherings introduce students to collaborative, real-world governance simulations.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Mock Conferences (MUN and YAG): 3-4 day immersive conferences where students engage in hands-on civic experiences, building social capital by networking with peers across the mid-Atlantic.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Participant Engagement: Attendance and active participation in weekly sessions and conferences.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Skill Development: Observable growth in public speaking, leadership, and social-emotional skills as measured by Hello Insight pre/post surveys.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Social Networks: Connections formed with peers from various schools and regions, supporting expanded perspectives and social capital.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Increased Civic Knowledge: Understanding of local, national, and international governance structures.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Enhanced SEL Competencies: Improvement in empathy, resilience, and collaboration skills.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Leadership Skills: Increased confidence in public speaking, debate, and team leadership.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "mediumTermOutcomes": {
+      "content": []
+    },
+    "longTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Empowered Civic Participation: Students become active, informed citizens who are equipped for future civic involvement.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "College and Career Readiness: Development of adaptable skills in critical thinking, problem-solving, and collaboration.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Sustained Community Impact: A network of youth who continue to engage in and influence civic matters within their communities and beyond.",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "impact": {
+      "content": []
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "ok",
+    "colorLegend": "",
+    "extractionConfidence": "high",
+    "generalOutcomes": {
+      "content": []
+    },
+    "impactStatement": {
+      "content": ""
+    },
+    "layoutFamily": "prose_sections",
+    "unmapped": {
+      "content": [
+        {
+          "name": "Problem Statement",
+          "items": [
+            {
+              "text": "Youth in the United States face a significant gap in civic knowledge and engagement, limiting their capacity to participate meaningfully in democratic processes, contribute to community well-being, and advocate for positive change. Nationally, only 24% of eighth graders achieve proficiency in civics, as shown by the National Assessment of Educational Progress, highlighting a widespread lack of foundational civic knowledge. Additionally, only 35% of young people feel qualified to engage in politics, with even fewer believing they have the power to influence social and political outcomes. This disconnect is evident locally as well; in Philadelphia, only 17.7% of registered voters participated in the 2024 primary election, underscoring low levels of civic engagement across the community. This civic education gap leaves youth underprepared for active citizenship, unable to effectively advocate for community improvements, and without the confidence to assume future leadership roles in society",
+              "verbatim": true,
+              "sourceHeader": "Problem Statement",
+              "sourceSection": "Problem Statement",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "Content Rationale",
+          "items": [
+            {
+              "text": "The YCE program curriculum is designed to address key competencies in civic engagement and social-emotional learning (SEL), providing students with practical skills for active citizenship and personal development. The structured sessions promote critical thinking, cooperation, and problem-solving, with students learning to navigate complex governance issues at local, national, and global levels. This approach not only fosters civic knowledge but also develops students' abilities to communicate, collaborate, and build empathy, thereby preparing them for diverse roles in their communities and careers​.",
+              "verbatim": true,
+              "sourceHeader": "Content Rationale",
+              "sourceSection": "Content Rationale",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        }
+      ]
+    },
+    "mappingCorrections": []
+  }
+}

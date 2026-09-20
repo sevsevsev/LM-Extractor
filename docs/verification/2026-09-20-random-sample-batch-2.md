@@ -1,0 +1,139 @@
+# Random sample, batch 2 — invention and completeness
+
+**Date:** 2026-09-20 · **Prompt:** 2026-09-20.6 · **Arm:** vision+text, one pass each · **5 Gemini calls**
+
+## Result
+
+| Document | Source items | Extracted | Invented | Missed |
+|---|---|---|---|---|
+| Philadelphia Ballet — Dance Chance | 16 | 16 | 0 | 0 |
+| Achieve Now | 52 | 52 | 0 | 0 |
+| Rock School — RockReach | 63 (vs Track A) | 63 | 0 | 0 |
+| 1812 Productions — 1812 Education | 36 | 36 | 0 | 0 |
+| Mamadêlê Foundation — Axé Puro | 80 | 80 | 0 | 0 |
+
+**Invention: 0 of 247 items. Completeness: no misses found.**
+
+Combined with batch 1: **0 inventions in 335 items across 9 documents.**
+
+## Method note — the audit instrument was the weak link, again
+
+Three times across sessions 5, 19 and 20 I reported something ABSENT that was present, each time
+because the probe was weaker than the data: a single-line grep against multi-line output; a
+flattener that walked only group-bearing fields; an exact-substring search against a text track
+with hard line breaks mid-phrase.
+
+Absence is the claim a weak instrument manufactures. So this batch used `coverage.mjs`, which
+normalises whitespace and quote characters on both sides and checks every item AND the scalar
+fields against Track A. It reduced 247 items to 9 strings needing human eyes. All 9 resolved to
+correct behaviour. A miss in that tool is not an invention — Track A can legitimately lack what
+only the image carries — it means *look at the image*.
+
+## What each document exercised
+
+**Philadelphia Ballet** — the ArtWell template again, with the instruction text replaced by real
+content. A stray empty `-` bullet at the foot of Resources was correctly not emitted. The impact
+statement, which the rasteriser mangles into overlapping clipped lines, came out complete and
+verbatim from Track A.
+
+**Achieve Now** — two things worth keeping. The source genuinely reads `Hjgh rate of volunteer
+retention`, typo and all, and the extraction preserved it rather than repairing to "High": this
+is the never-repair rule doing exactly the job it exists for, on a case where repairing would
+have looked like an improvement. And one Long-Term box renders as pure mojibake
+(`! "#$%&''()*+%,*)&$ , '%&)*('-'./'*`) because its font failed to embed; the extraction
+recovered the real string, `Volunteers and students receive stronger, more targeted support`,
+from Track A. A stray orphan fragment in the PDF's text layer (`Financial / - / Students have a`)
+that appears in Track A but nowhere in the visible page was correctly NOT emitted.
+
+**Rock School** — the most demanding document in the corpus so far, and the clearest evidence
+that the dual track earns its keep. **Every one of its 5 page images is unreadable mojibake** —
+the whole document's font failed to map, so Track B contributed nothing. All 63 items came from
+Track A alone, at `partial`/`medium` with a warning. Two of those items are phrases the source
+splits across a page boundary with roughly 1,400 characters of unrelated column text between the
+halves (`An improved growth` + `mindset, increase in tenacity, confidence, and curiosity`;
+`Social emotional learning` + `through community and citizenship`); both were correctly
+reassembled. The 5-column School District template (RESOURCES/INPUTS, ACTIVITIES, OUTPUTS,
+OUTCOMES, IMPACT) mapped correctly, with the unqualified OUTCOMES column going to
+`generalOutcomes` and IMPACT to `impact`.
+
+**1812 Productions** — preserved four source typos verbatim (`Widerner`, `creativty`,
+`empowring`, `innaugural`). PROBLEM STATEMENT and CONTEXT / RATIONALE went to `unmapped` with
+their headings, which is the 2026-09-20.4 behaviour working.
+
+**Mamadêlê** — the hardest grouping case in the corpus: a 6x6 matrix whose ROWS are core values
+(Cultural Preservation, Excellence in Arts & Education, Global Collaboration, Community
+Empowerment, Respect for Tradition & Innovation, Diversity & Inclusion) and whose COLUMNS are
+logic-model domains. All six row bands became group names inside all six domains, 80 items, no
+losses. `Intermediate-Term Outcomes` was correctly read as `mediumTermOutcomes`. The
+organisation name kept its diacritics, and no program name was invented from the filename even
+though the filename carries one.
+
+## Findings (reported, not fixed)
+
+Four, none of them extraction-quality. See friction log session 20.
+
+1. **DOCX text tracks carry base64 image payloads.** 1812's Track A is 38,994 characters of
+   which 33,837 — **87%** — are `data:image/...;base64` blobs and Google-hosted image URLs,
+   about 8,400 tokens of noise sent on every extraction call for that document. Root cause:
+   `mammoth.convertToHtml` inlines embedded images as data URIs and Turndown renders them into
+   the Markdown (`services/fileService.ts:879`); nothing strips them. Base64 cannot be read as
+   text by any model, and the same images already go as Track B rasters, so this is pure waste.
+   One-line fix available; not applied.
+
+2. **Scalar fields are synthesised, not transcribed, and nothing records that.** 1812's
+   `targetPopulation` is a composed sentence stitching a span of PROBLEM STATEMENT to a span of
+   CONTEXT / RATIONALE with connective words present in neither. ArtWell's and Philadelphia
+   Ballet's were derived from their impact statements. That is 4 of 9 documents. Items carry
+   `mappedBy` and `mappingConfidence`; scalars carry nothing, so a downstream reader treating
+   `targetPopulation` as quoted text would be wrong and has no way to know.
+
+3. **CORRECTED — this finding was wrong as first published.** It claimed Rock School's warning
+   was Gemini-authored because it matched neither `FIDELITY_BLOCKERS.lowRes` nor
+   `lowLegibilityPartial`. It is an exact match for a third constant I did not check,
+   `FIDELITY_BLOCKERS.lowLegibilityDense` — app-authored and vetted. Nothing in this sample shows
+   model-written text reaching the operator.
+
+   The underlying mechanism is still real and still unguarded: `constants.ts:699` asks Gemini for
+   free-text blockers and `normalizeBlockers` only trims, dedupes and caps at 4, so model prose
+   *can* land in the same list as vetted strings with nothing marking which is which. But this
+   batch is not evidence that it happened.
+
+   What survives, and is sharper for being pinned on an app string: **the app's own wording names
+   the wrong cause.** `lowLegibilityDense` says "This image is low resolution and the grid is
+   dense". Rock School's pages are not low-resolution — every one of them failed to render because
+   the font did not embed, and they would be unreadable at any DPI. An operator told "low
+   resolution" might re-scan at higher DPI, which cannot possibly help. That is a string we
+   control, so it is fixable precisely, and it is the same underlying gap as finding 4.
+
+4. **RESOLVED — investigated and deliberately not built.** The finding was real as an
+   observation: Rock School had 5 page images, all unreadable, and was still handled as a vision
+   extraction. The question is whether that is detectable cheaply.
+
+   The obvious signal is "a page has an image but produced no Track A text". Measured across the
+   corpus it fires on 9 of 14 documents, and restricted to PDFs (the only format where the probe
+   is even meaningful — DOCX Markdown has no page markers) on 2 of 12. Both of those two are
+   false positives for the thing we care about:
+
+   - **Oxford Circle page 2** is the complete logic-model grid, perfectly legible. It has no
+     Track A text because that PDF has no text layer, and vision read it correctly — 44 items,
+     STABLE across 3 runs.
+   - **Rock School page 5** is a near-blank trailing page carrying two stray glyphs. Nothing to
+     lose.
+
+   So the signal detects *vision-dependent pages*, not *unreadable pages* — a different variable,
+   and one where the healthy case and the broken case look identical. Detecting the real condition
+   means assessing whether a rendered image is legible, which is OCR-scale work. Shipping the
+   cheap proxy would repeat a mistake this codebase already made and removed: the text-line-
+   counting heuristic documented at `shared/extractionFidelity.ts:318`, withdrawn after hand-
+   checking found it 3 for 3 false positives.
+
+   The mitigation that matters is already in place and was demonstrated by this very document:
+   Rock School still produced 63 correct items from Track A alone, and it carried a warning. The
+   system degrades gracefully and says so; what it cannot do is name the cause, which is what
+   finding 3 above is now about.
+
+Also observed, too small to act on alone: Achieve Now's Outputs contain two items with identical
+text (`Avg Student Gains`), identical group (`General`) and identical every other field. In the
+source they sit in two different unnamed boxes, one under the 1:1-model metrics and one under the
+small-group metrics. The source boxes have no headings, so there is no sub-heading for the
+GROUPING GATE to use, and the distinction survives only as row order.

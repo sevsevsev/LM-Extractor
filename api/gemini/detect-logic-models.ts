@@ -1,6 +1,7 @@
-import { handleCritiqueRequest } from '../../server/apiCore.js';
+import { handleDetectLogicModelGroupsRequest } from '../../server/apiCore.js';
 import type { FnRequest, FnResponse } from '../../server/fnTypes.js';
 
+/** POST body: `{ previewImages, textTrack, sourceFormat }` (see DetectLogicModelGroupsInput). */
 export default async function handler(req: FnRequest, res: FnResponse): Promise<void> {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -8,6 +9,6 @@ export default async function handler(req: FnRequest, res: FnResponse): Promise<
     return;
   }
 
-  const result = await handleCritiqueRequest(req.body);
+  const result = await handleDetectLogicModelGroupsRequest(req.body);
   res.status(result.status).json(result.body);
 }

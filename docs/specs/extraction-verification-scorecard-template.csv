@@ -1,0 +1,4 @@
+"file_name","organization","program","domain","group","extracted_text","present_in_source","correct_domain","correct_group","text_accurate","reviewer","notes"
+"EXAMPLE_only_delete_before_use.pdf","Example Org","Example Program","Short-Term Outcomes","General","Increase volunteers' understanding of early literacy development","Y","Y","Y","Y","J. Reviewer","matches source wording exactly, p.2"
+"EXAMPLE_only_delete_before_use.pdf","Example Org","Example Program","Short-Term Outcomes","General","Increase students' exposure to older adult mentorship","Y","N","Y","Y","J. Reviewer","this reads as program dose, not a participant change - probably belongs in Outputs, not Outcomes"
+"EXAMPLE_only_delete_before_use.pdf","Example Org","Example Program","Outputs","General","Fabricated deliverable that is not in the source","N","-","-","-","J. Reviewer","could not find this anywhere in the document - looks invented"

@@ -1,8 +1,13 @@
 # Extraction confidence + abstention (v1)
 
+> **2026-09 note:** document-quality critique (`overallQuality`, per-domain/item critique) referenced
+> throughout this doc was removed from the app — see `scope-extraction-only-2026-09.md`. The
+> fidelity/abstention design below is unaffected and still active; "critique" mentions are historical
+> context for why fidelity was deliberately kept separate from it.
+
 Status: **Implemented (local)** (owner 2026-08-10) — tune thresholds from next 3–5 real-doc sessions  
-Agents: @product (this doc), @architect (schema / rollup), @ux (banners / gates), @critique-prompt (extract abstain language only — not LM quality rubric)  
-Related: `extraction-provenance-and-color.md`, `source-aware-mapping-v1.md`, `source-review-v1.md`, `structure-aware-extract.md`, `lm-quality-rubric.md`, `tech-extraction-confidence-v1.md`
+Agents: @product (this doc), @architect (schema / rollup), @ux (banners / gates)  
+Related: `extraction-provenance-and-color.md`, `source-aware-mapping-v1.md`, `source-review-v1.md`, `structure-aware-extract.md`, `tech-extraction-confidence-v1.md`
 
 ## Problem
 

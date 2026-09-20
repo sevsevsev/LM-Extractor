@@ -11,6 +11,7 @@ export type CanonicalGroupedDomain =
   | 'shortTermOutcomes'
   | 'mediumTermOutcomes'
   | 'longTermOutcomes'
+  | 'generalOutcomes'
   | 'impact';
 
 /** Normalized header fragment → domain. Longer keys checked first after sort. */
@@ -33,6 +34,10 @@ const SYNONYM_ENTRIES: { key: string; domain: CanonicalGroupedDomain }[] = [
   { key: 'long-term', domain: 'longTermOutcomes' },
   { key: 'long term', domain: 'longTermOutcomes' },
   { key: 'ultimate outcomes', domain: 'longTermOutcomes' },
+  // Bare "Outcomes" (no time-horizon qualifier) — a single combined outcomes column/section,
+  // not separately labeled short/medium/long-term. Checked after the more specific keys above.
+  { key: 'outcomes', domain: 'generalOutcomes' },
+  { key: 'program outcomes', domain: 'generalOutcomes' },
   // Impact column (not Impact Statement)
   { key: 'ultimate impact', domain: 'impact' },
   { key: 'impact', domain: 'impact' },
@@ -99,6 +104,7 @@ export const CANONICAL_DOMAIN_OPTIONS: { value: CanonicalGroupedDomain | ''; lab
   { value: 'shortTermOutcomes', label: 'Short-Term Outcomes' },
   { value: 'mediumTermOutcomes', label: 'Medium-Term Outcomes' },
   { value: 'longTermOutcomes', label: 'Long-Term Outcomes' },
+  { value: 'generalOutcomes', label: 'General Outcomes (time horizon not specified)' },
   { value: 'impact', label: 'Impact' },
 ];
 

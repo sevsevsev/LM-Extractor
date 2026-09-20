@@ -1,0 +1,492 @@
+{
+  "id": "a-new-dawn",
+  "promptVersion": "2026-09-19.2",
+  "promptVariant": "vision+text",
+  "capturedAt": "2026-09-19T21:00:13.401Z",
+  "model": {
+    "organization": "A New Dawn Incorporated",
+    "program": "School District of Philadelphia – 2025",
+    "mission": {
+      "content": ""
+    },
+    "targetPopulation": {
+      "content": ""
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Experienced instructors in farming, hydroponics, STEAM, drones, and wellness",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Aspen Farms, greenhouse, raised beds, compost systems",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Farming and hydroponics supplies (soil, seeds, trays, nutrients, water testing kits)",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Trauma-informed wellness partners (Life Outside the Streets, Cornerstone)",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Technology (drones, tablets, cameras, AI tools)",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Community partnerships: Tiffany Fletcher Recreation Center, Aspen Farms, MCAC, Drexel University",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Volunteers, interns, and youth leaders",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Grant funding (DAO, Deeply Rooted, foundations), donations, in-kind support",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Curriculum materials (books, journals, lesson plans, environmental justice content)",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Access to students, school grounds, classrooms, and outdoor learning spaces",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Organizational leadership (Lauren Wilkerson, Dawn Wilkerson, board)",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Hands-on farming, gardening, hydroponics, aquaponics, and greenhouse instruction",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Drone pilot training, AI learning modules, and STEAM workshops",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Trauma-informed wellness: mindfulness, yoga, brain health sessions, healing circles",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Environmental justice education and outdoor stewardship",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Composting, recycling, and sustainability skill-building",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Senior movement and intergenerational workshops",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Nutrition education, food preservation, canning, healthy cooking",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Leadership development (youth interns, team-building, stipends)",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Community cleanups, greening projects, farmers markets",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "After-school and summer programming; school partnerships; field trips",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Data tracking, reflection journals, pre/post assessments",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "150+ students engaged across school-year and summer programs",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "30 hands-on hydroponic systems built and maintained",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "500 lbs. of produce grown and shared",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "20 youth complete drone/STEAM modules and receive stipends",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "12 wellness workshops delivered (mindfulness, brain health, trauma healing)",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "8 environmental justice lessons taught",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "10 community cleanups held",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "6 school-based raised beds or garden installations completed",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "100 journals completed by students documenting growth and reflection",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Up to 20 seniors engaged in intergenerational sessions",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "50 volunteers mobilized across the year",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": []
+    },
+    "mediumTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Students practice leadership: peer mentors, youth farmers, drone leaders",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Measurable improvement in social-emotional regulation",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased interest in STEAM-related electives or career pathways",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Reduced behavioral incidents due to trauma-informed practices",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Schools adopt sustainable composting and greening programs",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Strengthened intergenerational engagement",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Improvement in school climate, belonging, and pride",
+              "verbatim": true,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "longTermOutcomes": {
+      "content": [
+        {
+          "name": "For Students",
+          "items": [
+            {
+              "text": "Increased graduation rates and post-secondary readiness",
+              "verbatim": true,
+              "sourceHeader": "For Students",
+              "sourceSection": "For Students",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Career pathways in agriculture, technology, sustainability, and environmental science",
+              "verbatim": true,
+              "sourceHeader": "For Students",
+              "sourceSection": "For Students",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Stronger resilience, emotional health, and life skills",
+              "verbatim": true,
+              "sourceHeader": "For Students",
+              "sourceSection": "For Students",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Reduced involvement with violence or justice system",
+              "verbatim": true,
+              "sourceHeader": "For Students",
+              "sourceSection": "For Students",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Youth become “Green Leaders” in Mill Creek and West Philadelphia",
+              "verbatim": true,
+              "sourceHeader": "For Students",
+              "sourceSection": "For Students",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "For Schools & Communities",
+          "items": [
+            {
+              "text": "Healthier, greener, safer neighborhoods",
+              "verbatim": true,
+              "sourceHeader": "For Schools & Communities",
+              "sourceSection": "For Schools & Communities",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased local food security and environmental justice",
+              "verbatim": true,
+              "sourceHeader": "For Schools & Communities",
+              "sourceSection": "For Schools & Communities",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Sustainable agriculture projects maintained by students and families",
+              "verbatim": true,
+              "sourceHeader": "For Schools & Communities",
+              "sourceSection": "For Schools & Communities",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Stronger school–community bonds",
+              "verbatim": true,
+              "sourceHeader": "For Schools & Communities",
+              "sourceSection": "For Schools & Communities",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Long-term reduction in violence through healing-centered engagement",
+              "verbatim": true,
+              "sourceHeader": "For Schools & Communities",
+              "sourceSection": "For Schools & Communities",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "A youth-led, community-rooted model for restorative, place-based education",
+              "verbatim": true,
+              "sourceHeader": "For Schools & Communities",
+              "sourceSection": "For Schools & Communities",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "impact": {
+      "content": []
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "ok",
+    "generalOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Increased knowledge of farming, hydroponics, and environmental systems",
+              "verbatim": true,
+              "sourceHeader": "Youth Outcomes",
+              "sourceSection": "Youth Outcomes",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Improved school attendance and participation in hands-on learning",
+              "verbatim": true,
+              "sourceHeader": "Youth Outcomes",
+              "sourceSection": "Youth Outcomes",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Increased confidence, teamwork, and problem-solving skills",
+              "verbatim": true,
+              "sourceHeader": "Youth Outcomes",
+              "sourceSection": "Youth Outcomes",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Reduction in stress markers through wellness sessions",
+              "verbatim": true,
+              "sourceHeader": "Youth Outcomes",
+              "sourceSection": "Youth Outcomes",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Improved understanding of environmental justice and climate impacts",
+              "verbatim": true,
+              "sourceHeader": "Youth Outcomes",
+              "sourceSection": "Youth Outcomes",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Increased fresh food access for school and neighborhood",
+              "verbatim": true,
+              "sourceHeader": "School/Community Outcomes",
+              "sourceSection": "School/Community Outcomes",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "More student engagement in STEAM and outdoor learning",
+              "verbatim": true,
+              "sourceHeader": "School/Community Outcomes",
+              "sourceSection": "School/Community Outcomes",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Cleaner, greener school campus",
+              "verbatim": true,
+              "sourceHeader": "School/Community Outcomes",
+              "sourceSection": "School/Community Outcomes",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Stronger partnerships between schools, families, and community organizations",
+              "verbatim": true,
+              "sourceHeader": "School/Community Outcomes",
+              "sourceSection": "School/Community Outcomes",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            }
+          ]
+        }
+      ]
+    },
+    "impactStatement": {
+      "content": "(3–5 years)** **For Students** - Increased graduation rates and post-secondary readiness - Career pathways in agriculture, technology, sustainability, and environmental science - Stronger resilience, emotional health, and life skills - Reduced involvement with violence or justice system - Youth become “Green Leaders” in Mill Creek and West Philadelphia **For Schools & Communities** - Healthier, greener, safer neighborhoods - Increased local food security and environmental justice - Sustainable agriculture projects maintained by students and families - Stronger school–community bonds -"
+    },
+    "unmapped": {
+      "content": []
+    },
+    "layoutFamily": "vertical_columns",
+    "mappingCorrections": [],
+    "extractionConfidence": "high"
+  }
+}

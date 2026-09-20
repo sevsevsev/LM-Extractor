@@ -1,10 +1,15 @@
 import type { LogicModel, LogicModelGroup, ProcessingFile } from '../types';
+import { qaStatusLabel } from '../shared/qaStatus.js';
+import { documentTypeFlagLabel } from '../shared/extractionFidelity.js';
+import { displayFileName } from '../shared/processingFileDisplay.js';
+import { itemNeedsReview } from '../shared/provenance.js';
 
 /** Domains included in Export for coding — see docs/specs/export-for-coding.md */
-export const CODING_EXPORT_DOMAINS = [
+const CODING_EXPORT_DOMAINS = [
   'Short-Term Outcomes',
   'Medium-Term Outcomes',
   'Long-Term Outcomes',
+  'General Outcomes',
 ] as const;
 
 type CodingDomain = (typeof CODING_EXPORT_DOMAINS)[number];
@@ -13,6 +18,8 @@ const DOMAIN_FIELDS: { domain: CodingDomain; field: keyof LogicModel }[] = [
   { domain: 'Short-Term Outcomes', field: 'shortTermOutcomes' },
   { domain: 'Medium-Term Outcomes', field: 'mediumTermOutcomes' },
   { domain: 'Long-Term Outcomes', field: 'longTermOutcomes' },
+  // No time horizon in the source — a coder assigns short/medium/long-term during coding.
+  { domain: 'General Outcomes', field: 'generalOutcomes' },
 ];
 
 export function countCodingExportRows(files: ProcessingFile[]): number {
@@ -27,8 +34,12 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
     const m = f.result;
 
     const colorLegend = m.colorLegend?.trim() || '';
+    const qaStatus = qaStatusLabel(m);
+    const documentTypeFlag = documentTypeFlagLabel(m);
     for (const { domain, field } of DOMAIN_FIELDS) {
-      const groups = (m[field] as { content: LogicModelGroup[] }).content || [];
+      // generalOutcomes is optional (most files don't set it), unlike the always-present short/
+      // medium/long-term fields, so m[field] itself can be undefined here.
+      const groups = (m[field] as { content: LogicModelGroup[] } | undefined)?.content || [];
       groups.forEach((g, gi) => {
         g.items.forEach((item, ii) => {
           const text = (item.text || '').trim();
@@ -37,7 +48,7 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
           const color = [item.fillColor?.trim(), item.borderColor?.trim() ? `border:${item.borderColor.trim()}` : '']
             .filter(Boolean)
             .join(' ');
-          const needsReview = item.verbatim === false || Boolean(item.sourceNote?.trim()) ? 'Yes' : '';
+          const needsReview = itemNeedsReview(item) ? 'Yes' : '';
           rows.push([
             rowId,
             m.organization || '',
@@ -48,6 +59,9 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
             color,
             needsReview,
             colorLegend,
+            displayFileName(f),
+            qaStatus,
+            documentTypeFlag,
           ]);
         });
       });
@@ -71,6 +85,9 @@ export function buildCodingExportCsv(files: ProcessingFile[]): string | null {
     'color_coding',
     'needs_review',
     'color_legend',
+    'source_filename',
+    'qa_status',
+    'document_type_flag',
   ];
   const escape = (c: string) => `"${String(c).replace(/"/g, '""')}"`;
   return [headers.map(escape).join(','), ...rows.map(row => row.map(escape).join(','))].join('\n');
@@ -79,7 +96,10 @@ export function buildCodingExportCsv(files: ProcessingFile[]): string | null {
 export function downloadCodingExportCsv(files: ProcessingFile[]): { ok: true } | { ok: false; reason: string } {
   const csv = buildCodingExportCsv(files);
   if (!csv) {
-    return { ok: false, reason: 'No short-, medium-, or long-term outcome rows to export for coding.' };
+    return {
+      ok: false,
+      reason: 'No short-, medium-, long-term, or general outcome rows to export for coding.',
+    };
   }
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);

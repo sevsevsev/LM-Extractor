@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type { LogicModel, QualityRating } from '../types';
+import type { LogicModel } from '../types';
 import { CANONICAL_DOMAIN_OPTIONS, type CanonicalGroupedDomain } from '../shared/domainSynonyms';
 import { appendCorrection, reassignItemDomain } from '../shared/sourceMapping';
 
@@ -38,13 +38,6 @@ export const ColorSwatch: React.FC<{ label: string; value: string }> = ({ label,
     </span>
   );
 };
-
-export const ratingBadgeClass = (rating?: string) =>
-  rating === 'Strong' || rating === 'Adequate'
-    ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
-    : rating === 'Weak'
-      ? 'bg-amber-100 text-amber-900 border-amber-200'
-      : 'bg-slate-100 text-slate-600 border-slate-200';
 
 export const DomainAssignControls: React.FC<{
   currentDomain: CanonicalGroupedDomain | 'unmapped';
@@ -137,5 +130,3 @@ export const DomainAssignControls: React.FC<{
     </div>
   );
 };
-
-export const RATING_OPTIONS: QualityRating[] = ['Strong', 'Adequate', 'Weak'];

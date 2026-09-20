@@ -6,34 +6,41 @@ alwaysApply: true
 # Logic Model Extractor — Project Context
 
 ## What this app does
-Web app that extracts structured logic models from uploaded documents (PDF, DOCX, PPTX) using Gemini vision/text, critiques them against logic-model guidance, lets users edit results, and exports CSV/PDF.
+Web app that reliably extracts structured logic models from uploaded documents (PDF, DOCX, PPTX)
+using Gemini vision/text for downstream processing, lets users edit/verify results, and exports
+CSV for coding. Document-quality/causal-chain critique is out of scope — see
+`docs/specs/scope-extraction-only-2026-09.md`.
 
 ## Tech stack (Golden Path)
 - **Language:** TypeScript
 - **Frontend:** React 19 + Vite (port 3000) + Tailwind v4 (`@tailwindcss/vite`)
 - **API:** Express (`server.ts`) on port 3011 — Gemini key stays server-side only
-- **AI:** Google Gemini via `@google/genai` in `server/geminiLogicModel.ts`
+- **AI:** Google Gemini via `@google/genai` in `server/geminiLogicModel.ts` (extract) and
+  `server/geminiLogicModelGroups.ts` (multi-logic-model detect pre-pass)
 - **File handling:** npm packages (`pdfjs-dist`, `mammoth`, `docx-preview`, `html2canvas`, `jszip`, `turndown`, `jspdf`)
 - **Export:** CSV download + PDF generation (`pdfService`)
 - **Brand:** `config/brand.ts` (SDP defaults)
 - **Production:** `npm start` builds client and serves `dist` + API from Express
 
 ## Key directories
-- `App.tsx` — upload queue, extract → critique → edit flow, CSV/PDF export
+- `App.tsx` — upload queue, extract → edit flow, CSV/PDF export
 - `components/` — FileUpload, LogicModelEditor, LogicModelPdfTemplate
 - `services/geminiService.ts` — browser fetch client to `/api/gemini/*`
 - `services/fileService.ts` — document → images/markdown
 - `services/pdfService.ts` — PDF/ZIP export
-- `server.ts` + `server/geminiLogicModel.ts` — Gemini extract/critique
-- `constants.ts` — extraction and critique prompts
+- `server.ts` + `server/geminiLogicModel.ts` — Gemini extract
+- `constants.ts` — extraction prompt
 - `types.ts` — LogicModel and processing types
 - `docs/specs/` — PRD + living roadmap
 
 ## Architecture principles
-- Two-pass Gemini pipeline: extract then critique
+- Up to two Gemini calls per multi-page document: an optional detect-logic-models pre-pass
+  (`server/geminiLogicModelGroups.ts`, splits a document containing more than one logic model)
+  followed by extract (`server/geminiLogicModel.ts`) — not single-pass (fixed 2026-09-19; see
+  `docs/specs/multi-logic-model-pdf-v1.md`)
 - Prefer vision/image conversion for layout fidelity; fall back to markdown text extraction
 - Schema-constrained Gemini JSON matching `LogicModel` in `types.ts`
-- Human-in-the-loop editing before export; re-critique available after edits
+- Human-in-the-loop editing before export
 - Vite proxies `/api` → `localhost:3011`
 
 ## Guardrails
@@ -42,4 +49,4 @@ Web app that extracts structured logic models from uploaded documents (PDF, DOCX
 - **Secrets:** `GEMINI_API_KEY` only in `.env.local`, read by Express. Never Vite-define into the client.
 
 ## How to invoke agents
-Reference by name in chat: `@product`, `@architect`, `@integrator`, `@devops`, `@ux`, `@pattern-analyst`, `@critic`, `@microcopy`, `@user-tester`, `@lm-quality`, `@critique-prompt`. See `AGENTS.md`.
+Reference by name in chat: `@product`, `@architect`, `@integrator`, `@devops`, `@ux`, `@pattern-analyst`, `@critic`, `@microcopy`, `@user-tester`. See `AGENTS.md`.

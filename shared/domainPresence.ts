@@ -1,4 +1,7 @@
-import type { LogicModel, LogicModelField, LogicModelGroup } from '../types';
+import type { LogicModel, LogicModelGroup } from '../types';
+import { qaStatusLabel } from './qaStatus.js';
+import { documentTypeFlagLabel } from './extractionFidelity.js';
+import { itemNeedsReview } from './provenance.js';
 
 export function stringDomainHasContent(content?: string): boolean {
   return Boolean(content?.trim());
@@ -8,126 +11,21 @@ export function groupedDomainHasContent(groups?: LogicModelGroup[]): boolean {
   return (groups ?? []).some(g => g.items.some(i => Boolean(i.text?.trim())));
 }
 
-function clearAbsentStringDomainCritique<T extends LogicModelField<string>>(field: T): void {
-  if (!stringDomainHasContent(field.content)) {
-    field.critique = '';
-    delete field.rating;
-  }
-}
-
-function clearAbsentGroupedDomainCritique<T extends LogicModelField<LogicModelGroup[]>>(field: T): void {
-  if (!groupedDomainHasContent(field.content)) {
-    field.critique = '';
-    delete field.rating;
-    for (const g of field.content) {
-      for (const item of g.items) {
-        delete item.critique;
-        delete item.rating;
-      }
-    }
-  }
-}
-
-function rationaleMentionsAbsentMission(bullet: string): boolean {
-  const b = bullet.toLowerCase();
-  if (!/\bmission\b/.test(b)) return false;
-  return (
-    /\b(absent|missing|not present|no mission|entirely absent|fundamental flaw)\b/.test(b) ||
-    /\blacks?\s+(a\s+)?mission\b/.test(b) ||
-    /\bmission\s+(is\s+)?(absent|missing|not present)\b/.test(b) ||
-    /\bwithout\s+(a\s+)?mission\b/.test(b)
-  );
-}
-
-/** Grid Impact column only — not labeled Impact Statement prose. */
-function rationaleMentionsEmptyImpactGrid(bullet: string): boolean {
-  const b = bullet.toLowerCase();
-  if (/\bimpact statement\b/.test(b)) return false;
-  if (!/\bimpact\b/.test(b)) return false;
-  return (
-    (/\b(empty|missing|absent|not present)\b/.test(b) &&
-      (/\bimpact\s*(section|column|domain)\b/.test(b) ||
-        /['']impact['']/.test(b) ||
-        /\bthe\s+impact\b/.test(b))) ||
-    /\bimpact\b.*\b(fails?|failing)\s+to\s+articulate\b/.test(b) ||
-    /\bno\s+impact\s+(section|column)\b/.test(b)
-  );
-}
-
-function rationaleMentionsAbsentMediumTerm(bullet: string): boolean {
-  const b = bullet.toLowerCase();
-  if (!/\bmedium[- ]term\b/.test(b)) return false;
-  return /\b(absent|missing|not present|no medium)\b/.test(b);
-}
-
-export function shouldDropOverallRationaleBullet(bullet: string, model: LogicModel): boolean {
-  const text = bullet.trim();
-  if (!text) return true;
-
-  if (!stringDomainHasContent(model.mission.content) && rationaleMentionsAbsentMission(text)) {
-    return true;
-  }
-  if (
-    !groupedDomainHasContent(model.mediumTermOutcomes.content) &&
-    rationaleMentionsAbsentMediumTerm(text)
-  ) {
-    return true;
-  }
-  if (!groupedDomainHasContent(model.impact.content) && rationaleMentionsEmptyImpactGrid(text)) {
-    return true;
-  }
-  return false;
-}
-
-function filterAbsentDomainRationaleBullets(model: LogicModel): string[] {
-  const bullets = (model.overallQuality?.rationale ?? []).map(b => b.trim()).filter(Boolean);
-  return bullets.filter(bullet => !shouldDropOverallRationaleBullet(bullet, model));
-}
-
-function ensureMinRationale(bullets: string[], min = 2): string[] {
-  const out = [...bullets];
-  const fallbacks = [
-    'Assessment reflects domains present in the source document.',
-    'Optional absent sections (e.g. Mission, Medium-Term) were not penalized.',
-  ];
-  for (const fb of fallbacks) {
-    if (out.length >= min) break;
-    if (!out.includes(fb)) out.push(fb);
-  }
-  return out.slice(0, 4);
-}
-
-/**
- * Clear critique/rating on optional domains with no content; strip unfair overall rationale bullets.
- */
-export function sanitizeAbsentDomainCritiques(model: LogicModel): LogicModel {
-  const m = structuredClone(model);
-
-  if (m.impactStatement) clearAbsentStringDomainCritique(m.impactStatement);
-  clearAbsentStringDomainCritique(m.mission);
-
-  clearAbsentGroupedDomainCritique(m.mediumTermOutcomes);
-  clearAbsentGroupedDomainCritique(m.impact);
-  // Unmapped is a mapping bucket, not an LM quality domain — never rate an empty one.
-  if (m.unmapped) clearAbsentGroupedDomainCritique(m.unmapped);
-
-  if (m.overallQuality) {
-    m.overallQuality.rationale = ensureMinRationale(filterAbsentDomainRationaleBullets(m));
-  }
-
-  return m;
-}
-
 export interface GranularExportRow {
+  /**
+   * Stable per-item key: `<fileId>-<modelField>-<groupIndex>-<itemIndex>` for grouped domains and
+   * `<fileId>-<modelField>` for the single-string ones. Deliberately the SAME scheme
+   * `services/codingExport.ts` uses, so the granular CSV, the coding CSV and a filled-in
+   * verification scorecard all join on one key instead of on free-text item wording (which is
+   * itself what a review is checking, and changes between runs). Empty when no `fileId` was
+   * supplied by the caller.
+   */
+  rowId: string;
   organization: string;
   program: string;
   domain: string;
   group: string;
   content: string;
-  domainCritique: string;
-  domainRating: string;
-  itemCritique: string;
-  itemRating: string;
   needsReview: string;
   sourceNote: string;
   fillColor: string;
@@ -137,21 +35,38 @@ export interface GranularExportRow {
   mappedBy: string;
   mappingConfidence: string;
   mappingNote: string;
-  overallRating: string;
-  overallRationale: string;
   extractionStatus: string;
   extractionConfidence: string;
   extractionBlockers: string;
   mappingCorrectionsJson: string;
+  /** Uploaded file name (e.g. "1234_5678_program-name.pdf") — the caller's own ID, not derived from content. */
+  sourceFilename: string;
+  /**
+   * Document-level QA signal — "Needs Review" or "Successfully Processed", from the same check
+   * that drives the session list's NEEDS REVIEW grouping (see shared/qaStatus.ts). Distinct from
+   * the per-item `needsReview` field above.
+   */
+  qaStatus: string;
+  /**
+   * '' | a not-a-logic-model notice | an unclear-document-type notice — from Gemini's document-type
+   * self-report (see shared/extractionFidelity.ts). Also already folds into `qaStatus` above via
+   * the fidelity banner, but broken out here so QA can filter for this specific reason.
+   */
+  documentTypeFlag: string;
+}
+
+export interface GranularExportEntry {
+  model: LogicModel;
+  sourceFilename: string;
+  /** `ProcessingFile.id` — supplies the `rowId` prefix. Omit only in tests that don't need a key. */
+  fileId?: string;
 }
 
 /** Build full CSV rows — omit domains with no content (presence-first export). */
-export function buildGranularExportRows(models: LogicModel[]): GranularExportRow[] {
+export function buildGranularExportRows(entries: GranularExportEntry[]): GranularExportRow[] {
   const rows: GranularExportRow[] = [];
 
-  for (const m of models) {
-    const overallRating = m.overallQuality?.rating || '';
-    const overallRationale = (m.overallQuality?.rationale || []).filter(Boolean).join(' | ');
+  for (const { model: m, sourceFilename, fileId } of entries) {
     const colorLegend = m.colorLegend?.trim() || '';
     const extractionStatus = m.extractionStatus || '';
     const extractionConfidence = m.extractionConfidence || '';
@@ -159,22 +74,23 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
     const mappingCorrectionsJson = m.mappingCorrections?.length
       ? JSON.stringify(m.mappingCorrections)
       : '';
+    const qaStatus = qaStatusLabel(m);
+    const documentTypeFlag = documentTypeFlagLabel(m);
 
-    const pushStringField = (
-      domain: string,
-      field: { content: string; critique?: string; rating?: string }
-    ) => {
+    const rowIdFor = (modelField: string, gi?: number, ii?: number): string => {
+      if (!fileId) return '';
+      return gi === undefined ? `${fileId}-${modelField}` : `${fileId}-${modelField}-${gi}-${ii}`;
+    };
+
+    const pushStringField = (domain: string, modelField: string, field: { content: string }) => {
       if (!stringDomainHasContent(field.content)) return;
       rows.push({
+        rowId: rowIdFor(modelField),
         organization: m.organization,
         program: m.program,
         domain,
         group: 'General',
         content: field.content,
-        domainCritique: field.critique || '',
-        domainRating: field.rating || '',
-        itemCritique: '',
-        itemRating: '',
         needsReview: '',
         sourceNote: '',
         fillColor: '',
@@ -184,36 +100,31 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
         mappedBy: '',
         mappingConfidence: '',
         mappingNote: '',
-        overallRating,
-        overallRationale,
         extractionStatus,
         extractionConfidence,
         extractionBlockers,
         mappingCorrectionsJson,
+        sourceFilename,
+        qaStatus,
+        documentTypeFlag,
       });
     };
 
-    const pushField = (
-      domain: string,
-      field: { content: LogicModelGroup[]; critique?: string; rating?: string }
-    ) => {
+    const pushField = (domain: string, modelField: string, field: { content: LogicModelGroup[] }) => {
       if (!groupedDomainHasContent(field.content)) return;
-      for (const g of field.content) {
-        for (const item of g.items) {
+      field.content.forEach((g, gi) => {
+        g.items.forEach((item, ii) => {
           const text = item.text?.trim();
-          if (!text) continue;
-          const flaggedForReview = item.verbatim === false || Boolean(item.sourceNote?.trim());
+          if (!text) return;
+          const flaggedForReview = itemNeedsReview(item);
           rows.push({
+            rowId: rowIdFor(modelField, gi, ii),
             organization: m.organization,
             program: m.program,
             domain,
             group: g.name,
             content: text,
-            domainCritique: field.critique || '',
-            domainRating: field.rating || '',
-            itemCritique: item.critique || '',
-            itemRating: item.rating || '',
-            needsReview: flaggedForReview ? 'Yes' : '',
+            needsReview: itemNeedsReview(item) ? 'Yes' : '',
             sourceNote: item.sourceNote?.trim() || '',
             fillColor: item.fillColor?.trim() || '',
             borderColor: item.borderColor?.trim() || '',
@@ -222,30 +133,32 @@ export function buildGranularExportRows(models: LogicModel[]): GranularExportRow
             mappedBy: item.mappedBy || '',
             mappingConfidence: item.mappingConfidence || '',
             mappingNote: item.mappingNote?.trim() || '',
-            overallRating,
-            overallRationale,
             extractionStatus,
             extractionConfidence,
             extractionBlockers,
             mappingCorrectionsJson,
+            sourceFilename,
+            qaStatus,
+            documentTypeFlag,
           });
-        }
-      }
+        });
+      });
     };
 
     if (m.impactStatement?.content?.trim()) {
-      pushStringField('Impact Statement', m.impactStatement);
+      pushStringField('Impact Statement', 'impactStatement', m.impactStatement);
     }
-    pushStringField('Mission / Overview', m.mission);
-    pushStringField('Target Population', m.targetPopulation);
-    pushField('Inputs', m.inputs);
-    pushField('Activities', m.activities);
-    pushField('Outputs', m.outputs);
-    pushField('Short-Term Outcomes', m.shortTermOutcomes);
-    pushField('Medium-Term Outcomes', m.mediumTermOutcomes);
-    pushField('Long-Term Outcomes', m.longTermOutcomes);
-    pushField('Impact', m.impact);
-    if (m.unmapped) pushField('Unmapped', m.unmapped);
+    pushStringField('Mission / Overview', 'mission', m.mission);
+    pushStringField('Target Population', 'targetPopulation', m.targetPopulation);
+    pushField('Inputs', 'inputs', m.inputs);
+    pushField('Activities', 'activities', m.activities);
+    pushField('Outputs', 'outputs', m.outputs);
+    pushField('Short-Term Outcomes', 'shortTermOutcomes', m.shortTermOutcomes);
+    pushField('Medium-Term Outcomes', 'mediumTermOutcomes', m.mediumTermOutcomes);
+    pushField('Long-Term Outcomes', 'longTermOutcomes', m.longTermOutcomes);
+    if (m.generalOutcomes) pushField('General Outcomes', 'generalOutcomes', m.generalOutcomes);
+    pushField('Impact', 'impact', m.impact);
+    if (m.unmapped) pushField('Unmapped', 'unmapped', m.unmapped);
   }
 
   return rows;
