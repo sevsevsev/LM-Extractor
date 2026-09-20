@@ -64,5 +64,17 @@
     "label": "Art Thru Youth — Art Thru Youth",
     "covers": "vision-only+lowleg · added 2026-09-19 to close the vision-only gap (see README). A real hard-stop case: a 1024px standalone PNG that the app correctly refuses to extract (\"Low-resolution dense grid — transcription is not reliable enough to continue\"). No baseline snapshot committed yet — capture one with `npm run regression:check -- --only=art-thru-youth --update` once you're on the prompt version you want as the reference.",
     "bundle": "art-thru-youth.json"
+  },
+  {
+    "id": "upenn-bioeyes",
+    "label": "University of Pennsylvania — BioEYES",
+    "covers": "vision-only · added 2026-09-20 to close the vision-only gap the README has flagged since session 4 (no vision-only document had EVER been tested). A 1700x984 standalone PNG: six rounded boxes joined by arrows under a single 'Effective University-School Partnerships' header, with NO Inputs/Activities/Outputs column structure at all. Doubles as a DOCUMENT TYPE CHECK case — a linear outcome chain is structurally closer to a Theory of Change than to a logic-model grid.",
+    "bundle": "upenn-bioeyes.json"
+  },
+  {
+    "id": "trinity-boys-girls-rising",
+    "label": "Trinity Enrichment Center — Boys & Girls Rising",
+    "covers": "vision-only · a 1536x1024 designed infographic with a full, clean column set (Situation/Need | Inputs | Activities | Outputs | Outcomes | Impact) plus an Evaluation Methods footer. Its OUTCOMES column is the best over-nesting test in the set: three labelled sub-boxes (SHORT-TERM 0-3 MONTHS / INTERMEDIATE 3-6 MONTHS / LONG-TERM 6-12+ MONTHS), each holding its own bullet list — three levels into a two-level schema, and the sub-box labels carry time horizons that COLUMN FIDELITY 3/7 must route rather than collapse.",
+    "bundle": "trinity-boys-girls-rising.json"
   }
 ]

@@ -812,6 +812,92 @@ rewritten — which is what the EVIDENCE/RETIRE IF notes were put there for in t
 
 ---
 
+## Session 10 — first `vision-only` test in the project's history
+
+```
+Date:                     2026-09-20
+Operator:                 owner uploads; agent session (claude/loving-hawking-r436g3)
+Prompt version:           2026-09-20.2 (unchanged)
+Gemini calls:             22 (4 capture + 14 census + 4 inspection)
+
+--- Setup: four new bundles, two of them a variant never before tested ---
+Owner uploaded FirstHand (pptx), Oxford Circle (pdf), and two standalone PNGs that were NOT in
+the regression set: UPenn BioEYES and Trinity Enrichment "Boys & Girls Rising". Both PNGs capture
+as images=1 / textTrack=0 — `vision-only`. Session 4 Finding 2 flagged `vision-only` and
+`+lowleg` as completely untested and said that is where the known failures live. Six sessions
+later, `vision-only` has now actually been run.                                  | cause: setup
+
+--- Census, 7 documents with bundles ---
+  Oxford Circle        vision+text    44/44    STABLE byte-identical
+  Core Reporter        vision+text    45/45    STABLE byte-identical
+  Cub Reporter         vision+text  113/113    stable items, scalar drift
+  FirstHand            text-only      45/45    STABLE byte-identical
+  Performance Garage   text-only      46/46    UNSTABLE (grouping)
+  BioEYES              vision-only      6/6    UNSTABLE (grouping)
+  Trinity              vision-only    53/53    UNSTABLE (grouping)
+                                               -> stable 4, unstable 3
+
+--- Finding 1: vision-only EXTRACTS WELL. The worry was misplaced. ---
+Trinity's extraction matches the source infographic column for column:
+  inputs 8 · activities 9 · outputs 6 · short 5 · intermediate 5 · long 5 · impact 4
+  unmapped: "SITUATION / NEED" 5 · "EVALUATION METHODS" 5 · "OUR BELIEF" 1
+Every count is right against the image. More than that, its OUTCOMES column is a three-level
+structure — three labelled sub-boxes (SHORT-TERM 0-3 MONTHS / INTERMEDIATE 3-6 MONTHS /
+LONG-TERM 6-12+ MONTHS) each holding a bullet list — and the model routed each sub-box to the
+correct time-horizon DOMAIN while keeping the sub-box label as the group name. That is NESTING
+rules 7-9 and COLUMN FIDELITY 3 working together, on the variant nobody had ever tested, with no
+text track to lean on. `SITUATION / NEED` and `EVALUATION METHODS` correctly went to `unmapped`
+rather than being forced into a domain.
+
+BioEYES: `documentTypeAssessment: not_logic_model`, `layoutFamily: diagram`, six boxes routed to
+`generalOutcomes` rather than guessed into time horizons. For a linear outcome chain with no
+input/activity/output structure that is the right call on both counts (DOCUMENT TYPE CHECK and
+COLUMN FIDELITY 7).                                                              | cause: other
+
+--- Finding 2: CORRECTION — "text-only is structurally broken" was too broad ---
+Sessions 7 and 9 concluded that the NESTING rule cannot fire on a text-only document because its
+trigger ("outermost label carrying no bullet marker, at the column's left edge") is visual, and
+predicted the text-only variant would stay unstable. FirstHand is text-only and came back
+BYTE-IDENTICAL. So the variant is not the explanation. Performance Garage is the outlier, and
+what is distinctive about it is not that it is text-only but that its grouping is genuinely
+ambiguous in its flattened representation: its band labels live inside the leftmost Activities
+shape with no positional information to attach them to the other columns.
+
+Revised reading: grouping bistability is DOCUMENT-specific, not VARIANT-specific. It appears in
+text-only (PG), vision-only (both PNGs) and previously vision+text (Cub) alike. What the unstable
+documents share is a source whose grouping is underdetermined once flattened — not an input
+modality.                                                                        | cause: prompt
+
+--- Finding 3: every unstable case is grouping ONLY ---
+46/46, 6/6, 53/53 — item counts identical across runs in every single unstable document. Nothing
+is being gained or lost between runs; the same content is being filed differently. That matters
+for the sampling plan: a random-sample correctness check is measuring recall and invention, and
+neither appears to move run to run. Grouping is the unstable axis, and grouping is also the axis
+a human coder can most easily repair.
+
+--- Actions taken ---
+- manifest.json: two new entries (upenn-bioeyes, trinity-boys-girls-rising) closing the
+  vision-only gap the README has flagged since session 4.
+- Bundles captured for BioEYES, Trinity, Oxford Circle, FirstHand. Set is now 7 of 13 covered.
+- No prompt change.
+
+--- Next ---
+1. Remaining bundles: harlem-lacrosse, philadelphia-ballet, ymca, a-new-dawn, seamaac,
+   art-thru-youth.
+2. Human Pass 1 for the completeness rate — still the missing number.
+3. DO NOT write the text-only NESTING rule that sessions 7/9 queued. Finding 2 removes its
+   premise. If grouping stability is worth chasing, the target is underdetermined grouping in
+   general, not one variant.
+4. Random-sample correctness run, per the owner's plan.
+
+--- Notes ---
+Two sessions of reasoning about a "text-only structural gap" were undone by uploading the other
+text-only document and pressing go. The cheapest experiment available was the one that had not
+been run.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -825,3 +911,4 @@ rewritten — which is what the EVIDENCE/RETIRE IF notes were put there for in t
 | 7 | 2026-09-20 | A/B (3 docs) | extract (nesting churn fixed on vision; text-only still bistable) | prompt | N |
 | 8 | 2026-09-20 | 3 docs | extract (0/204 inventions; census: 1 of 3 docs fully stable) | prompt + setup | N |
 | 9 | 2026-09-20 | 3 docs | extract (flagging removed; prompt shrinks ~1.3k; Core Reporter 5/5 stable) | prompt | N |
+| 10 | 2026-09-20 | 7 docs | extract (vision-only works; text-only diagnosis retracted) | prompt + setup | N |

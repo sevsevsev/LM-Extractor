@@ -113,8 +113,17 @@ what changed from the original design intent):
 |---|---|
 | `vision+text` | 7 |
 | `text-only` | 2 (FirstHand, Performance Garage) |
-| `vision-only+lowleg` | 1 (Art Thru Youth — hard-stop case) |
+| `vision-only` | 2 (BioEYES, Trinity) — added 2026-09-20, first of this variant ever run |
+| `vision-only+lowleg` | 1 (Art Thru Youth — hard-stop case, yields no extraction to score) |
 | `vision+text`, clean/no-lowleg raster gap | Oxford Circle no longer covers this; still open |
+
+**`vision-only` is no longer untested (2026-09-20).** Session 4 Finding 2 named it and `+lowleg`
+as the two variants where the known failures live, and neither had ever been run. Both PNGs now
+in the set extract well — Trinity matches its source infographic column for column, including a
+three-level OUTCOMES structure routed to the correct time-horizon domains with no text track to
+lean on. What they are NOT is stable: both differ between identical runs, on grouping only.
+`+lowleg` remains genuinely untested for *accuracy*, because the one `+lowleg` entry hard-stops
+and so produces nothing to score. Closing that needs a low-DPI raster the app still attempts.
 
 ## Reading the output
 
