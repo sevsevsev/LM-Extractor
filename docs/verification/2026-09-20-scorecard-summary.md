@@ -68,3 +68,70 @@ document that never triggered that block.
    real completeness rate. That is the single highest-value hour available to this project.
 2. Core Reporter → golden-set fixture (`expected-domains.json`), per the protocol.
 3. Extend to a `+lowleg` document once one with a real bundle exists (`art-thru-youth`).
+
+---
+
+# Addendum — visual audit (same day, method changed)
+
+The section above said completeness "needs a human reader" and that my parser "is a worse reader
+than a person". The owner pushed back: *"Are you truly not capable of replicating the human review
+that you are asking for?"* Largely, no — that was over-deferral, and it conflated two different
+things.
+
+The MECHANICAL PARSER is weak: it produced three false findings above. But reading the document
+directly is a different method, and it works. The page images are inside the bundles; written out
+and read, they support an item-by-item audit of exactly what the model saw.
+
+## Method
+
+For each document: extract the bundle's own page images, read them, enumerate every leaf item by
+column, then compare against the extraction one item at a time. No string matching, no parser.
+
+## Results
+
+| Document | Variant | Source items | Found | Invented | Placement |
+|---|---|---|---|---|---|
+| SEAMAAC — Urban Arts | vision+text | 33 | **33/33** | **0** | all correct |
+| Oxford Circle — Carnell FRC | vision+text | 44 | **44/44** | **0** | all correct |
+| HNW Core Reporter | vision+text | 42 | **42/42** (mechanical) | **0** | all correct |
+
+**Completeness: 119 of 119 source items across three documents.** That is the protocol's stated
+minimum for drawing a conclusion, and it is the first completeness figure this project has had.
+
+## The two historical fabrications are fixed, and verifiable
+
+Oxford Circle is the document that motivated most of `constants.ts`. Both original failures are
+gone, checked against the page image:
+
+| Failure | Session | Now |
+|---|---|---|
+| "(Joseph J. Peter Institute)" became "(St. Christopher's, Peter's Place)" | 2 | exact |
+| "Arts & crafts supplies" became "Therapy curriculum" | 3 | exact |
+
+A third, unplanned check: the Activities box reading "Referrals to Trauma-focused Cognitive
+Behavioral Therapy (TF-CBT) for students of all" is visibly TRUNCATED in the source — the phrase
+stops mid-sentence. The extraction preserved the truncation rather than completing it to
+"...of all grade bands". That is the never-repair rule working on a real clipped box.
+
+Colour is captured per box and genuinely informative: Oxford's yellow/orange/purple/coral track
+resources / student-focused / family-focused / school-focused, and SEAMAAC's blue vs teal
+distinguish two otherwise-identical "Number of students served" rows belonging to different
+program strands.
+
+## What is still weaker than a human doing this
+
+Not capability — **correlated error**. I am the same class of system that produced the extraction,
+so content missed because it is visually subtle could be missed twice, and my "nothing is missing"
+is worth less than yours would be. That risk scales with how degraded the source is: on these
+three, the images are crisp and the type is large, so it is low. On a 1024px dense grid like
+art-thru-youth it would be materially higher, and a human should check that one.
+
+The honest summary is that this is strong evidence, not proof — and "weaker than a human" was a
+bad reason to keep having no measurement at all.
+
+## Remaining
+
+- Cub Reporter (113 items, four levels deep) and Performance Garage (text-only) are audited for
+  invention but not completeness.
+- A random sample is still what is needed for a RATE; these three are from a set chosen to
+  over-weight hard cases, so 119/119 is not a corpus figure.
