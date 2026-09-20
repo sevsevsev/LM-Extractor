@@ -46,14 +46,26 @@ export const FIDELITY_BLOCKERS = {
   unknownLayout:
     'The layout of this document could not be worked out, so items may have ended up in the wrong columns',
   noContent: 'Nothing could be extracted from this document',
-  lowLegibilityPartial: 'This image is low resolution, so some wording may have been misread',
+  /**
+   * Scope matters in this wording. The per-page warning that triggers it is specific and accurate
+   * ("Page 5 of this document is a flattened image at low resolution"); this blocker used to drop
+   * the page number and restate it as a document-wide diagnosis, "This image is low resolution".
+   *
+   * Rock School (friction-log session 20) is where that misleads: one of its five pages is a
+   * flattened raster, which is what fired the detector, while the other four are unreadable for an
+   * unrelated reason — their font never embedded, so they are mojibake at any DPI. An operator
+   * told the whole document is low-resolution may go and re-scan it, which cannot help either
+   * problem. So these say which pages and what to do, and leave the cause to the per-page warning
+   * that actually measured it.
+   */
+  lowLegibilityPartial: 'Some pages of this document were hard to read, so some wording may have been misread',
   /**
    * Flattened / low-DPI dense grids (Oxford Circle–class) — do not trust fluent OCR. Caps at
    * partial/medium and never hard-stops (see the confidence block): the extraction is shown to the
    * operator with this warning attached, rather than discarded.
    */
   lowLegibilityDense:
-    'This image is low resolution and the grid is dense, so small text may be misread — check every item against the original before using this',
+    'Some pages of this document were hard to read, so wording may have been misread — check every item against the original before using this',
   /** Gemini's own per-image self-report — caps at partial/medium, never forces low/abstained. */
   possiblyIncomplete:
     'The AI was not sure it captured everything on part of the page — check the document for anything missing',
