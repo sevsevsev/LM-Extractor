@@ -29,6 +29,21 @@ worse (or better) — check whether it *also* moves under an unchanged prompt be
 diff. For a change you're not sure about, re-run `regression:check` once more without `--update`
 against the same prompt version before concluding anything from a single pass.
 
+**Session 6 (2026-09-20) qualifies this further, and changes the remedy.** Running the *same*
+prompt twice against the same bundles: Performance Garage and HNW Core Reporter came back
+byte-identical, while HNW Cub Reporter churned heavily at a constant item count. The two stable
+documents are shallowly nested; the churning one nests four levels deep in its outcome columns.
+So the wobble is not (only) seed non-determinism — it is the model re-rolling an *underdetermined*
+choice about how to flatten 3-4 source levels into this schema's two (`Group.name` -> `items[]`),
+which nothing in the prompt specifies. Seed noise would not sort itself by nesting depth.
+
+Two consequences. First, "re-run once more before concluding anything" is not a general remedy:
+for a deeply nested document a re-run is another roll of the same die, not a tiebreak. Prefer
+running the *unchanged* prompt twice as an explicit control arm, and compare the prompt-change
+diff against that floor. `scripts/capture-bundles.mjs` makes this cheap — bundles are rebuildable,
+so arms can be re-run at will. Second, item counts on nested documents are not a meaningful
+regression signal until the over-nesting policy is decided (friction-log session 6, Finding 3).
+
 Estimating an actual error *rate* still needs the full corpus. That's a milestone activity (Tier 3),
 not something to do on every change. See `docs/specs/friction-log.md` session 4.
 
@@ -43,6 +58,26 @@ Bundles are multi-MB base64 page rasters, so `bundles/` is gitignored. Snapshots
 they are what the diff is against.
 
 ## Capturing a bundle (once per document)
+
+**Scripted (preferred — works on any machine, including a fresh clone):**
+
+```bash
+npm run dev     # in another shell; GEMINI_API_KEY must be set
+node scripts/capture-bundles.mjs \
+  healthy-newsworks-core-reporter=/abs/path/to/7_30\ -\ Healthy\ NewsWorks...pdf
+```
+
+It drives the real app in headless Chromium and reads the bundles App.tsx already retains on
+`window.__lmRegressionBundles`, writing each to `bundles/<id>.json`. Each document costs one
+Gemini extract call, since it runs the normal pipeline. Playwright and Chromium come from the
+environment, not from `package.json`; point `LM_PLAYWRIGHT` / `LM_CHROMIUM` at them if they are
+not on the default resolution path.
+
+Because bundles are gitignored, this script — not the bundle files — is what keeps the Tier-1
+loop reproducible. Before it existed, a fresh clone could not run `regression:check` at all:
+every document reported "bundle not captured" and the runner exited 2 without one API call.
+
+**Manual (browser console):**
 
 1. `npm run dev`, then upload the document as normal.
 2. In the browser console:

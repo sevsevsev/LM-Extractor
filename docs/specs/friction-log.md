@@ -474,6 +474,112 @@ only be answered by opening the file. Budget for that rather than for more diffi
 
 ---
 
+## Session 6 — first controlled A/B (bundles rebuilt; noise floor measured)
+
+```
+Date:                     2026-09-20
+Operator:                 agent session (claude/loving-hawking-r436g3)
+Files:                    3 (Performance Garage YouthMoves, HNW Core Reporter, HNW Cub Reporter)
+Prompt versions:          2026-09-19.2 vs 2026-09-19.4, same bundles
+Host mode:                npm run dev + scripts/capture-bundles.mjs
+Gemini calls:             14 extract (3 capture + A1 3 + A2 3 + B 3 + B2 2)
+Method:                   bundles rebuilt from source via headless Chromium and HELD CONSTANT,
+                          then each prompt version run TWICE. The repeat is the control session 5
+                          lacked: it separates prompt effect from run-to-run variation.
+
+--- Setup change: the harness is no longer machine-bound ---
+scripts/capture-bundles.mjs drives the real dev app in headless Chromium and reads the bundles
+App.tsx already retains on `window.__lmRegressionBundles`. Session 5's blocker (gitignored
+bundles => `regression:check` unrunnable on a fresh clone) is gone; bundles are rebuildable
+anywhere from the source documents.                                              | cause: setup
+
+--- Results ---
+                        .2 run1    .2 run2    .4 run1    .4 run2
+Perf Garage items          44         46         46         46
+Perf Garage Activities   General x3  3 bands    3 bands    3 bands
+Core Reporter items        46         46         45         45
+Core "Student Publications" present   present    absent     absent
+Cub Reporter items        111          -        118        118 (heavy churn vs run1)
+verbatim:false              0          0          0          0
+
+--- Finding 1: 2026-09-19.4 is a confirmed no-op on the thing it was written for ---
+0 of 209 items flagged under .4; 0 of 201 under .2. Not one `sourceNote`, not one
+`possiblyMissedRegions` entry, in any arm. The REVISE IF condition written into rule 3's own
+EVIDENCE note ("a batch shows the flagging rate still ~0") is MET. Bounding .3's trigger to
+"did I read this or reconstruct it?" did not move the signal any more than the prohibition it
+replaced. Two rewrites have now failed to move item-level flagging; the next attempt should not
+be a third rewording.                                                            | cause: prompt
+
+Worth noting what this also means: .3's unbounded version was withdrawn on arithmetic (session 5
+Finding 1) showing it would discard 9 of 10 documents IF obeyed. These runs suggest it would
+likely not have been obeyed either. The withdrawal was still right — the failure mode was
+catastrophic and the obedience rate unknown — but the rollup collision was never tested live.
+
+--- Finding 2: session 5's headline grouping observation was NOISE, and now reproduces as such --
+Performance Garage's Activities column is BISTABLE under an unchanged prompt:
+  .2 run 1 -> group "General" x3, band label inlined into the item text:
+       "YouthMoves at FLC - 35 Classes, 35 Rehearsals (7 mos) Performances (Apr + June)..."
+  .2 run 2 -> groups "YouthMoves at FLC" / "Summer Intensive" / "Student Produced Concert"
+Same prompt, same bundle, opposite structure. The "Activities collapsed to General under .3"
+observation that opened session 5 is therefore not attributable to any prompt change: .2
+produces that collapse on its own. .4 produced the correct bands in both of its runs, but n=2
+is not enough to claim .4 fixed anything.                                         | cause: other
+
+--- Finding 3: one root cause under all of it — 2-level schema, 3-4 level sources ---
+`LogicModel` is Group.name -> items[]. The sources nest deeper (Core Reporter Outputs is 3
+levels; Cub Reporter outcome columns are 4: "Core Reporters" > "Students demonstrate
+improvements in:" > "Academic Skills" > "Writing"). Nothing in constants.ts says how to flatten.
+Four different encodings were observed across these runs, all from the same model on the same
+input:
+  a. promote parent to Group.name, children become items          (.4 on Perf Garage)
+  b. inline parent into every child's text                        ("Student Publications: 40+...")
+  c. concatenate parent AND all children into ONE item string     (.2 run 1 on Perf Garage)
+  d. emit parent as its own sibling item                          (.2 on Core Reporter)
+Every symptom chased since session 4 — the "grouping collapse", the "redundant prefix", and the
+item-count churn — is this one underdetermined choice being re-rolled. They are not three bugs.
+                                                                                 | cause: prompt
+
+--- Finding 4: the instability is structural, not generic seed noise ---
+fixtures/regression-set/README.md attributes the Cub Reporter 111-vs-115 wobble to Gemini's seed
+being "not a guaranteed absolute deterministic behavior". That is not what these runs show. On
+two IDENTICAL .4 runs: Perf Garage and Core Reporter came back byte-identical (diff reports
+"unchanged"), while Cub Reporter churned heavily at a constant 118 items — items relabelled
+across encodings (b) and (d), Impact group renamed "...impacts include:" -> "...impacts:".
+The two stable documents are the shallow ones; the churning document is the 4-level one. Seed
+non-determinism would not sort itself by nesting depth. Re-running is therefore NOT a general
+remedy: a document either has an underdetermined flattening or it does not.       | cause: prompt
+
+--- Finding 5: a small recall regression in .4, flagged not fixed ---
+.2 emitted "Student Publications" as its own Outputs item in both runs; .4 dropped it in both
+(46 vs 45 items). No within-arm variation on either side, so unlike Finding 2 this looks like a
+real prompt effect — .4 loses a parent label .2 kept. It is one item on one document; recorded
+so it is not discovered later as a mystery.                                       | cause: prompt
+
+--- Actions taken (this session) ---
+- scripts/capture-bundles.mjs added; bundles for the 3 documents rebuilt locally (still
+  gitignored — the script, not the artifact, is the durable asset).
+- No prompt change. Findings 1 and 3 say the next change should not be another rewording of
+  rule 3, and Finding 3's fix needs a policy decision first.
+
+--- Next ---
+1. DECIDE the over-nesting policy (Finding 3). This is the highest-value open item and it is a
+   product decision, not a prompt tweak: promote / inline / drop / extend the schema to 3 levels.
+   Until it is decided, item counts on nested documents are not a meaningful regression signal.
+2. Correct fixtures/regression-set/README.md: the determinism claim, and the advice to "re-run
+   once more before concluding anything", both need Finding 4's qualification.
+3. Stop attacking item-level flagging by rewording. Two rewrites, zero movement. If the signal
+   is wanted, it likely needs a separate cheap pass over the extracted items rather than an
+   instruction inside a 20-24k character prompt that is already losing rule competitions.
+4. Capture the remaining 8 bundles from Drive and re-baseline once (1) is decided.
+
+--- Notes ---
+This session cost 14 Gemini calls and answered more than sessions 4 and 5 combined, because it
+ran the same prompt twice. Every prior "regression" in this log that was diagnosed from a single
+diff should be treated as unproven until it is reproduced against a same-prompt control.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -483,3 +589,4 @@ only be answered by opening the file. Budget for that rather than for more diffi
 | 3 | 2026-07-30 | PDF + CSV | extract (small print + colour) | doc-quality + prompt | N |
 | 4 | 2026-09-19 | batch (17) | extract (flagging silent; variant coverage) | prompt + setup | N |
 | 5 | 2026-09-19 | n/a (static audit) | extract (.3 would discard 9/10; harness unrunnable) | prompt + setup | N |
+| 6 | 2026-09-20 | A/B (3 docs) | extract (.4 no-op; grouping churn = over-nesting) | prompt + setup | N |
