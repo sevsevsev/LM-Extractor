@@ -763,28 +763,37 @@ const App: React.FC = () => {
     if (completed.length === 0) return;
     if (!confirmIncompleteExport('CSV export')) return;
 
+    // Headers are written for whoever opens the file, not for the schema. This export has NO
+    // downstream consumer — it is the app's own full dump, read by an operator or an analyst — so
+    // unlike the coding export it is free to name things plainly. `shared/exportRoundtrip.ts`
+    // works on the row objects, not on parsed headers, so renaming here breaks nothing.
+    //
+    // Deliberately DIFFERENT from the coding export's names for the same values: that file says
+    // `outcome_text` and `domain` because the Qualitative Outcomes Coder rejects uploads whose
+    // headers it does not recognise (docs/specs/export-for-coding.md). Two audiences, two naming
+    // rules — do not "unify" them.
     const headers = [
       // Stable per-item key, same scheme as the coding export's `row_id`, so a filled-in
       // verification scorecard joins back to both CSVs without fuzzy text matching.
       'Row ID',
       'Organization',
       'Program',
-      'Domain',
+      'Logic Model Column',
       'Group',
-      'Content',
+      'Item Text',
       'Needs Review',
-      'Source Note',
+      'Uncertainty Note',
       'Fill Color',
       'Border Color',
       'Color Legend',
-      'Source Header',
-      'Mapped By',
-      'Mapping Confidence',
-      'Mapping Note',
+      'Sub-heading In Source',
+      'Placed By',
+      'Placement Confidence',
+      'Placement Note',
       'Extraction Status',
       'Extraction Confidence',
-      'Extraction Blockers',
-      'Mapping Corrections JSON',
+      'Review Reasons',
+      'Placement Changes (JSON)',
       'Source Filename',
       'QA Status',
       'Document Type Flag',

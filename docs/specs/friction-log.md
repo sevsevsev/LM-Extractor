@@ -1122,6 +1122,39 @@ Two tests pinned the old copy: one asserted the word "stopped", one matched a bl
 the blocker test now asserts against the FIDELITY_BLOCKERS constant rather than a copy-shaped
 regex, so future wording changes do not re-break it. 219 tests passing.
 
+
+--- Addendum (same session): full-CSV header rename ---
+Owner asked to "change the outcome_text column in the total extract csv and only keep it in the
+export for coding csv". Checked first: `outcome_text` appears in exactly ONE file already
+(services/codingExport.ts). The full extract CSV built in App.tsx has always called that column
+`Content`. So the separation asked for already held — but the underlying point stood, because
+`Content` is vague and several neighbouring headers were schema jargon.
+
+The full CSV has no downstream consumer (it is the app's own dump, read by a person) and
+`shared/exportRoundtrip.ts` operates on row OBJECTS rather than parsed headers, so its header row
+is free to rename. Renamed:
+    Domain                  -> Logic Model Column
+    Content                 -> Item Text
+    Source Note             -> Uncertainty Note
+    Source Header           -> Sub-heading In Source
+    Mapped By               -> Placed By
+    Mapping Confidence      -> Placement Confidence
+    Mapping Note            -> Placement Note
+    Extraction Blockers     -> Review Reasons      (they no longer block anything — session 12)
+    Mapping Corrections JSON-> Placement Changes (JSON)
+A first pass called the blockers column "Warnings", which collides with the separate
+conversion-warnings concept in ProcessingFile; "Review Reasons" pairs with the QA Status column
+sitting beside it.
+
+The two CSVs are now deliberately named on DIFFERENT rules, and a comment in App.tsx plus a table
+in export-for-coding.md say so, because the obvious future "cleanup" is to unify them and that
+would break the coder intake.
+
+Still blank in both files, pending a decision: `Needs Review` / `needs_review` and
+`Uncertainty Note`, which have had nothing to put in them since item-level flagging was removed in
+session 9. Flagged rather than dropped — removing a column changes the shape of a file someone may
+have built a sheet around.
+
 --- Notes ---
 The internal extraction log (EXTRACTION_LOG_HEADERS) was deliberately left technical. Its own
 header comment says "Not partner-facing" — it exists for batch analysis, and `prompt_variant` /

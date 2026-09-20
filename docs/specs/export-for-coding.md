@@ -55,6 +55,23 @@ banner above the extraction.
 - Skip empty `outcome_text` rows
 - Filename hint e.g. `logic-models-for-coding.csv`
 
+
+## Why this file's names differ from the full CSV
+
+The app produces two CSVs and they are named on different rules. Do not unify them.
+
+| | Full extract CSV (`App.tsx`) | Coding CSV (this spec) |
+|---|---|---|
+| Audience | an operator or analyst reading the file | the Qualitative Outcomes Coder, a program |
+| Header style | plain English, Title Case | the consumer's expected keys, snake_case |
+| The item's text | `Item Text` | `outcome_text` |
+| Which logic-model column | `Logic Model Column` | `domain` |
+| Free to rename? | yes — no downstream consumer, and `shared/exportRoundtrip.ts` works on row objects rather than parsed headers | **no** — the coder rejects uploads whose headers it does not recognise |
+
+`outcome_text` is confusing on an Inputs row and it is going to stay that way here, because the
+name is the integration. It was renamed in the full CSV (2026-09-20) so that the one file a human
+actually reads does not carry it.
+
 ## OUT (v1)
 - Impact domain rows (add later via this doc if needed)
 - Mission / inputs / activities / outputs
