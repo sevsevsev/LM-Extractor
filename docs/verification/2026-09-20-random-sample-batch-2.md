@@ -105,11 +105,32 @@ Four, none of them extraction-quality. See friction log session 20.
    resolution" might re-scan at higher DPI, which cannot possibly help. That is a string we
    control, so it is fixable precisely, and it is the same underlying gap as finding 4.
 
-4. **Nothing detects "images present but contributed nothing."** Rock School had 5 page images,
-   all useless, and was still handled as a vision extraction. There is a `textOnlyFallback`
-   concept for documents with no images, but no signal for images that rendered to garbage. The
-   honest label for that document is "read from the text layer; page images could not be
-   rendered."
+4. **RESOLVED — investigated and deliberately not built.** The finding was real as an
+   observation: Rock School had 5 page images, all unreadable, and was still handled as a vision
+   extraction. The question is whether that is detectable cheaply.
+
+   The obvious signal is "a page has an image but produced no Track A text". Measured across the
+   corpus it fires on 9 of 14 documents, and restricted to PDFs (the only format where the probe
+   is even meaningful — DOCX Markdown has no page markers) on 2 of 12. Both of those two are
+   false positives for the thing we care about:
+
+   - **Oxford Circle page 2** is the complete logic-model grid, perfectly legible. It has no
+     Track A text because that PDF has no text layer, and vision read it correctly — 44 items,
+     STABLE across 3 runs.
+   - **Rock School page 5** is a near-blank trailing page carrying two stray glyphs. Nothing to
+     lose.
+
+   So the signal detects *vision-dependent pages*, not *unreadable pages* — a different variable,
+   and one where the healthy case and the broken case look identical. Detecting the real condition
+   means assessing whether a rendered image is legible, which is OCR-scale work. Shipping the
+   cheap proxy would repeat a mistake this codebase already made and removed: the text-line-
+   counting heuristic documented at `shared/extractionFidelity.ts:318`, withdrawn after hand-
+   checking found it 3 for 3 false positives.
+
+   The mitigation that matters is already in place and was demonstrated by this very document:
+   Rock School still produced 63 correct items from Track A alone, and it carried a warning. The
+   system degrades gracefully and says so; what it cannot do is name the cause, which is what
+   finding 3 above is now about.
 
 Also observed, too small to act on alone: Achieve Now's Outputs contain two items with identical
 text (`Avg Student Gains`), identical group (`General`) and identical every other field. In the
