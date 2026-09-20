@@ -22,13 +22,13 @@ jobs:
     name: Test, typecheck, build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # `cache: npm` keys ~/.npm on package-lock.json. It covers the big one:
       # @matbee/libreoffice-converter ships ~250MB of LibreOffice WASM inside its
       # tarball (76MB compressed) with no postinstall step, so it restores from
       # cache instead of being re-fetched on every run.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: npm
