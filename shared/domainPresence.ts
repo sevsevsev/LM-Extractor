@@ -48,7 +48,7 @@ export interface GranularExportRow {
    */
   qaStatus: string;
   /**
-   * '' | "Possibly Not a Logic Model" | "Unclear Document Type" — from Gemini's document-type
+   * '' | a not-a-logic-model notice | an unclear-document-type notice — from Gemini's document-type
    * self-report (see shared/extractionFidelity.ts). Also already folds into `qaStatus` above via
    * the fidelity banner, but broken out here so QA can filter for this specific reason.
    */

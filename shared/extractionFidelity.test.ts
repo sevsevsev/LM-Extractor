@@ -291,7 +291,7 @@ test('documentTypeAssessment "not_logic_model" flags for review, never hard-stop
   assert.ok(model.extractionBlockers?.some(b => b.includes('Theory of Change narrative')));
   assert.equal(shouldHardStopExtraction(model), false);
   assert.equal(shouldShowFidelityBanner(model), true);
-  assert.equal(documentTypeFlagLabel(model), 'Possibly Not a Logic Model');
+  assert.match(documentTypeFlagLabel(model), /^Not a logic model — the app sorted these items into columns/);
 });
 
 test('documentTypeAssessment "unclear" also flags for review', () => {
@@ -302,7 +302,7 @@ test('documentTypeAssessment "unclear" also flags for review', () => {
   reconcileExtractionFidelity(model);
   assert.equal(model.extractionStatus, 'partial');
   assert.equal(shouldHardStopExtraction(model), false);
-  assert.equal(documentTypeFlagLabel(model), 'Unclear Document Type');
+  assert.match(documentTypeFlagLabel(model), /^Unclear document type — some columns may have been assigned/);
 });
 
 test('documentTypeAssessment "logic_model" (or absent) never flags', () => {

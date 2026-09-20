@@ -85,9 +85,25 @@ export function isPossiblyNotLogicModel(model: LogicModel): boolean {
 }
 
 /** Short label for CSV export / UI — '' when there's nothing to flag. */
+/**
+ * The per-row document-type flag, in both CSVs.
+ *
+ * It used to say "Possibly Not a Logic Model", which hedges and — more importantly — leaves out
+ * the consequence. When a document has no input/activity/output column structure, the app did not
+ * READ the domain for each item off a column header; it decided the domain itself. Those are
+ * different claims and a coder has no way to get from the first to the second.
+ *
+ * So the flag now states the consequence rather than the diagnosis. The underlying rule is clean
+ * and needs no new field: when `documentTypeAssessment` is anything other than `logic_model`,
+ * every domain assignment in that document is the app's categorization rather than the document's
+ * own labelling. `documentTypeNote` carries the specific reason and reaches "Review Reasons" in
+ * the full CSV via the fidelity blocker.
+ */
 export function documentTypeFlagLabel(model: LogicModel): string {
-  if (model.documentTypeAssessment === 'not_logic_model') return 'Possibly Not a Logic Model';
-  if (model.documentTypeAssessment === 'unclear') return 'Unclear Document Type';
+  if (model.documentTypeAssessment === 'not_logic_model')
+    return 'Not a logic model — the app sorted these items into columns; the document did not label them';
+  if (model.documentTypeAssessment === 'unclear')
+    return 'Unclear document type — some columns may have been assigned by the app rather than read from the document';
   return '';
 }
 

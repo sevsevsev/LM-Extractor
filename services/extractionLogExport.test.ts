@@ -127,7 +127,7 @@ test('buildExtractionLogRows carries blockers, counts, and a Needs Review status
 test('buildExtractionLogRows carries the document type flag when present', () => {
   const model = sampleModel({ documentTypeAssessment: 'not_logic_model' });
   const rows = buildExtractionLogRows([fakeFile('f1', { result: model })]);
-  assert.equal(cell(rows[0], 'document_type_flag'), 'Possibly Not a Logic Model');
+  assert.match(cell(rows[0], 'document_type_flag'), /^Not a logic model —/);
 });
 
 test('buildExtractionLogRows includes a hard-stopped (error) file using its own blockers', () => {

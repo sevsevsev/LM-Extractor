@@ -120,7 +120,7 @@ test('coding export carries a document type flag when Gemini flags the source', 
 
   const flagged = sampleModel({ documentTypeAssessment: 'unclear' });
   const flaggedRows = buildCodingExportRows([fakeFile('f2', flagged)]);
-  assert.ok(flaggedRows.every(r => r[11] === 'Unclear Document Type'));
+  assert.ok(flaggedRows.every(r => /^Unclear document type — some columns may have been assigned/.test(r[11])));
 });
 
 test('coding export carries an alternate outcome taxonomy through as the group column, not "General"', () => {
