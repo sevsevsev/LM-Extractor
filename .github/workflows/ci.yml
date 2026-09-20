@@ -1,0 +1,49 @@
+name: CI
+
+# Runs the checks a contributor runs locally, so a regression is caught by the
+# repository rather than by whoever happens to run the commands. None of the
+# three needs GEMINI_API_KEY — they are offline checks and make no Gemini calls.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A new push to a PR makes the in-flight run obsolete; don't pay for both.
+# `main` runs are never cancelled, so the default branch keeps a full history.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Test, typecheck, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # `cache: npm` keys ~/.npm on package-lock.json. It covers the big one:
+      # @matbee/libreoffice-converter ships ~250MB of LibreOffice WASM inside its
+      # tarball (76MB compressed) with no postinstall step, so it restores from
+      # cache instead of being re-fetched on every run.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      # Each check runs even when an earlier one fails, so a push reports all
+      # three results at once rather than one per round trip.
+      - name: Tests
+        run: npm test
+
+      - name: Typecheck
+        if: ${{ !cancelled() }}
+        run: npm run typecheck
+
+      - name: Build
+        if: ${{ !cancelled() }}
+        run: npm run build
