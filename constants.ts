@@ -13,11 +13,18 @@
  *    results unattributable, and a batch is expensive.
  * 2. **Bump `PROMPT_VERSION`** on any wording change, then run `npm run prompt:snapshot` and
  *    review the snapshot diff — that diff is the real record of what Gemini's input became.
- * 3. **Prefer procedures to prohibitions.** A rule the model can't verify it's obeying ("never
- *    fabricate a name") has repeatedly failed; a rule with an observable output ("transcribe what
- *    you can read, set `verbatim: false`, add a `sourceNote`") has worked. See the LOW-RESOLUTION
- *    block, which is the pattern that measurably stuck (friction-log session 3).
+ * 3. **What decides whether a rule lands is whether its TRIGGER is perceptible**, not whether it is
+ *    phrased as a procedure or a prohibition. The polarity rule (EXTRACTION RULES 4) is a pure
+ *    prohibition and it held, because "reduction" vs "increase" is a discrete visible choice.
+ *    "Never fabricate" fails because nothing in the model's own output tells it the rule was
+ *    triggered. The earlier framing here — prefer observable outputs, e.g. `verbatim: false` plus a
+ *    `sourceNote` — was superseded in 2026-09-20.2: that apparatus was asked for four different ways
+ *    across four prompt versions and produced a flag on 1 item in ~640, so it was removed entirely
+ *    rather than reworded a fifth time (friction-log sessions 4-8).
  * 4. **Prune before adding.** These prompts run 20–25k characters; rules compete for attention.
+ *    2026-09-20.2 is the first version that removed more than it added — see what it did NOT remove:
+ *    every transcription rule (clipped text, proper nouns, no repair, polarity) stayed, because the
+ *    verification pass measured 0 invented items in 204 and those rules are the likeliest reason.
  */
 
 /**
@@ -25,13 +32,17 @@
  * (`services/extractionLogExport.ts`) so a batch's results can be attributed to the exact prompt
  * that produced them. Format: `YYYY-MM-DD.N`.
  */
-export const PROMPT_VERSION = '2026-09-20.1';
+export const PROMPT_VERSION = '2026-09-20.2';
 
 /** Same contract as `PROMPT_VERSION`, versioned separately — different call, different failure mode. */
 export const DETECT_PROMPT_VERSION = '2026-09-19.1';
 
 export interface ExtractionPromptOptions {
-  /** Renderer detected a flattened, low-resolution raster page — bias hard toward flagging. */
+  /**
+   * Renderer detected a flattened, low-resolution raster page — bias hard toward literal, partial
+   * transcription over fluent guessing. Renderer-driven, never model-reported, which is why the
+   * low-legibility hard stop survived the 2026-09-20.2 removal of model self-assessment.
+   */
   lowLegibility?: boolean;
   /**
    * Dual-track DocumentBundle: page/slide JPEGs (Track B) plus structural Markdown/text (Track A).
@@ -73,15 +84,14 @@ export function promptVariantLabel(v: PromptVariantInput): string {
 const lowLegibilitySection = (on: boolean): string =>
   on
     ? `
-    **⚠ LOW-RESOLUTION SOURCE (renderer-detected) — FLAGGING IS MANDATORY**:
+    **⚠ LOW-RESOLUTION SOURCE (renderer-detected) — TRANSCRIBE WITH CARE**:
     This document contains at least one **flattened, low-resolution image page**. At this resolution you
     **cannot** reliably read small text, so confident-looking guesses are the main risk.
-    - **Default \`verbatim\` to \`false\`** for any item that contains a proper noun (organization, person,
-      institution, curriculum, or program name), a number/quantity, or a duration. Only set
-      \`verbatim: true\` when the glyphs are genuinely unambiguous at this resolution.
-    - Add a short \`sourceNote\` on every flagged item (e.g. "low-resolution source — verify name").
+    - **Take extra care with proper nouns** (organization, person, institution, curriculum, or program
+      name), numbers/quantities, and durations — at this resolution these are where a confident
+      misreading is most likely and most costly.
     - **Prefer a partial transcription over a complete-looking guess.** If a bullet is only half legible,
-      transcribe the legible half and flag it; do not produce a fluent phrase you cannot actually read.
+      transcribe the legible half only; do not produce a fluent phrase you cannot actually read.
     - Never "repair" an odd-looking phrase into a more idiomatic one. Odd wording is usually the real wording.
 `
     : '';
@@ -110,8 +120,8 @@ const inputTracksSection = (isVision: boolean, hasTextTrack: boolean): string =>
     - **Hierarchical structure** — Markdown headings (\`#\` / \`##\` / \`###\`), list nesting, and \`**bold**\` /
       \`*italic*\` markers indicate section labels, group names, and emphasis. Use those labels when they align
       with a visible column/section in the images.
-    - **Completeness check** — if Track A lists a bullet or labeled section that is hard to read in the images,
-      still extract it (set \`verbatim: false\` + \`sourceNote\` when the image is unclear).
+    - **Completeness check** — if Track A lists a bullet or labeled section that is hard to read in the
+      images, still extract it, using the Track A wording.
 
     ### Track B — Page / slide images (\`images\`)
     JPEG rasters (full pages, slides, and/or zoomed column crops).
@@ -132,8 +142,8 @@ const inputTracksSection = (isVision: boolean, hasTextTrack: boolean): string =>
     1. **Wording:** Track A exact strings win when they clearly refer to the same visible cell/bullet as Track B.
     2. **Column / domain assignment:** Track B spatial position (header above the cell) wins over Track A order alone.
     3. **Colour / bold / layout chrome:** Track B only — Track A has no reliable colour.
-    4. **Never fabricate** to reconcile tracks. If tracks disagree and you cannot resolve, transcribe the clearer
-       source, set \`verbatim: false\`, and note the conflict briefly in \`sourceNote\`.
+    4. **Never fabricate** to reconcile tracks. If tracks disagree and you cannot resolve, transcribe the
+       clearer source rather than inventing a reconciliation.
 `
     : isVision
       ? `
@@ -281,14 +291,12 @@ const phaseBExtractionRulesSection = (hasTextTrack: boolean): string => `
        } **Never add items, partner names, organizations, numbers, or
        details that are not present in the source.** If you are unsure whether something is there,
        leave it out. Inventing plausible-sounding content is the worst possible error.
-    3. **Flag every item you reconstructed rather than read.** After writing each item's \`text\`, ask
-       one question: did you read every character of it, or did you reconstruct part of it — from
-       context, from a familiar real-world name, or from what the phrase "should" say? If any part
-       was reconstructed, set \`verbatim: false\` and add a short \`sourceNote\` naming the unclear part
-       (e.g. "second word unclear", "partner name not fully legible"). If you read all of it, set
-       \`verbatim: true\`. Judge this per item, not per document — a crisp render can still contain a
-       small, blurry, or partially clipped box, and proper nouns, numbers, and durations are where
-       reconstruction is most likely and most costly.
+    3. **Transcribe what you read; never reconstruct what you cannot.** Before writing each item's
+       \`text\`, ask one question: am I reading every character of this, or am I reconstructing part of
+       it — from context, from a familiar real-world name, or from what the phrase "should" say?
+       Write only what you actually read. Judge this per item, not per document: a crisp render can
+       still contain a small, blurry, or partially clipped box, and proper nouns, numbers, and
+       durations are where reconstruction is most likely and most costly.
        - **Clipped or illegible text**: transcribe only what is legible${
          hasTextTrack ? ' (or the matching Track A string if reliable)' : ''
        } — do **not** guess the missing part.
@@ -298,7 +306,7 @@ const phaseBExtractionRulesSection = (hasTextTrack: boolean): string => `
        - **Never "repair" odd-looking wording into something more idiomatic.** Odd wording is usually
          the real wording.
     4. **Never flip direction / polarity words**: Copy "reduction / decrease" vs "increase / use / more"
-       **exactly**. If unclear, keep your literal reading and set \`verbatim: false\`.
+       **exactly**. If unclear, keep your literal reading — never substitute the opposite direction.
     5. **Assign by position**: A bullet belongs to the column whose header sits **directly above** it.
 `;
 
@@ -526,7 +534,7 @@ const colourAndEmphasisSection = (isVision: boolean): string => `
 const itemShapeAndLocationSection = `
     ---
     **ITEM SHAPE** (strict LogicModel schema — no extra keys):
-    { "text": "verbatim item text", "verbatim": true | false, "sourceNote": "why to verify",
+    { "text": "item text exactly as written in the source",
       "fillColor": "blue", "borderColor": "red",
       "sourcePage": 2, "sourceColumn": 3 }
 
@@ -576,8 +584,8 @@ const documentTypeCheckSection = `
     - \`documentTypeNote\`: one short sentence explaining a non-\`"logic_model"\` call (e.g. "Reads as a
       Theory of Change narrative — no input/output/outcome column structure"). Omit when \`"logic_model"\`.
     - When \`"not_logic_model"\` or \`"unclear"\`: still **extract any content that genuinely maps** to the
-      LogicModel fields below (mission, target population, outcomes, etc.) — best effort, same verbatim
-      rules as always. Leave a field empty rather than force-fitting unrelated prose into it. A human
+      LogicModel fields below (mission, target population, outcomes, etc.) — best effort, same
+      transcription rules as always. Leave a field empty rather than force-fitting unrelated prose into it. A human
       will review the flag before trusting the extraction.
 `;
 
@@ -600,14 +608,6 @@ const fidelityStatusSection = `
     - \`extractionStatus\`: \`ok\` | \`partial\` | \`abstained\`
     - \`extractionBlockers\`: 0–4 short plain-language reasons (why partial/abstained, or empty when ok)
     - \`extractionConfidence\` may be omitted (server rollup will set it)
-    - \`possiblyMissedRegions\`: after extracting, re-look at each TRACK B image. If any image shows content
-      (a bullet, a labeled box, a header) you were **not confident** you fully transcribed into an item above,
-      add \`{ "page": <that image's document page number>, "xStart": <fraction>, "xEnd": <fraction>, "note": "<short reason>" }\`.
-      \`xStart\`/\`xEnd\` are your own visual estimate of that content's horizontal position, as a fraction
-      0.0–1.0 of the full page width (e.g. a box roughly a third of the way across to about halfway →
-      \`xStart: 0.33, xEnd: 0.5\`) — estimate by eye from the image, do not just repeat a column index.
-      Omit \`xStart\`/\`xEnd\` if you can't estimate a horizontal position (page-level flag only). Omit the
-      array entirely when you're confident every image's visible content made it into an item. 0–6 entries.
 
     **Abstain** (\`extractionStatus: "abstained"\`) when any of:
     - The source is largely illegible and text track cannot salvage it — regardless of document type.
@@ -618,13 +618,12 @@ const fidelityStatusSection = `
 
     **Partial** when (and not abstaining):
     - Overview recoverable but the multi-column grid is weak/incomplete.
-    - Many items must be \`verbatim: false\`.
     - Layout is unmappable / \`layoutFamily: "unknown"\` with uncertain coverage.
     - You could not cover all clearly visible content.
 
-    **Ok** when core visible domains are populated with mostly confident verbatim transcriptions.
+    **Ok** when core visible domains are populated from text you could actually read.
 
-    Prefer empty domains and honest flags over fluent invention. Never use critique/quality language here.
+    Prefer empty domains and an honest \`partial\` over fluent invention. Never use critique/quality language here.
 `;
 
 /** Output shape example. Mirrors `extractModelSchema` in `server/geminiLogicModel.ts`. */
@@ -636,12 +635,12 @@ const outputFormatSection = `
       "impactStatement": { "content": "..." },
       "mission": { "content": "" },
       "targetPopulation": { "content": "..." },
-      "inputs": { "content": [{ "name": "Frontline Staff", "items": [{ "text": "...", "verbatim": true }] }] },
-      "activities": { "content": [{ "name": "General", "items": [{ "text": "...", "verbatim": true, "fillColor": "orange" }] }] },
-      "outputs": { "content": [{ "name": "General", "items": [{ "text": "...", "verbatim": true }] }] },
-      "shortTermOutcomes": { "content": [{ "name": "General", "items": [{ "text": "...", "verbatim": true }] }] },
-      "mediumTermOutcomes": { "content": [{ "name": "General", "items": [{ "text": "...", "verbatim": true }] }] },
-      "longTermOutcomes": { "content": [{ "name": "General", "items": [{ "text": "...", "verbatim": true }] }] },
+      "inputs": { "content": [{ "name": "Frontline Staff", "items": [{ "text": "..." }] }] },
+      "activities": { "content": [{ "name": "General", "items": [{ "text": "...", "fillColor": "orange" }] }] },
+      "outputs": { "content": [{ "name": "General", "items": [{ "text": "..." }] }] },
+      "shortTermOutcomes": { "content": [{ "name": "General", "items": [{ "text": "..." }] }] },
+      "mediumTermOutcomes": { "content": [{ "name": "General", "items": [{ "text": "..." }] }] },
+      "longTermOutcomes": { "content": [{ "name": "General", "items": [{ "text": "..." }] }] },
       "generalOutcomes": { "content": [] },
       "impact": { "content": [] },
       "unmapped": { "content": [] },
@@ -649,8 +648,7 @@ const outputFormatSection = `
       "colorLegend": "",
       "documentTypeAssessment": "logic_model",
       "extractionStatus": "ok",
-      "extractionBlockers": [],
-      "possiblyMissedRegions": []
+      "extractionBlockers": []
     }
     Use "General" unless a real in-column label/track is visible. Prefer empty \`impact.content\` over inventing Impact items.
     `;

@@ -724,6 +724,94 @@ that moved both answers was not a better prompt, it was running the same thing t
 
 ---
 
+## Session 9 — item-level flagging removed (PROMPT_VERSION 2026-09-20.2)
+
+```
+Date:                     2026-09-20
+Operator:                 owner decision; agent session (claude/loving-hawking-r436g3)
+Prompt version:           2026-09-20.1 -> 2026-09-20.2
+Gemini calls:             12 (two census pairs)
+
+--- The decision ---
+Owner: drop item-level flagging. It adds a layer of work to the app, it is not that helpful, and
+correctness will be checked instead by randomly sampling logic models and comparing them to the
+extraction. That is the right call on the evidence: the apparatus was asked for four different
+ways across four prompt versions (original rules 3/4, .3, .4, and 2026-09-20.1) and produced a
+flag on 1 item in roughly 640. Random sampling is also a BETTER rate estimator than this
+regression set, which is chosen-not-sampled and deliberately over-weights hard cases.
+
+--- What was removed ---
+`verbatim` / `sourceNote` instructions everywhere they appeared (rule 3, the LOW-RESOLUTION
+block, Track A completeness check, track conflict resolution, ITEM SHAPE, OUTPUT FORMAT), the
+whole `possiblyMissedRegions` procedure, and the two fidelity clauses keyed on flag counts
+("Partial when many items must be verbatim:false", "Ok when mostly confident verbatim
+transcriptions").
+
+--- What was deliberately NOT removed ---
+Every transcription rule tangled up with the flagging instructions:
+  - "transcribe only what is legible - do not guess the missing part"
+  - "Never replace an unclear name with a more familiar real-world one"
+  - "Never repair odd-looking wording into something more idiomatic"
+  - "Never flip direction / polarity words"
+  - "Never add items, partner names, organizations, numbers..."
+  - "Prefer a partial transcription over a complete-looking guess"
+These are the likeliest cause of session 8's 0-inventions-in-204 result. Cutting flagging without
+cutting them was the main risk in this change, and the snapshot diff was reviewed specifically to
+confirm all seven survived.
+
+Document-level signals all kept: `extractionStatus`, `extractionBlockers`,
+`documentTypeAssessment`, the text-only fallback blocker, and the low-legibility hard stop. That
+last one is renderer-driven, never model-reported, so the app still correctly refuses Art Thru
+Youth's 1024px PNG despite model self-assessment being gone.
+
+--- Size: the first net reduction in this file's history ---
+  vision+text+lowleg   25817 -> 24354   (-1463)
+  vision+text          24844 -> 23521   (-1323)
+  text-only            22045 -> 20791   (-1254)
+Working-agreement point 4 ("prune before adding") has existed since the start and every previous
+change added. Code was deliberately left alone: `verbatim`/`sourceNote`/`possiblyMissedRegions`
+are all OPTIONAL in the Gemini schema (`required: ['text']`), so the model simply stops emitting
+them, `nonVerbatim` becomes 0, the ratio branches in extractionFidelity.ts never fire, and the
+rollup degrades by itself to document-level signals. Prompt-only, fully reversible. | cause: prompt
+
+--- Stability: two pairs, and the second one refuted the first ---
+                        pair 1                      pair 2
+  Core Reporter         STABLE byte-identical       STABLE byte-identical
+  Cub Reporter          STABLE byte-identical       UNSTABLE (grouping)
+  Performance Garage    UNSTABLE (grouping)         STABLE byte-identical
+
+After pair 1 the tempting claim was "removing the flagging apparatus made everything
+byte-identical". Pair 2 refutes it: Cub and Performance Garage each flip. The only defensible
+statements are (a) the prune did not destabilise anything, and (b) Core Reporter is now
+byte-identical, 2 of 2 here and stable 3 of 3 at 2026-09-20.1 — 5 of 5 overall, the only document
+in the set a regression diff can currently be trusted on.
+
+This is the second consecutive session where running it twice killed an over-claim before it was
+made. Session 8's correction was caught after the fact; this one was caught before. | cause: other
+
+--- Actions taken ---
+- constants.ts -> 2026-09-20.2. Working-agreement point 3 rewritten: what decides whether a rule
+  lands is whether its TRIGGER is perceptible, not procedure-vs-prohibition. The old wording cited
+  `verbatim: false` + `sourceNote` as the pattern that worked — it was the apparatus just removed.
+- No code change. No schema change.
+
+--- Next ---
+1. Capture the remaining 8 bundles (upload, not Drive) and census the full set.
+2. Human Pass 1 on the verified documents -> first real completeness rate.
+3. Text-only NESTING formulation over Track A Markdown depth (Performance Garage).
+4. Dead-code pass on extractionFidelity.ts's ratio logic ONLY once this decision has held for a
+   few batches — it is inert, not broken, and leaving it costs nothing while the call is "for the
+   time being".
+
+--- Notes ---
+Worth recording what this session did NOT do: it did not try a fifth wording for flagging. Four
+attempts, roughly 640 items, one flag. The decision to delete rather than reword came from the
+owner, and it is the first time in this log that a rule was retired on its record rather than
+rewritten — which is what the EVIDENCE/RETIRE IF notes were put there for in the first place.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -736,3 +824,4 @@ that moved both answers was not a better prompt, it was running the same thing t
 | 6 | 2026-09-20 | A/B (3 docs) | extract (.4 no-op; grouping churn = over-nesting) | prompt + setup | N |
 | 7 | 2026-09-20 | A/B (3 docs) | extract (nesting churn fixed on vision; text-only still bistable) | prompt | N |
 | 8 | 2026-09-20 | 3 docs | extract (0/204 inventions; census: 1 of 3 docs fully stable) | prompt + setup | N |
+| 9 | 2026-09-20 | 3 docs | extract (flagging removed; prompt shrinks ~1.3k; Core Reporter 5/5 stable) | prompt | N |
