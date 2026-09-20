@@ -14,6 +14,12 @@ import { normalizeExtractedLogicModel } from './shared/extractNormalize';
 import { buildGranularExportRows } from './shared/domainPresence';
 import { sliceDocumentBundle } from './shared/documentBundleSlicing';
 import { displayFileName, PROCESSING_STATUS_LABELS } from './shared/processingFileDisplay';
+import {
+  retainRegressionBundle,
+  retainRegressionExtraction,
+  type RegressionCaptureGlobals,
+  type RetainedExtraction,
+} from './shared/regressionCapture';
 import { brand } from './config/brand';
 import { shouldSuggestMismatch } from './shared/sourceMapping';
 import {
@@ -123,39 +129,87 @@ function persistedRecordToProcessingFile(record: PersistedFileRecord): Processin
 // concurrent Gemini calls is the right ceiling is a product call or not; this fix is renaming/
 // documenting reality, not changing it.
 /**
- * Dev-only: keep the exact bundle sent to the server so it can be saved as a Tier-1 regression
- * fixture (`fixtures/regression-set/`). Conversion is browser-only — pdfjs, canvas and html2canvas
- * have no Node equivalent here — so this is the only place a real bundle can be captured, which is
- * why the regression runner replays bundles rather than source files.
+ * Dev-only: keep the exact bundle sent to the server, and the extraction that came back, so they
+ * can be saved as a Tier-1 regression fixture (`fixtures/regression-set/`). Conversion is
+ * browser-only — pdfjs, canvas and html2canvas have no Node equivalent here — so this is the only
+ * place a real bundle can be captured, which is why the regression runner replays bundles rather
+ * than source files.
+ *
+ * The extraction is retained for a different reason: building a bundle already costs one Gemini
+ * extract call, but the result only reached React state, where `scripts/capture-bundles.mjs`
+ * cannot see it — so the script re-extracted the same bundle over HTTP and paid a second call per
+ * document, 206 across the corpus where 103 would do. Keyed to match its bundle so the script
+ * takes both in one pass. See docs/specs/local-capture-session.md §2.
  *
  * In the browser console:
- *   __lmRegressionBundles                // names captured this session
- *   __lmSaveRegressionBundle('<name>')   // downloads one as JSON
+ *   __lmRegressionBundles                    // names captured this session
+ *   __lmRegressionExtractions                // the extraction for each, same names
+ *   __lmSaveRegressionBundle('<name>')       // downloads one as JSON
+ *   __lmSaveRegressionExtraction('<name>')   // downloads its extraction as JSON
  *
  * Compiled out of production builds: `import.meta.env.DEV` is statically false there, so neither
- * the retained bundles nor the globals exist in an `npm start` build.
+ * the retained captures nor the globals exist in an `npm start` build.
  */
-function captureRegressionBundle(file: ProcessingFile | undefined, bundle: DocumentBundle): void {
-  if (!import.meta.env.DEV || typeof window === 'undefined') return;
-  const w = window as unknown as {
-    __lmRegressionBundles?: Record<string, DocumentBundle>;
-    __lmSaveRegressionBundle?: (name: string) => void;
-  };
-  w.__lmRegressionBundles = w.__lmRegressionBundles ?? {};
-  w.__lmRegressionBundles[file ? displayFileName(file) : bundle.sourceFormat] = bundle;
-  w.__lmSaveRegressionBundle ??= (name: string) => {
-    const target = w.__lmRegressionBundles?.[name];
+type RegressionCaptureWindow = RegressionCaptureGlobals & {
+  __lmSaveRegressionBundle?: (name: string) => void;
+  __lmSaveRegressionExtraction?: (name: string) => void;
+};
+
+/**
+ * Installs one of the two `__lmSaveRegression*` download helpers. Both halves download the same
+ * way, so the DOM dance lives here once; `read` is a getter rather than the map itself because the
+ * helper outlives the call that installed it and must see later captures, not the map as it was on
+ * the first document.
+ */
+function installRegressionSaveHelper(
+  w: RegressionCaptureWindow,
+  prop: '__lmSaveRegressionBundle' | '__lmSaveRegressionExtraction',
+  read: () => Record<string, unknown> | undefined,
+  label: 'bundle' | 'extraction',
+  fileSuffix: string
+): void {
+  w[prop] ??= (name: string) => {
+    const target = read()?.[name];
     if (!target) {
-      console.warn(`No captured bundle "${name}". Available:`, Object.keys(w.__lmRegressionBundles ?? {}));
+      console.warn(`No captured ${label} "${name}". Available:`, Object.keys(read() ?? {}));
       return;
     }
     const url = URL.createObjectURL(new Blob([JSON.stringify(target)], { type: 'application/json' }));
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.json`;
+    link.download = `${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}${fileSuffix}.json`;
     link.click();
     URL.revokeObjectURL(url);
   };
+}
+
+function captureRegressionBundle(file: ProcessingFile | undefined, bundle: DocumentBundle): void {
+  if (!import.meta.env.DEV || typeof window === 'undefined') return;
+  const w = window as unknown as RegressionCaptureWindow;
+  retainRegressionBundle(w, file, bundle);
+  installRegressionSaveHelper(w, '__lmSaveRegressionBundle', () => w.__lmRegressionBundles, 'bundle', '');
+}
+
+/**
+ * Retained even when the extraction hard-stops on fidelity: "this source was refused, and here are
+ * the blockers" is a result worth auditing, and dropping it would make the capture script wait out
+ * its full deadline for a document that is never coming.
+ */
+function captureRegressionExtraction(
+  file: ProcessingFile | undefined,
+  bundle: DocumentBundle,
+  extraction: RetainedExtraction
+): void {
+  if (!import.meta.env.DEV || typeof window === 'undefined') return;
+  const w = window as unknown as RegressionCaptureWindow;
+  retainRegressionExtraction(w, file, bundle, extraction);
+  installRegressionSaveHelper(
+    w,
+    '__lmSaveRegressionExtraction',
+    () => w.__lmRegressionExtractions,
+    'extraction',
+    '-extraction'
+  );
 }
 
 const MAX_CONCURRENT_PER_STAGE = 2;
@@ -528,6 +582,11 @@ const App: React.FC = () => {
         // result to an exact PROMPT_VERSION + variant rather than pooling unlike documents.
         const { model: extractedResult, promptVersion, promptVariant } =
           await extractLogicModel(extractBundle);
+        captureRegressionExtraction(files.find(f => f.id === fileId), extractBundle, {
+          model: extractedResult,
+          promptVersion,
+          promptVariant,
+        });
 
         if (shouldHardStopExtraction(extractedResult)) {
           const blockers = extractedResult.extractionBlockers ?? [];

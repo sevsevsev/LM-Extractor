@@ -32,3 +32,8 @@ scripts/drive-manifest-sync/
 
 # Regression-set bundles are multi-MB base64 page rasters — captured locally, never committed.
 fixtures/regression-set/bundles/
+
+# Raw extractions written beside those bundles by scripts/capture-bundles.mjs. Per-run output, not
+# a baseline: the blessed extractions are fixtures/regression-set/snapshots/, and what a capture
+# session commits is the audit record in docs/verification/, not the dumps it read.
+fixtures/regression-set/extractions/
