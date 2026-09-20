@@ -5,6 +5,7 @@ import { renderAsync } from 'docx-preview';
 import html2canvas from 'html2canvas';
 import JSZip from 'jszip';
 import TurndownService from 'turndown';
+import { stripBinaryPayloads } from '../shared/textTrackHygiene';
 import { findColumnBands } from './columnDetect';
 import {
   parseSharedStrings,
@@ -800,7 +801,10 @@ function assembleDocumentBundle(
     images,
     imageRefs: images.length ? refs : undefined,
     previewImages: previews,
-    textTrack,
+    // Every converter's Track A funnels through here, so this is where the invariant "no binary
+    // payloads in the text we send to Gemini" is enforced for all of them at once rather than for
+    // whichever path was fixed last. See `shared/textTrackHygiene.ts`.
+    textTrack: stripBinaryPayloads(textTrack),
     warnings: mergedWarnings,
     sourceFormat,
   };
@@ -866,13 +870,22 @@ const DOCX_MAMMOTH_STYLE_MAP = [
 ];
 
 function createDocxTurndown(): TurndownService {
-  return new TurndownService({
+  const turndown = new TurndownService({
     headingStyle: 'atx',
     bulletListMarker: '-',
     codeBlockStyle: 'fenced',
     emDelimiter: '*',
     strongDelimiter: '**',
   });
+  // Mammoth inlines embedded images as `data:` URIs and Turndown's default `img` handling renders
+  // them straight into Track A. One DOCX logo made 87% of a 38,994-character text track (~8,400
+  // tokens per call) unreadable base64 — friction-log session 20. The same images already reach
+  // Gemini as Track B page rasters, so dropping them here costs nothing.
+  //
+  // Alt text goes with them: in the observed case it was the image's own googleusercontent URL,
+  // which is noise of the same kind. `stripBinaryPayloads` is the backstop if anything slips past.
+  turndown.addRule('dropImagePayloads', { filter: 'img', replacement: () => '' });
+  return turndown;
 }
 
 /** Track A: DOCX → HTML (mammoth) → Markdown (turndown), preserving headers/lists/bold. */
