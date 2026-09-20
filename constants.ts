@@ -25,7 +25,7 @@
  * (`services/extractionLogExport.ts`) so a batch's results can be attributed to the exact prompt
  * that produced them. Format: `YYYY-MM-DD.N`.
  */
-export const PROMPT_VERSION = '2026-09-19.4';
+export const PROMPT_VERSION = '2026-09-20.1';
 
 /** Same contract as `PROMPT_VERSION`, versioned separately — different call, different failure mode. */
 export const DETECT_PROMPT_VERSION = '2026-09-19.1';
@@ -417,6 +417,44 @@ ${
  * four Resources buckets, and they were copied across every other column. "Default is General"
  * plus "a group name must be VISIBLE in that same column" fixed it (confirmed session 2).
  * `shared/domainSynonyms.ts` encodes the same sub-bucket list in code.
+ *
+ * NESTING rules 7-9 (added 2026-09-20.1). EVIDENCE: friction-log session 6, the first controlled
+ * A/B (same bundles, each prompt version run twice). `LogicModel` is two levels; real sources are
+ * not — Core Reporter's Outputs is three deep, Cub Reporter's outcome columns four
+ * ("Core Reporters" > "Students demonstrate improvements in:" > "Academic Skills" > "Writing").
+ * Nothing here said how to flatten, so the model picked differently on every run. Four distinct
+ * encodings were observed from the same model on the same input: promote the parent to
+ * `Group.name`; inline it into each child's text; concatenate parent and all children into one
+ * item; or emit the parent as its own sibling item. That single unspecified choice is what
+ * produced every symptom chased since session 4 — the "grouping collapse" (Performance Garage's
+ * Activities proved BISTABLE under an unchanged prompt), the "redundant group-name prefix", and
+ * the Cub Reporter item-count churn the regression README had attributed to seed non-determinism.
+ * The two shallow documents were byte-identical across identical runs; only the four-level one
+ * churned, which is why depth — not sampling — is the diagnosis.
+ *
+ * Deliberately NOT a deeper schema: a fixed three levels just moves the cliff (Cub Reporter
+ * already needs four), and the deliverable is a flat CSV (`services/codingExport.ts`, one row per
+ * item). Determinism, not depth, is what the harness needs. If flattened strings later prove
+ * insufficient for coders, the non-recursive upgrade is an optional `subPath?: string[]` on
+ * `LogicModelItem` — one field, one CSV column, no consumer rewrites.
+ * `shared/nestingConsistency.ts` detects rule-9 violations in output (analysis only, deliberately
+ * not wired into the fidelity rollup, so this batch's only change to Gemini's input is wording).
+ *
+ * MEASURED (session 7, same bundles, this prompt run twice). Cub Reporter — the four-level
+ * document that motivated this — went from 118/118 items with 120 lines of re-encoding churn to
+ * 113/113 with ZERO item churn, emitting exactly the canonical form ("Academic Skills — Writing",
+ * group "Core Reporters"). Core Reporter's items are stable too. Across three documents the
+ * same-prompt churn fell from 120 diff lines to 9, none of them item-level.
+ *
+ * KNOWN GAP, not fixed here: Performance Garage (text-only) is STILL bistable — one run collapsed
+ * Activities to "General" with concatenated items, the other produced the three correct bands.
+ * The reason is this rule's own trigger: "outermost label carrying NO bullet marker, at the
+ * column's left edge" is a VISUAL cue. A text-only document has no column, no left edge, and a
+ * PPTX text track that does not reliably carry bullet markers — so the trigger is imperceptible
+ * there, exactly the failure mode that sank rule 2. The text-only variant needs the same policy
+ * restated over Track A Markdown list depth, which is the information it actually has. That is
+ * the next themed change, deliberately not bundled here.
+ * RETIRE/REVISE IF a same-prompt control pair shows a nested VISION document churning again.
  */
 const groupingGateSection = `
     **GROUPING GATE**:
@@ -427,6 +465,23 @@ const groupingGateSection = `
     5. Do not rename or merge labels; when unsure, prefer "General".
     6. **One exception** — COLUMN FIDELITY 7b: for non-time-horizon outcome columns routed into
        \`generalOutcomes\`, the column's own header becomes the group name.
+
+    **NESTING — SOURCES DEEPER THAN TWO LEVELS (follow exactly; do not improvise)**:
+    Your output has exactly two levels: \`Group.name\`, and the items under it. Sources are often
+    deeper than that. Flatten them the same way every time:
+    7. **The group is the outermost label in that column carrying NO bullet marker** — a heading at
+       the column's left edge. That string, and only that string, becomes \`Group.name\`.
+    8. **A deeper label keeps its words but loses its level.** A *bulleted* label that itself has
+       sub-bullets is **not** a group: prefix its text onto each of its own children, joined with
+       \` — \` (if the label already ends in \`:\`, keep that colon instead of adding the dash), and
+       emit **one item per leaf bullet**. Repeat for any further depth, outermost label first.
+    9. **Never emit a parent label as an item of its own**, never merge a parent and its children
+       into a single item, and never repeat \`Group.name\` inside an item's \`text\`.
+    Worked example — an "Outputs" column containing \`Program Delivery\` (no bullet), \`● Lessons
+    delivered to 600 students\`, and \`● Student Publications\` with \`○ 40+ newspapers published\`
+    beneath it → group \`"Program Delivery"\`, items \`"Lessons delivered to 600 students"\` and
+    \`"Student Publications — 40+ newspapers published"\`. Not a \`"Student Publications"\` item on its
+    own; not one item holding the label and every child.
 
     **INPUTS**: Use Resources sub-headings exactly as shown; otherwise Human / Financial / Material / Knowledge Resources.
 `;

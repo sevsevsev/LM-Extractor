@@ -580,6 +580,84 @@ diff should be treated as unproven until it is reproduced against a same-prompt 
 
 ---
 
+## Session 7 — NESTING rules 7-9 (first prompt change validated against a control)
+
+```
+Date:                     2026-09-20
+Operator:                 agent session (claude/loving-hawking-r436g3)
+Files:                    3 (same bundles as session 6, unchanged)
+Prompt version:           2026-09-20.1 (GROUPING GATE 7-9 + worked example, +1438 chars)
+Gemini calls:             6 extract (C1 3 + C2 3)
+Method:                   same bundles as session 6, new prompt run TWICE, compared against
+                          session 6's same-prompt control as the before picture.
+
+--- The change ---
+GROUPING GATE gains NESTING rules 7-9: the outermost UNBULLETED label in the column becomes
+`Group.name`; every deeper label folds into the item text joined with " — " (keeping a trailing
+colon where the label has one); one item per leaf bullet; never emit a parent as its own item,
+never merge parent and children into one item, never repeat `Group.name` in an item's text.
+Plus a worked example taken from Core Reporter's actual Outputs column.
+
+Deliberately NOT a 3-level schema. A fixed depth just moves the cliff — Cub Reporter already
+needs four — and the deliverable is a flat CSV. Determinism, not depth, is what the harness
+needs. If flat strings later fail real coders, the non-recursive upgrade is an optional
+`subPath?: string[]` on `LogicModelItem`.
+
+--- Result: the deep-nesting churn is gone ---
+                          session 6 (.4)        session 7 (2026-09-20.1)
+same-prompt churn          120 diff lines        9 diff lines
+Cub Reporter               118/118, heavy churn  113/113, ZERO item churn
+Core Reporter              45/45 stable          45/45 stable
+Cub canonical form         (varied per run)      "Academic Skills — Writing", group
+                                                 "Core Reporters" — exactly as specified
+The four-level document that motivated this whole line of work now reproduces exactly across
+identical runs. The 9 remaining diff lines contain no item-level churn on the vision documents:
+Core and Cub differ only in the scalar `targetPopulation` field.            | cause: prompt
+
+--- Result: the text-only document is NOT fixed, and the reason matters ---
+Performance Garage remains BISTABLE: run C1 collapsed Activities to "General" x5 with
+concatenated items, run C2 produced the three correct bands (and a spurious fourth Financial
+input holding the slide's overview prose).
+
+The cause is this rule's own trigger. "The outermost label carrying NO bullet marker, at the
+column's left edge" is a VISUAL cue. A text-only document has no column, no left edge, and a
+PPTX text track that does not reliably carry bullet markers — so the trigger is imperceptible
+there. That is precisely the failure mode diagnosed for rule 2 in session 5 (Finding 4:
+prohibition-vs-procedure is the wrong axis; trigger perceptibility is the right one), now
+landing on a rule written in this session. The principle held and predicted its own limit.
+
+Next themed change: restate the same policy for text-only over Track A Markdown list depth,
+which is the structure that variant actually has. Not bundled here.        | cause: prompt
+
+--- The detector caught nothing, and that is worth recording ---
+shared/nestingConsistency.ts (rule-9 violations, unit-tested, analysis only, NOT wired into the
+fidelity rollup so the prompt stays the batch's only variable) fired ZERO times across all six
+real arms — including arm B, the output it was written for. Arm B emitted "Student Publications"
+as a bare item, but its siblings were bare too, so no child carried it as a prefix. Detecting
+that encoding needs the source: "is this item the parent of those?" is not decidable from the
+extraction alone. So the check only catches a MIXED encoding and is insurance, not a validated
+instrument. Kept with an explicit RETIRE IF rather than quietly counted as a win. | cause: other
+
+--- Actions taken ---
+- constants.ts -> PROMPT_VERSION 2026-09-20.1; one themed change, +1438 chars, additive only.
+- shared/nestingConsistency.ts + 7 unit tests (218 tests total, all passing).
+- No change to the fidelity rollup, so C1/C2 are attributable to wording alone.
+
+--- Next ---
+1. Text-only formulation of rules 7-9 over Track A Markdown depth (the Performance Garage gap).
+2. Item-level flagging is still 0% at 2026-09-20.1, unchanged across every arm since session 4.
+   Per session 6, stop rewording: the next attempt should be a Track A cross-check (free,
+   deterministic, covers vision+text) then a second verification pass with a corruption eval.
+3. Capture the remaining 8 bundles and re-baseline now that nested documents reproduce.
+
+--- Notes ---
+First prompt change in this log with a same-prompt control on both sides of it. It bought a real
+answer — a decisive win on vision documents and a clean, explained failure on text-only — for 6
+Gemini calls. Both prior changes (.3, .4) were judged on a single diff and taught nothing.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -590,3 +668,4 @@ diff should be treated as unproven until it is reproduced against a same-prompt 
 | 4 | 2026-09-19 | batch (17) | extract (flagging silent; variant coverage) | prompt + setup | N |
 | 5 | 2026-09-19 | n/a (static audit) | extract (.3 would discard 9/10; harness unrunnable) | prompt + setup | N |
 | 6 | 2026-09-20 | A/B (3 docs) | extract (.4 no-op; grouping churn = over-nesting) | prompt + setup | N |
+| 7 | 2026-09-20 | A/B (3 docs) | extract (nesting churn fixed on vision; text-only still bistable) | prompt | N |
