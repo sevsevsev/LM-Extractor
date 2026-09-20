@@ -11,6 +11,7 @@ import {
   parseSharedStrings,
   parseSheetGrid,
   parseSheetNames,
+  countMarkdownSheets,
   sheetsToMarkdown,
   type XlsxSheet,
 } from '../shared/xlsxGrid';
@@ -1478,7 +1479,16 @@ export const xlsxToTextTrack = async (arrayBuffer: ArrayBuffer): Promise<string>
 export const convertXlsxToBundle = async (file: File): Promise<DocumentBundle> => {
   try {
     const textTrack = await xlsxToTextTrack(await file.arrayBuffer());
-    return assembleDocumentBundle('xlsx', [], [], false, textTrack, undefined, undefined);
+    const sheetCount = countMarkdownSheets(textTrack);
+    const warnings =
+      sheetCount > 1
+        ? [
+            `This spreadsheet has ${sheetCount} sheets and all of them were read as ONE document. ` +
+              `If a sheet holds its own separate logic model, its items are mixed in with the rest ` +
+              `and nothing records which sheet each item came from.`,
+          ]
+        : [];
+    return assembleDocumentBundle('xlsx', [], warnings, false, textTrack, undefined, undefined);
   } catch (error) {
     console.error('XLSX Conversion Error:', error);
     throw new Error(

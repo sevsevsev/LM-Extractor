@@ -16,7 +16,29 @@ import { readFileSync } from 'node:fs';
 
 // usage: node scripts/audit-coverage.mjs <bundle-id> <path-to-extraction-json>
 
-const norm = s => s.replace(/[\s ]+/g, ' ').replace(/[‘’]/g, "'").replace(/[“”]/g, '"').trim().toLowerCase();
+/**
+ * Normalise both sides before comparing. Each clause here is a blind spot this tool actually had,
+ * and every one of them manufactured a false "missing" finding before it was fixed:
+ *
+ *   whitespace      session 19 — a flattener that walked only group-bearing fields
+ *   line breaks     session 20 — Track A wraps phrases mid-sentence, so exact substring failed
+ *   hyphen breaks   session 20 — "socio-\nemotional" vs "socio-emotional"
+ *   inline markup   session 22 — Track A holds "**150+ students** engaged", the item holds the
+ *                   words without the asterisks, and 11 of A New Dawn's outputs read as invented
+ *
+ * The pattern is always the same: the extraction is right and the PROBE is narrower than the data.
+ * Add a clause here rather than special-casing a document.
+ */
+const norm = s =>
+  s
+    .replace(/\\([\\`*_{}\[\]()#+\-.!])/g, '$1')
+    .replace(/[*_`~]/g, '')
+    .replace(/(\w)-\s+(\w)/g, '$1-$2')
+    .replace(/[\s ]+/g, ' ')
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .trim()
+    .toLowerCase();
 
 const id = process.argv[2];
 const bundle = JSON.parse(readFileSync(`/home/user/LM-Extractor/fixtures/regression-set/bundles/${id}.json`, 'utf8'));

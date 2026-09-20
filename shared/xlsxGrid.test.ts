@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   columnIndexFromRef,
+  countMarkdownSheets,
   gridToMarkdownTable,
   parseSharedStrings,
   parseSheetGrid,
@@ -144,4 +145,30 @@ test('a Results-Framework-shaped sheet keeps its outcome columns aligned', () =>
   assert.equal(headerCells.indexOf('WELLNESS'), dataCells.indexOf('Organize culturally rooted, joyful, and movement-based activities'));
   assert.equal(headerCells.indexOf('CULTURAL'), dataCells.indexOf('Create a supportive space where students can engage in cultural activities'));
   assert.equal(headerCells.indexOf('ACADEMIC'), dataCells.indexOf('Homework Assistance'));
+});
+
+test('countMarkdownSheets counts the sheet blocks sheetsToMarkdown emits', () => {
+  const md = sheetsToMarkdown([
+    { name: 'TOC overview', grid: [['Inputs', 'Activities'], ['Staff', 'Tours']] },
+    { name: 'Animal Academy', grid: [['Inputs', 'Activities'], ['Animals', 'Academy']] },
+  ]);
+  assert.equal(countMarkdownSheets(md), 2);
+});
+
+/**
+ * The counter reads the marker `sheetsToMarkdown` writes, and they live in one file so a change to
+ * either is read beside the other — a reader and a writer of the same format in separate files is
+ * how `bundleImpliesLowLegibility` came to silently never fire (see types.ts).
+ */
+test('countMarkdownSheets stays in step with the emitter when a blank sheet is dropped', () => {
+  const md = sheetsToMarkdown([
+    { name: 'Real', grid: [['Inputs'], ['Staff']] },
+    { name: 'Blank', grid: [] },
+  ]);
+  assert.equal(countMarkdownSheets(md), 1, 'a dropped blank sheet must not be counted');
+});
+
+test('countMarkdownSheets is 0 with no sheets and 1 for a single-sheet workbook', () => {
+  assert.equal(countMarkdownSheets('## Page 1\n\nsome text'), 0);
+  assert.equal(countMarkdownSheets(sheetsToMarkdown([{ name: 'Only', grid: [['A'], ['B']] }])), 1);
 });

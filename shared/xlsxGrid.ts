@@ -181,6 +181,23 @@ export function sheetsToMarkdown(sheets: XlsxSheet[]): string {
   return blocks.join('\n\n');
 }
 
+/**
+ * How many `## Sheet:` blocks a Track A carries.
+ *
+ * Deliberately next to `sheetsToMarkdown`, which writes that marker: a reader and a writer of the
+ * same format living in different files is how `bundleImpliesLowLegibility` ended up silently
+ * never firing (see types.ts). Change the marker and this is the next thing you read.
+ *
+ * Used to warn the operator that a multi-sheet workbook was read as ONE document. The Philadelphia
+ * Zoo file (friction-log session 22) holds eight complete logic models, one per program, sharing a
+ * mission and column headers but differing in inputs and activities; they are merged, and nothing
+ * downstream records which sheet an item came from. `shared/documentBundleSlicing.ts` splits
+ * multi-logic-model uploads but matches `## Page N` / `## Slide N` only, so spreadsheets bypass it.
+ */
+export function countMarkdownSheets(textTrack: string): number {
+  return (textTrack.match(/^##\s+Sheet:\s+\S/gim) ?? []).length;
+}
+
 /** `xl/workbook.xml` -> sheet names in workbook order. */
 export function parseSheetNames(workbookXml: string): string[] {
   if (!workbookXml) return [];
