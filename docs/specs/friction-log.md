@@ -1322,6 +1322,68 @@ character count. Worth reusing as the shape of a safe prompt edit.
 
 ---
 
+## Session 16 — unmapped accepts unlabeled content (PROMPT_VERSION 2026-09-20.4)
+
+```
+Date:                     2026-09-20
+Operator:                 owner request; agent session (claude/loving-hawking-r436g3)
+Prompt version:           2026-09-20.3 -> 2026-09-20.4
+Gemini calls:             5
+
+--- Why ---
+The rule read "`unmapped` only for clearly non-standard LABELED sections". So content that fits no
+column but HAS a heading had a home, and content that fits no column and has NO heading — loose
+prose, a sidebar, an unlabeled box — had none. It was neither a domain nor unmapped. That is the
+likeliest site of silent omission, which matters because completeness is the one dimension never
+measured here (invention is 0 of 204; completeness is unknown).
+
+--- The change ---
+Unlabeled substantive content now goes to `unmapped` with a group name describing where it sits
+("Unlabeled — sidebar right of the grid"). Explicit counterweight: page furniture is excluded by
+name — titles, organization names, logos, page/slide numbers, headers, footers, decorative
+captions, a colour key already in `colorLegend`. The trigger is perceptible per working-agreement
+point 3: a model can see whether text has a heading and whether it sits under a column.
++820 chars on every variant. Budget came from .2 (-1,300) and .3 (-500).
+
+--- Result: no harm observed, benefit UNPROVEN ---
+Three prose-heavy documents (Harlem Lacrosse, YMCA Youth Civic, Trinity):
+  - NO page furniture appeared. The exclusion held. That was the risk and it is controlled.
+  - Every unmapped group that DID appear is still a labeled section (WHO WE ARE, OUR METRICS,
+    Problem Statement, SITUATION / NEED...). The new unlabeled path did not visibly fire.
+  - Trinity unchanged at 53/53; tests 236 passing.
+So this is insurance whose payout has not been observed. Either these documents have no unlabeled
+orphan content, or the rule is not landing — and those cannot be told apart without reading the
+sources. Kept rather than reverted because the gap in the old rule was real and the measured cost
+is zero, but it should NOT be counted as a win until a completeness pass says so. | cause: prompt
+
+--- Finding: the NESTING fold breaks on paragraph-length parents ---
+Harlem Lacrosse's OUR APPROACH came back as 19 items, each carrying ~200 characters of repeated
+parent text:
+  "WE COACH STUDENTS. We provide safe spaces where middle and high school children can find
+   belonging, take risks, make mistakes, and achieve progress by practicing and playing
+   lacrosse. — Authentic relationships with students and families"
+...and three more items repeating that same paragraph, then five repeating the next one.
+
+This is NESTING rule 8 working exactly as written — "prefix the parent onto each of its children"
+— and the result is bad. The rule was designed against parents that are LABELS ("Student
+Publications", "Academic Skills"), which are short. When the parent is a sentence or a paragraph,
+folding duplicates it once per child and bloats every row.
+
+NOT fixed here: one themed change per batch, and 2026-09-20.4 is already spent on unmapped. Also
+worth noting the blast radius is smaller than it looks — `unmapped` reaches the full CSV but NOT
+the coding CSV — though the same fold would do this inside a real domain too.
+Candidate fix for next batch: fold only SHORT parents; a parent longer than a label becomes its
+own group name instead, so the text appears once rather than N times.      | cause: prompt
+
+--- Next ---
+1. Fix the paragraph-parent fold (above).
+2. Human completeness pass — now doubly motivated: it is the only thing that can say whether the
+   unmapped widening does anything.
+3. Full census at --passes=3 once the above settle.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -1341,3 +1403,4 @@ character count. Worth reusing as the shape of a safe prompt edit.
 | 13 | 2026-09-20 | n/a (copy) | operator-facing flags rewritten in plain language | other | N |
 | 14 | 2026-09-20 | n/a (tests) | export column drift, jargon and contract headers now guarded | other | N |
 | 15 | 2026-09-20 | 2 docs | text-only no longer instructed to read images | prompt | N |
+| 16 | 2026-09-20 | 3 docs | unmapped widened (unproven); nesting fold breaks on long parents | prompt | N |

@@ -32,7 +32,7 @@
  * (`services/extractionLogExport.ts`) so a batch's results can be attributed to the exact prompt
  * that produced them. Format: `YYYY-MM-DD.N`.
  */
-export const PROMPT_VERSION = '2026-09-20.3';
+export const PROMPT_VERSION = '2026-09-20.4';
 
 /** Same contract as `PROMPT_VERSION`, versioned separately — different call, different failure mode. */
 export const DETECT_PROMPT_VERSION = '2026-09-19.1';
@@ -533,6 +533,23 @@ const colourAndEmphasisSection = (isVision: boolean): string => `
  * Item shape + source-location anchors + unmapped/layout.
  *
  * EVIDENCE: `docs/specs/source-review-v1.md` / `tech-source-review-v1.md`.
+ *
+ * UNMAPPED was widened 2026-09-20.4. It previously read "only for clearly non-standard LABELED
+ * sections", which gave a home to content that fits no column but has a heading, and no home at
+ * all to content that fits no column and has no heading — loose prose, a sidebar, an unlabeled
+ * box. That is the likeliest place for silent omission, which matters because completeness is the
+ * one dimension this project has never measured (docs/verification/2026-09-20-scorecard-summary.md
+ * measured invention at 0 of 204 and could not measure completeness at all). The trigger is
+ * perceptible per this file's working-agreement point 3 — a model can see whether text has a
+ * heading and whether it sits under a column — unlike "did I miss anything?", which is not.
+ *
+ * The explicit page-furniture exclusion is the counterweight: the old rule's strictness kept
+ * `unmapped` clean, and the risk of loosening it is titles and page numbers arriving as rows.
+ * Note what this does NOT touch: `unmapped` reaches the full CSV but NOT the coding CSV
+ * (`services/codingExport.ts` filters to the four outcome domains), so extra rows here are visible
+ * to whoever checks an extraction and cannot reach a coder's file.
+ * RETIRE/REVISE IF a batch shows page furniture appearing as unmapped rows, or if a completeness
+ * pass shows unlabeled content still going missing.
  * The SOURCE LOCATION rules depend on `server/geminiLogicModel.ts` labeling each image with its
  * document page/column from `DocumentBundle.imageRefs`. That plumbing was broken (the API layer
  * dropped `imageRefs`), which made every `sourcePage` a guess; fixed 2026-09-19 in
@@ -556,8 +573,17 @@ ${
     item on, and a page number inferred from text order is a guess.
 `
 }
-    **UNMAPPED + LAYOUT**:
-    - \`unmapped\` only for clearly non-standard labeled sections (Assumptions, External Factors, etc.).
+    **UNMAPPED — WHERE CONTENT GOES WHEN IT FITS NO COLUMN**:
+    - **Labeled non-standard sections** (Assumptions, External Factors, Evaluation Methods,
+      Situation/Need) → \`unmapped\`, with \`group.name\` = that section's own heading.
+    - **Substantive content with NO heading at all** — a loose paragraph, a sidebar, a callout box,
+      an unlabeled list — also goes to \`unmapped\`. Name the group for where it sits so a human can
+      find it again: \`"Unlabeled — sidebar right of the grid"\`, \`"Unlabeled — text below the grid"\`.
+      **Content you can read but cannot place is still content.** Dropping it silently is the worst
+      outcome; a row a human deletes is the cheapest one.
+    - **Not** page furniture: document titles, organization names, logos, page or slide numbers,
+      headers, footers, decorative captions, or a colour key already recorded in \`colorLegend\`.
+      Those are not content and do not belong in \`unmapped\`.
     - \`layoutFamily\`: \`vertical_columns\` | \`horizontal_rows\` | \`diagram\` | \`prose_sections\` | \`unknown\`.
 `;
 
