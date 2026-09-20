@@ -898,6 +898,110 @@ been run.
 
 ---
 
+## Session 11 — the `+lowleg` answer: it fails at the GATE, not at extraction
+
+```
+Date:                     2026-09-20
+Operator:                 owner uploads; agent session (claude/loving-hawking-r436g3)
+Prompt version:           2026-09-20.2 (unchanged)
+Gemini calls:             30 (5 capture + 1 inspection + 24 census)
+Coverage:                 12 of 14 manifest documents now have bundles
+
+--- Finding 1 (headline): Art Thru Youth extracts ACCURATELY and is thrown away ---
+`art-thru-youth` is the set's only `vision-only+lowleg` entry, and the manifest recorded it as
+"a real hard-stop case ... the app correctly refuses to extract". That is not what happens.
+
+Run through the API, the extraction is essentially perfect against the source image:
+  Input 3 / Activities 3 boxes (split to 7 items by EXTRACTION RULES 1 granularity) /
+  Output 1 / Outcome 3 -> generalOutcomes / Impact 3 boxes (split to 4)
+Every string matches the source exactly. Zero inventions. The Outcome column has no time-horizon
+label and went to `generalOutcomes` rather than being guessed into short/medium/long — COLUMN
+FIDELITY 7, correct. And the source's own typo "Suport working families" is preserved verbatim,
+which is the never-repair rule working on a real typo in the hardest variant in the set.
+
+Then the app discards it. The chain:
+  fileService.ts:1530  warns "This image is 1024px wide, which is low resolution for a dense
+                       logic model, so small text may be misread. Verify the extracted wording
+                       against the original."
+  types.ts:235         bundleImpliesLowLegibility matches /low[- ]resolution/i -> true
+  extractionFidelity   `if (L && N >= 6)` -> confidence = 'low', blocker lowLegibilityDense
+  App.tsx:531          shouldHardStopExtraction -> status 'error', result UNDEFINED
+
+So ANY uploaded image under the px threshold that extracts 6+ items is discarded, unconditionally
+and regardless of how good the extraction is. Note the warning text itself asks the operator to
+"verify the extracted wording against the original" — that is a REVIEW instruction, and the code
+escalates it to a refusal.
+
+Fair to the gate: this document is not stable. Three runs gave 18, 17 and 13 items, so its recall
+genuinely varies and the underlying worry is not baseless. The problem is that `L && N >= 6`
+measures nothing about the extraction — it cannot tell a perfect run from a poor one, and since
+session 9 removed item-level flagging it no longer has any signal that could.
+                                                                                | cause: setup
+
+This is the `+lowleg` answer session 4 asked for. The variant does not fail at extraction. It
+fails at the gate.
+
+--- Finding 2: CORRECTION — item counts DO move run to run ---
+Session 10 Finding 3 said "every unstable case is grouping ONLY ... nothing is being gained or
+lost between runs", and I told the owner that recall and invention therefore would not
+contaminate a random-sample correctness check. At 12 documents that is FALSE:
+  Harlem Lacrosse      38 vs 49 items   (an 11-item swing)
+  Cub Reporter        111 vs 113
+  Art Thru Youth       17 vs 13
+Recall moves, materially, on some documents. The claim was made on 7 documents where it happened
+to hold, and the next five broke it.                                             | cause: other
+
+--- Finding 3: the census's own 2-pass verdict is noisy ---
+Between the 7-document census and this one, with NO prompt change:
+  Oxford Circle   STABLE byte-identical  ->  UNSTABLE
+  Trinity         UNSTABLE               ->  STABLE byte-identical
+A 2-pass census classifies a document from a single pair, which is exactly the n=1 problem this
+tool was built to catch in others. `--passes=3` or more is needed before a per-document verdict
+should be trusted; 2 passes detects instability but cannot confirm stability.
+
+--- Census, 12 documents (stable 6 / unstable 6) ---
+  Core Reporter       vision+text    45/45   STABLE byte-identical  (stable in every census so far)
+  FirstHand           text-only      45/45   STABLE byte-identical
+  Trinity             vision-only    53/53   STABLE byte-identical
+  YMCA Teen Workforce docx           29/29   STABLE byte-identical
+  YMCA Youth Civic    docx           18/18   stable items
+  SEAMAAC             vision+text    33/33   stable items
+  Oxford Circle       vision+text    44/44   UNSTABLE (grouping)
+  Performance Garage  text-only      46/46   UNSTABLE (grouping)
+  BioEYES             vision-only      6/6   UNSTABLE (grouping)
+  Cub Reporter        vision+text   111/113  UNSTABLE (item count)
+  Harlem Lacrosse     vision+text    38/49   UNSTABLE (item count)
+  Art Thru Youth      vision-only+lowleg 17/13 UNSTABLE (item count)
+
+Only Core Reporter has been stable in every census run. Instability is spread across every
+variant, which supports session 10 Finding 2 (document-specific, not variant-specific).
+
+--- Actions taken ---
+- Bundles captured for art-thru-youth, harlem-lacrosse, ymca-youth-civic-engagement,
+  seamaac-urban-arts, and a new entry ymca-teen-workforce (sibling of youth-civic from the same
+  partner, same house format — a difference between them is attributable to content, not layout).
+- No prompt change, no code change. Finding 1 is a code issue and is written up, not fixed.
+
+--- Next ---
+1. DECIDE on the low-legibility gate (Finding 1). Options: drop the hard stop to a warning-plus-
+   review flag, raise the px threshold, or gate on something that actually measures the
+   extraction. Currently it discards good work on a document class that extracts well. This is
+   an owner decision, not a prompt tweak.
+2. Re-run the census with --passes=3 before trusting any per-document verdict (Finding 3).
+3. Human Pass 1 for the completeness rate — still the missing number, and Finding 2 makes it
+   more urgent, not less.
+4. Remaining bundles: philadelphia-ballet, a-new-dawn.
+
+--- Notes ---
+Two claims of mine were corrected by the same batch that produced them: "the app correctly
+refuses Art Thru Youth" (it refuses a good extraction) and "recall does not move between runs"
+(it moves by 11 items on Harlem). Both were stated on smaller samples than the ones that broke
+them. The pattern is consistent enough to be worth naming: on this project, a result from fewer
+than ~10 documents has repeatedly failed to survive the next five.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -912,3 +1016,4 @@ been run.
 | 8 | 2026-09-20 | 3 docs | extract (0/204 inventions; census: 1 of 3 docs fully stable) | prompt + setup | N |
 | 9 | 2026-09-20 | 3 docs | extract (flagging removed; prompt shrinks ~1.3k; Core Reporter 5/5 stable) | prompt | N |
 | 10 | 2026-09-20 | 7 docs | extract (vision-only works; text-only diagnosis retracted) | prompt + setup | N |
+| 11 | 2026-09-20 | 12 docs | extract (+lowleg fails at the gate, not extraction; recall moves) | setup + prompt | N |

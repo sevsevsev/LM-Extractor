@@ -62,7 +62,7 @@
   {
     "id": "art-thru-youth",
     "label": "Art Thru Youth — Art Thru Youth",
-    "covers": "vision-only+lowleg · added 2026-09-19 to close the vision-only gap (see README). A real hard-stop case: a 1024px standalone PNG that the app correctly refuses to extract (\"Low-resolution dense grid — transcription is not reliable enough to continue\"). No baseline snapshot committed yet — capture one with `npm run regression:check -- --only=art-thru-youth --update` once you're on the prompt version you want as the reference.",
+    "covers": "vision-only+lowleg · a 1024x768 standalone PNG. CORRECTION (2026-09-20, session 11): the earlier note here said the app \"correctly refuses to extract\" this. It does refuse it, but not correctly — run through the API the extraction matches the source image string for string, with zero inventions, the unlabelled Outcome column correctly routed to generalOutcomes, and the source's own typo \"Suport working families\" preserved. The refusal comes from an unconditional gate (`L && N >= 6` in extractionFidelity.ts -> confidence low -> hard stop in App.tsx) that measures nothing about extraction quality. The document IS genuinely unstable (18/17/13 items across three runs), so the underlying worry is real — but the gate cannot tell a good run from a bad one. This entry is the project's only `+lowleg` coverage and its value is now as a GATE test, not a transcription test. See friction-log session 11, Finding 1.",
     "bundle": "art-thru-youth.json"
   },
   {
@@ -76,5 +76,11 @@
     "label": "Trinity Enrichment Center — Boys & Girls Rising",
     "covers": "vision-only · a 1536x1024 designed infographic with a full, clean column set (Situation/Need | Inputs | Activities | Outputs | Outcomes | Impact) plus an Evaluation Methods footer. Its OUTCOMES column is the best over-nesting test in the set: three labelled sub-boxes (SHORT-TERM 0-3 MONTHS / INTERMEDIATE 3-6 MONTHS / LONG-TERM 6-12+ MONTHS), each holding its own bullet list — three levels into a two-level schema, and the sub-box labels carry time horizons that COLUMN FIDELITY 3/7 must route rather than collapse.",
     "bundle": "trinity-boys-girls-rising.json"
+  },
+  {
+    "id": "ymca-teen-workforce",
+    "label": "Greater Philadelphia YMCA — Teen Workforce Development",
+    "covers": "DOCX prose_sections · sibling of ymca-youth-civic-engagement from the same organisation, added 2026-09-20. Two documents from one partner in the same house format is a useful pair: a difference between them is attributable to content, not to layout convention.",
+    "bundle": "ymca-teen-workforce.json"
   }
 ]
