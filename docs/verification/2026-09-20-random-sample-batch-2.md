@@ -87,13 +87,23 @@ Four, none of them extraction-quality. See friction log session 20.
    `mappedBy` and `mappingConfidence`; scalars carry nothing, so a downstream reader treating
    `targetPopulation` as quoted text would be wrong and has no way to know.
 
-3. **Model-authored text reaches the operator in the same channel as app-vetted text.** Rock
-   School's warning — "This image is low resolution and the grid is dense, so small text may be
-   misread" — matches neither `FIDELITY_BLOCKERS.lowRes` nor `lowLegibilityPartial`. Gemini
-   wrote it, as `constants.ts:699` asks it to, and `normalizeBlockers` only trims, dedupes and
-   caps at 4. The advice is right and the plain-language style holds, but the stated cause is
-   wrong (the page is not low-resolution; the font failed to embed, so it is unreadable at any
-   DPI) and nothing distinguishes vetted strings from generated ones.
+3. **CORRECTED — this finding was wrong as first published.** It claimed Rock School's warning
+   was Gemini-authored because it matched neither `FIDELITY_BLOCKERS.lowRes` nor
+   `lowLegibilityPartial`. It is an exact match for a third constant I did not check,
+   `FIDELITY_BLOCKERS.lowLegibilityDense` — app-authored and vetted. Nothing in this sample shows
+   model-written text reaching the operator.
+
+   The underlying mechanism is still real and still unguarded: `constants.ts:699` asks Gemini for
+   free-text blockers and `normalizeBlockers` only trims, dedupes and caps at 4, so model prose
+   *can* land in the same list as vetted strings with nothing marking which is which. But this
+   batch is not evidence that it happened.
+
+   What survives, and is sharper for being pinned on an app string: **the app's own wording names
+   the wrong cause.** `lowLegibilityDense` says "This image is low resolution and the grid is
+   dense". Rock School's pages are not low-resolution — every one of them failed to render because
+   the font did not embed, and they would be unreadable at any DPI. An operator told "low
+   resolution" might re-scan at higher DPI, which cannot possibly help. That is a string we
+   control, so it is fixable precisely, and it is the same underlying gap as finding 4.
 
 4. **Nothing detects "images present but contributed nothing."** Rock School had 5 page images,
    all useless, and was still handled as a vision extraction. There is a `textOnlyFallback`

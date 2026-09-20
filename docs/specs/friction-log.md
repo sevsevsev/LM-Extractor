@@ -1673,15 +1673,17 @@ Items carry `mappedBy` and `mappingConfidence`. Scalars carry nothing. A downstr
 treating `targetPopulation` as quoted text would be wrong, with no way to know. Note this is not
 a rule violation: "never add items" governs items, and these are scalars.        | cause: prompt
 
---- FINDING 3: model-authored text reaches the operator beside app-vetted text ---
-Rock School's warning — "This image is low resolution and the grid is dense, so small text may be
-misread" — matches NEITHER FIDELITY_BLOCKERS.lowRes NOR lowLegibilityPartial. Gemini wrote it, as
-constants.ts:699 asks it to, and normalizeBlockers only trims/dedupes/caps at 4.
+--- FINDING 3: WRONG AS FIRST WRITTEN — see session 21 for the correction ---
+As published this said Rock School's warning was Gemini-authored, because it matched neither
+FIDELITY_BLOCKERS.lowRes nor lowLegibilityPartial. It is an exact match for a THIRD constant I
+never checked, FIDELITY_BLOCKERS.lowLegibilityDense — app-authored and vetted. I concluded
+"the model wrote it" from two comparisons against a nine-entry object.
 
-The style holds and the advice is right, but the CAUSE is wrong: the page is not low-resolution,
-its font failed to embed, and it is unreadable at any DPI. An operator told "low resolution"
-might rescan at higher DPI, which cannot help. The session-13 plain-language guarantee covers the
-app's half of this channel only, and nothing marks which half a sentence came from.  | cause: other
+The mechanism is still real and unguarded (constants.ts:699 does ask Gemini for free-text
+blockers; normalizeBlockers only trims/dedupes/caps at 4), but this batch is NOT evidence of it
+firing. What survives is sharper for being an app string: our OWN wording names the wrong cause.
+Rock School's pages are not low-resolution, their font failed to embed, and they are unreadable
+at any DPI.                                                                       | cause: other
 
 --- FINDING 4: nothing detects "images present but contributed nothing" ---
 Rock School had 5 images, all useless, and was still handled as a vision extraction. There is a
