@@ -2040,6 +2040,67 @@ The operator-facing warning for the merge already ships (fileService.ts ~line 14
 
 ---
 
+## Session 25 — branches consolidated; PPTX vision conversion WORKS server-side
+
+```
+Date:                     2026-09-20
+Operator:                 owner ("clean everything up and unify it"); agent session
+                          (claude/project-thread-390llw)
+Prompt version:           2026-09-20.6 UNCHANGED — no prompt, no capture, 0 Gemini calls
+
+--- Consolidation ---
+Four non-main branches existed. Three are one line: claude/loving-hawking-r436g3 (81 commits, the
+whole capture toolchain) and two single-commit children of it, claude/project-thread-370qt4 (the
+section 2 cost switch) and claude/project-thread-fo4qzl (session 24). Merged both into
+claude/project-thread-390llw; disjoint file sets, no conflicts. npm test 250 pass / 1 skipped /
+0 fail, npm run typecheck clean, npm run build clean.
+
+cursor/dual-track-document-bundle is already superseded: its base commit 14fe781 is an ancestor of
+main, and its one extra commit (8f9aa02, zoom/pane sizing) is present on main by content — main's
+SourceDocumentPane.tsx carries MIN_ZOOM/MAX_ZOOM and the width-% scrollport, and App.tsx carries
+the 1fr/1.15fr grid. Nothing to merge. Left in place, not deleted.
+
+--- FINDING: "100% PPTX vision-conversion failure" (session 1, finding 3) IS STALE ---
+That finding blamed the LibreOffice->PDF path and codebase audit #16 blamed the browser-WASM
+fallback, which could not work without COOP/COEP headers. The browser fallback was DELETED in
+ab09403 ("Fix remaining 23 audit findings"), so convertPptxToImages now goes server-only through
+/api/convert/pptx-to-pdf. That path was never re-measured after the removal.
+
+Measured here, end to end, without Gemini: a synthetic four-column logic-model PPTX through
+server/libreOfficeConverter.ts -> convertPptxBufferToPdf.
+
+  LibreOffice WASM worker init:   3,776 ms (one-off, lazy singleton)
+  PPTX -> PDF convert:            1,049 ms
+  Output:                         %PDF-1.7, 12,637 bytes, 1 page, 720x540pt
+  Text runs preserved:            12, all four columns, in slide order
+
+So Track B for PPTX is reachable today on the Express path. The two PPTX fixtures
+(firsthand-pptx, performance-garage-youthmoves) hold 0 images because they were captured BEFORE
+the fallback removal; their manifest `covers` strings still assert the path fails. Not corrected
+here, because one synthetic deck does not license a claim about those two real documents — recapture
+them and the manifest text follows from the result.                              | cause: setup
+
+--- What this does NOT establish ---
+- One clean, machine-generated deck. Real decks carry embedded fonts, images, SmartArt and masters;
+  LibreOffice fidelity on those is unmeasured.
+- Vercel is a separate question and the code says so: api/convert/pptx-to-pdf.ts's own docstring
+  warns "cold start + ~250MB WASM may exceed typical serverless limits; prefer local Express".
+  node_modules/@matbee/libreoffice-converter/wasm measures 237 MB here. Unverified on Vercel.
+- A deck is now N PDF pages, so two PDF-path rules start applying to PPTX that never applied while
+  it ran text-only: MAX_VISION_PAGES = 15 truncates a longer deck, and runDetection's
+  `pageCount >= 2` gate means every multi-slide deck now pays a detect-logic-models pre-pass and can
+  be SPLIT into parts. A single logic model spread across several slides is the case to watch.
+
+--- Next ---
+1. Recapture firsthand-pptx and performance-garage-youthmoves on the current code. If images now
+   appear, performance-garage stops being a second text-only data point and becomes the track-band
+   vision fixture the manifest has wanted since session 5.
+2. Then census them. A PPTX that has never run vision has no stability history at all.
+3. Check /api/health's libreOfficeWasm field on a Vercel preview before promising PPTX on hosted.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -2068,3 +2129,4 @@ The operator-facing warning for the merge already ships (fileService.ts ~line 14
 | 22 | 2026-09-20 | 5 docs (random) | 0/251 invented; stated short-term horizon -> generalOutcomes (3/3); first XLSX = 8 models merged | prompt + setup | N |
 | 23 | 2026-09-20 | 1 doc x 14 runs | short-term misroute NOT reachable by wording; 2 variants built, measured, withdrawn | prompt | N |
 | 24 | 2026-09-20 | n/a (code) | extract (XLSX split never fires: detection gate, not the slicer regex) | setup | N |
+| 25 | 2026-09-20 | n/a (code) | branches unified; PPTX vision conversion works server-side (finding from session 1 is stale) | setup | N |
