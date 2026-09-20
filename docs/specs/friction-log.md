@@ -1601,6 +1601,109 @@ stop the rollup reading it), one themed change per run, and the choice is the ow
 
 ---
 
+## Session 20 — random sample batch 2; four findings, none of them extraction quality
+
+```
+Date:                     2026-09-20
+Operator:                 owner supplied a second random batch; agent session (claude/loving-hawking-r436g3)
+Prompt version:           2026-09-20.6 (unchanged — audit only)
+Gemini calls:             5
+
+--- The sample ---
+  Philadelphia Ballet   16 -> 16, 0 invented, 0 missed
+  Achieve Now           52 -> 52, 0 invented, 0 missed
+  Rock School           63 -> 63, 0 invented, 0 missed  (audited against Track A; see below)
+  1812 Productions      36 -> 36, 0 invented, 0 missed
+  Mamadele Foundation   80 -> 80, 0 invented, 0 missed
+
+  INVENTION 0 of 247.  With batch 1: 0 INVENTIONS IN 335 ITEMS ACROSS 9 DOCUMENTS.
+
+Full record in `docs/verification/2026-09-20-random-sample-batch-2.md`.
+
+--- The instrument got fixed before it cost a fourth false finding ---
+Sessions 5, 19 and 20 each nearly recorded something ABSENT that was present: a single-line grep
+vs multi-line output; a flattener walking only group-bearing fields; an exact-substring search vs
+a text track with hard line breaks mid-phrase. Same failure every time, and the tell is always
+the same — absence is what a weak instrument manufactures.
+
+`coverage.mjs` now normalises whitespace and quotes on BOTH sides and checks items AND scalars
+against Track A. It cut 247 items down to 9 strings needing eyes; all 9 were correct behaviour.
+A miss there is not an invention, it is an instruction to look at the image.  | cause: audit-instrument
+
+--- Rock School: the dual track earning its keep at the limit ---
+ALL FIVE of its page images are unreadable mojibake — the document's font failed to map, so
+Track B contributed literally nothing. 63 items came from Track A alone. Two of them are phrases
+the source splits across a page boundary with ~1,400 characters of unrelated column text between
+the halves ("An improved growth" + "mindset, increase in tenacity, confidence, and curiosity";
+"Social emotional learning" + "through community and citizenship") and both were correctly
+reassembled. Achieve Now supplied the same lesson in miniature: one box is pure mojibake in the
+image and the real string came from Track A.
+
+The system degraded to text-only behaviour without being told to, and said so with a warning.
+That is the architecture working.                                                 | cause: none
+
+--- Achieve Now: never-repair on a case where repairing would look like an improvement ---
+The source genuinely reads "Hjgh rate of volunteer retention". The extraction preserved the typo.
+It also declined to emit an orphan fragment ("Financial / - / Students have a") that sits in the
+PDF text layer but appears nowhere on the visible page.                           | cause: none
+
+--- Mamadele: the hardest grouping case so far, handled exactly right ---
+A 6x6 matrix whose ROWS are core values and whose COLUMNS are logic-model domains. All six row
+bands became group names inside all six domains; 80 items, no losses; "Intermediate-Term
+Outcomes" read as mediumTermOutcomes; diacritics kept; and no program name invented from the
+filename even though the filename carries one.                                    | cause: none
+
+--- FINDING 1: DOCX text tracks carry base64 image payloads ---
+1812's Track A is 38,994 chars, of which 33,837 — 87% — are `data:image/...;base64` blobs and
+Google-hosted image URLs. That is ~8,400 tokens of noise on every extraction call for that
+document. Root cause: `mammoth.convertToHtml` inlines embedded images as data URIs and Turndown
+renders them into the Markdown (`services/fileService.ts:879`); nothing strips them.
+
+Base64 cannot be read as text by any model, and the same images already go as Track B rasters, so
+this is pure waste with no information loss from removing it. It is also the first concrete,
+measurable answer to the owner's question about making the prompt more economical — and it is not
+in the prompt at all.                                                            | cause: setup
+
+--- FINDING 2: scalar fields are synthesised, not transcribed, and nothing records it ---
+1812's `targetPopulation` stitches a span of PROBLEM STATEMENT to a span of CONTEXT / RATIONALE
+with connective words present in neither. ArtWell's and Philadelphia Ballet's were derived from
+their impact statements. Four of nine documents.
+
+Items carry `mappedBy` and `mappingConfidence`. Scalars carry nothing. A downstream reader
+treating `targetPopulation` as quoted text would be wrong, with no way to know. Note this is not
+a rule violation: "never add items" governs items, and these are scalars.        | cause: prompt
+
+--- FINDING 3: model-authored text reaches the operator beside app-vetted text ---
+Rock School's warning — "This image is low resolution and the grid is dense, so small text may be
+misread" — matches NEITHER FIDELITY_BLOCKERS.lowRes NOR lowLegibilityPartial. Gemini wrote it, as
+constants.ts:699 asks it to, and normalizeBlockers only trims/dedupes/caps at 4.
+
+The style holds and the advice is right, but the CAUSE is wrong: the page is not low-resolution,
+its font failed to embed, and it is unreadable at any DPI. An operator told "low resolution"
+might rescan at higher DPI, which cannot help. The session-13 plain-language guarantee covers the
+app's half of this channel only, and nothing marks which half a sentence came from.  | cause: other
+
+--- FINDING 4: nothing detects "images present but contributed nothing" ---
+Rock School had 5 images, all useless, and was still handled as a vision extraction. There is a
+`textOnlyFallback` concept for documents with NO images, but no signal for images that rendered
+to garbage.                                                                       | cause: setup
+
+--- Too small to act on alone ---
+Achieve Now's Outputs hold two items with identical text ("Avg Student Gains"), identical group
+("General") and identical every other field. In the source they sit in two different UNNAMED
+boxes — 1:1-model metrics and small-group metrics. No sub-heading exists for the GROUPING GATE to
+use, so the distinction survives only as row order.
+
+--- Next ---
+1. Pick among findings 1-4 and the open `verbatim` question from session 19. Finding 1 is the
+   cheapest and most clearly correct.
+2. More batches. 9 documents, 0 inventions — the invention question is looking answered; the
+   completeness question is better served by harder documents than by more easy ones.
+3. Full census at --passes=3.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -1624,3 +1727,4 @@ stop the rollup reading it), one themed change per run, and the choice is the ow
 | 17 | 2026-09-20 | 1 doc | nesting fold split by parent type; 85% fewer chars, same content | prompt | N |
 | 18 | 2026-09-20 | 2 docs | no-grid fallback added (safe, unproven); flag states its consequence | prompt + other | N |
 | 19 | 2026-09-20 | 4 docs (random) | 0/88 invented, 84/84 complete; `verbatim` undefined yet still gates the rollup | setup + other | N |
+| 20 | 2026-09-20 | 5 docs (random) | 0/247 invented; base64 bloats one DOCX track 87%; scalars synthesised unrecorded | setup + prompt | N |
