@@ -98,6 +98,25 @@ export interface LogicModelField<T> {
 export interface LogicModel {
   organization: string;
   program: string;
+  /**
+   * The three scalar prose fields below are COMPOSED, not necessarily transcribed, and nothing in
+   * the data records which happened. Measured across the batch-2 random sample (friction-log
+   * session 20): 4 of 9 documents had no labelled "who the program serves" box at all, and the
+   * model built `targetPopulation` from spans of other sections — 1812's stitches a phrase from
+   * PROBLEM STATEMENT to one from CONTEXT / RATIONALE with connective words present in neither.
+   * Every composed value checked was faithful to the document's content; the issue is that a
+   * reader cannot tell a quotation from a summary.
+   *
+   * Grouped-domain ITEMS carry `mappedBy` and `mappingConfidence` for exactly this reason. These
+   * scalars carry nothing equivalent, and the prompt was deliberately NOT changed to add it
+   * (session 21): these fields reach no CSV — not the full export, not the coding export, not the
+   * extraction log — so the coding pipeline is unaffected, and a prompt change of unproven benefit
+   * is what session 18 warned against making without evidence it helps.
+   *
+   * They DO reach the operator through the editor and `LogicModelPdfTemplate`. If any of them is
+   * ever added to an export, decide first how a consumer is meant to tell read-from-source from
+   * composed-by-the-app, because at that point the distinction starts to matter.
+   */
   /** Explicit labeled Impact Statement in source — optional; see docs/specs/tech-multi-column-extract.md */
   impactStatement?: LogicModelField<string>;
   mission: LogicModelField<string>;
