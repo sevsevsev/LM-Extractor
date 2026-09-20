@@ -1981,6 +1981,63 @@ recurs across more documents it is worth revisiting with that evidence; on n=1 i
 2. Instability is still the larger problem: 0 inventions in 586 items vs 7 of 15 documents unstable.
 ```
 
+## Session 24 — the XLSX split fails at the DETECTION GATE, not at the slicer
+
+```
+Date:                     2026-09-20
+Operator:                 cloud session — no local corpus, no bundles
+Prompt version:           2026-09-20.6 UNCHANGED — no prompt touched
+Gemini calls:             0 (static source read; nothing ran against the API)
+
+--- Why this is a code-only session ---
+Briefed to work `local-capture-session.md` section 7 (XLSX, then PNG, then PPTX). Section 7
+prioritises which DOCUMENTS to capture next, and this session has none: the corpus is on the
+owner's machine, and `fixtures/regression-set/bundles/` is gitignored, so all 17 bundles named in
+`manifest.json` are absent from a fresh clone. No capture, no audit, no census. Baseline otherwise
+confirmed: 244 pass / 1 skipped / 0 fail. What follows is the one section-7 item readable from
+source alone.
+
+--- FINDING: `## Sheet:` is unreachable, so widening the regex would be a no-op ---
+Session 22 already recorded that `documentBundleSlicing.ts` matches `## Page N` / `## Slide N`
+only, and added that "slicing also assumes page ranges and images, and XLSX has neither". The
+runbook's section 7 compressed that to the regex alone. That compression is the hazard: the regex
+is not the binding constraint, and a session that widens it will watch all 244 tests stay green
+and conclude the bug is closed.
+
+The slicer is never reached for a spreadsheet. Traced end to end:
+
+  services/fileService.ts  assembleDocumentBundle('xlsx', [], warnings, false, textTrack,
+                           undefined, undefined) — images [] and previewImages undefined, so
+                           `previews` resolves to undefined (both branches fail, ~line 791).
+  App.tsx runDetection     pageCount = bundle.previewImages?.length ?? 0   ->  0
+                           gate `pageCount >= 2 && bundle.previewImages`   ->  false
+                           groups stays [{ startPage: 1, endPage: 1 }]
+  App.tsx                  `if (groups.length <= 1)` returns BEFORE any sliceDocumentBundle call.
+                           PAGE_MARKER is never consulted for an XLSX at all.
+
+Two locks on this door; the regex is the inner one. The split path is raster-driven end to end and
+a spreadsheet has no rasters.                                                     | cause: setup
+
+--- Not built, deliberately ---
+The runbook gates a sheet splitter on capturing two more spreadsheets, and n is still 1. Nothing
+was changed here. Recording the mechanism only, so the gate is decided on evidence rather than on
+a one-line diagnosis that understates the work.
+
+When the gate does open it is a new detection path keyed on `## Sheet:` blocks in Track A — the
+marker is `## Sheet: <name>`, a NAME and not a number (shared/xlsxGrid.ts:179), which `PageRange`'s
+numeric start/end cannot express. That is a new range type plus a non-raster detection trigger,
+not a regex widening.
+
+The operator-facing warning for the merge already ships (fileService.ts ~line 1484, commit
+88e6993), so the app states the fact while the splitter stays ungated.
+
+--- Next ---
+1. Section 7 still needs a session on the owner's machine: two more spreadsheets, then PNG, then
+   PPTX. None of it is reachable from a cloud session.
+2. If the splitter is ever scoped, scope it as detection + a sheet-keyed range, and re-read this
+   entry before touching PAGE_MARKER.
+```
+
 ---
 
 ## Running tally
@@ -2010,3 +2067,4 @@ recurs across more documents it is worth revisiting with that evidence; on n=1 i
 | 21 | 2026-09-20 | 15 docs (census x3) | base64 stripped; `verbatim` retired + schema/prompt guard; 7 of 15 unstable | setup + other | N |
 | 22 | 2026-09-20 | 5 docs (random) | 0/251 invented; stated short-term horizon -> generalOutcomes (3/3); first XLSX = 8 models merged | prompt + setup | N |
 | 23 | 2026-09-20 | 1 doc x 14 runs | short-term misroute NOT reachable by wording; 2 variants built, measured, withdrawn | prompt | N |
+| 24 | 2026-09-20 | n/a (code) | extract (XLSX split never fires: detection gate, not the slicer regex) | setup | N |
