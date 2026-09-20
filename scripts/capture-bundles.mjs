@@ -31,10 +31,23 @@
  */
 // Playwright is not a project dependency — it is provided by the environment (and the Chromium
 // path below is the preinstalled browser). Resolved dynamically so `npm test`/`tsc` never need it.
-const { chromium } = await import(process.env.LM_PLAYWRIGHT ?? 'playwright');
+//
+// A cloud session has Playwright installed GLOBALLY, where a bare specifier cannot reach it, so a
+// failed import retries against the global root. Two wrinkles, both hit by hand before this fix:
+// setting LM_PLAYWRIGHT to the package DIRECTORY raises ERR_UNSUPPORTED_DIR_IMPORT (the catch now
+// recovers it), and the package entry is CJS whose named `chromium` cjs-module-lexer cannot see, so
+// the import succeeds while `chromium` is undefined — hence reading `.default` instead of
+// destructuring, and failing loudly below rather than at `chromium.launch()`.
+const pw = await import(process.env.LM_PLAYWRIGHT ?? 'playwright').catch(async () => {
+  const root = execSync('npm root -g', { encoding: 'utf8' }).trim();
+  return import(pathToFileURL(path.join(root, 'playwright', 'index.js')).href);
+});
+const chromium = pw.chromium ?? pw.default?.chromium;
+if (!chromium) throw new Error('Playwright resolved but exposes no chromium export');
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'regression-set');
 const OUT = path.join(ROOT, 'bundles');
