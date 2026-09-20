@@ -14,7 +14,8 @@
     "regression:check": "tsx scripts/regression-check.ts",
     "test": "tsx --test *.test.ts shared/**/*.test.ts services/**/*.test.ts components/**/*.test.ts server/**/*.test.ts",
     "verify:api": "node scripts/verify-api.mjs",
-    "start": "npm run build && node scripts/start-prod.mjs"
+    "start": "npm run build && node scripts/start-prod.mjs",
+    "census": "tsx scripts/stability-census.ts"
   },
   "dependencies": {
     "@google/genai": "^1.31.0",

@@ -658,6 +658,72 @@ Gemini calls. Both prior changes (.3, .4) were judged on a single diff and taugh
 
 ---
 
+## Session 8 — verification protocol run + stability census (`npm run census`)
+
+```
+Date:                     2026-09-20
+Operator:                 agent session (claude/loving-hawking-r436g3)
+Prompt version:           2026-09-20.1 (unchanged this session)
+Gemini calls:             12 (2 census passes x 3 documents, run twice)
+
+--- Correctness: the protocol finally ran ---
+See docs/verification/2026-09-20-scorecard-summary.md. Three documents, 204 items.
+  INVENTION RATE: 0 / 204.
+Core Reporter is clean on every dimension (42/42 source bullets, correct domain, correct group,
+exact text, canonical three-level nesting) and is a golden-set fixture candidate.
+Completeness is NOT measured — the mechanical parser flagged 15 Cub Reporter items and
+hand-checking showed the great majority were parser artifacts. Three of my own checker's
+"findings" were checker bugs. A human Pass 1 is still the missing piece.       | cause: other
+
+--- The census, and what it immediately caught ---
+`npm run census` runs every regression-set document twice on the CURRENT prompt and reports
+whether it reproduces. It answers the question `regression:check` silently assumes: is a diff on
+this document meaningful at all?
+
+Three independent same-prompt pairs at 2026-09-20.1:
+                       pair 1 (C1/C2)   pair 2      pair 3
+  Core Reporter          stable         stable      stable      -> 3/3 trustworthy
+  Cub Reporter           stable         UNSTABLE    stable      -> 2/3
+  Performance Garage     UNSTABLE       UNSTABLE    UNSTABLE    -> 0/3
+
+CORRECTION TO SESSION 7. That session recorded Cub Reporter as "ZERO item churn" on the strength
+of one pair. Three pairs say 2 of 3. The nesting rule is a large real improvement (from 120 diff
+lines to near zero) but it did not make that document deterministic, and the stronger claim was
+not supported by the evidence behind it. The census caught this on its first run, which is the
+entire argument for having one: a single same-prompt pair beats no control and is still not
+enough to call a document stable.                                              | cause: prompt
+
+Performance Garage is unstable in 3 of 3 — consistent with session 7's diagnosis that the NESTING
+rule's trigger is visual and cannot fire on a text-only document.
+
+--- Practical limit hit: getting the other 8 bundles ---
+The Drive connector returns file contents as base64 IN CONTEXT, and writing them back to disk
+costs the same again, so each document round-trips at roughly 2x its base64 size (~20k tokens for
+an 18KB DOCX; ~1.5M for the remaining eight). Uploading the files directly into the session is an
+order of magnitude cheaper. Recorded so the next session does not rediscover it.  | cause: setup
+
+--- Actions taken ---
+- scripts/stability-census.ts + `npm run census`.
+- docs/verification/2026-09-20-scorecard-summary.md (first protocol run).
+- constants.ts evidence note corrected; the over-claim is left visible, not edited away.
+- No prompt change: 2026-09-20.1 stands.
+
+--- Next ---
+1. Capture the remaining 8 bundles (upload, not Drive) and run the full census. Until then the
+   set is 3/11 characterised.
+2. Human Pass 1 on the three verified documents -> first real completeness rate.
+3. Text-only NESTING formulation over Track A Markdown depth (Performance Garage, 0/3 stable).
+4. Item-level flagging is STILL 0% at 2026-09-20.1. Do not reword again — Track A cross-check
+   first, then a verification pass with a corruption eval.
+
+--- Notes ---
+Two sessions ago the question was whether a grouping change was a regression. It was noise. One
+session ago the question was whether the fix worked. It mostly did, less than claimed. The thing
+that moved both answers was not a better prompt, it was running the same thing twice.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -669,3 +735,4 @@ Gemini calls. Both prior changes (.3, .4) were judged on a single diff and taugh
 | 5 | 2026-09-19 | n/a (static audit) | extract (.3 would discard 9/10; harness unrunnable) | prompt + setup | N |
 | 6 | 2026-09-20 | A/B (3 docs) | extract (.4 no-op; grouping churn = over-nesting) | prompt + setup | N |
 | 7 | 2026-09-20 | A/B (3 docs) | extract (nesting churn fixed on vision; text-only still bistable) | prompt | N |
+| 8 | 2026-09-20 | 3 docs | extract (0/204 inventions; census: 1 of 3 docs fully stable) | prompt + setup | N |

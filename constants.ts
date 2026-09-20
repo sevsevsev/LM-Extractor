@@ -440,11 +440,17 @@ ${
  * `shared/nestingConsistency.ts` detects rule-9 violations in output (analysis only, deliberately
  * not wired into the fidelity rollup, so this batch's only change to Gemini's input is wording).
  *
- * MEASURED (session 7, same bundles, this prompt run twice). Cub Reporter — the four-level
- * document that motivated this — went from 118/118 items with 120 lines of re-encoding churn to
- * 113/113 with ZERO item churn, emitting exactly the canonical form ("Academic Skills — Writing",
- * group "Core Reporters"). Core Reporter's items are stable too. Across three documents the
- * same-prompt churn fell from 120 diff lines to 9, none of them item-level.
+ * MEASURED (session 7, same bundles, this prompt run twice, then re-measured in session 8 across
+ * two further pairs by `npm run census`). Cub Reporter — the four-level document that motivated
+ * this — went from 118/118 items with 120 lines of re-encoding churn to 113/113, emitting exactly
+ * the canonical form ("Academic Skills — Writing", group "Core Reporters").
+ *
+ * CORRECTION: session 7 recorded that as "ZERO item churn" on the strength of ONE pair. Three
+ * independent pairs now say Cub Reporter reproduces in 2 of 3 — much improved, not deterministic.
+ * Core Reporter reproduced in 3 of 3. The over-claim is left visible rather than edited away,
+ * because the census caught it on its first run and that is the whole argument for having one:
+ * a single same-prompt pair is better than no control and still not enough to call a document
+ * stable.
  *
  * KNOWN GAP, not fixed here: Performance Garage (text-only) is STILL bistable — one run collapsed
  * Activities to "General" with concatenated items, the other produced the three correct bands.
