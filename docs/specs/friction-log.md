@@ -1436,6 +1436,81 @@ unduplicated ones, which is not something run-to-run variation produces.
 
 ---
 
+## Session 18 — what to do when there is no grid (2026-09-20.6) + the flag says its consequence
+
+```
+Date:                     2026-09-20
+Operator:                 owner question; agent session (claude/loving-hawking-r436g3)
+Prompt version:           2026-09-20.5 -> 2026-09-20.6
+Gemini calls:             5
+
+--- The owner's observation ---
+Looking at the Harlem Lacrosse result: "the app is taking content it finds and then placing it
+into the logic model domain the app thinks it SHOULD belong to. The Harlem Lacrosse document is
+not actually a logic model. It is a theory of change." Torn between rejecting such documents and
+flagging them.
+
+--- Decision: flag, not reject ---
+Four reasons. (1) The structural safety net already held — Harlem contributed ZERO rows to the
+coding CSV, because that export is outcomes-only and Harlem produced no outcomes. (2) Rejecting
+destroys real content from a real program document. (3) DOCUMENT TYPE CHECK already decided this
+deliberately, off two brochures that silently returned confident extractions: "Do not abstain just
+because the document isn't a clean logic model grid". (4) Partners send what they have.
+
+--- Change 1 (code): the flag states its consequence ---
+"Possibly Not a Logic Model" hedges and omits what follows from it. Now:
+  "Not a logic model — the app sorted these items into columns; the document did not label them"
+The rule behind it needs no new field: when `documentTypeAssessment` is anything but `logic_model`,
+every domain assignment in that document is the app's categorization, not the document's labelling.
+
+A hypothesis tested and DISPROVED on the way: that per-item `sourceHeader` could distinguish "read
+from a column header" from "assigned by the model". It cannot — Core Reporter's activities items
+carry sourceHeader "Program Delivery" and Harlem's carry "WE COACH STUDENTS.", and nothing
+separates a domain read from a header from one inferred. The distinction is genuinely
+document-level, which is why it is expressed there.                              | cause: other
+
+--- Change 2 (prompt): WHEN THERE IS NO GRID ---
+The owner's follow-up — "this suggests the prompt should be adequately prepared to make good
+decisions about how to categorize items" — is right, and the gap was sharper than it sounds. The
+placement doctrine was ENTIRELY positional: GOAL says "column headers and row bands beat
+semantics, never reclassify an item because it sounds like an outcome"; rule 5 says a bullet
+belongs to the column whose header sits above it. For a Theory of Change there are no headers, so
+there is no position — and the only remaining instruction was "extract any content that genuinely
+maps, best effort". The prompt offered no method AND forbade the only one available.
+
+Added a scoped fallback: when and ONLY when a source has no column headers, decide by what an item
+IS — a resource the program has (inputs), something it does (activities), a countable product
+(outputs), a change in people served (outcomes, to `generalOutcomes` unless a horizon is stated),
+the aggregate change (impact) — and everything that answers none of those to `unmapped`. The GOAL
+now cross-references it so the two rules cannot compete.
+
+--- Result: safety property VERIFIED, benefit UNPROVEN ---
+The main risk was this section pulling items out of real labeled columns. It does not: Core
+Reporter came back byte-identical in structure — inputs 15, activities 8, outputs 7, short 6,
+medium 5, long 4, same group names. The fallback correctly did not fire where a grid exists.
+
+On Harlem itself, no demonstrable effect, because the document is bistable on exactly this question:
+  .6 run 1:  unmapped=54
+  .6 run 2:  activities=23  unmapped=27      (which is what .5 did)
+The model genuinely cannot decide whether "WE COACH STUDENTS. We provide safe spaces..." is an
+activity or narrative. That ambiguity is real rather than a defect, and it is precisely what the
+new flag now warns a reader about.                                               | cause: prompt
+
+--- Worth naming: two consecutive prompt changes with unproven benefit ---
+.4 (unmapped accepts unlabeled content) and .6 (no-grid fallback) are both reasonable, both
+verified not to break anything, and neither demonstrated to help. That is the instrument reaching
+its limit, not laziness: the documents these changes target are the unstable ones, so a 2-3 run
+comparison cannot resolve a modest effect. Completeness measurement is the thing that would.
+Do not keep making prompt changes of this shape without it.
+
+--- Next ---
+1. Human completeness pass. Now blocking two unproven changes, not just an open question.
+2. Random sample from the owner for an invention rate on unseen documents.
+3. Full census at --passes=3.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -1457,3 +1532,4 @@ unduplicated ones, which is not something run-to-run variation produces.
 | 15 | 2026-09-20 | 2 docs | text-only no longer instructed to read images | prompt | N |
 | 16 | 2026-09-20 | 3 docs | unmapped widened (unproven); nesting fold breaks on long parents | prompt | N |
 | 17 | 2026-09-20 | 1 doc | nesting fold split by parent type; 85% fewer chars, same content | prompt | N |
+| 18 | 2026-09-20 | 2 docs | no-grid fallback added (safe, unproven); flag states its consequence | prompt + other | N |

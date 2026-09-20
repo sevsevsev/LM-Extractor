@@ -32,7 +32,7 @@
  * (`services/extractionLogExport.ts`) so a batch's results can be attributed to the exact prompt
  * that produced them. Format: `YYYY-MM-DD.N`.
  */
-export const PROMPT_VERSION = '2026-09-20.5';
+export const PROMPT_VERSION = '2026-09-20.6';
 
 /** Same contract as `PROMPT_VERSION`, versioned separately — different call, different failure mode. */
 export const DETECT_PROMPT_VERSION = '2026-09-19.1';
@@ -170,7 +170,7 @@ const inputTracksSection = (isVision: boolean, hasTextTrack: boolean): string =>
  */
 const goalAndPresenceFirstSection = `
 
-    **GOAL**: High-fidelity **spatial** extraction. No critiques. **Column headers and row bands beat semantics.** Never reclassify an item because it "sounds like" an outcome or output. Output **only** the LogicModel JSON schema — no critique/rating fields and no extra keys.
+    **GOAL**: High-fidelity **spatial** extraction. No critiques. **Column headers and row bands beat semantics.** Never reclassify an item because it "sounds like" an outcome or output. (A source with NO column headers at all is the one exception — see WHEN THERE IS NO GRID.) Output **only** the LogicModel JSON schema — no critique/rating fields and no extra keys.
 
     ---
     ## PRESENCE-FIRST (DO NOT FORCE A FULL TEMPLATE)
@@ -372,6 +372,19 @@ const contextAndOverviewSection = (isVision: boolean, hasTextTrack: boolean): st
 /**
  * Column fidelity hard rules — the positional contract that keeps items in their source column.
  *
+ * WHEN THERE IS NO GRID was added 2026-09-20.6. Until then the placement doctrine was entirely
+ * positional — the GOAL says "column headers and row bands beat semantics", rule 5 says a bullet
+ * belongs to the column whose header sits above it — and the only instruction for a source without
+ * columns was DOCUMENT TYPE CHECK's "extract any content that genuinely maps, best effort". So for
+ * a Theory of Change the prompt offered no method AND forbade the only one available. Harlem
+ * Lacrosse showed the consequence: the model categorized 23 items into `activities` on its own
+ * judgment, which was defensible but unguided, and produced ZERO outcomes from a document type
+ * that is mostly about outcomes. The fallback is deliberately scoped ("only then", "never when a
+ * column header does exist") and the GOAL now cross-references it, so the two rules cannot compete.
+ * Note the last line ties categorization to `documentTypeAssessment`: if the model had to use this
+ * section, the per-row flag must say so — see `documentTypeFlagLabel`.
+ * RETIRE/REVISE IF a batch shows this section pulling items out of real labeled columns.
+ *
  * EVIDENCE: rules 1–6 come from YouthMoves/Oxford Circle miscategorization (friction-log session 1).
  * Rules 7 and 7b (`generalOutcomes`) were added for sources with a single combined outcomes column,
  * and for sources that split outcomes on a non-time axis (Attitudes/Behaviors/Conditions) — both
@@ -402,6 +415,24 @@ const columnFidelitySection = `
        these into a time horizon later. Do **not** force-fit them into \`shortTermOutcomes\` /
        \`mediumTermOutcomes\` / \`longTermOutcomes\` by left-to-right position — a differently-named column
        is not a time-horizon guess, however many outcome-shaped columns there are.
+
+    **WHEN THERE IS NO GRID** (Theory of Change, narrative, brochure — a source with no column headers):
+    Every rule above assigns by POSITION, and a document without column headers gives you no position
+    to use. **Only then**, decide by what an item IS — never by what it merely sounds like, and never
+    when a column header does exist:
+    - **Inputs** — a resource the program HAS or USES: people, money, materials, partnerships, curriculum.
+    - **Activities** — something the program DOES.
+    - **Outputs** — a countable product of doing it: sessions held, people reached, things published.
+    - **Outcomes** — a CHANGE IN the people or communities served. Put these in \`generalOutcomes\`
+      unless the source itself states a time horizon; a narrative rarely does, and inventing one is
+      the same error COLUMN FIDELITY 7 forbids.
+    - **Impact** — the aggregate long-term change the whole effort is oriented toward.
+    - **Everything else** — assumptions, beliefs, metrics, evaluation plans, stakeholder lists,
+      problem statements, context — goes to \`unmapped\` under its own heading. Do **not** stretch an
+      item into a domain it does not answer. An honest \`unmapped\` row is worth more than a
+      confident wrong column.
+    A document you had to categorize this way is **not** a logic model: set \`documentTypeAssessment\`
+    accordingly. That flag is what tells a human these columns are yours rather than the document's.
 `;
 
 /**
