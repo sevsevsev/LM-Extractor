@@ -768,6 +768,12 @@ const App: React.FC = () => {
     // unlike the coding export it is free to name things plainly. `shared/exportRoundtrip.ts`
     // works on the row objects, not on parsed headers, so renaming here breaks nothing.
     //
+    // `Needs Review` and `Uncertainty Note` were dropped 2026-09-20. Both derive from the
+    // per-item `verbatim` / `sourceNote` fields, which the prompt stopped asking for in
+    // PROMPT_VERSION 2026-09-20.2 (friction-log session 9), so both had been empty in every row
+    // since. `GranularExportRow` still carries them, so reinstating item-level flagging means
+    // restoring the prompt instruction and these two lines — nothing else.
+    //
     // Deliberately DIFFERENT from the coding export's names for the same values: that file says
     // `outcome_text` and `domain` because the Qualitative Outcomes Coder rejects uploads whose
     // headers it does not recognise (docs/specs/export-for-coding.md). Two audiences, two naming
@@ -781,8 +787,6 @@ const App: React.FC = () => {
       'Logic Model Column',
       'Group',
       'Item Text',
-      'Needs Review',
-      'Uncertainty Note',
       'Fill Color',
       'Border Color',
       'Color Legend',
@@ -813,8 +817,6 @@ const App: React.FC = () => {
       r.domain,
       r.group,
       r.content,
-      r.needsReview,
-      r.sourceNote,
       r.fillColor,
       r.borderColor,
       r.colorLegend,

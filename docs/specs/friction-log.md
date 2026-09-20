@@ -1150,10 +1150,25 @@ The two CSVs are now deliberately named on DIFFERENT rules, and a comment in App
 in export-for-coding.md say so, because the obvious future "cleanup" is to unify them and that
 would break the coder intake.
 
-Still blank in both files, pending a decision: `Needs Review` / `needs_review` and
-`Uncertainty Note`, which have had nothing to put in them since item-level flagging was removed in
-session 9. Flagged rather than dropped — removing a column changes the shape of a file someone may
-have built a sheet around.
+Owner then approved dropping them. `Needs Review` and `Uncertainty Note` are gone from the FULL
+CSV (22 columns -> 20). Verified safe before deleting rather than assumed: both derive from
+`itemNeedsReview`, which reads `verbatim` / `sourceNote` — fields the prompt stopped asking for in
+2026-09-20.2 — so both were `''` in every row by construction, and `shared/exportRoundtrip.ts`
+never reads either back during reconstitution, so nothing lossless-round-trip depends on them.
+`GranularExportRow` deliberately still carries both, so reinstating item-level flagging means
+restoring the prompt instruction and two lines in App.tsx, nothing else.
+
+The coding CSV's `needs_review` was left in place and is NOT dropped. Removing a column from the
+middle of that file shifts four others left, and its spec's own convention is append-only
+("added X column (appended, so existing column positions are unchanged)") precisely to avoid that.
+The spec also says the coder "ignores unknown cols", which implies it reads by header name rather
+than position and would therefore probably tolerate a removal — but that is an inference about a
+system this repo cannot test, so it stays until someone confirms against the real consumer.
+
+LATENT RISK worth naming: the full CSV's header list and its row-value list are two parallel
+arrays in App.tsx with nothing asserting they stay the same length. A mismatch silently shifts
+every column right of the error. Checked by hand this time (20 and 20, correctly paired). Worth a
+test if the header list is ever moved somewhere importable.
 
 --- Notes ---
 The internal extraction log (EXTRACTION_LOG_HEADERS) was deliberately left technical. Its own
