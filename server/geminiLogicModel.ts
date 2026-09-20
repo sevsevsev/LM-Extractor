@@ -19,12 +19,30 @@ import { deriveGeminiSeed } from './geminiSeed.js';
  */
 const EXTRACT_MODEL_ID = 'gemini-flash-latest';
 
+/**
+ * Every property here is a QUESTION PUT TO GEMINI. A field listed in this schema but left
+ * undefined by the prompt still gets answered — on the model's own recognisance, with no
+ * instruction to answer it against.
+ *
+ * `verbatim` and `sourceNote` were exactly that from PROMPT_VERSION 2026-09-20.2 (which removed
+ * every instruction defining them, after measuring item-level flagging firing about once in 640
+ * items) until friction-log session 20. They stayed in this schema, so the model kept answering,
+ * and `shared/extractionFidelity.ts` kept feeding the answer into the ratio that can drive
+ * `extractionConfidence` to `low` — which since session 12 means the extraction is discarded.
+ * It never fired only because the model happened to answer `true` on 100% of items measured; that
+ * was luck, not a guarantee. It is the same hazard that got PROMPT_VERSION 2026-09-19.3 withdrawn
+ * unrun, reached from the other side: the definition was removed and the consumer left wired up.
+ *
+ * Both are now gone from here. `verbatim` survives on `LogicModelItem` as a HUMAN-SET field —
+ * `LogicModelBoard` sets it to `true` when an operator edits an item — so reinstating item-level
+ * flagging is a prompt instruction plus a line here, not a schema rebuild.
+ *
+ * `geminiLogicModel.test.ts` asserts that every property below is defined in the built prompt.
+ */
 const baseItemSchema: Schema = {
   type: Type.OBJECT,
   properties: {
     text: { type: Type.STRING },
-    verbatim: { type: Type.BOOLEAN },
-    sourceNote: { type: Type.STRING },
     fillColor: { type: Type.STRING },
     borderColor: { type: Type.STRING },
     sourcePage: { type: Type.NUMBER },

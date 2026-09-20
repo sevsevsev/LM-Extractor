@@ -55,9 +55,9 @@ export const FULL_EXPORT_COLUMNS: readonly FullExportColumn[] = [
  */
 export const INTENTIONALLY_UNEXPORTED: Readonly<Partial<Record<keyof GranularExportRow, string>>> = {
   needsReview:
-    'Derived from per-item `verbatim`/`sourceNote`, which the prompt stopped requesting in PROMPT_VERSION 2026-09-20.2 (friction-log session 9), so it was blank in every row. Column dropped 2026-09-20; restore this entry and the prompt instruction together if item-level flagging comes back.',
+    'Derived from per-item `verbatim`/`sourceNote`. PROMPT_VERSION 2026-09-20.2 (friction-log session 9) removed the instructions defining them, but the RESPONSE SCHEMA went on asking Gemini for them until session 20 — so the earlier note here, that the fields were blank because the prompt stopped requesting them, was right about the outcome and wrong about the mechanism: the model was still answering, it just always answered `verbatim: true`. Both are now out of the schema (server/geminiLogicModel.ts), so the only thing that sets `verbatim` is an operator editing an item. Column dropped 2026-09-20; restore this entry, the schema field and a prompt instruction together if item-level flagging comes back.',
   sourceNote:
-    'Same as `needsReview` — no longer requested from the model, so always empty. Kept on the row type so reinstating flagging is a prompt change plus a line here, not a schema rebuild.',
+    'Same as `needsReview` — no longer requested from the model, and since session 20 no longer in the response schema either, so nothing sets it. Kept on the row type so reinstating flagging is a prompt change plus a schema line plus a line here, not a rebuild.',
 };
 
 export const FULL_EXPORT_HEADERS: readonly string[] = FULL_EXPORT_COLUMNS.map(c => c.header);

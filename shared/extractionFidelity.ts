@@ -37,9 +37,10 @@ const STATUS_RANK: Record<ExtractionStatus, number> = {
  */
 export const FIDELITY_BLOCKERS = {
   abstained: 'The AI could not read this document well enough to extract anything from it',
-  lowRes: 'This image is low resolution, so a lot of the wording may have been misread — check it against the original',
-  highNonVerbatim: 'The AI was unsure about a lot of these items — check them against the original',
-  nonVerbatimShare: 'The AI was unsure about some of these items — check them against the original',
+  // `lowRes`, `highNonVerbatim` and `nonVerbatimShare` were removed in friction-log session 20.
+  // All three were selected by the non-verbatim ratio, and that ratio counted a field Gemini is no
+  // longer asked for, so none of them could be reached any more. An operator-facing string with no
+  // path to the operator is worse than none: it reads as a warning the system can still give.
   mismatch:
     'Some content did not fit any of the standard columns and was put under "Unmapped" — check whether it belongs somewhere',
   unknownLayout:
@@ -181,20 +182,28 @@ const GROUPED_DOMAINS: (keyof LogicModel)[] = [
   'unmapped',
 ];
 
-export function countExtractionItems(model: LogicModel): { total: number; nonVerbatim: number } {
+/**
+ * Count the items an extraction actually produced.
+ *
+ * This used to also return `nonVerbatim`, counting `item.verbatim === false`, and that count fed
+ * the ratio below. Gemini stopped being asked for `verbatim` in friction-log session 20 (see
+ * `server/geminiLogicModel.ts`), and the only thing that sets it now is an operator editing an
+ * item, which sets it to `true`. The count was therefore structurally zero, and every branch
+ * reading it was dead code shaped like a guard — the exact thing a previous audit of this file
+ * removed once already (see the `N < 6` confidence branch).
+ */
+export function countExtractionItems(model: LogicModel): { total: number } {
   let total = 0;
-  let nonVerbatim = 0;
   for (const domain of GROUPED_DOMAINS) {
     const field = model[domain] as { content?: LogicModelGroup[] } | undefined;
     for (const group of field?.content ?? []) {
       for (const item of group.items ?? []) {
         if (!item.text?.trim()) continue;
         total += 1;
-        if (item.verbatim === false) nonVerbatim += 1;
       }
     }
   }
-  return { total, nonVerbatim };
+  return { total };
 }
 
 const MAX_MISSED_REGIONS = 6;
@@ -287,8 +296,7 @@ export function reconcileExtractionFidelity(
     });
   }
 
-  const { total: N, nonVerbatim: Vf } = countExtractionItems(model);
-  const ratio = N > 0 ? Vf / N : 0;
+  const { total: N } = countExtractionItems(model);
   const L = lowLegibility;
   const T = Boolean(options?.textOnlyFallback);
   const M = shouldSuggestMismatch(model);
@@ -320,13 +328,11 @@ export function reconcileExtractionFidelity(
 
   if (status === 'ok') {
     if (
-      (N >= 6 && ratio >= 0.15) ||
       M ||
       Uunk ||
       notLogicModel ||
       T ||
       noGridItems ||
-      (L && Vf >= 1) ||
       (L && N >= 6) ||
       modelBlockers.length > 0 ||
       noContent ||
@@ -349,19 +355,10 @@ export function reconcileExtractionFidelity(
   // 2026-09-20 it no longer forces a hard stop (see the confidence block for why).
   if (L && N >= 6) {
     pushBlocker(blockers, seen, FIDELITY_BLOCKERS.lowLegibilityDense);
-  } else if (L && (Vf >= 1 || status === 'partial')) {
-    pushBlocker(
-      blockers,
-      seen,
-      N >= 6 && ratio >= 0.25 ? FIDELITY_BLOCKERS.lowRes : FIDELITY_BLOCKERS.lowLegibilityPartial
-    );
-  }
-  if (N >= 6 && ratio >= 0.4) {
-    pushBlocker(blockers, seen, FIDELITY_BLOCKERS.highNonVerbatim);
-  } else if ((N >= 6 && ratio >= 0.15) || (N < 6 && Vf > 0)) {
-    // The N<6 arm matches the small-doc confidence bump above — without it, a small extract with a
-    // non-verbatim item would drop to `medium` confidence with no stated reason in the banner.
-    pushBlocker(blockers, seen, FIDELITY_BLOCKERS.nonVerbatimShare);
+  } else if (L && status === 'partial') {
+    // The message used to be chosen by the non-verbatim ratio (`lowRes` above 0.25, this one
+    // below). With that count gone there is one honest message left: the image was hard to read.
+    pushBlocker(blockers, seen, FIDELITY_BLOCKERS.lowLegibilityPartial);
   }
   if (M) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.mismatch);
   if (Uunk) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.unknownLayout);
@@ -395,17 +392,15 @@ export function reconcileExtractionFidelity(
   // and decides. Keep in mind the underlying concern is real — art-thru-youth returns 18/17/13
   // items across three runs — which is exactly why it must be flagged loudly, and also why a gate
   // that cannot measure the extraction should not be the thing deciding.
-  if (status === 'abstained' || noContent || (status === 'partial' && N >= 6 && ratio >= 0.4)) {
+  // The third arm here used to be `status === 'partial' && N >= 6 && ratio >= 0.4`, which made an
+  // undefined, model-guessed field the deciding input to whether an extraction was DISCARDED. That
+  // is the whole reason session 20 cut the field loose; `low` now means only what it says it means
+  // two paragraphs up — the model abstained, or nothing came back.
+  if (status === 'abstained' || noContent) {
     confidence = 'low';
-  } else if (
-    status === 'partial' ||
-    (N >= 6 && ratio >= 0.15) ||
-    M ||
-    Uunk ||
-    L
-  ) {
+  } else if (status === 'partial' || M || Uunk || L) {
     confidence = 'medium';
-  } else if (N < 6 && (status !== 'ok' || L || Vf > 0)) {
+  } else if (N < 6 && (status !== 'ok' || L)) {
     // A small extract (<6 items) with any non-verbatim item still needs a review nudge, same as a
     // large one crossing the ratio threshold above — found via codebase audit: this branch
     // previously only checked `status !== 'ok' || L`, so a document with e.g. 5 items and 4 flagged

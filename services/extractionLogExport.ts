@@ -31,7 +31,10 @@ export const EXTRACTION_LOG_HEADERS = [
   'document_type_flag',
   'layout_family',
   'total_items',
-  'non_verbatim_items',
+  // `non_verbatim_items` sat here until friction-log session 20. Gemini is no longer asked for
+  // `verbatim` (see `server/geminiLogicModel.ts`), so the count was structurally zero — and a
+  // column that always reads 0 is worse than an absent one, because 0 looks like "measured, and
+  // clean" rather than "not measured at all".
   'unmapped_items',
   'mapping_corrections_count',
   'possibly_missed_regions_count',
@@ -88,7 +91,6 @@ export function buildExtractionLogRows(files: ProcessingFile[]): string[][] {
       m ? documentTypeFlagLabel(m) : '',
       m?.layoutFamily || '',
       String(counts.total),
-      String(counts.nonVerbatim),
       String(mapped.unmapped),
       String(m?.mappingCorrections?.length ?? 0),
       String(m?.possiblyMissedRegions?.length ?? 0),

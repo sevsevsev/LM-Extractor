@@ -58,69 +58,57 @@ test('ok + few non-verbatim → high', () => {
   assert.equal(shouldSoftGateCodingExport(model), false);
 });
 
-test('a small extract (N<6) with any non-verbatim item drops to medium, not high (audit fix)', () => {
-  // Regression: N=5, Vf=4 (80% flagged unreadable) used to come back ok/high with no blocker —
-  // the small-doc branch only checked `status !== 'ok' || L`, so status stayed 'ok' (nothing else
-  // upgrades it for N<6) and the case fell straight to the `high` default. A `Vf === 0` override
-  // below that branch looked like it guarded this, but every path reaching it had already been
-  // assigned `high` by that same default, so it was dead code — found via codebase audit.
-  const model = baseModel({
-    activities: { content: groups(manyItems(5, 4)) },
-  });
-  reconcileExtractionFidelity(model);
-  assert.equal(model.extractionConfidence, 'medium');
-  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.nonVerbatimShare));
-  assert.equal(shouldShowFidelityBanner(model), true);
+/**
+ * The four tests that used to sit here pinned the non-verbatim RATIO: 0.15 upgraded ok -> partial,
+ * 0.40 on a partial drove confidence to `low`, and `low` hard-stops the extraction in App.tsx.
+ *
+ * That ratio counted `item.verbatim === false` — a field the prompt stopped defining in
+ * PROMPT_VERSION 2026-09-20.2 while the response schema went on asking Gemini for it. So the input
+ * to the discard decision was a field the model answered with no instruction to answer it against.
+ * It never fired only because the model happened to answer `true` on 100% of items measured
+ * (friction-log sessions 19-20). Gemini is no longer asked for it at all, and nothing but a human
+ * edit can set it, so those thresholds are gone rather than merely unreachable.
+ *
+ * What replaces them is the inverse guarantee: item-level `verbatim` must NOT move the gate.
+ */
+test('items marked non-verbatim no longer change status or confidence', () => {
+  const flagged = baseModel({ activities: { content: groups(manyItems(10, 5)) } }); // would have been 0.50
+  const clean = baseModel({ activities: { content: groups(manyItems(10, 0)) } });
+  reconcileExtractionFidelity(flagged);
+  reconcileExtractionFidelity(clean);
+  assert.equal(flagged.extractionStatus, clean.extractionStatus);
+  assert.equal(flagged.extractionConfidence, clean.extractionConfidence);
+  assert.equal(flagged.extractionConfidence, 'high');
 });
 
-test('a small extract (N<6) with zero non-verbatim items stays high (no over-correction)', () => {
-  const model = baseModel({
-    activities: { content: groups(manyItems(5, 0)) },
-  });
+test('a flawless extraction is never discarded because items carry verbatim:false', () => {
+  // The exact shape of the withdrawn 2026-09-19.3 hazard: every item flagged, nothing else wrong.
+  // Before session 20 this returned `low`, and `low` means App.tsx throws the extraction away.
+  const model = baseModel({ activities: { content: groups(manyItems(10, 10)) } });
+  reconcileExtractionFidelity(model);
+  assert.notEqual(model.extractionConfidence, 'low');
+  assert.equal(shouldHardStopExtraction(model), false);
+});
+
+test('a small extract with no other problem stays high whatever verbatim says', () => {
+  const model = baseModel({ activities: { content: groups(manyItems(5, 4)) } });
   reconcileExtractionFidelity(model);
   assert.equal(model.extractionConfidence, 'high');
-  assert.ok(!model.extractionBlockers?.includes(FIDELITY_BLOCKERS.nonVerbatimShare));
   assert.equal(shouldShowFidelityBanner(model), false);
-});
-
-test('V_f/N >= 0.15 upgrades ok → partial and medium', () => {
-  const model = baseModel({
-    activities: { content: groups(manyItems(10, 2)) }, // 0.20
-  });
-  reconcileExtractionFidelity(model);
-  assert.equal(model.extractionStatus, 'partial');
-  assert.equal(model.extractionConfidence, 'medium');
-  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.nonVerbatimShare));
-  assert.equal(shouldSoftGateCodingExport(model), true);
-  assert.equal(shouldShowFidelityBanner(model), true);
-});
-
-test('V_f/N >= 0.40 on partial → low hard-stop', () => {
-  const model = baseModel({
-    activities: { content: groups(manyItems(10, 5)) }, // 0.50
-  });
-  reconcileExtractionFidelity(model);
-  assert.equal(model.extractionStatus, 'partial');
-  assert.equal(model.extractionConfidence, 'low');
-  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.highNonVerbatim));
-  assert.equal(shouldHardStopExtraction(model), true);
 });
 
 test('small low-legibility extract is flagged, never discarded', () => {
   const model = baseModel({
-    activities: { content: groups([item('A', false), item('B', true), item('C', true)]) },
+    activities: { content: groups([item('A'), item('B'), item('C')]) },
   });
   reconcileExtractionFidelity(model, { lowLegibility: true });
-  assert.equal(model.extractionStatus, 'partial');
   assert.equal(model.extractionConfidence, 'medium');
   assert.equal(shouldHardStopExtraction(model), false);
   assert.equal(shouldShowFidelityBanner(model), true);
 });
 
-test('L + high non-verbatim share warns loudly but still reaches the operator', () => {
-  const model = baseModel({
-    activities: { content: groups(manyItems(8, 3)) }, // 0.375 >= 0.25
-  });
+test('a dense low-legibility extract warns loudly but still reaches the operator', () => {
+  const model = baseModel({ activities: { content: groups(manyItems(8, 0)) } });
   reconcileExtractionFidelity(model, { lowLegibility: true });
   assert.equal(model.extractionConfidence, 'medium');
   assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.lowLegibilityDense));
@@ -250,7 +238,7 @@ test('countExtractionItems includes unmapped', () => {
     activities: { content: groups([item('a', true)]) },
     unmapped: { content: groups([item('b', false)], 'Other') },
   });
-  assert.deepEqual(countExtractionItems(model), { total: 2, nonVerbatim: 1 });
+  assert.deepEqual(countExtractionItems(model), { total: 2 });
 });
 
 // The client-side text-line-counting heuristic that used to live here (comparing candidate

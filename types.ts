@@ -19,12 +19,19 @@ export interface ExtractionFidelity {
 export interface LogicModelItem {
   text: string;
   /**
-   * Provenance flags — see docs/specs/extraction-provenance-and-color.md.
-   * `verbatim: false` means the wording was paraphrased, reconstructed, or read from
-   * low-legibility / clipped source and should be verified against the original.
+   * HUMAN-SET provenance flag — see docs/specs/extraction-provenance-and-color.md.
+   *
+   * Gemini is NOT asked for this. It was a model-answered field until friction-log session 20,
+   * by which point no prompt instruction had defined it since PROMPT_VERSION 2026-09-20.2, so the
+   * model was guessing — and the guess fed the ratio that could discard an extraction. Now the
+   * only writer is `LogicModelBoard`, which sets `verbatim: true` when an operator edits an item.
+   *
+   * Nothing currently sets it to `false`. Keeping the field (and `sourceNote`) means reinstating
+   * item-level flagging is a prompt instruction plus a schema line, not a type rebuild — but land
+   * those two together, or `shared/extractionFidelity.ts` reads a guess again.
    */
   verbatim?: boolean;
-  /** Short note on any transcription uncertainty (e.g. "source text appears clipped"). */
+  /** Short note on any transcription uncertainty. Dormant: see `verbatim` above — nothing sets it. */
   sourceNote?: string;
   /**
    * Model-reported box fill colour (name or hex) when items are visually colour-coded.
