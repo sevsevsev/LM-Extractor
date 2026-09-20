@@ -82,5 +82,23 @@
     "label": "Greater Philadelphia YMCA — Teen Workforce Development",
     "covers": "DOCX prose_sections · sibling of ymca-youth-civic-engagement from the same organisation, added 2026-09-20. Two documents from one partner in the same house format is a useful pair: a difference between them is attributable to content, not to layout convention.",
     "bundle": "ymca-teen-workforce.json"
+  },
+  {
+    "id": "sample-rock-school-rockreach",
+    "label": "The Rock School for Dance Education — RockReach",
+    "covers": "PDF, 5 pages, School District 5-column template (RESOURCES/INPUTS · ACTIVITIES · OUTPUTS · OUTCOMES · IMPACT). THE ONLY DOCUMENT IN THIS SET WHOSE PAGE IMAGES ARE ALL UNREADABLE: its font never embedded, so every raster is mojibake and Track B contributes nothing. All 63 items come from Track A alone, which makes this the regression guard for text-track quality — a change that degrades Track A shows up here and nowhere else. Also covers phrases split across a page boundary with ~1,400 characters of unrelated column text between the halves, and the low-legibility warning path (page 5 is a genuine flattened raster). Added 2026-09-20 from the batch-2 RANDOM sample after a full audit: 63 items, 0 invented, 0 missed.",
+    "bundle": "sample-rock-school-rockreach.json"
+  },
+  {
+    "id": "sample-mamadele-axe-puro",
+    "label": "Mamadêlê Foundation — Axé Puro Afro-Brazilian Arts",
+    "covers": "PDF, 6x6 matrix whose ROWS are core values and whose COLUMNS are logic-model domains — the hardest grouping case in the set, and the only one where the same six row-band names must appear as groups inside all six domains. Guards the GROUPING GATE's row-band handling and `Intermediate-Term Outcomes` as a mediumTermOutcomes synonym. Diacritics in the organisation name; a program name present in the FILENAME but absent from the document, which the extraction correctly does not invent. Added 2026-09-20 from the batch-2 RANDOM sample: 80 items, 0 invented, 0 missed.",
+    "bundle": "sample-mamadele-axe-puro.json"
+  },
+  {
+    "id": "sample-achieve-now",
+    "label": "Achieve Now",
+    "covers": "PDF, 6-column grid with one box whose font failed to embed and renders as pure mojibake — the extraction recovers its real text from Track A, so this covers dual-track fusion on a single cell rather than a whole document. Also the never-repair guard with teeth: the source genuinely reads `Hjgh rate of volunteer retention`, and an extraction that 'fixes' it to `High` is a regression. Contains an orphan text-layer fragment absent from the visible page that must NOT be emitted, and two items with identical text in one domain distinguishable only by source order. Added 2026-09-20 from the batch-2 RANDOM sample: 52 items, 0 invented, 0 missed.",
+    "bundle": "sample-achieve-now.json"
   }
 ]

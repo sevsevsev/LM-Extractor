@@ -1706,6 +1706,114 @@ use, so the distinction survives only as row order.
 
 ---
 
+## Session 21 — four findings resolved, `verbatim` retired, first full 3-pass census
+
+```
+Date:                     2026-09-20
+Operator:                 owner deferred the decisions ("I defer to you on these items")
+Prompt version:           2026-09-20.6 UNCHANGED throughout — none of this needed a prompt change
+Gemini calls:             ~50 (1 base64 control, 4 Rock School controls, 36 census, 9 sample census)
+
+--- What landed ---
+1. Track A hygiene. `mammoth` inlines embedded images as data: URIs and Turndown rendered them
+   into the text sent to Gemini. 1812: 38,994 chars -> 5,152, with readable content provably
+   untouched (617 words before, 617 after, none lost, none gained) and the extraction unchanged
+   at 36 items. Fixed at the DOCX converter AND in `assembleDocumentBundle`, the choke point every
+   converter passes through, so the invariant holds for formats nobody has fixed yet.
+   Cost of the bug: ~8,400 wasted tokens per call on any DOCX with a logo.       | cause: setup
+
+2. `verbatim`/`sourceNote` out of the Gemini response schema, and the ratio they fed out of the
+   fidelity gate. With nothing able to set them, every branch reading the ratio was dead code
+   shaped like a guard — which is precisely what a previous audit of that same file removed once
+   before. Four threshold tests replaced by the inverse guarantee: a flawless extraction with
+   every item flagged must NOT be discarded.                                     | cause: setup
+
+3. `server/geminiSchemaPrompt.test.ts` — the detector for this whole bug class. Every property of
+   `baseItemSchema` must be defined in the BUILT PROMPT SNAPSHOT or listed as undefined-by-design.
+   The snapshot is the oracle deliberately: `constants.ts` mentions `verbatim` seven times in its
+   comment history while the prompt sent to Gemini defines it nowhere, so a source grep would have
+   PASSED on the very bug this catches. Verified by re-adding the field and watching it fail.
+
+4. Low-legibility wording. The per-page warning is accurate and scoped ("Page 5 of this document
+   is a flattened image at low resolution"); the rollup blocker dropped the page number and
+   restated it as a whole-document CAUSE. Now says which pages and what to do, and leaves the
+   cause to the warning that measured it.                                        | cause: other
+
+--- I GOT FINDING 3 WRONG AND PUBLISHED IT ---
+Session 20 reported Rock School's warning as Gemini-authored because it matched neither
+FIDELITY_BLOCKERS.lowRes nor lowLegibilityPartial. It is an exact match for lowLegibilityDense —
+a THIRD constant I never checked. I concluded "the model wrote it" from two comparisons against a
+nine-entry object, and shipped that conclusion to a doc, this log and a commit message.
+
+Two checks would have caught it before publication, and both were cheap: compare against ALL the
+constants, and grep the prompt for the string (it is not there, so Gemini could not have echoed
+it). I did neither because the two-comparison result already agreed with the finding I expected
+to write. Corrected in place rather than quietly edited away.                    | cause: audit-instrument
+
+--- Findings closed WITHOUT building anything ---
+FINDING 2 (scalars are composed, not transcribed) — real, measured at 4 of 9 documents, and
+deliberately not fixed. These fields reach NO CSV: not the full export, not the coding export,
+not the extraction log. The coding pipeline cannot be affected. Session 18 warned against more
+prompt changes of unproven benefit, and this would be one. Recorded at the type definition, where
+anyone adding them to an export will have to decide what a consumer is told.
+
+FINDING 4 (nothing detects "images present but contributed nothing") — investigated, then
+declined on evidence. The obvious signal, "a page has an image but no Track A text", fires on
+9 of 14 documents; restricted to PDFs, where the probe is even meaningful, 2 of 12. BOTH are
+false positives: Oxford Circle p2 is the complete grid, perfectly legible, read correctly by
+vision at 44 items; Rock School p5 is a near-blank trailing page. The signal finds
+VISION-DEPENDENT pages, not unreadable ones, and in that population healthy and broken look
+identical. The real variable needs image-legibility assessment, i.e. OCR-scale work. Shipping the
+proxy would have repeated the text-line-counting heuristic this codebase already removed for
+being 3 for 3 false positives.
+
+Worth naming: two of five findings were closed by measurement rather than code, and one of the
+five was simply wrong. A finding is a hypothesis.
+
+--- FIRST FULL CENSUS AT --passes=3 ---
+The first run where the tool is permitted to print STABLE at all.
+
+  HELD ACROSS 3 RUNS (8)          UNSTABLE (7)
+  oxford-circle-carnell-frc  44   performance-garage    45/47/47   items
+  healthy-newsworks-core     45   cub-reporter        144/133/133  grouping
+  firsthand-pptx             45   harlem-lacrosse      54/54/54    grouping
+  ymca-youth-civic           18   seamaac-urban-arts   33/33/33    grouping
+  upenn-bioeyes               6   art-thru-youth       17/13/17    grouping
+  ymca-teen-workforce        29   trinity-boys-girls   53/54/54    grouping
+  sample-mamadele            80   sample-rock-school   63/62/62    grouping
+  sample-achieve-now         52
+  (2 untested: philadelphia-ballet-lets-dance, a-new-dawn — no source, never uploaded)
+
+HALF THE CORPUS IS UNSTABLE UNDER AN UNCHANGED PROMPT. That is the number to keep in view: a
+regression diff means nothing on seven of these fifteen documents without a same-prompt control.
+
+Grouping is the dominant axis — 6 of 7 unstable documents differ in grouping, and three of those
+(harlem, seamaac, and rock school's grid) have IDENTICAL item counts. But recall moves too
+(cub-reporter 11 items, art-thru-youth 4), which is the session-10 retraction holding up.
+
+Mamadele is the encouraging result: the hardest grouping case in the set — a 6x6 matrix whose row
+bands must reappear as groups inside all six domains — came back BYTE-IDENTICAL three times. The
+nesting work is robust there, not lucky.
+
+Oxford Circle held at 3 passes after flipping STABLE/UNSTABLE at 2 in session 11, which is the
+whole argument for MIN_PASSES_FOR_STABLE existing.
+
+--- Manifest ---
+Three batch-2 sample documents promoted to fixtures for failure modes nothing else covers:
+rock-school (every page image unreadable — the Track A regression guard), mamadele (6x6 row
+bands), achieve-now (mojibake cell recovered via Track A; the `Hjgh` never-repair guard). All
+three were fully audited BEFORE promotion. Note for later: rates must be measured on fresh
+documents, never on this set, which is now chosen-not-sampled by construction.
+
+--- Next ---
+1. Instability is the open problem, not invention. 0 in 335 items across 9 documents says the
+   invention question is close to answered; 7 of 15 unstable says reproducibility is not.
+2. Harder documents, not more clean grids — more mojibake, more non-logic-models, more matrices.
+3. philadelphia-ballet-lets-dance and a-new-dawn still have no source file.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -1730,3 +1838,4 @@ use, so the distinction survives only as row order.
 | 18 | 2026-09-20 | 2 docs | no-grid fallback added (safe, unproven); flag states its consequence | prompt + other | N |
 | 19 | 2026-09-20 | 4 docs (random) | 0/88 invented, 84/84 complete; `verbatim` undefined yet still gates the rollup | setup + other | N |
 | 20 | 2026-09-20 | 5 docs (random) | 0/247 invented; base64 bloats one DOCX track 87%; scalars synthesised unrecorded | setup + prompt | N |
+| 21 | 2026-09-20 | 15 docs (census x3) | base64 stripped; `verbatim` retired + schema/prompt guard; 7 of 15 unstable | setup + other | N |
