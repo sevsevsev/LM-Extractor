@@ -1272,6 +1272,56 @@ but "what did go wrong, and would go wrong again".
 
 ---
 
+## Session 15 — text-only stops being told to look at images (PROMPT_VERSION 2026-09-20.3)
+
+```
+Date:                     2026-09-20
+Operator:                 owner request; agent session (claude/loving-hawking-r436g3)
+Prompt version:           2026-09-20.2 -> 2026-09-20.3
+Gemini calls:             7 (two 3-pass censuses + 1 inspection)
+
+--- The defect ---
+Session 5 Finding 5c recorded that only `inputTracksSection` and `colourAndEmphasisSection` take
+`isVision`; every other section keys off `hasTextTrack` alone, which is TRUE for a text-only
+document. So a document with no images at all was being told:
+  "You may receive multiple images for one document: full pages, slides, and/or zoomed
+   single-column crops..."
+  "Set `sourcePage` to the document page number from the image label"
+  "Ignoring Track A for exact wording or ignoring Track B for colour/layout"
+  "Track A often preserves this prose more reliably than a dense grid image"
+Not inefficiency — instructions that cannot be followed, in a prompt whose own rulebook says
+rules compete for attention.
+
+--- The change ---
+PHASE A step 0, SOURCE LOCATION, the KNOWN FAILURE MODES Track B line and the CONTEXT & OVERVIEW
+"dense grid image" clause are now gated on `isVision`. Text-only gets replacements that describe
+what it actually has:
+  step 0  -> "Reading order is your only layout signal. You receive text, not pages. Column
+              position, row bands and colour are simply absent — do not infer them."
+  SOURCE  -> "omit `sourcePage` and `sourceColumn`. There are no page images to locate an item on,
+              and a page number inferred from text order is a guess."
+
+--- Verified surgical ---
+All four VISION variants: 0 characters changed — byte-identical before and after. Text-only:
+-497 chars (with text track), -292 (without). All five image-language probes now absent.
+
+--- Measured ---
+  FirstHand   text-only   45/45/45   STABLE across 3 runs
+  Perf Garage text-only   44/44/46   UNSTABLE — unchanged
+  sourcePage now correctly omitted on text-only items (was being guessed).
+Performance Garage was NOT expected to improve and did not. Session 10 established its
+instability is document-specific — its band labels sit inside the leftmost shape with no
+positional information to attach them elsewhere — not a property of the text-only variant, which
+FirstHand demonstrates by being stable in the same variant.        | cause: prompt
+
+--- Notes ---
+This is the first prompt change made purely for correctness rather than to chase a quality metric,
+and the cleanest to verify: "did the variants that should not change, change?" answered by a
+character count. Worth reusing as the shape of a safe prompt edit.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -1290,3 +1340,4 @@ but "what did go wrong, and would go wrong again".
 | 12 | 2026-09-20 | n/a (code) | extract (low-legibility warns instead of discarding) | setup | N |
 | 13 | 2026-09-20 | n/a (copy) | operator-facing flags rewritten in plain language | other | N |
 | 14 | 2026-09-20 | n/a (tests) | export column drift, jargon and contract headers now guarded | other | N |
+| 15 | 2026-09-20 | 2 docs | text-only no longer instructed to read images | prompt | N |

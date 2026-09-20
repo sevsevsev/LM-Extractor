@@ -32,7 +32,7 @@
  * (`services/extractionLogExport.ts`) so a batch's results can be attributed to the exact prompt
  * that produced them. Format: `YYYY-MM-DD.N`.
  */
-export const PROMPT_VERSION = '2026-09-20.2';
+export const PROMPT_VERSION = '2026-09-20.3';
 
 /** Same contract as `PROMPT_VERSION`, versioned separately — different call, different failure mode. */
 export const DETECT_PROMPT_VERSION = '2026-09-19.1';
@@ -200,17 +200,24 @@ const phaseALayoutMapSection = (isVision: boolean, hasTextTrack: boolean): strin
 
     Mentally (or privately) build a layout map. Do **not** skip this phase.
 
-    0. **Image set / tracks**
+${
+  isVision
+    ? `    0. **Image set / tracks**
        You may receive multiple images for one document: full pages, slides, and/or **zoomed single-column crops**
        (each crop is one column, top-to-bottom, including that column's header, given left→right). Treat
        every image as part of the **same** document. Do **not** count an item twice if it appears in more
        than one image (e.g. both a full page and a column crop of that page).
 ${
-  isVision && hasTextTrack
+  hasTextTrack
     ? `       When Track A is present, skim it for heading inventory and exact strings, then map those labels onto
        Track B column positions. Do not assign domains from Track A reading order alone.
 `
     : ''
+}`
+    : `    0. **Reading order is your only layout signal**
+       You receive text, not pages. Column position, row bands and colour are simply absent — do not
+       infer them. Use headings and list nesting for structure, and where a document's columns have
+       been flattened into one sequence, say so via \`layoutFamily\` rather than guessing a grid.`
 }
     1. **Page roles**
        - Which page(s) have overview prose (Impact Statement / Mission)?
@@ -325,7 +332,7 @@ const phaseBExtractionRulesSection = (hasTextTrack: boolean): string => `
  * *output*, under its own narrow `countOutcomeItems <= 3` gate. See that function's comment for
  * the full reasoning (codebase audit #10, docs/specs/codebase-audit-2026-09-19.md).
  */
-const contextAndOverviewSection = (hasTextTrack: boolean): string => `
+const contextAndOverviewSection = (isVision: boolean, hasTextTrack: boolean): string => `
     **HEADER EXTRACTION**:
     - **Organization**: From logos, titles, footers; infer if unlabeled but clear.
     - **Program**: Specific program/initiative name.
@@ -342,7 +349,7 @@ const contextAndOverviewSection = (hasTextTrack: boolean): string => `
       Inputs→Activities→Outputs→Outcomes→Impact grid) is different from a page-level overview heading in
       this list; that's the \`impact\` grid domain per COLUMN FIDELITY rule 5, never \`impactStatement\`.
       Put matched overview prose in \`impactStatement.content\`.${
-        hasTextTrack
+        isVision && hasTextTrack
           ? ' Track A often preserves this prose more reliably than a dense grid image — use it.'
           : ''
       }
@@ -405,7 +412,7 @@ const columnFidelitySection = `
  * recall was poor; it has never been measured against a version without it, and it is the first
  * candidate for the agreed "prune before adding" pass.
  */
-const knownFailureModesSection = (hasTextTrack: boolean): string => `
+const knownFailureModesSection = (isVision: boolean, hasTextTrack: boolean): string => `
     **KNOWN FAILURE MODES TO AVOID**:
     - Inventing content; swapping an unclear name for a familiar one; guessing clipped text.
     - Flipping outcome direction; fluent rewrites of small text.
@@ -413,7 +420,7 @@ const knownFailureModesSection = (hasTextTrack: boolean): string => `
     - Copying Resources-column sub-headings into other columns; omitting page-1 Impact Statement.
     - Guessing a time horizon for outcome columns that do not state one (COLUMN FIDELITY 7/7b).
 ${
-  hasTextTrack
+  isVision && hasTextTrack
     ? '    - **Ignoring Track A** for exact wording or **ignoring Track B** for colour/layout — both are required when supplied.\n'
     : ''
 }`;
@@ -531,18 +538,24 @@ const colourAndEmphasisSection = (isVision: boolean): string => `
  * dropped `imageRefs`), which made every `sourcePage` a guess; fixed 2026-09-19 in
  * `server/apiCore.ts`. If these rules are ever removed, remove the labeling with them.
  */
-const itemShapeAndLocationSection = `
+const itemShapeAndLocationSection = (isVision: boolean): string => `
     ---
     **ITEM SHAPE** (strict LogicModel schema — no extra keys):
     { "text": "item text exactly as written in the source",
       "fillColor": "blue", "borderColor": "red",
       "sourcePage": 2, "sourceColumn": 3 }
 
-    **SOURCE LOCATION (when images are labeled with page/column)**:
+${
+  isVision
+    ? `    **SOURCE LOCATION (when images are labeled with page/column)**:
     - Set \`sourcePage\` to the **document page number** from the image label (1-based), not the image ordinal.
     - Set \`sourceColumn\` only when the label includes a column index (column crops) or the item clearly sits in that grid column.
     - Prefer **omit** \`sourcePage\` / \`sourceColumn\` over guessing.
-
+`
+    : `    **SOURCE LOCATION**: omit \`sourcePage\` and \`sourceColumn\`. There are no page images to locate an
+    item on, and a page number inferred from text order is a guess.
+`
+}
     **UNMAPPED + LAYOUT**:
     - \`unmapped\` only for clearly non-standard labeled sections (Assumptions, External Factors, etc.).
     - \`layoutFamily\`: \`vertical_columns\` | \`horizontal_rows\` | \`diagram\` | \`prose_sections\` | \`unknown\`.
@@ -672,12 +685,12 @@ ${inputTracksSection(isVision, hasTextTrack)}` +
     goalAndPresenceFirstSection +
     phaseALayoutMapSection(isVision, hasTextTrack) +
     phaseBExtractionRulesSection(hasTextTrack) +
-    contextAndOverviewSection(hasTextTrack) +
+    contextAndOverviewSection(isVision, hasTextTrack) +
     columnFidelitySection +
-    knownFailureModesSection(hasTextTrack) +
+    knownFailureModesSection(isVision, hasTextTrack) +
     groupingGateSection +
     colourAndEmphasisSection(isVision) +
-    itemShapeAndLocationSection +
+    itemShapeAndLocationSection(isVision) +
     documentTypeCheckSection +
     fidelityStatusSection +
     outputFormatSection
