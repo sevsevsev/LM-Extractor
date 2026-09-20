@@ -59,8 +59,12 @@ which `services/codingExport.ts:21` defines as *"No time horizon in the source �
 short/medium/long-term during coding."* The source says `(3–12 months)`. A coder is being asked to
 supply a horizon the document already stated.
 
-This one is worth a prompt change, unlike the unproven-benefit changes of session 18: it has a
-reproducible failure, a mechanism that explains the asymmetry, and a concrete downstream cost.
+**UPDATE (session 23): two prompt fixes were built, measured and withdrawn.** Widening rule 7's
+escape clause to name section headings was a no-op (the no-grid section already carried a working
+escape, so that clause was never the binding constraint). Qualifying the prohibition itself —
+"this forbids GUESSING a horizon, not USING one the source states" — was also a no-op. Six runs,
+zero movement, controls unchanged throughout. The diagnosis below explains the asymmetry but does
+not yield a wording fix; see friction log session 23. The finding stands, unfixed.
 
 ### 2. The first XLSX: 8 logic models merged into one, and 17 junk items
 

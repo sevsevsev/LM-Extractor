@@ -1906,6 +1906,83 @@ keep more often than the invention guard is.
 
 ---
 
+## Session 23 — the short-term misroute is NOT reachable by prompt wording (2 attempts, withdrawn)
+
+```
+Date:                     2026-09-20
+Operator:                 owner approved the proposed rule-7 wording change
+Prompt version:           2026-09-20.6 UNCHANGED — .7 was built twice, measured twice, withdrawn twice
+Gemini calls:             14 (7 per attempt)
+
+--- What was approved, and what happened ---
+Session 22 found A New Dawn routing its explicitly-labelled "4. SHORT-TERM OUTCOMES (3-12 months)"
+section into `generalOutcomes` (9 items) while "5. INTERMEDIATE OUTCOMES" and "6. LONG-TERM IMPACT"
+routed correctly. Deterministic: 3 of 3 runs. The owner approved the proposed fix.
+
+ATTEMPT 1 — widen rule 7's escape clause to name section headings alongside columns.
+  "...distinguishes those three (separate columns, or explicit per-item labels)"
+  -> "...distinguishes those three — by separate columns, by separate SECTION HEADINGS, or by
+      explicit per-item labels. A heading like 'SHORT-TERM OUTCOMES (3-12 months)' in a document
+      with no grid distinguishes them exactly as a column header does."
+  +184 chars to all 9 extract variants. RESULT: complete no-op. a-new-dawn short=0 / general=9 on
+  all three runs, byte-for-byte the baseline. Controls unchanged.
+
+  Why the diagnosis was wrong: the WHEN THERE IS NO GRID section (added 2026-09-20.6) ALREADY
+  says "Put these in `generalOutcomes` unless the source itself states a time horizon". The escape
+  I "widened" was not the binding constraint, because a working escape already existed elsewhere.
+  I should have read that section before proposing, not after measuring.
+
+ATTEMPT 2 — qualify the prohibition itself, which names the one failing field.
+  Added: "**This forbids GUESSING a horizon, not USING one the source states.** When the document's
+  own heading names the horizon ... that heading IS the distinction, and each section goes to its
+  matching field, `shortTermOutcomes` included. Routing a section the document labelled short-term
+  into `generalOutcomes` is the same error in reverse..."
+  +541 chars to all 9 extract variants. RESULT: complete no-op. Identical numbers again, 3 runs.
+
+BOTH WITHDRAWN. Six runs, zero movement, and 541 chars per call is real money against the economy
+work landed in session 21. An unproven prompt change does not land here — that is the session-18
+rule and it applies to changes I proposed and the owner approved, not just ones I talk myself into.
+
+--- What the evidence actually shows ---
+The asymmetry is not structural. Section 4 and section 6 have the SAME shape — a bold section
+heading naming a horizon, then two bold sub-headings, then bullets:
+
+  4. SHORT-TERM OUTCOMES (3-12 months)   sub-heads Youth Outcomes / School&Community
+       -> generalOutcomes, group "General", sub-heads recorded in sourceHeader but NOT used as groups
+  5. INTERMEDIATE OUTCOMES (1-2 years)   no sub-heads
+       -> mediumTermOutcomes                                                   CORRECT
+  6. LONG-TERM IMPACT (3-5 years)        sub-heads For Students / For Schools & Communities
+       -> longTermOutcomes, sub-heads USED as group names                      CORRECT
+
+Section 6 proves the machinery works on this exact shape. The only difference between 4 and 6 is
+the horizon word. And `shortTermOutcomes` appears nowhere else in the prompt that could override
+rule 7 — no restatement in knownFailureModes, and the JSON skeleton actually shows
+`shortTermOutcomes` POPULATED while `generalOutcomes` is shown empty, which biases the other way.
+
+So the model is avoiding one specific field, and two rewrites of the only rule that mentions it
+changed nothing. This is the session-9 result again: measured ~1 flag in 640 there, zero movement
+in six runs here. Some behaviours are not reachable by wording, and the honest move is to say so
+rather than write a third variant.                                               | cause: prompt
+
+--- The finding stands, unfixed ---
+Reproducible, deterministic, and it costs something real: the coding CSV writes these rows as
+`General Outcomes`, which services/codingExport.ts:21 defines as "No time horizon in the source —
+a coder assigns short/medium/long-term during coding." A New Dawn's source says (3-12 months), so
+a coder is asked to supply a horizon the document already gave. Nine items, one document, 1 of 14
+sampled so far.
+
+Not attempting a code-level re-route: the app would have to re-derive section structure from
+Track A, which is re-implementing extraction in the client against the same ambiguity. If this
+recurs across more documents it is worth revisiting with that evidence; on n=1 it is not.
+
+--- Next ---
+1. Watch for a second instance. One document does not justify either a third prompt variant or a
+   client-side re-router; two or three would justify the latter.
+2. Instability is still the larger problem: 0 inventions in 586 items vs 7 of 15 documents unstable.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -1932,3 +2009,4 @@ keep more often than the invention guard is.
 | 20 | 2026-09-20 | 5 docs (random) | 0/247 invented; base64 bloats one DOCX track 87%; scalars synthesised unrecorded | setup + prompt | N |
 | 21 | 2026-09-20 | 15 docs (census x3) | base64 stripped; `verbatim` retired + schema/prompt guard; 7 of 15 unstable | setup + other | N |
 | 22 | 2026-09-20 | 5 docs (random) | 0/251 invented; stated short-term horizon -> generalOutcomes (3/3); first XLSX = 8 models merged | prompt + setup | N |
+| 23 | 2026-09-20 | 1 doc x 14 runs | short-term misroute NOT reachable by wording; 2 variants built, measured, withdrawn | prompt | N |
