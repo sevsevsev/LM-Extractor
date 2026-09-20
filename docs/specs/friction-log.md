@@ -1002,6 +1002,65 @@ than ~10 documents has repeatedly failed to survive the next five.
 
 ---
 
+## Session 12 — low-legibility warns instead of discarding
+
+```
+Date:                     2026-09-20
+Operator:                 owner decision; agent session (claude/loving-hawking-r436g3)
+Prompt version:           2026-09-20.2 (unchanged — this is a CODE change)
+Gemini calls:             0
+
+--- The decision ---
+Owner: "I don't want it to discard good work. I just want it to flag it clearly as a warning."
+
+--- The change (shared/extractionFidelity.ts) ---
+`low` confidence is now reserved for "there is nothing worth showing the operator": the model
+abstained, or no content came back (plus the non-verbatim-ratio arm, kept inert but intact in case
+the session-9 flagging decision reverses). Low legibility no longer reaches it.
+
+Removed from the `low` branch:  (L && N >= 6),  (status === 'partial' && L),
+                                (L && N >= 6 && ratio >= 0.25)
+Added to the `medium` branch:   L   (was `L && Vf >= 1`, dead since session 9 removed Vf)
+
+That gives low legibility the same non-severe ceiling already documented in this file for
+mismatch, unknown-layout and the document-type self-report: it can push ok -> partial/medium and
+raise a blocker, never hard-stop. Blocker copy rewritten from "transcription is not reliable
+enough to continue" (announces a refusal) to "Low-resolution source — small text may be misread.
+Check every item against the original before using this extraction" (tells the operator what to
+do), matching what the conversion warning in fileService.ts already asks for.
+
+--- Verified on the actual document ---
+art-thru-youth's real extraction through the changed rollup:
+  bundle low-legibility:  true
+  status/confidence:      partial/medium
+  hard stop (discarded):  false      <- was true
+  warning banner shown:   true
+  QA label:               Needs Review
+  blocker:                "Low-resolution source — small text may be misread. Check every item
+                           against the original before using this extraction"
+  items surviving:        18         <- was 0
+
+--- Tests ---
+Three tests asserted the old behaviour by name ("forces low", "low hard-stop") and were rewritten
+to pin the new contract rather than deleted, each carrying why. Added one boundary test that
+abstained and no-content STILL hard-stop, so a future change cannot quietly turn `low` into a
+general doubt level again. 219 tests, all passing.
+
+--- What this does NOT fix ---
+art-thru-youth still returns 18/17/13 items across runs. The recall instability is real and
+untouched; what changed is that a document with that profile is now shown-with-a-warning rather
+than deleted. The gate never measured extraction quality and still does not — it now fails in the
+direction that loses less.                                                        | cause: setup
+
+--- Next ---
+1. Human Pass 1 for the completeness rate.
+2. Census with --passes=3 before trusting per-document verdicts (session 11, Finding 3).
+3. Last two bundles: philadelphia-ballet, a-new-dawn.
+4. Random-sample correctness run.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -1017,3 +1076,4 @@ than ~10 documents has repeatedly failed to survive the next five.
 | 9 | 2026-09-20 | 3 docs | extract (flagging removed; prompt shrinks ~1.3k; Core Reporter 5/5 stable) | prompt | N |
 | 10 | 2026-09-20 | 7 docs | extract (vision-only works; text-only diagnosis retracted) | prompt + setup | N |
 | 11 | 2026-09-20 | 12 docs | extract (+lowleg fails at the gate, not extraction; recall moves) | setup + prompt | N |
+| 12 | 2026-09-20 | n/a (code) | extract (low-legibility warns instead of discarding) | setup | N |

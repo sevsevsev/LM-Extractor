@@ -106,24 +106,26 @@ test('V_f/N >= 0.40 on partial → low hard-stop', () => {
   assert.equal(shouldHardStopExtraction(model), true);
 });
 
-test('small low-legibility extract with non-verbatim → low hard-stop', () => {
+test('small low-legibility extract is flagged, never discarded', () => {
   const model = baseModel({
     activities: { content: groups([item('A', false), item('B', true), item('C', true)]) },
   });
   reconcileExtractionFidelity(model, { lowLegibility: true });
   assert.equal(model.extractionStatus, 'partial');
-  assert.equal(model.extractionConfidence, 'low');
-  assert.equal(shouldHardStopExtraction(model), true);
+  assert.equal(model.extractionConfidence, 'medium');
+  assert.equal(shouldHardStopExtraction(model), false);
+  assert.equal(shouldShowFidelityBanner(model), true);
 });
 
-test('L + high non-verbatim share → low', () => {
+test('L + high non-verbatim share warns loudly but still reaches the operator', () => {
   const model = baseModel({
     activities: { content: groups(manyItems(8, 3)) }, // 0.375 >= 0.25
   });
   reconcileExtractionFidelity(model, { lowLegibility: true });
-  assert.equal(model.extractionConfidence, 'low');
-  assert.ok(model.extractionBlockers?.some(b => /low-resolution|dense grid/i.test(b)));
-  assert.equal(shouldHardStopExtraction(model), true);
+  assert.equal(model.extractionConfidence, 'medium');
+  assert.ok(model.extractionBlockers?.some(b => /low-resolution/i.test(b)));
+  assert.equal(shouldHardStopExtraction(model), false);
+  assert.equal(shouldShowFidelityBanner(model), true);
 });
 
 test('mismatch true → partial upgrade + medium', () => {
@@ -202,16 +204,38 @@ test('shouldHardStopExtraction on low even if status ok', () => {
   assert.equal(shouldSoftGateCodingExport(model), false);
 });
 
-test('dense low-legibility grid forces low even when all verbatim (Oxford-class)', () => {
+/**
+ * The art-thru-youth case (friction-log session 11). A 1024px PNG extracted string-for-string
+ * against its source, with zero inventions, and was discarded anyway because this branch forced
+ * `low`. Low legibility is a reason to CHECK an extraction, not a reason to throw it away — the
+ * conversion warning that triggers it literally says "verify the extracted wording against the
+ * original". It must still shout: the same document returns 18/17/13 items across three runs.
+ */
+test('dense low-legibility grid warns loudly and still reaches the operator (Oxford-class)', () => {
   const model = baseModel({
     activities: { content: groups(manyItems(10, 0)) },
   });
   reconcileExtractionFidelity(model, { lowLegibility: true });
   assert.equal(model.extractionStatus, 'partial');
-  assert.equal(model.extractionConfidence, 'low');
+  assert.equal(model.extractionConfidence, 'medium');
   assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.lowLegibilityDense));
-  assert.equal(shouldHardStopExtraction(model), true);
-  assert.equal(shouldShowFidelityBanner(model), false); // never reaches editor
+  assert.equal(shouldHardStopExtraction(model), false);
+  assert.equal(shouldShowFidelityBanner(model), true); // operator sees extraction + warning
+});
+
+/** The boundary: `low` still means "nothing worth showing", and those cases still hard-stop. */
+test('low legibility does not hard-stop, but abstained and no-content still do', () => {
+  const legible = baseModel({ activities: { content: groups(manyItems(10, 0)) } });
+  reconcileExtractionFidelity(legible, { lowLegibility: true });
+  assert.equal(shouldHardStopExtraction(legible), false);
+
+  const abstained = baseModel({ extractionStatus: 'abstained' });
+  reconcileExtractionFidelity(abstained, { lowLegibility: true });
+  assert.equal(shouldHardStopExtraction(abstained), true);
+
+  const empty = baseModel({});
+  reconcileExtractionFidelity(empty, { lowLegibility: true });
+  assert.equal(shouldHardStopExtraction(empty), true);
 });
 
 test('formatHardStopMessage', () => {

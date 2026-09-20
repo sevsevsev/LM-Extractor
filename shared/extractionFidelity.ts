@@ -34,9 +34,13 @@ export const FIDELITY_BLOCKERS = {
   unknownLayout: 'Layout family unknown',
   noContent: 'No logic-model content recovered',
   lowLegibilityPartial: 'Low-resolution source with uncertain transcriptions',
-  /** Flattened / low-DPI dense grids (Oxford Circle–class) — do not trust fluent OCR. */
+  /**
+   * Flattened / low-DPI dense grids (Oxford Circle–class) — do not trust fluent OCR. Caps at
+   * partial/medium and never hard-stops (see the confidence block): the extraction is shown to the
+   * operator with this warning attached, rather than discarded.
+   */
   lowLegibilityDense:
-    'Low-resolution dense grid — transcription is not reliable enough to continue',
+    'Low-resolution source — small text may be misread. Check every item against the original before using this extraction',
   /** Gemini's own per-image self-report — caps at partial/medium, never forces low/abstained. */
   possiblyIncomplete:
     'Model flagged one or more regions it may not have fully captured — spot-check for missed content',
@@ -313,7 +317,8 @@ export function reconcileExtractionFidelity(
   if (noContent) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.noContent);
   else if (noGridItems) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.noGridItems);
   if (T) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.textOnlyFallback);
-  // Dense low-legibility grids (e.g. Oxford Circle) — force stop even if the model under-flags verbatim.
+  // Dense low-legibility grids (e.g. Oxford Circle). Raises the loudest warning available; since
+  // 2026-09-20 it no longer forces a hard stop (see the confidence block for why).
   if (L && N >= 6) {
     pushBlocker(blockers, seen, FIDELITY_BLOCKERS.lowLegibilityDense);
   } else if (L && (Vf >= 1 || status === 'partial')) {
@@ -344,20 +349,32 @@ export function reconcileExtractionFidelity(
   if (hasMissedContentSignal) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.possiblyIncomplete);
 
   let confidence: ExtractionConfidence;
-  if (
-    status === 'abstained' ||
-    (L && N >= 6) ||
-    (status === 'partial' && (L || (N >= 6 && ratio >= 0.4))) ||
-    (L && N >= 6 && ratio >= 0.25) ||
-    noContent
-  ) {
+  // `low` is reserved for "there is nothing worth showing the operator" — the model abstained, or
+  // no content came back. It is NOT a doubt level: `shouldHardStopExtraction` turns `low` into
+  // `status: 'error'` with `result: undefined` in App.tsx, discarding the extraction outright.
+  //
+  // Low legibility used to reach here via `(L && N >= 6)` and `(status === 'partial' && L)`, which
+  // meant ANY image under the resolution threshold that extracted 6+ items was thrown away
+  // regardless of how good the extraction was. Measured on art-thru-youth (friction-log session
+  // 11): a 1024px PNG whose extraction matched the source string for string, with zero inventions
+  // and the source's own "Suport working families" typo preserved, was discarded by this branch.
+  // The conversion warning that triggers it (fileService.ts) asks the operator to "verify the
+  // extracted wording against the original" — a review instruction, not a refusal.
+  //
+  // So low legibility now carries the same non-severe ceiling already documented for mismatch,
+  // unknown-layout and the document-type self-report: it can push `ok -> partial/medium` and
+  // raise a blocker, never hard-stop. The operator sees the extraction and the warning together
+  // and decides. Keep in mind the underlying concern is real — art-thru-youth returns 18/17/13
+  // items across three runs — which is exactly why it must be flagged loudly, and also why a gate
+  // that cannot measure the extraction should not be the thing deciding.
+  if (status === 'abstained' || noContent || (status === 'partial' && N >= 6 && ratio >= 0.4)) {
     confidence = 'low';
   } else if (
     status === 'partial' ||
     (N >= 6 && ratio >= 0.15) ||
     M ||
     Uunk ||
-    (L && Vf >= 1)
+    L
   ) {
     confidence = 'medium';
   } else if (N < 6 && (status !== 'ok' || L || Vf > 0)) {
