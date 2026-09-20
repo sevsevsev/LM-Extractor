@@ -32,7 +32,7 @@
  * (`services/extractionLogExport.ts`) so a batch's results can be attributed to the exact prompt
  * that produced them. Format: `YYYY-MM-DD.N`.
  */
-export const PROMPT_VERSION = '2026-09-20.4';
+export const PROMPT_VERSION = '2026-09-20.5';
 
 /** Same contract as `PROMPT_VERSION`, versioned separately — different call, different failure mode. */
 export const DETECT_PROMPT_VERSION = '2026-09-19.1';
@@ -475,6 +475,18 @@ ${
  * there, exactly the failure mode that sank rule 2. The text-only variant needs the same policy
  * restated over Track A Markdown list depth, which is the information it actually has. That is
  * the next themed change, deliberately not bundled here.
+ * 2026-09-20.5 splits rule 8 by what the parent IS. The fold was designed against parents that are
+ * LABELS — "Student Publications", "Academic Skills" — which are short, so repeating one on four
+ * children costs little. Harlem Lacrosse showed what happens when the parent is PROSE: its
+ * OUR APPROACH section came back as 19 items, each carrying the same ~200-character sentence
+ * ("WE COACH STUDENTS. We provide safe spaces where middle and high school children can find
+ * belonging..."), because rule 8 said to prefix the parent onto every child and said nothing about
+ * how long a parent might be. The rule was working exactly as written and the output was bad.
+ * A prose parent is now emitted ONCE as its own item with its children left unprefixed, so the
+ * passage appears one time instead of N. Rule 9 gained the matching carve-out: it forbids a bare
+ * parent ALONGSIDE prefixed children (the same text twice), which a prose parent with unprefixed
+ * children is not. `shared/nestingConsistency.ts` stays valid unchanged — its check looks for a
+ * child that starts with the parent's text, and unprefixed children do not.
  * RETIRE/REVISE IF a same-prompt control pair shows a nested VISION document churning again.
  */
 const groupingGateSection = `
@@ -493,11 +505,19 @@ const groupingGateSection = `
     7. **The group is the outermost label in that column carrying NO bullet marker** — a heading at
        the column's left edge. That string, and only that string, becomes \`Group.name\`.
     8. **A deeper label keeps its words but loses its level.** A *bulleted* label that itself has
-       sub-bullets is **not** a group: prefix its text onto each of its own children, joined with
-       \` — \` (if the label already ends in \`:\`, keep that colon instead of adding the dash), and
-       emit **one item per leaf bullet**. Repeat for any further depth, outermost label first.
-    9. **Never emit a parent label as an item of its own**, never merge a parent and its children
-       into a single item, and never repeat \`Group.name\` inside an item's \`text\`.
+       sub-bullets is **not** a group. How you fold it depends on what it is:
+       - **A short label** — a few words that read as a heading (\`Student Publications\`,
+         \`Academic Skills\`): **prefix it onto each of its own children**, joined with \` — \` (if it
+         already ends in \`:\`, keep that colon instead of adding the dash), one item per leaf bullet.
+       - **A sentence or a paragraph** — it has a verb and reads as prose, not as a heading: do
+         **NOT** repeat it on every child. That puts the same long passage on every row. Emit it
+         **once, as its own item, immediately before its children**, and leave those children
+         unprefixed.
+       Repeat for any further depth, outermost label first.
+    9. **Never emit a short label as an item of its own when you have also prefixed it onto its
+       children** — that is the same text twice. (A prose parent emitted once with its children
+       left unprefixed, per rule 8, is the correct shape and not a violation.) Never merge a parent
+       and its children into a single item, and never repeat \`Group.name\` inside an item's \`text\`.
     Worked example — an "Outputs" column containing \`Program Delivery\` (no bullet), \`● Lessons
     delivered to 600 students\`, and \`● Student Publications\` with \`○ 40+ newspapers published\`
     beneath it → group \`"Program Delivery"\`, items \`"Lessons delivered to 600 students"\` and

@@ -1384,6 +1384,58 @@ own group name instead, so the text appears once rather than N times.      | cau
 
 ---
 
+## Session 17 — the nesting fold now distinguishes a label from a paragraph (2026-09-20.5)
+
+```
+Date:                     2026-09-20
+Operator:                 agent session (claude/loving-hawking-r436g3)
+Prompt version:           2026-09-20.4 -> 2026-09-20.5
+Gemini calls:             2
+
+--- The defect (found session 16) ---
+NESTING rule 8 said: a bulleted label that has sub-bullets is not a group — prefix it onto each of
+its children. That was written against parents that are LABELS ("Student Publications", "Academic
+Skills"), which are short. Harlem Lacrosse has parents that are PROSE, and the rule did exactly
+what it said: OUR APPROACH came back as 19 items, each carrying the same ~200-character sentence.
+
+--- The change ---
+Rule 8 now splits on what the parent IS, which is a perceptible distinction (working-agreement
+point 3) in a way a character count would not be:
+  - a SHORT LABEL (a few words, reads as a heading) -> prefix onto each child, as before
+  - a SENTENCE or PARAGRAPH (has a verb, reads as prose) -> emit ONCE as its own item, immediately
+    before its children, and leave those children unprefixed
+Rule 9 gained the matching carve-out: it forbids a bare parent ALONGSIDE prefixed children (the
+same text twice), which a prose parent with unprefixed children is not.
+`shared/nestingConsistency.ts` needed no change — its check looks for a child that STARTS WITH the
+parent's text, and unprefixed children do not.
+
+--- Measured on Harlem Lacrosse ---
+That section's content, before and after:
+  2026-09-20.4:  20 items,  5,588 chars, longest 872   <- the same paragraph 4-5 times each
+  2026-09-20.5:   4 items,    829 chars, longest 749   <- each paragraph once
+An 85% reduction in characters for the same content, and the model went further than the rule
+required: rather than leaving the section in `unmapped`, it promoted each prose parent to a GROUP
+NAME and routed the whole block into `activities`:
+  "WE COACH STUDENTS."x5 | "WE MOTIVATE ACADEMIC SUCCESS."x6 | "WE EMPOWER YOUTH AUTONOMY."x7 |
+  "WE BUILD EQUITABLE SYSTEMS."x5
+Checked explicitly for the opposite failure — trading duplication for omission — and all four
+descriptive paragraphs are present, once each, inside their own group. Total items 46 -> 53.
+                                                                                | cause: prompt
+
+--- Caveat ---
+Harlem Lacrosse is one of the UNSTABLE documents (38/49/46/53 across runs), so the item-count
+change is not cleanly attributable. The structural change is: 20 duplicated items became 4
+unduplicated ones, which is not something run-to-run variation produces.
+
+--- Next ---
+1. Human completeness pass (unchanged, still the missing number).
+2. Full census at --passes=3 now that .5 has settled.
+3. Owner offered fresh logic models — most valuable as a RANDOM sample, since the existing set is
+   chosen-not-sampled and cannot produce a rate.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -1404,3 +1456,4 @@ own group name instead, so the text appears once rather than N times.      | cau
 | 14 | 2026-09-20 | n/a (tests) | export column drift, jargon and contract headers now guarded | other | N |
 | 15 | 2026-09-20 | 2 docs | text-only no longer instructed to read images | prompt | N |
 | 16 | 2026-09-20 | 3 docs | unmapped widened (unproven); nesting fold breaks on long parents | prompt | N |
+| 17 | 2026-09-20 | 1 doc | nesting fold split by parent type; 85% fewer chars, same content | prompt | N |
