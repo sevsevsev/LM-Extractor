@@ -1511,6 +1511,96 @@ Do not keep making prompt changes of this shape without it.
 
 ---
 
+## Session 19 — first random sample; `verbatim` is undefined but still gates the rollup
+
+```
+Date:                     2026-09-20
+Operator:                 owner supplied a random batch; agent session (claude/loving-hawking-r436g3)
+Prompt version:           2026-09-20.6 (unchanged — audit only)
+Gemini calls:             4
+
+--- The sample ---
+Four documents supplied at random. This is the first batch drawn that way: every completeness
+figure before it, including 119/119, came from the FIXTURE set, which was selected — mostly for
+being interesting or for having previously failed. A rate measured on selected documents is not a
+corpus rate. Full record in `docs/verification/2026-09-20-random-sample-batch-1.md`.
+
+  PlayArts Play Loud        33 source items -> 33 extracted, 0 invented, 0 missed
+  ArtWell We the Poets      18 grid + 3 scalar -> all present, 0 invented
+  Lantern Illumination      33 grid + 3 scalar -> all present, 0 invented
+  Your Voice Heard          not a logic model -> 0 grid items, 4 paragraphs kept in `unmapped`
+
+  INVENTION 0 of 88 items.  COMPLETENESS 84 of 84 gridded items, 6 of 6 scalar fields.
+
+Small sample that found nothing, and the denominator for "real logic model, fully read" is three.
+A spot check, not a rate. The fourth document being a promotional one-pager is itself a finding
+about what the corpus contains.
+
+Three things the sample exercised that are worth keeping:
+  - ArtWell is a School District template with its instruction text still in it. The extraction
+    dropped the italic template prompts, the upload banner and the footer while KEEPING the one
+    line the organisation wrote into the template box. Discarding boilerplate without discarding
+    the answer written into boilerplate is the harder half of that.
+  - Lantern encodes three program strands as fill colour across five columns with no printed key.
+    All 33 items carry the right colour; `colorLegend` is correctly empty. Captured but not
+    interpretable downstream — a limit of the source, not the extraction.
+  - Your Voice Heard's page image renders one word as `prac t ced`; the extraction says
+    `practiced`. That reads as a never-repair violation until you check the bundle, whose text
+    track has the word intact. Track A supplying what Track B could not rasterise is what the
+    dual track is for.                                                            | cause: none
+
+--- Instrument error, caught before it was recorded ---
+My flattener printed only group-bearing fields, so ArtWell's impact statement — stored in the
+SCALAR `impactStatement`, not in the `impact` group — read as a miss. Fixed the flattener to print
+scalars first.
+
+Second time a weak instrument nearly produced a false finding (session 5's grouping claim was the
+first), and the tell was identical both times: the finding was about something ABSENT, and absence
+is exactly what a partial view manufactures. A claim that something is missing needs the
+instrument checked before the claim is written down.                     | cause: audit-instrument
+
+--- Finding: `verbatim` is undefined but still gates the rollup ---
+2026-09-20.2 (session 9) removed every instruction defining `verbatim`, after measuring that
+item-level flagging fired about once in 640 items. Two consumers were left wired up:
+
+  1. `server/geminiLogicModel.ts:26` still declares `verbatim: { type: Type.BOOLEAN }` in the
+     response schema — Gemini is still ASKED for it, with nothing telling it what it means.
+  2. `shared/extractionFidelity.ts:193` still counts `verbatim === false` into `nonVerbatim`.
+     Line 290 turns that into `ratio = nonVerbatim / total`; line ~360 pushes `highNonVerbatim`
+     at `N >= 6 && ratio >= 0.4` and `nonVerbatimShare` at `>= 0.15`. That ratio is an input to
+     `extractionConfidence`, and since session 12 `low` means "nothing worth showing".
+
+So an undefined field the model now fills in on its own recognisance is still wired into the gate
+that decides whether a document is displayed.
+
+Why it has not bitten: measured across every arm on disk, `verbatim` comes back `true` on 100% of
+items (88 of 88 in this sample, `false` nowhere). Ratio is always 0, both blockers are dead in
+practice. It has not bitten because the model happens to answer `true` to a question nobody asks
+it — not because anything prevents it answering `false`.
+
+This is the SAME defect as withdrawn version 2026-09-19.3, reached from the other side. That
+version was withdrawn unrun for defaulting `verbatim` to `false`, on the grounds recorded at
+`constants.ts:267`: "`verbatim: false` is not just a note to a human, it is the input to the
+fidelity rollup." The reasoning was right and the consumer is still there. I removed the
+definition and left the consumer.
+
+Also wrong and needing correction either way: `exportColumns.ts` `INTENTIONALLY_UNEXPORTED` says
+`needsReview` was "blank in every row" because "the prompt stopped requesting" these fields. The
+outcome is right; the mechanism is not. The schema still requests them and the model still
+answers.                                                                 | cause: orphaned-consumer
+
+--- Not fixed in this session ---
+Three plausible shapes (drop the schema field; keep it and re-define it in the prompt; keep it and
+stop the rollup reading it), one themed change per run, and the choice is the owner's.
+
+--- Next ---
+1. Decide the `verbatim` question above.
+2. More random batches — n=3 real logic models is a spot check, not a rate.
+3. Full census at --passes=3.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -1533,3 +1623,4 @@ Do not keep making prompt changes of this shape without it.
 | 16 | 2026-09-20 | 3 docs | unmapped widened (unproven); nesting fold breaks on long parents | prompt | N |
 | 17 | 2026-09-20 | 1 doc | nesting fold split by parent type; 85% fewer chars, same content | prompt | N |
 | 18 | 2026-09-20 | 2 docs | no-grid fallback added (safe, unproven); flag states its consequence | prompt + other | N |
+| 19 | 2026-09-20 | 4 docs (random) | 0/88 invented, 84/84 complete; `verbatim` undefined yet still gates the rollup | setup + other | N |
