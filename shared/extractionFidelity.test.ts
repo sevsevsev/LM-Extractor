@@ -385,3 +385,30 @@ test('Gemini-reported possiblyMissedRegions are normalized and deduped', () => {
     { page: 3, note: 'invalid span (end before start), span must be dropped' },
   ]);
 });
+
+/**
+ * FIDELITY_BLOCKERS is the text an operator reads in the banner and beside a flagged file. It was
+ * rewritten out of schema/NLP vocabulary in friction-log session 13 ("Model abstained from
+ * extraction", "Layout family unknown", "Share of items flagged non-verbatim is high"). This keeps
+ * the next addition from quietly reintroducing it.
+ */
+{
+  const banned = [
+    'verbatim', 'schema', 'enum', 'domain', 'json', 'null', 'undefined', 'nlp', 'token',
+    'prompt', 'parse', 'layout family', 'abstain', 'legibility', 'fidelity', 'non-verbatim',
+  ];
+
+  for (const [key, text] of Object.entries(FIDELITY_BLOCKERS)) {
+    test(`blocker copy: ${key} avoids jargon and tells the operator something`, () => {
+      // "the model" is how these used to refer to Gemini; "the AI" is what a reader outside this
+      // codebase understands. "logic model" is the domain term and is fine.
+      const probe = text.toLowerCase().replace(/logic model/g, '');
+      for (const word of banned) {
+        assert.ok(!probe.includes(word), `blocker "${key}" contains "${word}": ${text}`);
+      }
+      assert.ok(!/\bthe model\b/.test(probe), `blocker "${key}" says "the model" — say "the AI": ${text}`);
+      assert.ok(text.length >= 25, `blocker "${key}" is too terse to act on: ${text}`);
+      assert.ok(/^[A-Z]/.test(text), `blocker "${key}" should read as a sentence: ${text}`);
+    });
+  }
+}

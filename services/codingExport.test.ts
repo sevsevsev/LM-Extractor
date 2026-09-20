@@ -43,13 +43,31 @@ test('coding export includes only short/medium/long outcome rows with outcome_te
   assert.ok(!rows.some(r => r[5] === 'Stronger neighborhoods'));
 });
 
-test('coding export CSV has coder headers', () => {
+/**
+ * THIS HEADER ROW IS AN INTEGRATION CONTRACT, NOT A STYLE CHOICE.
+ *
+ * It is the intake format of the Qualitative Outcomes Coder, which rejects uploads whose headers
+ * it does not recognise (docs/specs/export-for-coding.md). Every change to this file so far has
+ * been APPENDED so existing column positions stay stable.
+ *
+ * `outcome_text` in particular reads wrongly — it holds the text of every row, including Inputs
+ * and Activities, so a coder looking at an Inputs row sees its text under a column called
+ * "outcome_text". Renaming it is the obvious cleanup and it would break the downstream tool. The
+ * full extract CSV is where plain naming belongs; it calls the same value `Item Text`
+ * (shared/exportColumns.ts). Two audiences, two naming rules — do not unify them.
+ *
+ * If this test fails, the question is not "what is the new header row?" but "did the consumer
+ * change?". Do not update the expected string to make it pass.
+ */
+test('coding export CSV header row matches the coder intake contract', () => {
   const csv = buildCodingExportCsv([fakeFile('f1', sampleModel())]);
   assert.ok(csv);
   const header = csv!.split('\n')[0];
   assert.equal(
     header,
-    '"row_id","organization","program","group","domain","outcome_text","color_coding","needs_review","color_legend","source_filename","qa_status","document_type_flag"'
+    '"row_id","organization","program","group","domain","outcome_text","color_coding","needs_review","color_legend","source_filename","qa_status","document_type_flag"',
+    'The coding CSV header row changed. This is the Qualitative Outcomes Coder intake contract — ' +
+      'renaming, reordering or removing a column here breaks that tool. See docs/specs/export-for-coding.md.'
   );
 });
 

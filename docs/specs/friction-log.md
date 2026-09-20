@@ -1179,6 +1179,76 @@ operator sees, not for every string in the codebase.
 
 ---
 
+## Session 14 — futureproofing: turn the session's own mistakes into executable checks
+
+```
+Date:                     2026-09-20
+Operator:                 owner request; agent session (claude/loving-hawking-r436g3)
+Prompt version:           2026-09-20.2 (unchanged — code + tests only)
+Gemini calls:             0
+
+--- The ask ---
+Owner: "take whatever steps we can to futureproof against these types of issues."
+
+The class of issue, taken from what actually went wrong in sessions 11-13 — including the parts
+this session caused:
+  a. Two parallel arrays (CSV headers, CSV row values) with nothing tying them together. Editing
+     one and not the other silently shifts every column to its right.
+  b. A contract header that LOOKS like a mistake (`outcome_text` on an Inputs row) and invites a
+     well-meaning rename that would break the downstream consumer.
+  c. Tests that pin COPY rather than behaviour — two broke in session 13 purely because wording
+     changed (/low-resolution/i stopped matching when a hyphen went away).
+  d. Schema fields quietly going dead and shipping as permanently blank CSV columns.
+  e. Jargon drifting back into operator-facing strings once the plain-language pass is old news.
+Comments already existed for (a) and (b) and prevented nothing. The fix has to be executable.
+
+--- What was built ---
+1. shared/exportColumns.ts — FULL_EXPORT_COLUMNS pairs each header with the row field it reads, as
+   ONE list. App.tsx now does `FULL_EXPORT_HEADERS` and `exportRows.map(fullExportRowValues)`
+   instead of maintaining a second array. (a) is no longer a bug you can write.
+2. INTENTIONALLY_UNEXPORTED — row fields deliberately left out, each with a reason. A test asserts
+   every field is either exported or listed here, so (d) becomes a build failure with a prompt to
+   decide rather than a blank column nobody notices.
+3. The test's probe row is typed `Record<keyof GranularExportRow, string>` rather than cast, so
+   adding a field to the row type is a COMPILE error until someone decides where it goes. A first
+   draft used `as GranularExportRow`; tsc rejected it, and the type-safe version turned out to be
+   the stronger guard — worth remembering that the cast was the weaker idea.
+4. A jargon lint over the full CSV's headers and over every FIDELITY_BLOCKERS string: banned
+   schema/NLP words, no snake_case, no "the model", a minimum length so a blocker actually says
+   something. Guards (e). It has one deliberate exception — "logic model" is the domain term its
+   readers use daily, so the check strips that phrase before looking for "model". The first
+   version failed on "Logic Model Column", which is exactly the false positive that gets a lint
+   deleted; made precise instead of weakened.
+5. The coding CSV header test renamed to "...matches the coder intake contract", with a comment
+   explaining that `outcome_text` reads wrongly ON PURPOSE and a failure message that says "the
+   question is not what is the new header row, but did the consumer change? Do not update the
+   expected string to make it pass." Guards (b).
+
+--- Each guard was verified to actually fire ---
+A test that cannot fail is worse than no test, so each was broken on purpose:
+  drop an exported column without excusing it  -> test fails
+  rename a header back to "Mapping Confidence" -> test fails, naming the banned word
+  add a field to GranularExportRow             -> compile error naming the field
+(The first check initially looked like it had NOT fired — it had; `assert.deepEqual` renders its
+message as a multi-line block and the grep pattern only matched single-line ones.)
+
+236 tests, all passing. No prompt change.
+
+--- What is still not guarded ---
+- Item-level flagging can go dead again the same way (d) happened: the prompt stops asking for a
+  field and nothing connects that to the exporters. The INTENTIONALLY_UNEXPORTED list documents
+  the two casualties but nothing detects a NEW one automatically.
+- The census's own noisy 2-pass verdict (session 11, Finding 3) is unchanged — `--passes=3` is
+  still a thing a person has to remember to type.
+
+--- Notes ---
+Every guard here encodes a mistake that was actually made in the last three sessions, two of them
+by this session. That is the right selection criterion: not "what could go wrong in principle",
+but "what did go wrong, and would go wrong again".
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -1196,3 +1266,4 @@ operator sees, not for every string in the codebase.
 | 11 | 2026-09-20 | 12 docs | extract (+lowleg fails at the gate, not extraction; recall moves) | setup + prompt | N |
 | 12 | 2026-09-20 | n/a (code) | extract (low-legibility warns instead of discarding) | setup | N |
 | 13 | 2026-09-20 | n/a (copy) | operator-facing flags rewritten in plain language | other | N |
+| 14 | 2026-09-20 | n/a (tests) | export column drift, jargon and contract headers now guarded | other | N |
