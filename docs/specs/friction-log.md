@@ -1814,6 +1814,98 @@ documents, never on this set, which is now chosen-not-sampled by construction.
 
 ---
 
+## Session 22 — batch 3, the first XLSX, and a reproducible short-term misroute
+
+```
+Date:                     2026-09-20
+Operator:                 owner supplied a third random batch (incl. the two missing fixtures)
+Prompt version:           2026-09-20.6 (unchanged — the one prompt fix found here is PROPOSED, not landed)
+Gemini calls:             5 + 2 controls
+
+--- The sample ---
+  Philadelphia Ballet Let's Dance   prose report, not a logic model   49 items, 0 invented
+  A New Dawn                        60 bullets -> 60                   0 invented, MISROUTED
+  Educators of Colors 1865          17 -> 17                           0 invented, 0 missed
+  Philadelphia Zoo (XLSX)           8 sheets -> 77 (60 real + 17 junk) 0 invented
+  Greener Partners                  48 -> 48                           0 invented, 0 missed
+
+  0 INVENTIONS IN 251 ITEMS. Cumulative: 0 IN 586 ITEMS ACROSS 14 DOCUMENTS.
+
+Full record in `docs/verification/2026-09-20-random-sample-batch-3.md`.
+
+--- The probe was narrower than the data. Again. Fourth time. ---
+`a-new-dawn` first read 50/61, with outputs like "500 lbs. of produce grown and shared" apparently
+absent. They were there, as "**500 lbs. of produce** grown and shared" — Markdown bold. The
+extraction strips emphasis markers; my probe did not.
+
+Four now: whitespace (s19), line breaks (s20), scalar fields (s19), inline markup (s22). Identical
+every time — the extraction is right, the probe is narrower than the data, and a narrow probe
+manufactures ABSENCE. `scripts/audit-coverage.mjs` now normalises escapes and emphasis on both
+sides, with each clause carrying the session that forced it, so the next person adding one sees
+the pattern rather than the symptom.                                     | cause: audit-instrument
+
+--- FINDING: a STATED short-term horizon goes to generalOutcomes (3 of 3 runs) ---
+A New Dawn labels its sections explicitly:
+
+  4. SHORT-TERM OUTCOMES (3-12 months)  -> generalOutcomes     9 items   WRONG
+  5. INTERMEDIATE OUTCOMES (1-2 years)  -> mediumTermOutcomes  7 items   correct
+  6. LONG-TERM IMPACT (3-5 years)       -> longTermOutcomes   11 items   correct
+
+`shortTermOutcomes` comes back EMPTY while both siblings populate. Three runs, identical split, so
+this is deterministic — not the instability the census measures.
+
+CAUSE. Rule 7 (constants.ts:401) carries a prohibition that names ONE field: "Never default
+undifferentiated outcomes into `shortTermOutcomes` just because it's the first outcomes-shaped
+field in the schema". Its escape clause is written purely in COLUMN terms: "Only use
+shortTerm/mediumTerm/longTerm when the source itself actually distinguishes those three (separate
+columns, or explicit per-item labels)". A New Dawn is prose — no columns, no per-item labels — so
+the escape cannot fire and the prohibition does. Medium and long have no equivalent prohibition
+attached, which is exactly why they route correctly. The asymmetry INSIDE ONE DOCUMENT is the
+evidence; nothing about the document is ambiguous.
+
+CONSEQUENCE, and not cosmetic. The coding CSV writes these as `General Outcomes`, which
+services/codingExport.ts:21 defines as "No time horizon in the source — a coder assigns
+short/medium/long-term during coding." The source says (3-12 months). A coder is being asked to
+supply a horizon the document already stated.
+
+This one EARNS a prompt change, unlike session 18's pair: reproducible failure, a mechanism that
+explains the asymmetry, and a measurable downstream cost. Proposed to the owner, not landed — a
+prompt edit is the one thing the working agreement reserves for explicit approval.  | cause: prompt
+
+--- FINDING: the first XLSX is eight logic models in one file ---
+The Zoo workbook holds EIGHT complete logic models, one per program, sharing a mission and column
+headers but differing in inputs and activities. All merged into one extraction; `program` returns
+"School and Community programs" while the file is named for one of the eight.
+
+documentBundleSlicing.ts splits multi-logic-model uploads but matches `## Page N` / `## Slide N`
+only, so `## Sheet:` bypasses it silently. Slicing also assumes page ranges and images, and XLSX
+has neither. Did NOT build a sheet splitter on n=1; instead the bundle now states the fact the app
+already knows — how many sheets there are and that they were read as one document. Same posture as
+the low-legibility rewording: say what is true, do not guess.                      | cause: setup
+
+Separately: 17 of 77 items are BARE NUMBERS (33, 43, 44, 77...) sitting in the Activities column
+and in otherwise-empty rows — navigation anchors, almost certainly. Not inventions: they are real
+cells, and "transcribe what you read" makes them items. Three reach the coding CSV. Left alone
+deliberately — a bare number CAN be a legitimate output under a "# of participants" header, and
+one spreadsheet is not enough to design a rule that will not do harm elsewhere.
+
+The text-only variant from 2026-09-20.3 got its first real-document test here and behaved: honest
+blocker, "could not be read as images, only as text, so the columns and formatting may be wrong".
+
+--- Worth naming ---
+Two of this batch's five documents are not logic models (a program assessment report and an
+organisational overview), and both were flagged correctly with accurate notes. Across three random
+batches that is 4 of 14 documents that are not logic models. The document-type flag is earning its
+keep more often than the invention guard is.
+
+--- Next ---
+1. Owner decision on the rule-7 wording (proposed with exact text).
+2. More spreadsheets, before designing either a sheet splitter or a bare-cell rule.
+3. Instability remains the open problem: 0 in 586 invented vs 7 of 15 unstable.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -1839,3 +1931,4 @@ documents, never on this set, which is now chosen-not-sampled by construction.
 | 19 | 2026-09-20 | 4 docs (random) | 0/88 invented, 84/84 complete; `verbatim` undefined yet still gates the rollup | setup + other | N |
 | 20 | 2026-09-20 | 5 docs (random) | 0/247 invented; base64 bloats one DOCX track 87%; scalars synthesised unrecorded | setup + prompt | N |
 | 21 | 2026-09-20 | 15 docs (census x3) | base64 stripped; `verbatim` retired + schema/prompt guard; 7 of 15 unstable | setup + other | N |
+| 22 | 2026-09-20 | 5 docs (random) | 0/251 invented; stated short-term horizon -> generalOutcomes (3/3); first XLSX = 8 models merged | prompt + setup | N |
