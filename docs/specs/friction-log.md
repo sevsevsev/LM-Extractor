@@ -1061,6 +1061,76 @@ direction that loses less.                                                      
 
 ---
 
+## Session 13 — plain-language pass on operator-facing flags
+
+```
+Date:                     2026-09-20
+Operator:                 owner request; agent session (claude/loving-hawking-r436g3)
+Prompt version:           2026-09-20.2 (unchanged — UI/copy + docs only)
+Gemini calls:             0
+
+--- The ask ---
+Owner: make the flags and metadata plain enough that someone unfamiliar with the codebase, or with
+coding/NLP vocabulary, can tell what is being said.
+
+--- What was NOT changed, and why it matters ---
+The coding CSV header row is an INTEGRATION CONTRACT, not a style choice. docs/specs/
+export-for-coding.md names a downstream consumer (Qualitative Outcomes Coder) that "rejects
+uploads without an outcome-text column alias", and every previous change to this file was appended
+specifically so existing column positions stay stable.
+
+So `outcome_text` stays, even though it is the single most confusing name in the file: it holds
+the text of EVERY row, including Inputs and Activities, so a coder reading an Inputs row sees its
+text under a column called "outcome_text". Renaming it would have been the obvious "fix" and would
+have broken the downstream tool. Documented instead.        | cause: other
+
+--- What changed ---
+1. FIDELITY_BLOCKERS rewritten in plain language. These are the primary operator-facing strings —
+   they appear in the amber banner, as the one-line reason beside a flagged file, and in the
+   extraction log. Out went "Model abstained from extraction", "Layout/label mismatch — review
+   unmapped items", "Layout family unknown", "Share of items flagged non-verbatim is high". In
+   came sentences that say what happened to the document and what to do:
+     "The AI could not read this document well enough to extract anything from it"
+     "Some content did not fit any of the standard columns and was put under \"Unmapped\" —
+      check whether it belongs somewhere"
+     "The layout of this document could not be worked out, so items may have ended up in the
+      wrong columns"
+   A comment on the constant now states the rule: no schema words, no NLP words, no "the model".
+
+2. The editor banner no longer prints internal enum values. It said "Extraction fidelity —
+   partial · medium confidence", which is three pieces of jargon in six words. It now says
+   "Check this against the document before exporting" over a sentence explaining why, with the
+   specific reasons listed beneath.
+
+3. SessionFileList stopped echoing `extractionStatus`/`extractionConfidence` as a fallback reason
+   ("Extraction partial · medium confidence"). The exact values are still in the extraction log,
+   where an analyst wants them; the file list now says "Worth checking against the document before
+   exporting".
+
+4. formatHardStopMessage: "Extraction stopped: ..." -> "Could not extract this document. ...".
+   A first draft lowercased the blocker's first letter to make the sentence flow; dropped, because
+   it would mangle any reason starting with a proper noun for no real gain.
+
+5. export-for-coding.md gains a plain-language glossary of every column, explicitly including why
+   `outcome_text` is named that and what it really contains. Also states that "Needs Review" does
+   not mean the extraction is wrong — it means an automatic check was uneasy — which is the most
+   likely misreading of the whole file.
+
+--- Tests ---
+Two tests pinned the old copy: one asserted the word "stopped", one matched a blocker with
+/low-resolution/i (which no longer matched once the copy dropped the hyphen). Both rewritten —
+the blocker test now asserts against the FIDELITY_BLOCKERS constant rather than a copy-shaped
+regex, so future wording changes do not re-break it. 219 tests passing.
+
+--- Notes ---
+The internal extraction log (EXTRACTION_LOG_HEADERS) was deliberately left technical. Its own
+header comment says "Not partner-facing" — it exists for batch analysis, and `prompt_variant` /
+`non_verbatim_items` are the right names for that reader. Plain language is for the surfaces an
+operator sees, not for every string in the codebase.
+```
+
+---
+
 ## Running tally
 
 | # | Date | Format | Stage hurt | Cause | Stop-using? |
@@ -1077,3 +1147,4 @@ direction that loses less.                                                      
 | 10 | 2026-09-20 | 7 docs | extract (vision-only works; text-only diagnosis retracted) | prompt + setup | N |
 | 11 | 2026-09-20 | 12 docs | extract (+lowleg fails at the gate, not extraction; recall moves) | setup + prompt | N |
 | 12 | 2026-09-20 | n/a (code) | extract (low-legibility warns instead of discarding) | setup | N |
+| 13 | 2026-09-20 | n/a (copy) | operator-facing flags rewritten in plain language | other | N |

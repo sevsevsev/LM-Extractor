@@ -165,11 +165,11 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
           >
             <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800 mb-1">
-                Extraction fidelity — {model.extractionStatus || 'unknown'}
-                {model.extractionConfidence ? ` · ${model.extractionConfidence} confidence` : ''}
+                Check this against the document before exporting
               </p>
               <p className="text-sm text-amber-950 mb-2">
-                Capture quality may need verification before coding export.
+                Some of what was pulled out of this document may not match the original. The
+                reasons are listed below.
               </p>
               {model.extractionBlockers && model.extractionBlockers.length > 0 && (
                 <ul className="text-sm text-amber-950 list-disc pl-5 space-y-0.5">
@@ -180,7 +180,7 @@ const LogicModelEditor: React.FC<LogicModelEditorProps> = ({
               )}
               {model.possiblyMissedRegions && model.possiblyMissedRegions.length > 0 && (
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span className="text-xs font-bold text-amber-900">Pages to spot-check:</span>
+                  <span className="text-xs font-bold text-amber-900">Pages worth a second look:</span>
                   {(() => {
                     const pages: number[] = Array.from(
                       new Set(model.possiblyMissedRegions.map(r => r.page))

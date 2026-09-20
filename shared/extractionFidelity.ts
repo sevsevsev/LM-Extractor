@@ -25,33 +25,45 @@ const STATUS_RANK: Record<ExtractionStatus, number> = {
 };
 
 /** Stable blocker copy for tests and CSV. */
+/**
+ * Operator-facing warning text. These strings are read by whoever is checking an extraction before
+ * it goes out for coding — not by developers — so they are written in plain language: say what
+ * happened to the document, and what the person should do about it. No schema words ("domain",
+ * "non-verbatim", "layout family"), no NLP words, no "the model".
+ *
+ * They surface in three places: the amber banner in LogicModelEditor, the one-line reason beside a
+ * flagged file in SessionFileList, and the `extraction_blockers` column of the internal extraction
+ * log. Keep each one short enough to read at a glance in the file list.
+ */
 export const FIDELITY_BLOCKERS = {
-  abstained: 'Model abstained from extraction',
-  lowRes: 'Low-resolution source — many items need verification',
-  highNonVerbatim: 'Share of items flagged non-verbatim is high',
-  nonVerbatimShare: 'Some items flagged non-verbatim — verify against source',
-  mismatch: 'Layout/label mismatch — review unmapped items',
-  unknownLayout: 'Layout family unknown',
-  noContent: 'No logic-model content recovered',
-  lowLegibilityPartial: 'Low-resolution source with uncertain transcriptions',
+  abstained: 'The AI could not read this document well enough to extract anything from it',
+  lowRes: 'This image is low resolution, so a lot of the wording may have been misread — check it against the original',
+  highNonVerbatim: 'The AI was unsure about a lot of these items — check them against the original',
+  nonVerbatimShare: 'The AI was unsure about some of these items — check them against the original',
+  mismatch:
+    'Some content did not fit any of the standard columns and was put under "Unmapped" — check whether it belongs somewhere',
+  unknownLayout:
+    'The layout of this document could not be worked out, so items may have ended up in the wrong columns',
+  noContent: 'Nothing could be extracted from this document',
+  lowLegibilityPartial: 'This image is low resolution, so some wording may have been misread',
   /**
    * Flattened / low-DPI dense grids (Oxford Circle–class) — do not trust fluent OCR. Caps at
    * partial/medium and never hard-stops (see the confidence block): the extraction is shown to the
    * operator with this warning attached, rather than discarded.
    */
   lowLegibilityDense:
-    'Low-resolution source — small text may be misread. Check every item against the original before using this extraction',
+    'This image is low resolution and the grid is dense, so small text may be misread — check every item against the original before using this',
   /** Gemini's own per-image self-report — caps at partial/medium, never forces low/abstained. */
   possiblyIncomplete:
-    'Model flagged one or more regions it may not have fully captured — spot-check for missed content',
+    'The AI was not sure it captured everything on part of the page — check the document for anything missing',
   /** Gemini's document-type self-report (see DOCUMENT TYPE CHECK prompt) — never hard-stops. */
-  notLogicModel: 'Document may not be a logic model — verify before treating extraction as reliable',
+  notLogicModel: 'This may not be a logic model — check the document before relying on this extraction',
   /** Vision conversion failed entirely (not just low-res) — extracted from the text layer alone. */
   textOnlyFallback:
-    'Extracted from text only — the document could not be read as images, so layout-based columns and formatting may be less reliable',
+    'This document could not be read as images, only as text, so the columns and formatting may be wrong',
   /** Overview text (mission/target/impact) was recovered but the grid itself came back empty. */
   noGridItems:
-    'No inputs/activities/outputs/outcomes items were extracted — verify this document actually has a logic-model grid',
+    'No Inputs, Activities, Outputs or Outcomes were found — check whether this document actually has a logic model grid',
 } as const;
 
 export function isExtractionStatus(value: unknown): value is ExtractionStatus {
@@ -424,11 +436,11 @@ export function shouldShowFidelityBanner(model: LogicModel): boolean {
 export function formatHardStopMessage(blockers: string[]): string {
   const list = normalizeBlockers(blockers);
   if (list.length === 0) {
-    return 'Extraction stopped — the source could not be read reliably enough to continue.';
+    return 'Could not extract this document — it could not be read reliably enough.';
   }
   if (list.length === 1) {
-    return `Extraction stopped: ${list[0]}`;
+    return `Could not extract this document. ${list[0]}`;
   }
-  return `Extraction stopped: ${list[0]} (${list.length - 1} more reason${list.length > 2 ? 's' : ''})`;
+  return `Could not extract this document. ${list[0]} (and ${list.length - 1} other reason${list.length > 2 ? 's' : ''})`;
 }
 

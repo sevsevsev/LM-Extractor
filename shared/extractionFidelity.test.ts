@@ -123,7 +123,7 @@ test('L + high non-verbatim share warns loudly but still reaches the operator', 
   });
   reconcileExtractionFidelity(model, { lowLegibility: true });
   assert.equal(model.extractionConfidence, 'medium');
-  assert.ok(model.extractionBlockers?.some(b => /low-resolution/i.test(b)));
+  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.lowLegibilityDense));
   assert.equal(shouldHardStopExtraction(model), false);
   assert.equal(shouldShowFidelityBanner(model), true);
 });
@@ -238,9 +238,11 @@ test('low legibility does not hard-stop, but abstained and no-content still do',
   assert.equal(shouldHardStopExtraction(empty), true);
 });
 
-test('formatHardStopMessage', () => {
-  assert.match(formatHardStopMessage([]), /stopped/i);
+test('formatHardStopMessage explains in plain language and keeps the reason verbatim', () => {
+  assert.match(formatHardStopMessage([]), /could not extract/i);
+  // The reason is operator-facing copy — pass it through untouched rather than re-casing it.
   assert.match(formatHardStopMessage(['Illegible grid']), /Illegible grid/);
+  assert.match(formatHardStopMessage(['One', 'Two', 'Three']), /2 other reasons/);
 });
 
 test('countExtractionItems includes unmapped', () => {

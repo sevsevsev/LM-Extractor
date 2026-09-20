@@ -14,20 +14,19 @@ function isFlagged(file: ProcessingFile): boolean {
 
 function flagReason(file: ProcessingFile): string {
   if (file.status === 'error') {
-    return file.extractionBlockers?.[0] || file.error || 'Needs attention';
+    return file.extractionBlockers?.[0] || file.error || 'Something went wrong with this file';
   }
   const result = file.result;
-  if (!result) return 'Needs attention';
+  if (!result) return 'Something went wrong with this file';
   if (shouldSuggestMismatch(result)) {
-    return 'Layout or label mismatch — review unmapped items';
+    return 'Some content did not fit the standard columns — check "Unmapped"';
   }
   const blocker = result.extractionBlockers?.[0];
   if (blocker) return blocker;
-  const bits = [
-    result.extractionStatus && result.extractionStatus !== 'ok' ? result.extractionStatus : '',
-    result.extractionConfidence ? `${result.extractionConfidence} confidence` : '',
-  ].filter(Boolean);
-  return bits.length ? `Extraction ${bits.join(' · ')}` : 'Extraction fidelity needs a check';
+  // Fall back to plain language rather than echoing `extractionStatus` / `extractionConfidence`,
+  // which are internal values ("partial", "medium") that mean nothing to whoever is doing the
+  // checking. The exact values are still in the extraction log for analysis.
+  return 'Worth checking against the document before exporting';
 }
 
 function readySummary(file: ProcessingFile): string {
