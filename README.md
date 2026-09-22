@@ -52,8 +52,10 @@ PowerPoint needs two things on a hosted deployment, and both are easy to lose:
 1. **The LibreOffice WASM has to be in the function's bundle.** Nothing imports those ~237MB by
    path — `getLibreOfficeWasmPath()` builds the path at runtime — so a bundler that ships a
    function by tracing its imports leaves them out. `vercel.json` names them with `includeFiles`,
-   and gives that one function 3009MB: LibreOffice peaks at ~1.07GB converting a one-line document,
-   which is already over the 1024MB the route used to run with.
+   and gives that one function 2048MB: LibreOffice peaks at ~1.07GB converting a one-line document,
+   which is already over the 1024MB the route used to run with. 2048MB is the ceiling on a Hobby
+   account — a deployment that asks for more is rejected outright at build time — so a deck heavy
+   enough to need more than that has no headroom left to take.
 2. **The upload has to arrive as bytes.** The browser sends `application/octet-stream`, not the
    OOXML presentation type: a serverless host parses the body by content type and hands the
    function `undefined` for anything outside its short list. Sent honestly, the deck's bytes never

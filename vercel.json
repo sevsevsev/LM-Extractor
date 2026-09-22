@@ -5,7 +5,7 @@
   "functions": {
     "api/convert/pptx-to-pdf.ts": {
       "maxDuration": 60,
-      "memory": 3009,
+      "memory": 2048,
       "includeFiles": "node_modules/@matbee/libreoffice-converter/wasm/**"
     },
     "api/gemini/*.ts": {
