@@ -2309,4 +2309,21 @@ produced by at least three unrelated faults (the worker realm, the empty upload 
 render failure), which is precisely why finding 3 puts the reason in the log. Worth noting too that
 every measurement in sessions 25-26 was Chromium while the owner works in Firefox; nothing has
 turned on that yet, but nothing has ruled it out either.
+
+--- VERIFIED ON THE HOSTED PREVIEW, and this is the first time ---
+The owner ran three decks against the preview built from this branch, in Firefox, and the browser
+reported `[PPTX DocumentBundle] images length:` 2, 3 and 2 — matching those decks' slide counts
+from session 26. Hosted PowerPoint had never once produced a page image before.
+
+Two things that verification also settles, both of which were open questions rather than
+predictions: the deployment was ACCEPTED, so 237MB of WASM plus the function fits inside the
+platform's bundle limit; and the first attempt at 3009MB was rejected at BUILD time — a memory
+request above the account's ceiling fails the whole deployment, not just the route. On this account
+that ceiling is 2048MB, which is above the 1074MB measured for a one-paragraph conversion but is a
+ceiling, not headroom.
+
+Not settled by it: Firefox logged `downloadable font: glyf: empty gid 4 used as component in glyph
+40` while rendering one of the three. Probably nothing — that warning is common and the sanitiser
+recovers — but session 26's mode B was a font failure that rendered confidently wrong glyphs and
+reported ok/high, so it is worth one LOOK at that deck's page image rather than an inference.
 ```
