@@ -4,6 +4,7 @@ import {
   looksLikeImpactStatementProse,
 } from './impactStatementHarvest.js';
 import { applySourceAwareMapping } from './sourceMapping.js';
+import { promoteInlineColonLabels } from './inlineLabelGroups.js';
 import { reconcileExtractionFidelity } from './extractionFidelity.js';
 
 type GroupedDomain =
@@ -161,6 +162,9 @@ export function normalizeExtractedLogicModel(
   if (!model.generalOutcomes) model.generalOutcomes = { content: [] };
   fillMissingImpactStatementFromSourceText(model, options?.sourceText);
   promoteImpactStatementFromGroupedDomains(model);
+  // Before applySourceAwareMapping, so a promoted label reaches `sourceHeader` by the same path
+  // every other group name takes. See shared/inlineLabelGroups.ts for what it fires on.
+  promoteInlineColonLabels(model);
   applySourceAwareMapping(model);
   reconcileExtractionFidelity(model, {
     lowLegibility: options?.lowLegibility,
