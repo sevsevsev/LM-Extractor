@@ -10,16 +10,25 @@
  *            `/Resources` at more than one level of the page tree. Every render and every text read
  *            on that page threw, the app fell back to text-only, and said so in a warning.
  *   FAULT 2  `Math.sumPrecise`, reached while rebuilding an embedded TrueType font's `glyf`/`loca`
- *            tables. The page still renders; pdf.js substitutes a standard font addressed by raw
- *            glyph index, so RESOURCES rasterises as !ES#)!CES. The run reports `ok`, high
- *            confidence, full page provenance. NOTHING in a stored extraction distinguishes it from
- *            a good one, which is why the corpus cannot be triaged by reading old results.
+ *            tables. The page still renders; pdf.js drops the embedded font and substitutes a
+ *            standard one. The run reports `ok`, high confidence, full page provenance. NOTHING in
+ *            a stored extraction distinguishes it from a good one, which is why the corpus cannot
+ *            be triaged by reading old results.
+ *
+ * WHAT FAULT 2 DOES **NOT** TELL YOU, and this tool said otherwise for its first hour. A
+ * substitution is not the same as damage. Where the embedded font carries a sane encoding the
+ * substitute paints the right letters in a different typeface and the page stays perfectly
+ * readable; where it does not, RESOURCES rasterises as !ES#)!CES. Measured on six real PDFs: four
+ * substituted and stayed legible, one was mojibake on every page, one lost a single box and one
+ * letter of another. So this tool reports `font-substituted`, which means LOOK AT THE PAGE, and
+ * `scripts/renderer-impact-render.mjs` is how you look — it renders a page both ways to two PNGs.
+ * Reporting a substitution as damage would have condemned four documents' audits for nothing.
  *
  * So triage has to start from the source documents, and this does it without a single API call: it
  * renders each page twice in-process — once with both realms patched (today), once with the worker
  * realm's calls throwing (before the fix) — and compares what came out. A third pass disables only
  * the font method, because fault 1 makes a page throw before fault 2 can show itself, and a
- * document blocked today would still have had scrambled glyphs the moment someone unblocked it.
+ * document blocked today would still have lost its fonts the moment someone unblocked it.
  *
  * It emits page counts, verdicts and hashes — never document text — so its output is safe to paste
  * into a chat or a log. The documents themselves never leave the machine it runs on.
@@ -176,16 +185,16 @@ async function fingerprint(data: Uint8Array, realm: Realm): Promise<PageFingerpr
   return pages;
 }
 
-type Verdict = 'blocked' | 'scrambled' | 'unaffected';
+type Verdict = 'blocked' | 'font-substituted' | 'unaffected';
 
 interface DocumentResult {
   file: string;
   pages: number;
   verdict: Verdict;
   blockedPages: number[];
-  scrambledPages: number[];
-  /** Pages fault 1 blocked that fault 2 would have scrambled anyway once unblocked. */
-  scrambledBehindBlock: number[];
+  substitutedPages: number[];
+  /** Pages fault 1 blocked whose fonts fault 2 would have substituted anyway once unblocked. */
+  substitutedBehindBlock: number[];
   note?: string;
 }
 
@@ -215,27 +224,31 @@ async function scan(file: string): Promise<DocumentResult> {
   const fontOnly = await fingerprint(data, { resourceMerge: true, fontRebuild: false });
 
   const blockedPages: number[] = [];
-  const scrambledPages: number[] = [];
-  const scrambledBehindBlock: number[] = [];
+  const substitutedPages: number[] = [];
+  const substitutedBehindBlock: number[] = [];
   for (let i = 0; i < now.length; i++) {
     const page = now[i].page;
     if (before[i]?.error) {
       blockedPages.push(page);
       if (fontOnly[i] && !fontOnly[i].error && fontOnly[i].glyphHash !== now[i].glyphHash) {
-        scrambledBehindBlock.push(page);
+        substitutedBehindBlock.push(page);
       }
     } else if (before[i]?.glyphHash !== now[i].glyphHash) {
-      scrambledPages.push(page);
+      substitutedPages.push(page);
     }
   }
-  const verdict: Verdict = blockedPages.length ? 'blocked' : scrambledPages.length ? 'scrambled' : 'unaffected';
+  const verdict: Verdict = blockedPages.length
+    ? 'blocked'
+    : substitutedPages.length
+      ? 'font-substituted'
+      : 'unaffected';
   return {
     file,
     pages: now.length,
     verdict,
     blockedPages,
-    scrambledPages,
-    scrambledBehindBlock,
+    substitutedPages,
+    substitutedBehindBlock,
     note: now.some(p => p.error) ? 'fails to render even with the fix — look at this one by hand' : undefined,
   };
 }
@@ -271,14 +284,16 @@ for (const file of targets) {
     const detail =
       result.verdict === 'blocked'
         ? `pages ${result.blockedPages.join(',')} produced no image` +
-          (result.scrambledBehindBlock.length ? `; ${result.scrambledBehindBlock.length} also font-damaged` : '')
-        : result.verdict === 'scrambled'
-          ? `pages ${result.scrambledPages.join(',')} rendered with the wrong glyphs`
+          (result.substitutedBehindBlock.length
+            ? `; ${result.substitutedBehindBlock.length} would also have lost their fonts`
+            : '')
+        : result.verdict === 'font-substituted'
+          ? `pages ${result.substitutedPages.join(',')} fell back to substituted fonts — LOOK at them`
           : 'identical before and after the fix';
     console.log(`${result.verdict.toUpperCase().padEnd(10)} ${path.basename(file)} (${result.pages}p) — ${detail}`);
     if (result.note) console.log(`           note: ${result.note}`);
   } catch (error) {
-    results.push({ file, pages: 0, verdict: 'unaffected', blockedPages: [], scrambledPages: [], scrambledBehindBlock: [], note: `scan failed: ${(error as Error).message}` });
+    results.push({ file, pages: 0, verdict: 'unaffected', blockedPages: [], substitutedPages: [], substitutedBehindBlock: [], note: `scan failed: ${(error as Error).message}` });
     console.log(`SKIPPED    ${path.basename(file)} — ${(error as Error).message}`);
   }
 }

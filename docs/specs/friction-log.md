@@ -2361,7 +2361,7 @@ does not.                                                                       
 --- scripts/renderer-impact-scan.ts ---
 Renders each page three times in one process — both realms patched, the worker realm's two methods
 throwing, and the font method alone throwing — and compares what the rasteriser would paint. Per
-page: blocked (no image existed), scrambled (rendered, wrong glyphs), unaffected. No API key, no
+page: blocked (no image existed), font-substituted (rendered, different fonts), unaffected. No API key, no
 network, no dev server; it prints verdicts and hashes and never document text, so its output can go
 anywhere the client documents cannot.
 
@@ -2385,6 +2385,47 @@ supplied, a plain non-embedded Helvetica goes down a rebuild path and the scan r
 documents that never had it. Both mistakes are the same one — a probe that is not the thing it is
 modelling — which is the fourth appearance of session 22's lesson in a different costume.
                                                                        | cause: audit-instrument
+
+--- I PUBLISHED A VERDICT BEFORE I HAD THE PIXELS, AND IT WAS WRONG ---
+Severin uploaded 14 of the 17 test documents. The scan called ALL SIX PDFs damaged — including
+Oxford Circle, whose page images a reader had already gone through item by item to reach 44/44. A
+verdict that contradicts a direct observation is the verdict that is wrong, and I had already told
+him the scan "settles" those six.
+
+So: render the page in a real browser both ways and look (now scripts/renderer-impact-render.mjs).
+
+  Oxford Circle          legible before the fix, different typeface      fine
+  HNW Core Reporter      legible                                         fine
+  HNW Cub Reporter       legible                                         fine
+  Mamadele               legible                                         fine
+  Achieve Now            ONE Long-Term box mojibake, rest legible        partly damaged
+  Rock School            mojibake on every page                          damaged
+
+The signal detects pdf.js swapping the embedded font for a substitute. With a sane encoding the
+substitute paints the right letters; without one you get !ES#)!CES. Four of six were the former, so
+"substituted" is not "damaged" and the tool now says font-substituted, meaning LOOK.
+
+Two near-misses on one instrument inside an hour: this, and an earlier draft that passed
+`standardFontDataUrl`, which the app does not, sending every non-embedded Helvetica down a rebuild
+path the app never takes. Same failure both times — the probe was not the thing it modelled. That
+is session 22's lesson in a new costume, and being the fourth sighting did not stop me shipping it.
+                                                                       | cause: audit-instrument
+
+--- TWO FIXTURES ARE WRONG, AND ONE OF THEM PUNISHES A CORRECT EXTRACTION ---
+ROCK SCHOOL is in the set as "the only document whose page images are ALL unreadable: its font
+never embedded", and on that basis it is the guard for text-track quality — the document where
+Track B is supposed to contribute nothing. It renders perfectly on today's code, and a fresh
+capture produces FIVE page images. The diagnosis was this bug. Its covers string, its role and its
+63/62/62 verdict all need rewriting.
+
+ACHIEVE NOW's mojibake box now reads "Volunteers and students receive stronger, more targeted
+support". Worse, the same page carries the never-repair guard: the manifest states the source
+"genuinely reads `Hjgh rate of volunteer retention`" and that an extraction tidying it to `High` is
+a regression. THE SOURCE READS `High`. The renderer was substituting the glyph. The guard as
+written now fails a correct extraction — a fixture that became a trap for the truth.
+
+NOT YET EDITED. Both are stated here and in the verification doc; the manifest edits wait until the
+census finishes, so one commit carries the corrections and the numbers that motivate them.
 
 --- Not built here, deliberately ---
 The coordinator relayed that the session which fixed the renderer had already written a scanner and

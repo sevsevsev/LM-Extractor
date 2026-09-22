@@ -36,9 +36,9 @@ alone throwing — and compares what the rasteriser would paint. It reports per 
 
 - **blocked** — the page threw before the fix, so no image existed and the app fell back to
   text-only with a warning. This is the fault that is visible in an old bundle.
-- **scrambled** — the page rendered, and the glyphs it painted are not the glyphs it paints now.
-  This is the fault that is invisible: `ok`, high confidence, full page provenance, mojibake
-  rasters.
+- **font-substituted** — the page rendered, with different fonts than it uses now. This is the
+  fault that leaves no trace in a stored result: `ok`, high confidence, full page provenance. It
+  means LOOK AT THE PAGE, not "this document is damaged" — see the correction below.
 - **unaffected** — identical output before and after.
 
 It needs the source documents and nothing else: no API key, no network, no dev server. It prints
@@ -51,16 +51,41 @@ Validated on four files with known answers, and it agrees with all four:
 |---|---|---|
 | Hand-built PDF, `/Resources` on both the Page and the Pages node | fault 1 | `BLOCKED` |
 | The same file with the parent `/Resources` removed — the only difference | neither | `UNAFFECTED` |
-| A DOCX put through this repo's LibreOffice converter (both levels, embedded TrueType) | both faults | `BLOCKED`, 1 page also font-damaged |
-| That converted PDF, patched to drop the parent `/Resources` | fault 2 alone | `SCRAMBLED` |
+| A DOCX put through this repo's LibreOffice converter (both levels, embedded TrueType) | both faults | `BLOCKED`, 1 page also font-substituted |
+| That converted PDF, patched to drop the parent `/Resources` | fault 2 alone | `FONT-SUBSTITUTED` |
 
 The third and fourth rows reproduce independently what session 26 found by hand: the two faults are
 separate, and LibreOffice output hits the first one on every file.
 
 Detecting fault 2 turns on one detail worth keeping. The signature compares each glyph's `fontChar`
-and `isInFont` — what the rasteriser actually paints — not its `unicode`, which comes from the
-encoding map rather than the font program and does **not** change under the substitution. A scan
-built on `unicode` reports the mojibake documents as clean.
+and `isInFont` — what the rasteriser reaches for — not its `unicode`, which comes from the encoding
+map rather than the font program and does not move at all here.
+
+### The correction, and it is the important part of this document
+
+**A substitution is not damage, and this tool said it was.** Run over Severin's six PDFs it called
+all six `SCRAMBLED`, including Oxford Circle — whose page images a reader had already read item by
+item to reach 44/44. A verdict contradicting a direct observation is the verdict that is wrong, so
+the next step was pixels: `scripts/renderer-impact-render.mjs` renders a page in a real browser
+twice, once as it draws today and once as it drew before the fix, and writes both PNGs out.
+
+| Document | Before the fix, on the page | Verdict |
+|---|---|---|
+| Oxford Circle | every word legible, different typeface | fine |
+| Healthy NewsWorks Core Reporter | legible | fine |
+| Healthy NewsWorks Cub Reporter | legible | fine |
+| Mamadêlê | legible | fine |
+| Achieve Now | one Long-Term Outcomes box mojibake; rest legible | partly damaged |
+| Rock School | mojibake on every page | damaged |
+
+What the signal really detects is pdf.js dropping the embedded font for a substitute. Where the
+embedded font carries a sane encoding the substitute paints the right letters and the page reads
+fine; where it does not, RESOURCES rasterises as `!ES#)!CES`. Four of six were the former.
+
+This is the project's own recurring lesson wearing a new hat — session 22's "the probe is narrower
+than the data", here as "the probe is *different* from the thing". Two near-misses in one hour on
+one tool: this one, and an earlier draft that supplied `standardFontDataUrl`, which the app does
+not, and so reported fault 2 on documents that never had it.
 
 ## What still stands
 
@@ -98,30 +123,30 @@ the census measured.
 
 **Every pre-2026-09-22 PPTX figure**, already recorded as withdrawn in session 26.
 
-## What cannot be decided without the scan
+## What the pictures decided
 
-Eight of the fifteen censused documents are PDFs. Two of those — Oxford Circle and SEAMAAC — are
-cleared above by their visual audits. The remaining six have no evidence either way, because fault 2
-leaves no trace in a stored result. Two of the six are worth naming, because a conclusion already
-rests on the diagnosis:
+**Rock School was this bug, not the document.** It sits in the fixture set as "THE ONLY DOCUMENT
+WHOSE PAGE IMAGES ARE ALL UNREADABLE: its font never embedded, so every raster is mojibake", and on
+that basis it is the set's guard for text-track quality, the one document where Track B is supposed
+to contribute nothing. Rendered on today's code it is completely legible — organisation name,
+programme name, contact, the lot — and a fresh capture produces five page images where the entry
+says there should be none. Its `covers` string, its role in the set and its 63/62/62 instability
+verdict all need rewriting.
 
-- **`sample-rock-school-rockreach`** is in the fixture set as "THE ONLY DOCUMENT WHOSE PAGE IMAGES
-  ARE ALL UNREADABLE: its font never embedded, so every raster is mojibake". Every raster mojibake
-  while the pages still render *is* fault 2's signature. If the scan says so, the fixture's stated
-  role — the Track A regression guard, the one document where Track B contributes nothing — is
-  wrong, and so is its 63/62/62 instability verdict.
-- **`sample-achieve-now`** is in for "one box whose font failed to embed and renders as pure
-  mojibake", the dual-track fusion case. One box rather than the whole document argues against
-  fault 2, which damages every glyph drawn from the rebuilt font — but it is the same claim, and
-  the scan settles it in seconds.
+**Achieve Now lost one box, and one letter that a fixture depends on.** The mojibake box in
+Long-Term Outcomes now reads "Volunteers and students receive stronger, more targeted support". On
+the same page the manifest records a deliberate trap: "the source genuinely reads `Hjgh rate of
+volunteer retention`, and an extraction that 'fixes' it to `High` is a regression". The source does
+not read `Hjgh`. The renderer was substituting that glyph. On a healthy renderer the box reads
+`High`, so the guard as written would now fail a correct extraction — a fixture that has turned
+into a trap for the truth.
 
-The other four pending a verdict: `healthy-newsworks-core-reporter`,
-`healthy-newsworks-cub-reporter`, `harlem-lacrosse`, `sample-mamadele-axe-puro`. Core Reporter's
-42/42 completeness was measured mechanically against the text track, so it is untouched by the
-rendering question either way — but that also means it says nothing about what vision saw.
+**The other four PDFs keep their numbers**, including Oxford Circle's 44/44 and both Healthy
+NewsWorks models.
 
-`philadelphia-ballet-lets-dance` and `a-new-dawn` were never censused at all (no source file at the
-time), so they have no verdict to revise.
+**Still unmeasured:** `harlem-lacrosse` (not uploaded), `philadelphia-ballet-lets-dance` (never
+tested at all), and `seamaac-urban-arts`, which is cleared by its own visual audit rather than by
+this scan.
 
 ## The next measurement, in the order that makes it defensible
 
@@ -135,9 +160,10 @@ time), so they have no verdict to revise.
    document, since capture keeps the extraction it produces.
 3. **Census at `--passes=3` on the fresh bundles.** 51 calls. With step 2 that is ~68 calls for a
    reproducibility figure measured on the path the tool actually runs — the launch gate's number.
-4. **Re-audit only what the scan flags.** A document the scan calls unaffected keeps its audit; one
-   it calls blocked or scrambled needs its completeness read again against rasters that are now
-   legible, because the model was working from something else the first time.
+4. **Re-audit only what the pictures condemn.** A document the scan calls unaffected keeps its
+   audit, and so does one whose substituted pages still read cleanly. Only a genuinely damaged
+   document — Rock School wholly, Achieve Now in one box — needs its completeness read again,
+   because only there was the model working from something other than the document.
 5. **Correct the manifest** where step 1 contradicts a `covers` string, rather than leaving a
    fixture asserting a failure mode it does not have.
 
