@@ -2130,6 +2130,9 @@ them and the manifest text follows from the result.                             
 | 23 | 2026-09-20 | 1 doc x 14 runs | short-term misroute NOT reachable by wording; 2 variants built, measured, withdrawn | prompt | N |
 | 24 | 2026-09-20 | n/a (code) | extract (XLSX split never fires: detection gate, not the slicer regex) | setup | N |
 | 25 | 2026-09-20 | n/a (code) | branches unified; PPTX vision conversion works server-side (finding from session 1 is stale) | setup | N |
+| 26 | 2026-09-22 | 7 decks (PPTX) | renderer broken in pdf.js's worker realm: 0 images on every deck, mojibake where it did render | setup | N |
+| 27 | 2026-09-22 | 9 decks (hosted) | hosted PPTX never reached LibreOffice: honest content type discarded by the host, wasm never deployed | setup | N |
+| 28 | 2026-09-22 | 6 PDFs + triage | 5 of 15 documents never touched pdf.js; 2 of 6 PDFs really damaged (Rock School wholly, Achieve Now one box); scanner over-reported until pixels checked it | audit-instrument | N |
 
 ---
 
@@ -2326,4 +2329,84 @@ Not settled by it: Firefox logged `downloadable font: glyf: empty gid 4 used as 
 40` while rendering one of the three. Probably nothing — that warning is common and the sanitiser
 recovers — but session 26's mode B was a font failure that rendered confidently wrong glyphs and
 reported ok/high, so it is worth one LOOK at that deck's page image rather than an inference.
+
+---
+
+## Session 28 — sorting the evidence after the renderer fix, and an instrument that does it
+
+```
+Date:                     2026-09-22
+Operator:                 owner asked "what should we do now?"; coordinator scoped it to the evidence question
+Prompt version:           2026-09-20.6 (untouched — nothing here re-ran an extraction)
+Gemini calls:             0
+
+--- The question ---
+Every accuracy and stability number this project holds was measured before PR #8. Which of them
+still describe the tool, and which describe a renderer that was quietly broken? Session 26 settled
+that the second fault (scrambled glyphs, `ok`/high confidence, full provenance) leaves NO trace in
+a stored result, so the corpus cannot be triaged by reading old outputs. Full write-up in
+docs/verification/2026-09-22-evidence-after-the-renderer-fix.md.
+
+--- The fact that did most of the work, and it was free ---
+Only TWO of the five ingest paths ever reach pdf.js. PDF does, and PPTX does because it converts to
+PDF first. DOCX renders through mammoth -> DOM -> html2canvas, XLSX builds no images at all, and a
+PNG/JPEG upload is re-encoded as-is. So five of the fifteen censused documents were never exposed
+to this bug, by construction, and their numbers stand without measuring anything.
+
+The same reading clears the launch gate's headline of the obvious objection: of the seven UNSTABLE
+documents, two are standalone PNGs and one is a PDF whose rasters were read by eye during the
+visual audit. Instability is real on a healthy path. The RATE needs re-measuring; the phenomenon
+does not.                                                                        | cause: n/a
+
+--- scripts/renderer-impact-scan.ts ---
+Renders each page three times in one process — both realms patched, the worker realm's two methods
+throwing, and the font method alone throwing — and compares what the rasteriser would paint. Per
+page: blocked (no image existed), scrambled (rendered, wrong glyphs), unaffected. No API key, no
+network, no dev server; it prints verdicts and hashes and never document text, so its output can go
+anywhere the client documents cannot.
+
+Validated against four files with known answers, all four agreeing:
+  hand-built PDF, /Resources on Page AND Pages           BLOCKED
+  same file, parent /Resources removed (only difference)  UNAFFECTED
+  a DOCX through this repo's LibreOffice converter        BLOCKED + font-damaged behind the block
+  that PDF, patched to drop the parent /Resources         SCRAMBLED
+
+Rows 3 and 4 reproduce session 26's hand-built result independently: the two faults are separate,
+and LibreOffice output trips the first on every file.
+
+THE DETAIL THAT DECIDES WHETHER IT WORKS AT ALL. The glyph signature compares `fontChar` and
+`isInFont` — what the rasteriser paints — not `unicode`, which comes from the encoding map rather
+than the font program and does NOT move under the substitution. Built on `unicode`, the scan calls
+every mojibake document clean. It did, for an hour, until the LibreOffice file contradicted it.
+
+A SECOND NEAR-MISS, same shape. The harness first supplied `standardFontDataUrl`, which the app
+does not: `convertPdfToImages` calls `getDocument({ data })` and nothing else. With font data
+supplied, a plain non-embedded Helvetica goes down a rebuild path and the scan reports fault 2 on
+documents that never had it. Both mistakes are the same one — a probe that is not the thing it is
+modelling — which is the fourth appearance of session 22's lesson in a different costume.
+                                                                       | cause: audit-instrument
+
+--- Not built here, deliberately ---
+The coordinator relayed that the session which fixed the renderer had already written a scanner and
+that I should take theirs. It is on no branch (PR #8 carries five files, none of them a scanner)
+and that session is not reachable from here, so there was nothing to take. If it resurfaces, the
+two should be diffed rather than merged on sight: the two validation sets are independent evidence.
+
+--- Turned up on the way ---
+pdf.js 6.3 calls two MORE methods with no feature check: `Promise.try` and
+`Uint8Array.prototype.toHex`. Current Chromium has both, so neither is part of this bug and the
+harness shims them for parity — but they are the same shape as the two that caused all of this, and
+a reviewer on a browser a few versions behind gets the same silent text-only fallback. Adding them
+to polyfills.ts is a few lines. NOT done here: it is a launch decision, not a finding.
+
+--- Next ---
+1. Scan the corpus (free, offline). It yields the number nobody has: what share of 103 documents
+   was being read through a broken renderer, split by fault.
+2. DELETE the old bundles before any re-run. `npm run census` extracts from stored bundles, so
+   re-running it against the captured rasters re-measures the damage and looks like new evidence.
+   Recapture (17 calls) and then census at --passes=3 (51 calls): ~68 calls for a reproducibility
+   figure measured on the path the tool now takes.
+3. Re-audit only the documents the scan flags; the rest keep their audits.
+4. Give manifest.json an explicit source-format field, so this sorting is mechanical next time
+   rather than a reading of prose.
 ```
