@@ -2295,12 +2295,18 @@ log's `warnings` column, and vision being UNAVAILABLE (as opposed to a document 
 is no longer a silent downgrade: it fails the file with a sentence the user can act on, and spends
 no Gemini call. Verified in a browser against a 503: 0 extract calls, message shown.
 
---- STILL OPEN ---
-The owner reports that PDFs failed the same way in that session. PDFs never touch LibreOffice or
-the convert route — they are rendered by pdf.js in the browser — so findings 1 and 2 cannot explain
-them, and the console he supplied contains only PowerPoint failures. A mode-A PDF (the session 26
-trigger: /Resources on the Pages node) renders correctly in a production build driven headlessly
-here, so the local build is not the difference. Unresolved, and it needs one PDF run's console line
-from the hosted app. Firefox is a live variable: the hosted runs were Firefox, every measurement in
-sessions 25-26 was Chromium.
+--- PDFs: reported broken, then withdrawn ---
+Mid-session the owner reported that PDFs had failed the same way, which would have meant a second
+cause: PDFs never touch LibreOffice or the convert route, they are rendered by pdf.js in the
+browser. Two things said otherwise before he rechecked — the console he supplied contained only
+PowerPoint failures, and a mode-A PDF (the session 26 trigger: /Resources on the Pages node)
+rendered correctly in a production build driven headlessly here. He then confirmed PDFs work
+hosted. So the hosted breakage is the PowerPoint route alone, and findings 1 and 2 account for all
+of it.
+
+Kept because it cost real time: the signature "Couldn't read this document as images" is now
+produced by at least three unrelated faults (the worker realm, the empty upload body, and any
+render failure), which is precisely why finding 3 puts the reason in the log. Worth noting too that
+every measurement in sessions 25-26 was Chromium while the owner works in Firefox; nothing has
+turned on that yet, but nothing has ruled it out either.
 ```
