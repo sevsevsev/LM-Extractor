@@ -1,5 +1,4 @@
 import * as pdfjsLib from 'pdfjs-dist';
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import mammoth from 'mammoth';
 import { renderAsync } from 'docx-preview';
 import html2canvas from 'html2canvas';
@@ -21,8 +20,11 @@ import {
   LOW_LEGIBILITY_WARNING,
   type SourceImageRef,
 } from '../types';
+import { polyfilledPdfWorkerSrc } from './pdfWorkerSrc';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+// Not pdf.js's own worker URL directly: that worker is a separate realm and needs `polyfills.ts`
+// installed inside it, or `Dict.merge` throws and embedded fonts silently fail to load.
+pdfjsLib.GlobalWorkerOptions.workerSrc = polyfilledPdfWorkerSrc();
 
 const MAX_VISION_PAGES = 15;
 

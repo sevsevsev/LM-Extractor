@@ -2130,3 +2130,112 @@ them and the manifest text follows from the result.                             
 | 23 | 2026-09-20 | 1 doc x 14 runs | short-term misroute NOT reachable by wording; 2 variants built, measured, withdrawn | prompt | N |
 | 24 | 2026-09-20 | n/a (code) | extract (XLSX split never fires: detection gate, not the slicer regex) | setup | N |
 | 25 | 2026-09-20 | n/a (code) | branches unified; PPTX vision conversion works server-side (finding from session 1 is stale) | setup | N |
+
+---
+
+## Session 26 — seven REAL decks; the PDF renderer was broken in the worker, so PPTX vision had never once run
+
+```
+Date:                     2026-09-22
+Operator:                 owner (uploaded seven real client decks); agent session
+                          (claude/project-thread-fdk96r)
+Files:                    7 PPTX logic models from the corpus, 2-3 slides each. Client documents:
+                          NOT committed, NOT added to the regression set.
+Prompt version:           2026-09-20.6 UNCHANGED
+Host mode:                npm run dev :3000, Chromium 141, headless
+Gemini calls:             7 text-only extracts (first pass, before the bug was found), 7 detects +
+                          7 extracts (after the fix), 1 detect + 1 extract (stability repeat)
+
+--- FINDING 1: the pdf.js polyfills never reached the worker, so vision NEVER ran on PPTX ---
+All seven decks converted to PDF correctly (LibreOffice, 1.0-10.8 s, page count == slide count
+every time). Then every one of them produced ZERO page images and fell back to text with only
+"Couldn't read this document as images, so it was analyzed as plain text."
+
+polyfills.ts patched `Map.prototype.getOrInsertComputed` on the main thread only. pdf.js parses,
+sanitises fonts and renders inside a module Web Worker — a separate realm with its own
+Map.prototype and its own Math — so the worker ran unpatched. Two distinct failures:
+
+  getOrInsertComputed  `Dict.merge` throws -> every render and getTextContent throws
+                       UnknownErrorException -> no images at all, silent text fallback.
+  Math.sumPrecise      embedded TrueType glyf/loca rebuild throws -> pdf.js substitutes a standard
+                       font by RAW GLYPH INDEX -> the page renders, and its text is mojibake:
+                       "Human" -> "Hu#a$", "1,100 students" -> "?,?.. students", "MEDIUM" ->
+                       "ME!IUM". Correctly placed boxes full of garbage, reported as success.
+
+The second is the more dangerous of the two and was found only by rendering a page and LOOKING at
+it. Nothing downstream can detect it.
+
+NOT A LIBREOFFICE PROBLEM. Isolated with two hand-built PDFs identical except that one declares
+/Resources on the Pages node as well as the Page. Only that one fails. LibreOffice emits that shape
+on every file, which is why 7/7 decks hit it, but any producer that does the same triggers it — so
+part of the 78-PDF corpus is likely affected too, and has been silently degrading to text-only.
+Session 25's "one synthetic deck" measurement passed because a simple deck misses both paths.
+
+Fixed: services/pdfWorkerSrc.ts runs the polyfill source inside the worker before importing
+pdf.js's own worker (blob module worker, the shape pdf.js itself uses in _createCDNWrapper).
+Verified in dev AND in a production build. polyfills.test.ts runs both copies of the polyfill in
+fresh vm realms and asserts they agree.                                          | cause: setup
+
+--- FINDING 2: a deck holding TWO grids loses one, silently, marked ok/high ---
+67_126 DesignPhiladelphia is 3 slides: slide 1 a grid, slide 2 the impact/mission cover, slide 3 a
+SECOND, differently-worded grid of the same logic model. runDetection returned ONE group spanning
+pages 1-3 (it does not split). The extraction then took slide 1 only: all 39 items carry
+sourcePage 1, and none of slide 3's distinctive wording ("Poor Richards", "AEC (Architecture",
+"Number of surveys completed", "history of volunteerism") appears anywhere in the result.
+
+extractionStatus "ok", extractionConfidence "high", extractionBlockers null, possiblyMissedRegions
+null, unmapped []. A reviewer has no way to learn a whole second grid existed.
+
+Dropping a superseded draft may be the RIGHT call. Doing it without saying so is not. The same
+document text-only produced 73 items by merging both grids, so the two tracks disagree by a factor
+of two on the same file.                                                         | cause: prompt
+
+--- Per-deck results (after the fix) ---
+  deck                          slides  pdf pages  split  truncated  items  status
+  22_48  UCSC FirstHand              2      2       no       no        45   ok/high
+  26_89  ImmSchools                  2      2       no       no        46   ok/high
+  38_144 Performance Garage          2      2       no       no        47   ok/high
+  52_51  Joyful Readers              2      2       no       no        38   ok/high
+  67_126 DesignPhiladelphia          3      3       no       no        39   ok/high  <- finding 2
+  85_103 Print Center AISP           2      2       no       no        26   ok/high
+  103_106 Strong Point               3      3       no       no        31   ok/high
+
+MAX_VISION_PAGES = 15 was never approached; the longest deck is 3 slides. Detection fired on all
+seven (all are >= 2 pages) and split none of them, so the feared "one logic model cut into several"
+did not occur on any real deck. The opposite did, once.
+
+Strong Point's slide 2 is a colour key, not a grid; its legend was correctly captured into
+colorLegend rather than mined for items.
+
+--- Item-by-item check, read against the slides ---
+52_51 Joyful Readers: 38 source bullets, 38 extracted items, exact. Every Resources sub-group
+(Human/Material/Financial/Knowledge) correct; all four un-headed outcome columns assigned to the
+right column. Zero inventions, zero omissions.
+
+85_103 Print Center AISP: 26 source shapes/paragraphs, 26 items, exact. Source typos preserved
+verbatim ("professional levelart"), which is the wanted behaviour. "Knowledge" is the LAST shape in
+slide 2's z-order — after every long-term outcome — and was still placed in Resources, which is a
+spatial judgement the text track alone does not support.
+
+Grouping granularity is inconsistent WITHIN a document: in Print Center's Activities, one shape's
+two paragraphs became two items while the next shape's three paragraphs became one joined item.
+Content-complete either way, but it is the same grouping-variance class that blocks launch.
+
+--- Run-to-run stability (2 passes, full pipeline, 38_144 Performance Garage) ---
+Chosen because this document is the corpus's known unstable one. Result: 47 items both passes,
+same domains, same groups, 0 moved, 0 field changes. The only differences are de-hyphenation noise
+in 2 items ("Long- term Pre- professional" vs "Long-term Pre-professional"; "choreographers/
+artists" vs "choreographers/artists").
+
+NOT byte-identical, so by the census's rule this is "no structural differences seen" on 2 passes,
+which is not proof of stability. But it is a different and far milder failure than the regrouping
+this document shows as a PDF.
+
+--- Notes ---
+The two PPTX fixtures still hold 0 images and their `covers` strings still assert the path fails.
+Recapturing them is now genuinely cheap — scripts/capture-bundles.mjs works unmodified against the
+fixed renderer — but it was not done here, and neither fixture text was edited.
+
+Nothing in this session was pushed. The renderer fix is committed locally on
+claude/project-thread-fdk96r and awaits the owner's go-ahead.
+```
