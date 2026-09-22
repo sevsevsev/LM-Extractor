@@ -21,6 +21,11 @@ import {
   type SourceImageRef,
 } from '../types';
 import { polyfilledPdfWorkerSrc } from './pdfWorkerSrc';
+import {
+  PPTX_VISION_UNAVAILABLE_MESSAGE,
+  VisionUnavailableError,
+  isVisionUnavailable,
+} from '../shared/visionFallback';
 
 // Not pdf.js's own worker URL directly: that worker is a separate realm and needs `polyfills.ts`
 // installed inside it, or `Dict.merge` throws and embedded fonts silently fail to load.
@@ -1316,7 +1321,13 @@ async function convertPptxToPdfBytes(arrayBuffer: ArrayBuffer, filename: string)
   const response = await fetch(`/api/convert/pptx-to-pdf${qs}`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      // `application/octet-stream`, not the OOXML presentation type this file actually is.
+      // A serverless host parses the body by content type and hands the function `undefined` for
+      // anything outside a short list — with the honest type, the deck's bytes never arrived and
+      // the route answered "must include raw PPTX bytes" before LibreOffice was ever reached
+      // (hosted, 2026-09-22: every deck fell back to text-only). The real type is not information
+      // the route needs; `?filename=` already carries the extension it converts by.
+      'Content-Type': 'application/octet-stream',
     },
     body: arrayBuffer,
   });
@@ -1325,7 +1336,13 @@ async function convertPptxToPdfBytes(arrayBuffer: ArrayBuffer, filename: string)
     error?: string;
   };
   if (!response.ok || !payload.pdfBase64) {
-    throw new Error(payload.error || `Server LibreOffice convert failed (status ${response.status}).`);
+    // Every failure here is the same fact for the user: this deployment cannot turn a deck into
+    // pages. Raised as `VisionUnavailableError` so App.tsx refuses the text-only fallback instead
+    // of spending a Gemini call on a result whose columns are guesses.
+    throw new VisionUnavailableError(
+      PPTX_VISION_UNAVAILABLE_MESSAGE,
+      payload.error || `Server LibreOffice convert failed (status ${response.status}).`
+    );
   }
   return base64ToUint8Array(payload.pdfBase64);
 }
@@ -1374,6 +1391,7 @@ export const convertPptxToImages = async (file: File): Promise<DocumentBundle> =
     return bundle;
   } catch (error) {
     console.error('PPTX Image Conversion Error:', error);
+    if (isVisionUnavailable(error)) throw error;
     throw new Error(
       'Failed to convert PowerPoint via LibreOffice WASM. Ensure the API server is running (`npm run dev`) so `/api/convert/pptx-to-pdf` is available.'
     );

@@ -1,4 +1,5 @@
 import path from 'path';
+import { existsSync } from 'fs';
 import { createRequire } from 'module';
 import { createWorkerConverter } from '@matbee/libreoffice-converter/server';
 
@@ -8,6 +9,25 @@ const require = createRequire(import.meta.url);
 export function getLibreOfficeWasmPath(): string {
   const pkgJson = require.resolve('@matbee/libreoffice-converter/package.json');
   return path.join(path.dirname(pkgJson), 'wasm');
+}
+
+/**
+ * Whether this process can actually convert — i.e. the ~237MB of WASM the package ships is on
+ * disk next to it.
+ *
+ * It is not always: a serverless bundler decides what to ship by tracing a function's imports, and
+ * `getLibreOfficeWasmPath` builds its path at runtime, so `soffice.wasm` and `soffice.data` are
+ * invisible to the trace and are left out unless the deployment config names them explicitly
+ * (`includeFiles` in vercel.json). Checked before init so the failure is a clear 503 rather than a
+ * loader stack trace 500, and so `GET /api/convert/pptx-to-pdf` can answer the question without
+ * paying the ~1GB, multi-second cost of starting LibreOffice.
+ */
+export function libreOfficeWasmAvailable(): boolean {
+  try {
+    return existsSync(path.join(getLibreOfficeWasmPath(), 'soffice.wasm'));
+  } catch {
+    return false;
+  }
 }
 
 export function getLibreOfficePackageRoot(): string {

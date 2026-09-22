@@ -2239,3 +2239,68 @@ fixed renderer — but it was not done here, and neither fixture text was edited
 Nothing in this session was pushed. The renderer fix is committed locally on
 claude/project-thread-fdk96r and awaits the owner's go-ahead.
 ```
+
+---
+
+## Session 27 — the hosted deployment never received the uploads it was asked to convert
+
+```
+Date:                     2026-09-22
+Operator:                 owner (ran nine decks against the hosted preview, supplied the extraction
+                          log and the browser console); agent session
+                          (claude/project-thread-6iwsap)
+Files:                    9 PPTX logic models from the owner's corpus, run in HIS browser against a
+                          preview deployment. Client documents: not committed, not quoted here.
+Prompt version:           2026-09-20.6 UNCHANGED
+Host mode:                hosted (Vercel preview built from main + the category-promotion PR,
+                          so it carried session 26's renderer fix), Firefox
+Gemini calls:             0 by this session. The nine the owner spent are the subject.
+
+--- FINDING 1: the upload arrived with no body, so conversion 400'd before LibreOffice ---
+Every one of the nine rows read `text-only` / `partial` / `medium`, "Couldn't read this document as
+images" — the same signature as session 26's renderer bug, on a build that already had the fix.
+
+The browser console named it in one line, repeated nine times:
+
+    PPTX Image Conversion Error: Error: Request must include raw PPTX bytes or { data: base64 }.
+
+That is this repo's own 400, from `handlePptxToPdfRequest`. The request reached the function and
+carried nothing. Cause: the client sent the deck under its true content type
+(`application/vnd.openxmlformats-officedocument.presentationml.presentation`), and a serverless
+host parses the request body by content type — JSON, form-urlencoded, text, octet-stream — and
+hands the function `undefined` for everything else. The honest content type was the bug.
+`docs/specs/codebase-audit-2026-09-19.md` #18 had already noted that the two entry points parse the
+body differently; what it could not say is that one of them therefore never worked.
+
+Fixed three ways, because one of them alone leaves the next person guessing: the client sends
+`application/octet-stream`; the function reads the request stream itself when the host parsed
+nothing; and the 400 now names the content type and body type it actually received.
+
+--- FINDING 2: the WASM was never in the function bundle either ---
+Found before the console arrived, and it would have been the next failure. `getLibreOfficeWasmPath`
+builds its path at runtime from `require.resolve`, and a serverless bundler decides what to ship by
+TRACING IMPORTS. Ran that same tracer (@vercel/nft) over the converter: 4 files, 2.2MB, and none of
+the 237MB of WASM. Nothing in vercel.json named them.
+
+Measured while fixing it: converter init alone peaks at 945MB RSS (3.8s), and converting a
+one-paragraph document peaks at 1074MB — against the 1024MB that function was configured with. So
+the memory ceiling would have bitten immediately after the bundling did. Now `includeFiles` plus
+3009MB. Traced bundle + WASM is 238.7MB against a 250MB cap: it fits, with little room, which is
+worth knowing before anyone adds a dependency to that route.
+
+--- FINDING 3: the reason for a fallback was thrown away at the catch ---
+Nine rows of evidence could not say why, because the only trace of the underlying error was a
+`console.warn` in a browser. The reason now travels into the warning and so into the extraction
+log's `warnings` column, and vision being UNAVAILABLE (as opposed to a document failing to render)
+is no longer a silent downgrade: it fails the file with a sentence the user can act on, and spends
+no Gemini call. Verified in a browser against a 503: 0 extract calls, message shown.
+
+--- STILL OPEN ---
+The owner reports that PDFs failed the same way in that session. PDFs never touch LibreOffice or
+the convert route — they are rendered by pdf.js in the browser — so findings 1 and 2 cannot explain
+them, and the console he supplied contains only PowerPoint failures. A mode-A PDF (the session 26
+trigger: /Resources on the Pages node) renders correctly in a production build driven headlessly
+here, so the local build is not the difference. Unresolved, and it needs one PDF run's console line
+from the hosted app. Firefox is a live variable: the hosted runs were Firefox, every measurement in
+sessions 25-26 was Chromium.
+```
