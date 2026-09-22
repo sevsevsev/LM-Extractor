@@ -4,8 +4,14 @@ import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { config as loadDotenv } from 'dotenv';
 import { handleExtractRequest, handleDetectLogicModelGroupsRequest } from './server/apiCore.js';
-import { handlePptxToPdfRequest } from './server/pptxConvertApi.js';
-import { getLibreOfficeWasmPath } from './server/libreOfficeConverter.js';
+import {
+  handlePptxToPdfRequest,
+  handlePptxConvertProbeRequest,
+} from './server/pptxConvertApi.js';
+import {
+  getLibreOfficeWasmPath,
+  libreOfficeWasmAvailable,
+} from './server/libreOfficeConverter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +29,13 @@ if (!apiKey) {
 }
 
 const app = express();
+
+// Same route as the serverless function's GET: one question, one answer, from the process that
+// would do the converting.
+app.get('/api/convert/pptx-to-pdf', (_req, res) => {
+  const probe = handlePptxConvertProbeRequest();
+  res.status(probe.status).json(probe.body);
+});
 
 // PPTX→PDF must run before JSON body parser (raw binary upload).
 app.post(
@@ -45,7 +58,7 @@ app.get('/api/health', (_req, res) => {
     ok: true,
     configured: Boolean(apiKey),
     mode: isProd ? 'production' : 'development',
-    libreOfficeWasm: existsSync(path.join(wasmPath, 'soffice.wasm')),
+    libreOfficeWasm: libreOfficeWasmAvailable(),
   });
 });
 

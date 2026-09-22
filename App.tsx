@@ -22,6 +22,7 @@ import {
 } from './shared/regressionCapture';
 import { brand } from './config/brand';
 import { shouldSuggestMismatch } from './shared/sourceMapping';
+import { isVisionUnavailable, textOnlyFallbackWarning } from './shared/visionFallback';
 import {
   formatHardStopMessage,
   shouldHardStopExtraction,
@@ -216,6 +217,9 @@ const MAX_CONCURRENT_PER_STAGE = 2;
 const PERSIST_DEBOUNCE_MS = 1200;
 
 const friendlyError = (error: unknown): string => {
+  // Already written for the user, and specific about what to do next: pass it through before the
+  // patterns below rewrite it into something vaguer.
+  if (isVisionUnavailable(error)) return error.message;
   const message = error instanceof Error ? error.message : String(error || 'Something went wrong');
   if (/api key|401|unauthorized/i.test(message)) {
     return "Couldn't reach Gemini — check that GEMINI_API_KEY is set in .env.local.";
@@ -501,6 +505,15 @@ const App: React.FC = () => {
             throw new Error('Unsupported format for vision');
           }
         } catch (visionError) {
+          // Vision being unavailable on this deployment is not a document that needs a gentler
+          // path: the text-only result is one no reviewer can trust, and no retry improves it.
+          // Surface it instead of quietly extracting — see shared/visionFallback.ts.
+          if (isVisionUnavailable(visionError)) {
+            // The user-facing sentence stays clean; the server's own words go to the console,
+            // which is where a hosted failure gets read from.
+            console.error('Vision unavailable:', visionError.message, '| server said:', visionError.detail);
+            throw visionError;
+          }
           console.warn('Vision processing failed, falling back to text extraction:', visionError);
           const {
             convertFileToMarkdown,
@@ -508,12 +521,13 @@ const App: React.FC = () => {
             textOnlyDocumentBundle,
           } = await import('./services/fileService');
           const textTrack = await convertFileToMarkdown(pendingFile.file);
+          // The reason rides along into the warning, and from there into the extraction log's
+          // `warnings` column. Without it a log of failed runs says only "couldn't read as
+          // images", which is the symptom and never the cause.
           bundle = textOnlyDocumentBundle(
             textTrack,
             sourceFormatFromFileName(pendingFile.file.name),
-            [
-              "Couldn't read this document as images, so it was analyzed as plain text. Layout-based grouping may be less accurate — verify the results.",
-            ]
+            [textOnlyFallbackWarning(visionError)]
           );
         }
 
