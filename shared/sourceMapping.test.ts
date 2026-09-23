@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { synonymToDomain, isKnownInputSubBucket } from './domainSynonyms.ts';
+import { synonymToDomain, columnNameToDomain, isKnownInputSubBucket } from './domainSynonyms.ts';
 import {
   applySourceAwareMapping,
   shouldSuggestMismatch,
@@ -40,6 +40,24 @@ test('synonymToDomain maps a bare "Outcomes" header to generalOutcomes, not a sp
   assert.equal(synonymToDomain('Program Outcomes'), 'generalOutcomes');
   // A qualified horizon still wins over the bare fallback.
   assert.equal(synonymToDomain('Short-Term Outcomes'), 'shortTermOutcomes');
+});
+
+test('columnNameToDomain matches only the unqualified column name', () => {
+  // What the loose form and the strict form agree on: a header that IS the column.
+  assert.equal(columnNameToDomain('Resources'), 'inputs');
+  assert.equal(columnNameToDomain('Outcomes'), 'generalOutcomes');
+  assert.equal(columnNameToDomain('Short-Term Outcomes'), 'shortTermOutcomes');
+  assert.equal(columnNameToDomain('Impact:'), 'impact');
+
+  // Where they part, and the whole point of the strict form: a qualified header is a sub-heading
+  // of the column it is already in, not a claim about which column its items belong to. All three
+  // are verbatim group names from the 2026-09-23 audit set.
+  assert.equal(synonymToDomain('Youth Outcomes'), 'generalOutcomes');
+  assert.equal(columnNameToDomain('Youth Outcomes'), null);
+  assert.equal(synonymToDomain('Teacher/School Resources'), 'inputs');
+  assert.equal(columnNameToDomain('Teacher/School Resources'), null);
+  assert.equal(synonymToDomain('Sustained Community Impact'), 'impact');
+  assert.equal(columnNameToDomain('Sustained Community Impact'), null);
 });
 
 test('isKnownInputSubBucket recognizes Resources buckets', () => {
@@ -174,4 +192,61 @@ test('reassignItemDomain moves an item into generalOutcomes, then a coder assign
     step2.model.shortTermOutcomes.content.some(g => g.items.some(i => /more confident/.test(i.text)))
   );
   assert.equal(step2.model.generalOutcomes?.content.length, 0);
+});
+
+/**
+ * A New Dawn, 2026-09-23 audit defect 2, reduced to its group names. The document's section 4 is
+ * headed "SHORT-TERM OUTCOMES (3-12 months)" and the extraction placed both of its sub-headings
+ * there correctly. The mapper then read each sub-heading as the bare "Outcomes" column, moved all
+ * nine items to generalOutcomes, flattened both names to "General", and left the short-term
+ * column empty.
+ */
+test('applySourceAwareMapping leaves a qualified sub-heading in the column the extraction chose', () => {
+  const m = applySourceAwareMapping(
+    baseModel({
+      shortTermOutcomes: {
+        content: [
+          { name: 'Youth Outcomes', items: [{ text: 'Increased confidence, teamwork, problem-solving' }] },
+          { name: 'School/Community Outcomes', items: [{ text: 'Cleaner, greener school campus' }] },
+        ],
+      },
+    })
+  );
+  assert.deepEqual(
+    m.shortTermOutcomes.content.map(g => g.name),
+    ['Youth Outcomes', 'School/Community Outcomes']
+  );
+  assert.deepEqual(m.generalOutcomes?.content, []);
+});
+
+/**
+ * Cub Reporter, 2026-09-23 audit defect 3. "Teacher/School Resources" is a group in the Activities
+ * and Outputs columns of a five-column grid; the mapper read the trailing word and filed four
+ * items under Inputs, under "General", losing the group name on the way.
+ */
+test('applySourceAwareMapping does not pull a "<qualifier> Resources" group into inputs', () => {
+  const m = applySourceAwareMapping(
+    baseModel({
+      activities: {
+        content: [{ name: 'Teacher/School Resources', items: [{ text: 'Teacher training workshops' }] }],
+      },
+      outputs: {
+        content: [{ name: 'Teacher/School Resources', items: [{ text: '12 lesson plans distributed' }] }],
+      },
+    })
+  );
+  assert.deepEqual(m.activities.content.map(g => g.name), ['Teacher/School Resources']);
+  assert.deepEqual(m.outputs.content.map(g => g.name), ['Teacher/School Resources']);
+  assert.deepEqual(m.inputs.content, []);
+});
+
+/** The move itself is untouched when the header really is another column's name. */
+test('applySourceAwareMapping still moves a group whose header names another column outright', () => {
+  const m = applySourceAwareMapping(
+    baseModel({
+      activities: { content: [{ name: 'Resources', items: [{ text: 'Grant funding and in-kind support' }] }] },
+    })
+  );
+  assert.ok(m.inputs.content.some(g => g.items.some(i => /Grant funding/.test(i.text))));
+  assert.deepEqual(m.activities.content, []);
 });

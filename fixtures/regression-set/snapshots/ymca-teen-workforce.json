@@ -1,0 +1,270 @@
+{
+  "id": "ymca-teen-workforce",
+  "promptVersion": "2026-09-20.6",
+  "promptVariant": "vision+text",
+  "capturedAt": "2026-09-23T02:54:23.802Z",
+  "model": {
+    "organization": "Greater Philadelphia YMCA",
+    "program": "Teen Workforce Development Program",
+    "mission": {
+      "content": "To empower teens in Philadelphia and Camden, NJ, by providing equitable access to career skills, internships, and mentorship to bridge opportunity gaps and prepare students for professional and financial success."
+    },
+    "targetPopulation": {
+      "content": "Teens in underserved communities in Philadelphia, PA and Camden, NJ"
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Experienced YMCA facilitators and career mentors",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Partnerships with schools, corporate employers, and local organizations",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Program funding and stipends for participants",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Resources for workshops, networking events, and career readiness materials",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Data tracking tools (e.g., Hello Insight and Traction Rec)",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Weekly career readiness workshops (e.g., resume building, interview prep)",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Job shadowing, company tours, and industry exposure events",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Paid summer jobs and internships with YMCA and corporate partners",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Social-emotional skill-building sessions (e.g., time management, resilience)",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Networking events like \"Y Super Day\" for direct employer engagement",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Financial literacy training across three progressive levels",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Individualized mentorship through career coaches",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "150 high school students enrolled annually from Philadelphia and Camden",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "40 weeks of workshops and skill-building activities per year",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Completion of service-learning projects and job shadowing opportunities",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Placement in paid summer internships and externships",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Signature networking events, such as \"Y Super Day\"",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Increased student engagement and attendance in program activities",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Development of foundational social-emotional and career readiness skills",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Enhanced awareness of various career pathways and industries",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Stronger connections with mentors and professional networks",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "mediumTermOutcomes": {
+      "content": []
+    },
+    "longTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Teens transition successfully to higher education or the workforce",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Participants secure paid employment or internships in chosen fields",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students demonstrate financial literacy and independence",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Reduced opportunity gaps in underserved communities",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Participants contribute positively to their communities as future leaders",
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "impact": {
+      "content": []
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "ok",
+    "colorLegend": "",
+    "extractionConfidence": "high",
+    "generalOutcomes": {
+      "content": []
+    },
+    "impactStatement": {
+      "content": ""
+    },
+    "layoutFamily": "prose_sections",
+    "unmapped": {
+      "content": [
+        {
+          "name": "Problem Statement",
+          "items": [
+            {
+              "text": "Many teens in underserved communities face significant barriers to career readiness, including limited access to mentorship, real-world work experiences, and critical resources needed to successfully transition into the workforce or higher education. These challenges are compounded by the achievement gap, which reflects disparities in educational and career outcomes based on race, ethnicity, gender, disability status, and family income. The COVID-19 pandemic has further widened this gap: in majority-Black schools, math students now test a full year behind their peers in majority-White schools, up from nine months pre-pandemic. This gap in readiness not only limits the immediate potential of students from marginalized communities but also restricts their long-term access to upward mobility and economic stability.",
+              "sourcePage": 1,
+              "sourceHeader": "Problem Statement",
+              "sourceSection": "Problem Statement",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Socioeconomic and systemic inequities further exacerbate these challenges. Philadelphia, the poorest major city in the U.S., has a 34% poverty rate, with one in three children living in poverty and half residing in single-parent households. Camden faces even graver realities, with a staggering 43% poverty rate and decades of systemic disinvestment. Unemployment remains a critical factor, as young people who do not access stable employment before age 25 are projected to earn 44% less over their lifetimes. BIPOC youth face additional hurdles, including the compounded effects of public school defunding and documented workplace discrimination. These intersecting challenges highlight the urgent need for programs like workforce development initiatives to bridge gaps, provide equitable opportunities, and empower young people to achieve their full potential.",
+              "sourcePage": 1,
+              "sourceHeader": "Problem Statement",
+              "sourceSection": "Problem Statement",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "Content Rationale",
+          "items": [
+            {
+              "text": "The program is designed to address critical developmental needs by focusing on social-emotional skill development, career exposure, mentorship, and financial literacy, aligning with community needs and ACT 158 requirements.",
+              "sourcePage": 1,
+              "sourceHeader": "Content Rationale",
+              "sourceSection": "Content Rationale",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        }
+      ]
+    },
+    "mappingCorrections": []
+  }
+}

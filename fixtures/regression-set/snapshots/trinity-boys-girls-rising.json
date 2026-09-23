@@ -1,0 +1,419 @@
+{
+  "id": "trinity-boys-girls-rising",
+  "promptVersion": "2026-09-20.6",
+  "promptVariant": "vision-only",
+  "capturedAt": "2026-09-23T02:54:15.237Z",
+  "model": {
+    "organization": "BOYS & GIRLS RISING",
+    "program": "LEADERSHIP & LIFE SKILLS PROGRAM",
+    "mission": {
+      "content": "To empower youth through mentorship, education, and life skills that build confidence, character, and a brighter future."
+    },
+    "targetPopulation": {
+      "content": "Youth ages 7–14 in Queen Village (19147), Philadelphia, PA"
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Funding (grants, sponsors, donations)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Program staff (director, facilitators)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Volunteer mentors (male & female role models)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Community partnerships (schools, nonprofits, local organizations)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Curriculum (SEL, leadership, life skills)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Program supplies (journals, materials)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Facility space (school/community center)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Technology (for tracking & engagement)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "6-week structured enrichment sessions (3x per week)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Social-emotional learning (SEL) workshops",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Leadership development activities",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Life skills training (financial literacy, communication, goal setting)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Mentorship circles (gender-responsive groups)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Guest speaker series (community leaders, professionals)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Health & wellness activities",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Community service / advocacy project",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Family engagement (orientation + graduation)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "20–30 youth enrolled (ages 7–14)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "18 program sessions delivered",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "4–6 mentorship sessions completed",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "3 guest speakers engaged",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "1 community service project completed",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "1 final showcase / graduation event",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": [
+        {
+          "name": "SHORT-TERM (0–3 MONTHS)",
+          "items": [
+            {
+              "text": "Increased self-confidence",
+              "sourceHeader": "SHORT-TERM (0–3 MONTHS)",
+              "sourceSection": "SHORT-TERM (0–3 MONTHS)",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Improved emotional awareness and communication",
+              "sourceHeader": "SHORT-TERM (0–3 MONTHS)",
+              "sourceSection": "SHORT-TERM (0–3 MONTHS)",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Stronger peer relationships",
+              "sourceHeader": "SHORT-TERM (0–3 MONTHS)",
+              "sourceSection": "SHORT-TERM (0–3 MONTHS)",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Increased engagement in positive group activities",
+              "sourceHeader": "SHORT-TERM (0–3 MONTHS)",
+              "sourceSection": "SHORT-TERM (0–3 MONTHS)",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Exposure to positive role models",
+              "sourceHeader": "SHORT-TERM (0–3 MONTHS)",
+              "sourceSection": "SHORT-TERM (0–3 MONTHS)",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            }
+          ]
+        }
+      ]
+    },
+    "mediumTermOutcomes": {
+      "content": [
+        {
+          "name": "INTERMEDIATE (3–6 MONTHS)",
+          "items": [
+            {
+              "text": "Improved behavior and decision-making",
+              "sourceHeader": "INTERMEDIATE (3–6 MONTHS)",
+              "sourceSection": "INTERMEDIATE (3–6 MONTHS)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Demonstrated leadership skills in group settings",
+              "sourceHeader": "INTERMEDIATE (3–6 MONTHS)",
+              "sourceSection": "INTERMEDIATE (3–6 MONTHS)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased school engagement",
+              "sourceHeader": "INTERMEDIATE (3–6 MONTHS)",
+              "sourceSection": "INTERMEDIATE (3–6 MONTHS)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Development of basic life skills (money management, responsibility)",
+              "sourceHeader": "INTERMEDIATE (3–6 MONTHS)",
+              "sourceSection": "INTERMEDIATE (3–6 MONTHS)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Stronger sense of identity and purpose",
+              "sourceHeader": "INTERMEDIATE (3–6 MONTHS)",
+              "sourceSection": "INTERMEDIATE (3–6 MONTHS)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "longTermOutcomes": {
+      "content": [
+        {
+          "name": "LONG-TERM (6–12+ MONTHS)",
+          "items": [
+            {
+              "text": "Reduced risk of negative behaviors",
+              "sourceHeader": "LONG-TERM (6–12+ MONTHS)",
+              "sourceSection": "LONG-TERM (6–12+ MONTHS)",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Increased academic and social success",
+              "sourceHeader": "LONG-TERM (6–12+ MONTHS)",
+              "sourceSection": "LONG-TERM (6–12+ MONTHS)",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Continued participation in enrichment programs",
+              "sourceHeader": "LONG-TERM (6–12+ MONTHS)",
+              "sourceSection": "LONG-TERM (6–12+ MONTHS)",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Stronger community involvement and civic engagement",
+              "sourceHeader": "LONG-TERM (6–12+ MONTHS)",
+              "sourceSection": "LONG-TERM (6–12+ MONTHS)",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Improved readiness for adolescence and adulthood",
+              "sourceHeader": "LONG-TERM (6–12+ MONTHS)",
+              "sourceSection": "LONG-TERM (6–12+ MONTHS)",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            }
+          ]
+        }
+      ]
+    },
+    "impact": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Youth in the 19147 community will develop into confident, responsible, and empowered leaders with the skills to succeed in school, career, and life.",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Equitable access to enrichment opportunities for both boys and girls",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Lifelong skills that support education, career readiness, and healthy decision-making",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Stronger, safer, and more engaged communities through youth leadership and service",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "partial",
+    "colorLegend": "",
+    "generalOutcomes": {
+      "content": []
+    },
+    "impactStatement": {
+      "content": ""
+    },
+    "layoutFamily": "vertical_columns",
+    "unmapped": {
+      "content": [
+        {
+          "name": "SITUATION / NEED",
+          "items": [
+            {
+              "text": "19147 (Queen Village) youth face challenges including: — 96% economically disadvantaged population",
+              "sourceHeader": "SITUATION / NEED",
+              "sourceSection": "SITUATION / NEED",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Limited access to balanced enrichment programs, especially for boys",
+              "sourceHeader": "SITUATION / NEED",
+              "sourceSection": "SITUATION / NEED",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "High need for social-emotional learning, mentorship, and life skills",
+              "sourceHeader": "SITUATION / NEED",
+              "sourceSection": "SITUATION / NEED",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "24% of youth require additional support (IEPs)",
+              "sourceHeader": "SITUATION / NEED",
+              "sourceSection": "SITUATION / NEED",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "While programs exist for girls (Girls on the Run, Girl Scouts, Girls with a Purpose, Girls First), there is a gap in inclusive, structured programming that equally supports both boys and girls.",
+              "sourceHeader": "SITUATION / NEED",
+              "sourceSection": "SITUATION / NEED",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "EVALUATION METHODS",
+          "items": [
+            {
+              "text": "Pre/Post Surveys",
+              "sourceHeader": "EVALUATION METHODS",
+              "sourceSection": "EVALUATION METHODS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Attendance & Participation Tracking",
+              "sourceHeader": "EVALUATION METHODS",
+              "sourceSection": "EVALUATION METHODS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Behavior & Engagement Observations",
+              "sourceHeader": "EVALUATION METHODS",
+              "sourceSection": "EVALUATION METHODS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Parent/Guardian Feedback",
+              "sourceHeader": "EVALUATION METHODS",
+              "sourceSection": "EVALUATION METHODS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Youth Reflection Journals",
+              "sourceHeader": "EVALUATION METHODS",
+              "sourceSection": "EVALUATION METHODS",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "OUR BELIEF",
+          "items": [
+            {
+              "text": "When we invest in youth today, we build stronger leaders, stronger families, and stronger communities tomorrow.",
+              "sourceHeader": "OUR BELIEF",
+              "sourceSection": "OUR BELIEF",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        }
+      ]
+    },
+    "mappingCorrections": [],
+    "extractionConfidence": "medium",
+    "extractionBlockers": [
+      "Some content did not fit any of the standard columns and was put under \"Unmapped\" — check whether it belongs somewhere"
+    ]
+  }
+}

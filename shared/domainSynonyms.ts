@@ -92,6 +92,45 @@ export function synonymToDomain(label: string): CanonicalGroupedDomain | null {
   return null;
 }
 
+/**
+ * Like `synonymToDomain`, but only when the header IS that column's name rather than merely
+ * ending or starting with it. Use this — never the loose form — to decide whether to MOVE items
+ * out of the column the extraction put them in.
+ *
+ * WHY THE DISTINCTION EXISTS. The loose form matches a domain word anywhere at a word boundary,
+ * which is right for reading a header's meaning and wrong for overruling a column. A sub-heading
+ * inside a correctly-placed column is almost always "<qualifier> <domain word>", and the loose
+ * form reads every one of them as a claim about which column the items belong in:
+ *
+ *   "Youth Outcomes" / "School/Community Outcomes"   -> ends with "outcomes" -> generalOutcomes
+ *   "Teacher/School Resources"                       -> ends with "resources" -> inputs
+ *   "Sustained Community Impact"                     -> ends with "impact"   -> impact
+ *
+ * MEASURED, 2026-09-23, over the 14 recaptured documents: the loose form fired a move four times
+ * and was wrong all four (the first two rows above), emptying A New Dawn's Short-Term Outcomes
+ * column into General Outcomes and filing four of Cub Reporter's Activities and Outputs items
+ * under Inputs. The third row never reached a move only because `inlineLabelGroups.ts` refuses to
+ * promote a band of labels containing one, which cost that document its Long-Term Outcomes
+ * grouping instead. Nothing in the set was ever moved correctly.
+ *
+ * The two failure modes are not symmetric. Not moving leaves items where the model's own reading
+ * of the page put them, with their sub-heading intact and visible to the reviewer. Moving deletes
+ * the sub-heading, files the items under "General" in another column, and looks deliberate. So a
+ * move needs the unqualified name, and a qualified one is treated as what it reads like: a
+ * sub-heading.
+ *
+ * NOT handled, for want of a document that shows it: a leading ordinal ("4. Short-Term Outcomes"),
+ * which prose-section sources use for section headings and which would not match here.
+ */
+export function columnNameToDomain(label: string): CanonicalGroupedDomain | null {
+  const n = normalizeHeader(label).replace(/[:.\-–—]+$/g, '').trim();
+  if (!n || n === 'general') return null;
+  for (const { key, domain } of SYNONYM_ENTRIES) {
+    if (n === key) return domain;
+  }
+  return null;
+}
+
 export function isKnownInputSubBucket(label: string): boolean {
   return INPUT_SUBBUCKETS.has(normalizeHeader(label));
 }

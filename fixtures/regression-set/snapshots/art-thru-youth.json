@@ -1,0 +1,204 @@
+{
+  "id": "art-thru-youth",
+  "promptVersion": "2026-09-20.6",
+  "promptVariant": "vision-only+lowleg",
+  "capturedAt": "2026-09-23T02:53:55.002Z",
+  "model": {
+    "organization": "Art Thru Youth",
+    "program": "Art Thru Youth After School Program",
+    "mission": {
+      "content": ""
+    },
+    "targetPopulation": {
+      "content": ""
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Lack of After School programs for child enrichment and development",
+              "sourceColumn": 1,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Program resources, development improvement and sustainability",
+              "sourceColumn": 1,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "ATY will conduct a survey for School, Staff and community to give input on what will benefit community and students",
+              "sourceColumn": 1,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Hire staff with artistic expertise",
+              "sourceColumn": 2,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Curriculum Goals for program",
+              "sourceColumn": 2,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Arts Class option — Dance Music",
+              "sourceColumn": 2,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Arts Class option — Art/ArtnCrafts",
+              "sourceColumn": 2,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Arts Class option — DIY projects",
+              "sourceColumn": 2,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Arts Class option — Chess",
+              "sourceColumn": 2,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Students will perform in culminating performance building self esteem confidence expression and social skills",
+              "sourceColumn": 3,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": []
+    },
+    "mediumTermOutcomes": {
+      "content": []
+    },
+    "longTermOutcomes": {
+      "content": []
+    },
+    "impact": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Vision for the future ATY will provide comprehensive theatre arts after school and summer programs",
+              "sourceColumn": 5,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Improved sense of community",
+              "sourceColumn": 5,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Safe space for learning and growth",
+              "sourceColumn": 5,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Suport working families",
+              "sourceColumn": 5,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "partial",
+    "colorLegend": "",
+    "extractionConfidence": "medium",
+    "generalOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "After School and summer programs",
+              "sourceColumn": 4,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "An exciting educational and inspiring addition to the school year",
+              "sourceColumn": 4,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "ATY will conduct a end of year survey for families to give their feedback on program and staff",
+              "sourceColumn": 4,
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "impactStatement": {
+      "content": ""
+    },
+    "layoutFamily": "vertical_columns",
+    "unmapped": {
+      "content": []
+    },
+    "mappingCorrections": [],
+    "extractionBlockers": [
+      "Some pages of this document were hard to read, so wording may have been misread — check every item against the original before using this"
+    ]
+  }
+}

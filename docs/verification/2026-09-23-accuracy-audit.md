@@ -78,6 +78,31 @@ lost; `activities` and `outputs` are each short a group that exists on the page.
 Outputs and Short-Term Outcomes all lift the bold label to a group name. Long-Term Outcomes does
 not, and keeps its labels inline in the item text. Same page, same markup, two behaviours.
 
+### Correction, same day: the mechanism behind 2, 3 and 4
+
+This audit filed defects 2, 3 and 4 as one bug — "a label with no bullet marker" — reasoning from
+the shape of the source pages rather than from the code. That attribution is wrong, and the real
+mechanism was found by dumping Gemini's raw output beside the normalized result for all fourteen
+documents.
+
+**Gemini placed all three correctly. Our own post-processing moved them**, in `sourceMapping.ts`,
+whose synonym remapper matches a domain word anywhere at a word boundary and treats the match as a
+claim about which column the items belong in:
+
+| Group name the model returned | Where the model put it | What the remapper read | What happened |
+|---|---|---|---|
+| `Youth Outcomes`, `School/Community Outcomes` | Short-Term Outcomes | ends in "outcomes" | 9 items to General Outcomes, both names flattened to "General" |
+| `Teacher/School Resources` | Activities, Outputs | ends in "resources" | 4 items to Inputs under "General" |
+| `Sustained Community Impact` | Long-Term Outcomes | ends in "impact" | never moved — `inlineLabelGroups.ts` refuses to promote a band containing such a label, which is why that section kept its labels inline while four others promoted |
+
+Across the fourteen documents the remapper fired a move four times and was wrong all four. It never
+once moved anything correctly. All three defects are one bug, as filed — just not the one named.
+
+The fix is in `columnNameToDomain`: a move now requires the unqualified column name, so a qualified
+sub-heading stays in the column the model chose. Measured over the same fourteen documents, three
+change and eleven are byte-identical, and no item count moves. See
+[the follow-up](./2026-09-23-mapper-and-harvest-fixes.md).
+
 **5. Trinity's self-report under-claims.** `extractionStatus` is `partial` and confidence `medium`
 on an extraction that is in fact 54 of 54. Wrong in the safe direction, but the model's self-report
 is the only coverage signal the app has, so it being wrong either way is worth knowing.
@@ -154,17 +179,17 @@ pass. This audit says the items being reproduced are the right ones — the gate
 extractions, not a stable wrong answer.
 
 It does not say the columns are always the right columns. Defects 2, 3 and 4 are all
-column-or-group assignment, all on the same underlying mechanism — a label with no bullet marker —
-and all three are reproducible, which means the gate as defined will pass them forever. A
-reproducibility gate cannot see a defect that reproduces. That is the argument for this audit
-existing, and the argument for repeating it whenever the grouping code changes.
+column-or-group assignment, all on the same underlying mechanism — the synonym remapper, see the
+correction above — and all three are reproducible, which means the gate as defined will pass them
+forever. A reproducibility gate cannot see a defect that reproduces. That is the argument for this
+audit existing, and the argument for repeating it whenever the grouping code changes.
 
 ## What is left
 
-1. **Decide on the A New Dawn `impactStatement` bug.** It is a user-visible string of Markdown
-   noise in an export. Smallest real fix in the list.
-2. **Decide whether the inline-label rule should be one rule.** Defects 2, 3 and 4 are one bug wearing
-   three hats. Any change here needs a paired census, because grouping is the unstable axis.
+1. ~~**Decide on the A New Dawn `impactStatement` bug.**~~ Fixed 2026-09-23, PR #14.
+2. ~~**Decide whether the inline-label rule should be one rule.**~~ Defects 2, 3 and 4 were one bug,
+   in the synonym remapper rather than the inline-label rule. Fixed 2026-09-23; see the correction
+   above and [the follow-up](./2026-09-23-mapper-and-harvest-fixes.md).
 3. **The three documents still unmeasured:** `harlem-lacrosse`, `philadelphia-ballet-lets-dance` and
    `seamaac-urban-arts`.
 4. **The DesignPhiladelphia silent-drop defect**, still open and still unqueued: two versions of one

@@ -1,8 +1,8 @@
 {
   "id": "performance-garage-youthmoves",
-  "promptVersion": "2026-09-19.2",
-  "promptVariant": "text-only",
-  "capturedAt": "2026-09-19T20:58:44.748Z",
+  "promptVersion": "2026-09-20.6",
+  "promptVariant": "vision+text",
+  "capturedAt": "2026-09-23T02:52:03.322Z",
   "model": {
     "organization": "The Performance Garage",
     "program": "YouthMoves",
@@ -15,11 +15,58 @@
     "inputs": {
       "content": [
         {
+          "name": "Human",
+          "items": [
+            {
+              "text": "Student-Dancers",
+              "fillColor": "grey",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "sourceHeader": "Human",
+              "sourceSection": "Human",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Dance Teacher",
+              "fillColor": "grey",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "sourceHeader": "Human",
+              "sourceSection": "Human",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Program Director",
+              "fillColor": "grey",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "sourceHeader": "Human",
+              "sourceSection": "Human",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "PG Exec Director",
+              "fillColor": "grey",
+              "sourceColumn": 1,
+              "sourcePage": 2,
+              "sourceHeader": "Human",
+              "sourceSection": "Human",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
           "name": "Knowledge",
           "items": [
             {
               "text": "Dance Technique Expertise",
-              "verbatim": true,
+              "fillColor": "grey",
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Knowledge",
               "sourceSection": "Knowledge",
               "mappedBy": "auto",
@@ -27,7 +74,9 @@
             },
             {
               "text": "Dance/Movement Research",
-              "verbatim": true,
+              "fillColor": "grey",
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Knowledge",
               "sourceSection": "Knowledge",
               "mappedBy": "auto",
@@ -35,7 +84,9 @@
             },
             {
               "text": "Dance Literacy Expertise",
-              "verbatim": true,
+              "fillColor": "grey",
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Knowledge",
               "sourceSection": "Knowledge",
               "mappedBy": "auto",
@@ -48,7 +99,9 @@
           "items": [
             {
               "text": "PG free space",
-              "verbatim": true,
+              "fillColor": "grey",
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Material",
               "sourceSection": "Material",
               "mappedBy": "auto",
@@ -56,7 +109,9 @@
             },
             {
               "text": "FLC Facility",
-              "verbatim": true,
+              "fillColor": "grey",
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Material",
               "sourceSection": "Material",
               "mappedBy": "auto",
@@ -64,46 +119,11 @@
             },
             {
               "text": "OSP/SDP partnership",
-              "verbatim": true,
+              "fillColor": "grey",
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Material",
               "sourceSection": "Material",
-              "mappedBy": "auto",
-              "mappingConfidence": "spatial"
-            }
-          ]
-        },
-        {
-          "name": "Human",
-          "items": [
-            {
-              "text": "Student-Dancers",
-              "verbatim": true,
-              "sourceHeader": "Human",
-              "sourceSection": "Human",
-              "mappedBy": "auto",
-              "mappingConfidence": "spatial"
-            },
-            {
-              "text": "Dance Teacher",
-              "verbatim": true,
-              "sourceHeader": "Human",
-              "sourceSection": "Human",
-              "mappedBy": "auto",
-              "mappingConfidence": "spatial"
-            },
-            {
-              "text": "Program Director",
-              "verbatim": true,
-              "sourceHeader": "Human",
-              "sourceSection": "Human",
-              "mappedBy": "auto",
-              "mappingConfidence": "spatial"
-            },
-            {
-              "text": "PG Exec Director",
-              "verbatim": true,
-              "sourceHeader": "Human",
-              "sourceSection": "Human",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -114,7 +134,9 @@
           "items": [
             {
               "text": "Sponsorships",
-              "verbatim": true,
+              "fillColor": "grey",
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Financial",
               "sourceSection": "Financial",
               "mappedBy": "auto",
@@ -122,7 +144,9 @@
             },
             {
               "text": "Grants",
-              "verbatim": true,
+              "fillColor": "grey",
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Financial",
               "sourceSection": "Financial",
               "mappedBy": "auto",
@@ -130,7 +154,9 @@
             },
             {
               "text": "Ind Contrib",
-              "verbatim": true,
+              "fillColor": "grey",
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Financial",
               "sourceSection": "Financial",
               "mappedBy": "auto",
@@ -147,15 +173,29 @@
           "items": [
             {
               "text": "35 Classes, 35 Rehearsals (7 mos)",
-              "verbatim": true,
+              "fillColor": "blue",
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "sourceHeader": "YouthMoves at FLC",
               "sourceSection": "YouthMoves at FLC",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Performances (Apr + June) students participate in DanceVisions events",
-              "verbatim": true,
+              "text": "Performances (Apr + June)",
+              "fillColor": "blue",
+              "sourceColumn": 2,
+              "sourcePage": 2,
+              "sourceHeader": "YouthMoves at FLC",
+              "sourceSection": "YouthMoves at FLC",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "students participate in DanceVisions events",
+              "fillColor": "blue",
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "sourceHeader": "YouthMoves at FLC",
               "sourceSection": "YouthMoves at FLC",
               "mappedBy": "auto",
@@ -168,7 +208,9 @@
           "items": [
             {
               "text": "YouthMoves for incoming first year FLC Dance Majors (2 wks in August)",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "sourceHeader": "Summer Intensive",
               "sourceSection": "Summer Intensive",
               "mappedBy": "auto",
@@ -176,7 +218,9 @@
             },
             {
               "text": "Pilates, Yoga, Ballet, Modern, Hip Hop, Dunham Techniques",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "sourceHeader": "Summer Intensive",
               "sourceSection": "Summer Intensive",
               "mappedBy": "auto",
@@ -189,7 +233,9 @@
           "items": [
             {
               "text": "Full length evening concert highlighting Senior Composition Project Requirements",
-              "verbatim": true,
+              "fillColor": "navy",
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "sourceHeader": "Student Produced Concert",
               "sourceSection": "Student Produced Concert",
               "mappedBy": "auto",
@@ -206,49 +252,65 @@
           "items": [
             {
               "text": "Attendance at 90%",
-              "verbatim": true,
+              "fillColor": "blue",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Implementation 5 of Curriculum units",
-              "verbatim": true,
+              "fillColor": "blue",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Interactions (3 events) w/ Res Artist",
-              "verbatim": true,
+              "fillColor": "blue",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Attendance is maintained at 90%",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Implementation 2 of Curriculum units",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Interaction with master teachers",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Student choreography driven by selected research topics",
-              "verbatim": true,
+              "fillColor": "navy",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Implementation of FLC Dance & Youth Moves Curriculum Units",
-              "verbatim": true,
+              "fillColor": "navy",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -263,49 +325,65 @@
           "items": [
             {
               "text": "Master dance technique",
-              "verbatim": true,
+              "fillColor": "blue",
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Gain creative expression + develop artistic voice",
-              "verbatim": true,
+              "fillColor": "blue",
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Learn teamwork, collaboration, and accountability",
-              "verbatim": true,
+              "fillColor": "blue",
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Learn dance techniques",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Preparation for Long-term Pre-professional dance training",
-              "verbatim": true,
+              "text": "Preparation for Long- term Pre- professional dance training",
+              "fillColor": "teal",
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Increased confidence, well-being and self-worth",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Develop skills of technical production through instruction with Performance Garage Staff",
-              "verbatim": true,
+              "fillColor": "navy",
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Management of peers and professionals",
-              "verbatim": true,
+              "fillColor": "navy",
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -320,37 +398,49 @@
           "items": [
             {
               "text": "Build portfolio, audition skills needed for BFA programs",
-              "verbatim": true,
+              "fillColor": "blue",
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Audition for dance companies, jobs",
-              "verbatim": true,
+              "fillColor": "blue",
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Greater personal agency, goal-setting capacity, and resilience in academic + artistic pursuits",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Strong foundations for high school transition process",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Experience in artistic leadership",
-              "verbatim": true,
+              "fillColor": "navy",
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Exposure to production and directorial processes similar to grant and fellowship proposals",
-              "verbatim": true,
+              "fillColor": "navy",
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -364,38 +454,50 @@
           "name": "General",
           "items": [
             {
-              "text": "Sustain careers in creative industries, apply creative thinking skills in diverse prof fields",
-              "verbatim": true,
-              "mappedBy": "auto",
-              "mappingConfidence": "spatial"
-            },
-            {
-              "text": "Succeed in high energy environments",
-              "verbatim": true,
-              "mappedBy": "auto",
-              "mappingConfidence": "spatial"
-            },
-            {
               "text": "Graduate, continue to dance/teach",
-              "verbatim": true,
+              "fillColor": "slate blue",
+              "sourceColumn": 6,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Excell, tour, work with notable choreographers/ artists",
-              "verbatim": true,
+              "fillColor": "slate blue",
+              "sourceColumn": 6,
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Sustain careers in creative industries, apply creative thinking skills in diverse prof fields",
+              "fillColor": "slate blue",
+              "sourceColumn": 6,
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Succeed in high energy environments",
+              "fillColor": "slate blue",
+              "sourceColumn": 6,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Leadership in prof, artistic, community contexts, contribute positively to collaborative workplaces + civic life",
-              "verbatim": true,
+              "fillColor": "slate blue",
+              "sourceColumn": 6,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Educational attainment, career advancement, overall life stability",
-              "verbatim": true,
+              "fillColor": "slate blue",
+              "sourceColumn": 6,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -407,9 +509,8 @@
       "content": []
     },
     "documentTypeAssessment": "logic_model",
-    "extractionStatus": "partial",
+    "extractionStatus": "ok",
     "colorLegend": "",
-    "extractionConfidence": "medium",
     "generalOutcomes": {
       "content": []
     },
@@ -421,8 +522,6 @@
       "content": []
     },
     "mappingCorrections": [],
-    "extractionBlockers": [
-      "Extracted from text only — the document could not be read as images, so layout-based columns and formatting may be less reliable"
-    ]
+    "extractionConfidence": "high"
   }
 }

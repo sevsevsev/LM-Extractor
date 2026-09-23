@@ -1,8 +1,8 @@
 {
   "id": "healthy-newsworks-cub-reporter",
-  "promptVersion": "2026-09-19.2",
+  "promptVersion": "2026-09-20.6",
   "promptVariant": "vision+text",
-  "capturedAt": "2026-09-19T20:59:07.391Z",
+  "capturedAt": "2026-09-23T02:52:32.867Z",
   "model": {
     "organization": "Healthy NewsWorks",
     "program": "Core Reporters & Cub Reporters",
@@ -10,7 +10,7 @@
       "content": ""
     },
     "targetPopulation": {
-      "content": "Students in Grades K-8 (Core Reporters: Grades 4-8; Cub Reporters: Grades K-3), teachers, schools, and families"
+      "content": "Students in grades K-8 (Core Reporters: Grades 4-8; Cub Reporters: Grades K-3), teachers, schools, and families"
     },
     "inputs": {
       "content": [
@@ -20,7 +20,6 @@
             {
               "text": "15 Board Members",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
               "mappedBy": "auto",
@@ -29,7 +28,6 @@
             {
               "text": "FT Executive Director",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
               "mappedBy": "auto",
@@ -38,7 +36,6 @@
             {
               "text": "FT Chief of Staff",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
               "mappedBy": "auto",
@@ -47,7 +44,6 @@
             {
               "text": "7 PT staff: Outreach Manager, Program Manager, 4 Program Associates, 1 Communications Assoc.",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
               "mappedBy": "auto",
@@ -56,7 +52,6 @@
             {
               "text": "Volunteers (Editors, Teachers, Evaluators)",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
               "mappedBy": "auto",
@@ -65,7 +60,6 @@
             {
               "text": "Education Consultants",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
               "mappedBy": "auto",
@@ -74,7 +68,6 @@
             {
               "text": "Community Advisory Board",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
               "mappedBy": "auto",
@@ -83,7 +76,6 @@
             {
               "text": "Local and national health leaders",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
               "mappedBy": "auto",
@@ -97,7 +89,6 @@
             {
               "text": "School teachers, administrators",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "School Human Resources",
               "sourceSection": "School Human Resources",
               "mappedBy": "auto",
@@ -106,7 +97,6 @@
             {
               "text": "Student journalists",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "School Human Resources",
               "sourceSection": "School Human Resources",
               "mappedBy": "auto",
@@ -115,7 +105,6 @@
             {
               "text": "Student families",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "School Human Resources",
               "sourceSection": "School Human Resources",
               "mappedBy": "auto",
@@ -129,7 +118,6 @@
             {
               "text": "Website",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Program Resources",
               "sourceSection": "Program Resources",
               "mappedBy": "auto",
@@ -138,7 +126,6 @@
             {
               "text": "Lesson plans and learning resources for students, teachers, schools",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Program Resources",
               "sourceSection": "Program Resources",
               "mappedBy": "auto",
@@ -147,7 +134,6 @@
             {
               "text": "Reporter Kits",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Program Resources",
               "sourceSection": "Program Resources",
               "mappedBy": "auto",
@@ -156,7 +142,6 @@
             {
               "text": "Canvas learning management system",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Program Resources",
               "sourceSection": "Program Resources",
               "mappedBy": "auto",
@@ -165,7 +150,6 @@
             {
               "text": "PA Act 48 designation",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Program Resources",
               "sourceSection": "Program Resources",
               "mappedBy": "auto",
@@ -179,7 +163,6 @@
             {
               "text": "Schools, businesses, nonprofits, and schools",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Community Partners",
               "sourceSection": "Community Partners",
               "mappedBy": "auto",
@@ -193,7 +176,6 @@
             {
               "text": "Legal (In-kind)",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Other Resources",
               "sourceSection": "Other Resources",
               "mappedBy": "auto",
@@ -202,7 +184,6 @@
             {
               "text": "Accounting",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Other Resources",
               "sourceSection": "Other Resources",
               "mappedBy": "auto",
@@ -211,7 +192,6 @@
             {
               "text": "Office supplies",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Other Resources",
               "sourceSection": "Other Resources",
               "mappedBy": "auto",
@@ -220,7 +200,6 @@
             {
               "text": "Equipment/Technology (computers, microphones, headsets, video cameras)",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Other Resources",
               "sourceSection": "Other Resources",
               "mappedBy": "auto",
@@ -229,50 +208,8 @@
             {
               "text": "Financial and in-kind donations",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Other Resources",
               "sourceSection": "Other Resources",
-              "mappedBy": "auto",
-              "mappingConfidence": "synonym"
-            }
-          ]
-        },
-        {
-          "name": "General",
-          "items": [
-            {
-              "text": "Annual updates",
-              "sourcePage": 1,
-              "verbatim": true,
-              "sourceHeader": "Teacher/School Resources",
-              "sourceSection": "Teacher/School Resources",
-              "mappedBy": "auto",
-              "mappingConfidence": "synonym"
-            },
-            {
-              "text": "Teacher toolkit, including training videos",
-              "sourcePage": 1,
-              "verbatim": true,
-              "sourceHeader": "Teacher/School Resources",
-              "sourceSection": "Teacher/School Resources",
-              "mappedBy": "auto",
-              "mappingConfidence": "synonym"
-            },
-            {
-              "text": "In-person and online training modules",
-              "sourcePage": 1,
-              "verbatim": true,
-              "sourceHeader": "Teacher/School Resources",
-              "sourceSection": "Teacher/School Resources",
-              "mappedBy": "auto",
-              "mappingConfidence": "synonym"
-            },
-            {
-              "text": "Pennsylvania Act 48 approved organization",
-              "sourcePage": 1,
-              "verbatim": true,
-              "sourceHeader": "Teacher/School Resources",
-              "sourceSection": "Teacher/School Resources",
               "mappedBy": "auto",
               "mappingConfidence": "synonym"
             }
@@ -288,7 +225,6 @@
             {
               "text": "Annual updates",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Curriculum Development",
               "sourceSection": "Curriculum Development",
               "mappedBy": "auto",
@@ -297,9 +233,21 @@
             {
               "text": "Modifications for virtual delivery",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Curriculum Development",
               "sourceSection": "Curriculum Development",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Teacher/School Resources",
+          "items": [
+            {
+              "text": "Annual updates",
+              "sourcePage": 1,
+              "sourceHeader": "Teacher/School Resources",
+              "sourceSection": "Teacher/School Resources",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -311,7 +259,6 @@
             {
               "text": "Up to 24 classroom lessons on health topics, interviewing, researching, writing",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters (Grades 4-8)",
               "sourceSection": "Core Reporters (Grades 4-8)",
               "mappedBy": "auto",
@@ -320,7 +267,6 @@
             {
               "text": "Hands-on guidance on research, interviewing, and writing print and digital media",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters (Grades 4-8)",
               "sourceSection": "Core Reporters (Grades 4-8)",
               "mappedBy": "auto",
@@ -329,7 +275,6 @@
             {
               "text": "Coordinate activities, field trips, interviews with health leaders, and book launch",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters (Grades 4-8)",
               "sourceSection": "Core Reporters (Grades 4-8)",
               "mappedBy": "auto",
@@ -338,7 +283,6 @@
             {
               "text": "Edit, design, print, and disseminate newspapers and annual book",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters (Grades 4-8)",
               "sourceSection": "Core Reporters (Grades 4-8)",
               "mappedBy": "auto",
@@ -347,7 +291,6 @@
             {
               "text": "Administer and evaluate pre/post student tests and end-of-year student reflection papers and teacher surveys",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters (Grades 4-8)",
               "sourceSection": "Core Reporters (Grades 4-8)",
               "mappedBy": "auto",
@@ -359,9 +302,32 @@
           "name": "Cub Reporters (Grades K-3)",
           "items": [
             {
-              "text": "Classroom lessons (virtual or in person) in one or both of 3 focus areas, each with 5 lessons: Hearty Kids – heart health; Kind Kids – social/emotional lessons; Super Snackers - nutrition",
+              "text": "Classroom lessons (virtual or in person) in one or both of 3 focus areas, each with 5 lessons:",
               "sourcePage": 1,
-              "verbatim": true,
+              "sourceHeader": "Cub Reporters (Grades K-3)",
+              "sourceSection": "Cub Reporters (Grades K-3)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Hearty Kids – heart health",
+              "sourcePage": 1,
+              "sourceHeader": "Cub Reporters (Grades K-3)",
+              "sourceSection": "Cub Reporters (Grades K-3)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Kind Kids – social/emotional lessons",
+              "sourcePage": 1,
+              "sourceHeader": "Cub Reporters (Grades K-3)",
+              "sourceSection": "Cub Reporters (Grades K-3)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Super Snackers - nutrition",
+              "sourcePage": 1,
               "sourceHeader": "Cub Reporters (Grades K-3)",
               "sourceSection": "Cub Reporters (Grades K-3)",
               "mappedBy": "auto",
@@ -370,7 +336,6 @@
             {
               "text": "Coordinate family engagement activities",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters (Grades K-3)",
               "sourceSection": "Cub Reporters (Grades K-3)",
               "mappedBy": "auto",
@@ -379,7 +344,6 @@
             {
               "text": "Edit, design, print, and disseminate junior section of newspaper",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters (Grades K-3)",
               "sourceSection": "Cub Reporters (Grades K-3)",
               "mappedBy": "auto",
@@ -388,7 +352,6 @@
             {
               "text": "Administer and evaluate post-program teacher surveys",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters (Grades K-3)",
               "sourceSection": "Cub Reporters (Grades K-3)",
               "mappedBy": "auto",
@@ -406,9 +369,37 @@
             {
               "text": "60+ lesson plans and supporting student resources for Core Reporters provided annually; 12+ for Cub Reporters – all aligned with national Common Core ELA and National Health standards (New lessons/materials developed continuously.)",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Curriculum Development",
               "sourceSection": "Curriculum Development",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Teacher/School Resources",
+          "items": [
+            {
+              "text": "Teacher toolkit, including training videos",
+              "sourcePage": 1,
+              "sourceHeader": "Teacher/School Resources",
+              "sourceSection": "Teacher/School Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "In-person and online training modules",
+              "sourcePage": 1,
+              "sourceHeader": "Teacher/School Resources",
+              "sourceSection": "Teacher/School Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Pennsylvania Act 48 approved organization",
+              "sourcePage": 1,
+              "sourceHeader": "Teacher/School Resources",
+              "sourceSection": "Teacher/School Resources",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -420,7 +411,6 @@
             {
               "text": "Program delivered to 600 students in 26 classrooms",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
@@ -429,7 +419,6 @@
             {
               "text": "Quantitative and qualitative evaluation",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
@@ -443,7 +432,6 @@
             {
               "text": "Program delivered to 600+ students in 30+ classrooms",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
@@ -452,7 +440,6 @@
             {
               "text": "Quantitative and qualitative evaluation",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
@@ -466,7 +453,6 @@
             {
               "text": "40+ school newspapers",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
               "mappedBy": "auto",
@@ -475,7 +461,6 @@
             {
               "text": "2 magazines",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
               "mappedBy": "auto",
@@ -484,7 +469,6 @@
             {
               "text": "10+ videos",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
               "mappedBy": "auto",
@@ -493,7 +477,6 @@
             {
               "text": "20+ interviews with health leaders",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
               "mappedBy": "auto",
@@ -502,7 +485,6 @@
             {
               "text": "7,000 students, teachers, family members reached",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
               "mappedBy": "auto",
@@ -518,117 +500,112 @@
           "name": "Core Reporters",
           "items": [
             {
-              "text": "Students demonstrate improvements in/increased: Academic Skills - Writing",
+              "text": "Students demonstrate improvements in/increased:",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in/increased: Academic Skills - Research skills",
+              "text": "Academic Skills — Writing",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in/increased: Academic Skills - Ability to identify a trustworthy website",
+              "text": "Academic Skills — Research skills",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in/increased: Academic Skills - Sourcing skills",
+              "text": "Academic Skills — Ability to identify a trustworthy website",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in/increased: Academic Skills - Interviewing skills",
+              "text": "Academic Skills — Sourcing skills",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in/increased: Academic Skills - Public speaking",
+              "text": "Academic Skills — Interviewing skills",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in/increased: Soft Skills - Confidence",
+              "text": "Academic Skills — Public speaking",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in/increased: Soft Skills - Teamwork",
+              "text": "Soft Skills — Confidence",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in/increased: Soft Skills - Self-reflection",
+              "text": "Soft Skills — Teamwork",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in/increased: Soft Skills - Kindness or Altruism",
+              "text": "Soft Skills — Self-reflection",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in/increased: Soft Skills - Pride in publishing",
+              "text": "Soft Skills — Kindness or Altruism",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in/increased: Health Knowledge & Behaviors - Key facts about health topics covered",
+              "text": "Soft Skills — Pride in publishing",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in/increased: Health Knowledge & Behaviors - Ways to maintain and improve health",
+              "text": "Health Knowledge & Behaviors — Key facts about health topics covered",
               "sourcePage": 1,
-              "verbatim": true,
+              "sourceHeader": "Core Reporters",
+              "sourceSection": "Core Reporters",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Health Knowledge & Behaviors — Ways to maintain and improve health",
+              "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
@@ -640,81 +617,80 @@
           "name": "Cub Reporters",
           "items": [
             {
-              "text": "Students demonstrate improvements in: Academic Skills - Writing",
+              "text": "Students demonstrate improvements in:",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in: Academic Skills - Reading",
+              "text": "Academic Skills — Writing",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in: Soft Skills - Confidence",
+              "text": "Academic Skills — Reading",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in: Soft Skills - Teamwork",
+              "text": "Soft Skills — Confidence",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in: Soft Skills - Pride in publishing",
+              "text": "Soft Skills — Teamwork",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in: Soft Skills - Kindness/altruism",
+              "text": "Soft Skills — Pride in publishing",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in: Soft Skills - Positive behaviors",
+              "text": "Soft Skills — Kindness/altruism",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in: Health Knowledge & Behaviors - Key facts about health",
+              "text": "Soft Skills — Positive behaviors",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students demonstrate improvements in: Health Knowledge & Behaviors - Ways to maintain and improve health",
+              "text": "Health Knowledge & Behaviors — Key facts about health",
               "sourcePage": 1,
-              "verbatim": true,
+              "sourceHeader": "Cub Reporters",
+              "sourceSection": "Cub Reporters",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Health Knowledge & Behaviors — Ways to maintain and improve health",
+              "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
@@ -728,7 +704,6 @@
             {
               "text": "Increased community knowledge of health topics and ways to maintain and improve health.",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
               "mappedBy": "auto",
@@ -737,7 +712,6 @@
             {
               "text": "Promote nonfiction reading",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
               "mappedBy": "auto",
@@ -753,81 +727,80 @@
           "name": "Core Reporters",
           "items": [
             {
-              "text": "Students will demonstrate improvements in/increased: Academic Skills - Likelihood of passing end-of-year assessments in English Language Arts",
+              "text": "Students will demonstrate improvements in/increased:",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Academic Skills - GPA",
+              "text": "Academic Skills — Likelihood of passing end-of-year assessments in English Language Arts",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Academic Skills - ACT scores in English, Reading, Composite",
+              "text": "Academic Skills — GPA",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Academic Skills - Media literacy",
+              "text": "Academic Skills — ACT scores in English, Reading, Composite",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Academic Skills - Attitude toward writing",
+              "text": "Academic Skills — Media literacy",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Soft Skills - Participation in extracurricular activities and service organizations",
+              "text": "Academic Skills — Attitude toward writing",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Soft Skills - Involvement in activities requiring leadership skills",
+              "text": "Soft Skills — Participation in extracurricular activities and service organizations",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Soft Skills - Community connections",
+              "text": "Soft Skills — Involvement in activities requiring leadership skills",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Health Knowledge & Behaviors - Healthy behaviors",
+              "text": "Soft Skills — Community connections",
               "sourcePage": 1,
-              "verbatim": true,
+              "sourceHeader": "Core Reporters",
+              "sourceSection": "Core Reporters",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Health Knowledge & Behaviors — Healthy behaviors",
+              "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
@@ -839,54 +812,56 @@
           "name": "Cub Reporters",
           "items": [
             {
-              "text": "Students will demonstrate improvements in/increased: Academic Skills - Grades in elementary, middle school",
+              "text": "Students will demonstrate improvements in/increased:",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Academic Skills - Literacy",
+              "text": "Academic Skills — Grades in elementary, middle school",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Academic Skills - Communication",
+              "text": "Academic Skills — Literacy",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Soft Skills - Involvement in activities requiring leadership skills",
+              "text": "Academic Skills — Communication",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Soft Skills - Community connections",
+              "text": "Soft Skills — Involvement in activities requiring leadership skills",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Health Knowledge & Behaviors - Healthy behaviors",
+              "text": "Soft Skills — Community connections",
               "sourcePage": 1,
-              "verbatim": true,
+              "sourceHeader": "Cub Reporters",
+              "sourceSection": "Cub Reporters",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Health Knowledge & Behaviors — Healthy behaviors",
+              "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
@@ -900,7 +875,6 @@
             {
               "text": "Improved community-wide healthy behaviors",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
               "mappedBy": "auto",
@@ -916,108 +890,104 @@
           "name": "Core Reporters",
           "items": [
             {
-              "text": "Students will demonstrate improvements in/increased: Academic Skills - Likelihood of college acceptance",
+              "text": "Students will demonstrate improvements in/increased:",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Academic Skills - College GPA",
+              "text": "Academic Skills — Likelihood of college acceptance",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Academic Skills - Ability to identify misinformation and omissions in media",
+              "text": "Academic Skills — College GPA",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Soft Skills - Self-esteem",
+              "text": "Academic Skills — Ability to identify misinformation and omissions in media",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Soft Skills - Resiliency",
+              "text": "Soft Skills — Self-esteem",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Soft Skills - Social-emotional skills",
+              "text": "Soft Skills — Resiliency",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Soft Skills - Positive social behavior",
+              "text": "Soft Skills — Social-emotional skills",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Soft Skills - Reduced emotional distress",
+              "text": "Soft Skills — Positive social behavior",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Soft Skills - Relationship skills",
+              "text": "Soft Skills — Reduced emotional distress",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Soft Skills - Civic involvement/engagement",
+              "text": "Soft Skills — Relationship skills",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Health Knowledge & Behaviors - Health",
+              "text": "Soft Skills — Civic involvement/engagement",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Health Knowledge & Behaviors - Health literacy",
+              "text": "Health Knowledge & Behaviors — Health",
               "sourcePage": 1,
-              "verbatim": true,
+              "sourceHeader": "Core Reporters",
+              "sourceSection": "Core Reporters",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Health Knowledge & Behaviors — Health literacy",
+              "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
               "mappedBy": "auto",
@@ -1029,45 +999,48 @@
           "name": "Cub Reporters",
           "items": [
             {
-              "text": "Students will demonstrate improvements in/increased: Academic Skills - Performance on standardized tests",
+              "text": "Students will demonstrate improvements in/increased:",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Soft Skills - Social-emotional skills",
+              "text": "Academic Skills — Performance on standardized tests",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Soft Skills - Positive social behavior",
+              "text": "Soft Skills — Social-emotional skills",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Soft Skills - Civic involvement/engagement",
+              "text": "Soft Skills — Positive social behavior",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Students will demonstrate improvements in/increased: Health Knowledge & Behaviors - Healthy behaviors",
+              "text": "Soft Skills — Civic involvement/engagement",
               "sourcePage": 1,
-              "verbatim": true,
+              "sourceHeader": "Cub Reporters",
+              "sourceSection": "Cub Reporters",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Health Knowledge & Behaviors — Healthy behaviors",
+              "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
               "mappedBy": "auto",
@@ -1081,7 +1054,6 @@
             {
               "text": "Improved community-wide healthy behaviors",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
               "mappedBy": "auto",
@@ -1094,61 +1066,55 @@
     "impact": {
       "content": [
         {
-          "name": "Impact (10+ years)",
+          "name": "Expected community-level impacts include",
           "items": [
             {
               "text": "Reduced prevalence of chronic disease",
               "sourcePage": 1,
-              "verbatim": true,
-              "sourceHeader": "Impact (10+ years)",
-              "sourceSection": "Impact (10+ years)",
+              "sourceHeader": "Expected community-level impacts include",
+              "sourceSection": "Expected community-level impacts include",
               "mappedBy": "auto",
-              "mappingConfidence": "synonym"
+              "mappingConfidence": "spatial"
             },
             {
               "text": "Reduced rates of poverty",
               "sourcePage": 1,
-              "verbatim": true,
-              "sourceHeader": "Impact (10+ years)",
-              "sourceSection": "Impact (10+ years)",
+              "sourceHeader": "Expected community-level impacts include",
+              "sourceSection": "Expected community-level impacts include",
               "mappedBy": "auto",
-              "mappingConfidence": "synonym"
+              "mappingConfidence": "spatial"
             },
             {
               "text": "Lower unemployment rates",
               "sourcePage": 1,
-              "verbatim": true,
-              "sourceHeader": "Impact (10+ years)",
-              "sourceSection": "Impact (10+ years)",
+              "sourceHeader": "Expected community-level impacts include",
+              "sourceSection": "Expected community-level impacts include",
               "mappedBy": "auto",
-              "mappingConfidence": "synonym"
+              "mappingConfidence": "spatial"
             },
             {
               "text": "Improved health",
               "sourcePage": 1,
-              "verbatim": true,
-              "sourceHeader": "Impact (10+ years)",
-              "sourceSection": "Impact (10+ years)",
+              "sourceHeader": "Expected community-level impacts include",
+              "sourceSection": "Expected community-level impacts include",
               "mappedBy": "auto",
-              "mappingConfidence": "synonym"
+              "mappingConfidence": "spatial"
             },
             {
               "text": "Reduced rate of disability",
               "sourcePage": 1,
-              "verbatim": true,
-              "sourceHeader": "Impact (10+ years)",
-              "sourceSection": "Impact (10+ years)",
+              "sourceHeader": "Expected community-level impacts include",
+              "sourceSection": "Expected community-level impacts include",
               "mappedBy": "auto",
-              "mappingConfidence": "synonym"
+              "mappingConfidence": "spatial"
             },
             {
               "text": "Increased volunteerism",
               "sourcePage": 1,
-              "verbatim": true,
-              "sourceHeader": "Impact (10+ years)",
-              "sourceSection": "Impact (10+ years)",
+              "sourceHeader": "Expected community-level impacts include",
+              "sourceSection": "Expected community-level impacts include",
               "mappedBy": "auto",
-              "mappingConfidence": "synonym"
+              "mappingConfidence": "spatial"
             }
           ]
         }
@@ -1157,6 +1123,7 @@
     "documentTypeAssessment": "logic_model",
     "extractionStatus": "ok",
     "colorLegend": "",
+    "extractionConfidence": "high",
     "generalOutcomes": {
       "content": []
     },
@@ -1165,9 +1132,42 @@
     },
     "layoutFamily": "vertical_columns",
     "unmapped": {
-      "content": []
+      "content": [
+        {
+          "name": "Notes and References",
+          "items": [
+            {
+              "text": "1 – Typical school year",
+              "sourcePage": 2,
+              "sourceHeader": "Notes and References",
+              "sourceSection": "Notes and References",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "2 – Research supporting intermediate outcomes: Ensio, T.C. & Boxeth, K. R. (2000). The effects of publishing on student attitude toward writing. ERIC Research Report. https://eric.ed.gov/?id=ED448471; Joint Committee on National Health Standards. (2007). National health education standards: Achieving excellence; Jones, D., Crowley, D. M., & Greenberg, M.T. (2017). Improving social emotional skills in childhood enhances long-term well-being and economic outcomes. Edna Bennet Pierce Prevention Research Center, Pennsylvania State University; National Center for Family Literacy. (2008). Developing early literacy: Report of the national early literacy panel. https://lincs.ed.gov/publications/pdf/NELPReport09.pdf; Newspaper Association of America. (2008). High school journalism matters. https://bit.ly/37MCIbd",
+              "sourcePage": 2,
+              "sourceHeader": "Notes and References",
+              "sourceSection": "Notes and References",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "3 – Research supporting long-term outcomes: Durlak, J. A., Weissberg, R. P., Dymnicki, A. B., Taylor, R. D. & Schellinger , K. B. (2011). The impact of enhancing students’ social and emotional learning: A meta-analysis of school-based universal interventions. Child Development, 82, 405 – 432; Fredricks, J.A. & Eccles, J.S. (2008). Participation in extracurricular activities in the middle school years: Are there developmental benefits for African American and European American youth? Journal of Youth and Adolescence, 37, 1029-1043. https://link.springer.com/article/10.1007/s10964-008-9309-4; Hobbs, R. & Frost, R. (2003). Measuring the acquisition of media-literacy skills. Reading Research Quarterly, 38, 330 – 352; Jones, D., Crowley, D. M., & Greenberg, M.T. (2017). Improving social emotional skills in childhood enhances long-term well-being and economic outcomes. Edna Bennet Pierce Prevention Research Center, Pennsylvania State University; Kolbe, L.J. (2019). School health as a strategy to improve both public health and education. Annual Review of Public Health, 40, 443-463. https://doi.org/10.1146/annurev-publhealth-040218-043727; National Center for Educational Evaluation and Regional Assistance, Institute of Education Sciences. (2012). Teaching elementary school students to be effective writers. https://ies.ed.gov/ncee/wwc/Docs/PracticeGuide/writing_pg_062612.pdf; Newspaper Association of America. (2008). High school journalism matters. https://bit.ly/37MCIbd; Taylor, R., Oberle, E., Durlak, J. A., & Weissberg, R. P. (2017). Promoting positive youth development through school-based social and emotional learning interventions: A meta-analysis of follow-up effects. Child Development, 88, 1156 – 1171.",
+              "sourcePage": 2,
+              "sourceHeader": "Notes and References",
+              "sourceSection": "Notes and References",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "4 – Research supporting impacts: Jones, D., Crowley, D. M., & Greenberg, M.T. (2017). Improving social emotional skills in childhood enhances long-term well-being and economic outcomes. Edna Bennet Pierce Prevention Research Center, Pennsylvania State University; Neufield, K.H.S., Gaucher, D., Starzyk , K.B., & Boese, G.D. (2018). How feeling connected to one’s own community can increase support for addressing injustice impacting outgroup communities. SAGE Journals, 22 (4), 530-548. https://doi.org/10.1177/1368430217749881; Robert Wood Johnson Foundation. (2020). Building a culture of health: Sense of community. https://www.rwjf.org/en/cultureofhealth/taking-action/making-health-a-shared-value/sense-of-community.html; Trostel, P.A. (2015). It’s not just the money: The benefits of college education to individuals and society. Government & Civic Life, 4. https://digitalcommons.library.umaine.edu/mcspc_gov_civic/4/; U.S. Bureau of Labor Statistics. (2018). Career outlook: Measuring the value of education. https://www.bls.gov/careeroutlook/2018/data-on-display/education-pays.htm; U.S. Department of Health and Human Services, CDC, Coordinating Center for Health Promotion. (2007). Healthy youth: An investment in our nation’s future, 2007.",
+              "sourcePage": 3,
+              "sourceHeader": "Notes and References",
+              "sourceSection": "Notes and References",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        }
+      ]
     },
-    "mappingCorrections": [],
-    "extractionConfidence": "high"
+    "mappingCorrections": []
   }
 }

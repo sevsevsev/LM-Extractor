@@ -1,0 +1,874 @@
+{
+  "id": "sample-mamadele-axe-puro",
+  "promptVersion": "2026-09-20.6",
+  "promptVariant": "vision+text",
+  "capturedAt": "2026-09-23T02:54:52.216Z",
+  "model": {
+    "organization": "MAMADÊLÊ FOUNDATION",
+    "program": "",
+    "mission": {
+      "content": ""
+    },
+    "targetPopulation": {
+      "content": ""
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "Cultural Preservation",
+          "items": [
+            {
+              "text": "Master artists",
+              "sourcePage": 1,
+              "sourceHeader": "Cultural Preservation",
+              "sourceSection": "Cultural Preservation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Cultural archives",
+              "sourcePage": 1,
+              "sourceHeader": "Cultural Preservation",
+              "sourceSection": "Cultural Preservation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Funding for preservation efforts",
+              "sourcePage": 1,
+              "sourceHeader": "Cultural Preservation",
+              "sourceSection": "Cultural Preservation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Community support and partnerships",
+              "sourcePage": 1,
+              "sourceHeader": "Cultural Preservation",
+              "sourceSection": "Cultural Preservation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Excellence in Arts & Education",
+          "items": [
+            {
+              "text": "Experienced artists and educators",
+              "sourcePage": 1,
+              "sourceHeader": "Excellence in Arts & Education",
+              "sourceSection": "Excellence in Arts & Education",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Educational resources",
+              "sourcePage": 1,
+              "sourceHeader": "Excellence in Arts & Education",
+              "sourceSection": "Excellence in Arts & Education",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Performance venues",
+              "sourcePage": 1,
+              "sourceHeader": "Excellence in Arts & Education",
+              "sourceSection": "Excellence in Arts & Education",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Global Collaboration",
+          "items": [
+            {
+              "text": "International artist networks",
+              "sourcePage": 1,
+              "sourceHeader": "Global Collaboration",
+              "sourceSection": "Global Collaboration",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Cultural exchange partnerships",
+              "sourcePage": 1,
+              "sourceHeader": "Global Collaboration",
+              "sourceSection": "Global Collaboration",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Global funding sources",
+              "sourcePage": 1,
+              "sourceHeader": "Global Collaboration",
+              "sourceSection": "Global Collaboration",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Community Empowerment",
+          "items": [
+            {
+              "text": "Local and global community partnerships",
+              "sourcePage": 1,
+              "sourceHeader": "Community Empowerment",
+              "sourceSection": "Community Empowerment",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Educational resources",
+              "sourcePage": 1,
+              "sourceHeader": "Community Empowerment",
+              "sourceSection": "Community Empowerment",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Funding for community programs",
+              "sourcePage": 1,
+              "sourceHeader": "Community Empowerment",
+              "sourceSection": "Community Empowerment",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Respect for Tradition & Innovation",
+          "items": [
+            {
+              "text": "Master artists",
+              "sourcePage": 1,
+              "sourceHeader": "Respect for Tradition & Innovation",
+              "sourceSection": "Respect for Tradition & Innovation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Creative resources",
+              "sourcePage": 1,
+              "sourceHeader": "Respect for Tradition & Innovation",
+              "sourceSection": "Respect for Tradition & Innovation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Platforms for showcasing innovative interpretations",
+              "sourcePage": 1,
+              "sourceHeader": "Respect for Tradition & Innovation",
+              "sourceSection": "Respect for Tradition & Innovation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Diversity & Inclusion",
+          "items": [
+            {
+              "text": "Diverse partnerships",
+              "sourcePage": 1,
+              "sourceHeader": "Diversity & Inclusion",
+              "sourceSection": "Diversity & Inclusion",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Inclusive educational materials",
+              "sourcePage": 1,
+              "sourceHeader": "Diversity & Inclusion",
+              "sourceSection": "Diversity & Inclusion",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Funding for inclusive initiatives",
+              "sourcePage": 1,
+              "sourceHeader": "Diversity & Inclusion",
+              "sourceSection": "Diversity & Inclusion",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "Cultural Preservation",
+          "items": [
+            {
+              "text": "Performances showcasing traditional Afro-Brazilian arts",
+              "sourcePage": 1,
+              "sourceHeader": "Cultural Preservation",
+              "sourceSection": "Cultural Preservation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Workshops and classes on Bahia’s cultural traditions",
+              "sourcePage": 1,
+              "sourceHeader": "Cultural Preservation",
+              "sourceSection": "Cultural Preservation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Excellence in Arts & Education",
+          "items": [
+            {
+              "text": "High-quality performances and educational programs",
+              "sourcePage": 1,
+              "sourceHeader": "Excellence in Arts & Education",
+              "sourceSection": "Excellence in Arts & Education",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Arts education classes in music, dance, and capoeira",
+              "sourcePage": 1,
+              "sourceHeader": "Excellence in Arts & Education",
+              "sourceSection": "Excellence in Arts & Education",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Global Collaboration",
+          "items": [
+            {
+              "text": "International collaborations",
+              "sourcePage": 1,
+              "sourceHeader": "Global Collaboration",
+              "sourceSection": "Global Collaboration",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Artist exchange programs",
+              "sourcePage": 1,
+              "sourceHeader": "Global Collaboration",
+              "sourceSection": "Global Collaboration",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Cross-cultural performances and workshops",
+              "sourcePage": 1,
+              "sourceHeader": "Global Collaboration",
+              "sourceSection": "Global Collaboration",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Community Empowerment",
+          "items": [
+            {
+              "text": "Community arts education programs",
+              "sourcePage": 1,
+              "sourceHeader": "Community Empowerment",
+              "sourceSection": "Community Empowerment",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Accessible workshops for underserved populations",
+              "sourcePage": 1,
+              "sourceHeader": "Community Empowerment",
+              "sourceSection": "Community Empowerment",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Performances that promote social change",
+              "sourcePage": 1,
+              "sourceHeader": "Community Empowerment",
+              "sourceSection": "Community Empowerment",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Respect for Tradition & Innovation",
+          "items": [
+            {
+              "text": "Performances combining traditional and modern Afro-Brazilian art forms",
+              "sourcePage": 1,
+              "sourceHeader": "Respect for Tradition & Innovation",
+              "sourceSection": "Respect for Tradition & Innovation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Innovation labs for artists to explore contemporary interpretations of Bahia traditions",
+              "sourcePage": 1,
+              "sourceHeader": "Respect for Tradition & Innovation",
+              "sourceSection": "Respect for Tradition & Innovation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Diversity & Inclusion",
+          "items": [
+            {
+              "text": "Inclusive workshops and programs",
+              "sourcePage": 1,
+              "sourceHeader": "Diversity & Inclusion",
+              "sourceSection": "Diversity & Inclusion",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Performances and events that celebrate the diversity of the African diaspora",
+              "sourcePage": 1,
+              "sourceHeader": "Diversity & Inclusion",
+              "sourceSection": "Diversity & Inclusion",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "Cultural Preservation",
+          "items": [
+            {
+              "text": "Number of performances and attendees",
+              "sourcePage": 1,
+              "sourceHeader": "Cultural Preservation",
+              "sourceSection": "Cultural Preservation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Number of workshops on Bahia traditions",
+              "sourcePage": 1,
+              "sourceHeader": "Cultural Preservation",
+              "sourceSection": "Cultural Preservation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Partnerships for preservation initiatives",
+              "sourcePage": 1,
+              "sourceHeader": "Cultural Preservation",
+              "sourceSection": "Cultural Preservation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Excellence in Arts & Education",
+          "items": [
+            {
+              "text": "Number of educational programs",
+              "sourcePage": 1,
+              "sourceHeader": "Excellence in Arts & Education",
+              "sourceSection": "Excellence in Arts & Education",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Number of participants in classes and performances",
+              "sourcePage": 1,
+              "sourceHeader": "Excellence in Arts & Education",
+              "sourceSection": "Excellence in Arts & Education",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Global Collaboration",
+          "items": [
+            {
+              "text": "Number of global partnerships formed",
+              "sourcePage": 1,
+              "sourceHeader": "Global Collaboration",
+              "sourceSection": "Global Collaboration",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Number of international performances and exchanges",
+              "sourcePage": 1,
+              "sourceHeader": "Global Collaboration",
+              "sourceSection": "Global Collaboration",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Community Empowerment",
+          "items": [
+            {
+              "text": "Number of community programs",
+              "sourcePage": 1,
+              "sourceHeader": "Community Empowerment",
+              "sourceSection": "Community Empowerment",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Participation rates in underserved communities",
+              "sourcePage": 1,
+              "sourceHeader": "Community Empowerment",
+              "sourceSection": "Community Empowerment",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Number of performances highlighting social issues",
+              "sourcePage": 1,
+              "sourceHeader": "Community Empowerment",
+              "sourceSection": "Community Empowerment",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Respect for Tradition & Innovation",
+          "items": [
+            {
+              "text": "Number of innovative performances",
+              "sourcePage": 1,
+              "sourceHeader": "Respect for Tradition & Innovation",
+              "sourceSection": "Respect for Tradition & Innovation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Number of artists involved in modern interpretations",
+              "sourcePage": 1,
+              "sourceHeader": "Respect for Tradition & Innovation",
+              "sourceSection": "Respect for Tradition & Innovation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Diversity & Inclusion",
+          "items": [
+            {
+              "text": "Number of inclusive programs",
+              "sourcePage": 1,
+              "sourceHeader": "Diversity & Inclusion",
+              "sourceSection": "Diversity & Inclusion",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Participation from diverse cultural groups",
+              "sourcePage": 1,
+              "sourceHeader": "Diversity & Inclusion",
+              "sourceSection": "Diversity & Inclusion",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": [
+        {
+          "name": "Cultural Preservation",
+          "items": [
+            {
+              "text": "Increased awareness of Bahia’s traditions",
+              "sourcePage": 1,
+              "sourceHeader": "Cultural Preservation",
+              "sourceSection": "Cultural Preservation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Stronger understanding of Afro-Brazilian cultural heritage",
+              "sourcePage": 1,
+              "sourceHeader": "Cultural Preservation",
+              "sourceSection": "Cultural Preservation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Excellence in Arts & Education",
+          "items": [
+            {
+              "text": "Enhanced arts education access in the tri-state area",
+              "sourcePage": 1,
+              "sourceHeader": "Excellence in Arts & Education",
+              "sourceSection": "Excellence in Arts & Education",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased skills in Afro-Brazilian art forms",
+              "sourcePage": 1,
+              "sourceHeader": "Excellence in Arts & Education",
+              "sourceSection": "Excellence in Arts & Education",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Global Collaboration",
+          "items": [
+            {
+              "text": "Increased cultural exchange between Afro-Brazilian and global communities",
+              "sourcePage": 1,
+              "sourceHeader": "Global Collaboration",
+              "sourceSection": "Global Collaboration",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Community Empowerment",
+          "items": [
+            {
+              "text": "Increased community engagement in the arts",
+              "sourcePage": 1,
+              "sourceHeader": "Community Empowerment",
+              "sourceSection": "Community Empowerment",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Greater access to Afro-Brazilian arts education for underserved communities",
+              "sourcePage": 1,
+              "sourceHeader": "Community Empowerment",
+              "sourceSection": "Community Empowerment",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Respect for Tradition & Innovation",
+          "items": [
+            {
+              "text": "Enhanced creative expression in Afro-Brazilian arts",
+              "sourcePage": 1,
+              "sourceHeader": "Respect for Tradition & Innovation",
+              "sourceSection": "Respect for Tradition & Innovation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Greater visibility for innovative approaches to Bahia’s traditions",
+              "sourcePage": 1,
+              "sourceHeader": "Respect for Tradition & Innovation",
+              "sourceSection": "Respect for Tradition & Innovation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Diversity & Inclusion",
+          "items": [
+            {
+              "text": "Increased engagement of diverse communities",
+              "sourcePage": 1,
+              "sourceHeader": "Diversity & Inclusion",
+              "sourceSection": "Diversity & Inclusion",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Broadened understanding of the African diaspora’s cultural contributions",
+              "sourcePage": 1,
+              "sourceHeader": "Diversity & Inclusion",
+              "sourceSection": "Diversity & Inclusion",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "mediumTermOutcomes": {
+      "content": [
+        {
+          "name": "Cultural Preservation",
+          "items": [
+            {
+              "text": "Increased participation in cultural preservation programs",
+              "sourcePage": 1,
+              "sourceHeader": "Cultural Preservation",
+              "sourceSection": "Cultural Preservation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Strengthened preservation partnerships",
+              "sourcePage": 1,
+              "sourceHeader": "Cultural Preservation",
+              "sourceSection": "Cultural Preservation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Excellence in Arts & Education",
+          "items": [
+            {
+              "text": "Broader community engagement with Afro-Brazilian arts",
+              "sourcePage": 1,
+              "sourceHeader": "Excellence in Arts & Education",
+              "sourceSection": "Excellence in Arts & Education",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Continuous improvement of educational programs",
+              "sourcePage": 1,
+              "sourceHeader": "Excellence in Arts & Education",
+              "sourceSection": "Excellence in Arts & Education",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Global Collaboration",
+          "items": [
+            {
+              "text": "Ongoing global artistic collaborations",
+              "sourcePage": 1,
+              "sourceHeader": "Global Collaboration",
+              "sourceSection": "Global Collaboration",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Expanded network of international cultural partners",
+              "sourcePage": 1,
+              "sourceHeader": "Global Collaboration",
+              "sourceSection": "Global Collaboration",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Community Empowerment",
+          "items": [
+            {
+              "text": "Empowered communities with increased self-expression",
+              "sourcePage": 1,
+              "sourceHeader": "Community Empowerment",
+              "sourceSection": "Community Empowerment",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Broader societal impact through arts-driven social change",
+              "sourcePage": 1,
+              "sourceHeader": "Community Empowerment",
+              "sourceSection": "Community Empowerment",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Respect for Tradition & Innovation",
+          "items": [
+            {
+              "text": "Ongoing artistic innovation within Afro-Brazilian cultural practices",
+              "sourcePage": 1,
+              "sourceHeader": "Respect for Tradition & Innovation",
+              "sourceSection": "Respect for Tradition & Innovation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased audience engagement with modern Afro-Brazilian arts",
+              "sourcePage": 1,
+              "sourceHeader": "Respect for Tradition & Innovation",
+              "sourceSection": "Respect for Tradition & Innovation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Diversity & Inclusion",
+          "items": [
+            {
+              "text": "Strengthened cross-cultural bonds between Afro-Brazilian and diverse global communities",
+              "sourcePage": 1,
+              "sourceHeader": "Diversity & Inclusion",
+              "sourceSection": "Diversity & Inclusion",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "longTermOutcomes": {
+      "content": [
+        {
+          "name": "Cultural Preservation",
+          "items": [
+            {
+              "text": "Continued transmission of Bahia’s cultural heritage to future generations",
+              "sourcePage": 1,
+              "sourceHeader": "Cultural Preservation",
+              "sourceSection": "Cultural Preservation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Globally recognized preservation of Afro-Brazilian culture",
+              "sourcePage": 1,
+              "sourceHeader": "Cultural Preservation",
+              "sourceSection": "Cultural Preservation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Excellence in Arts & Education",
+          "items": [
+            {
+              "text": "Recognized excellence in Afro-Brazilian arts education",
+              "sourcePage": 1,
+              "sourceHeader": "Excellence in Arts & Education",
+              "sourceSection": "Excellence in Arts & Education",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Empowered communities through transformative arts education",
+              "sourcePage": 1,
+              "sourceHeader": "Excellence in Arts & Education",
+              "sourceSection": "Excellence in Arts & Education",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Global Collaboration",
+          "items": [
+            {
+              "text": "Deepened cross-cultural unity and global collaboration",
+              "sourcePage": 1,
+              "sourceHeader": "Global Collaboration",
+              "sourceSection": "Global Collaboration",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Afro-Brazilian arts integrated into global cultural platforms",
+              "sourcePage": 1,
+              "sourceHeader": "Global Collaboration",
+              "sourceSection": "Global Collaboration",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Community Empowerment",
+          "items": [
+            {
+              "text": "Socially empowered communities with a strong sense of identity",
+              "sourcePage": 1,
+              "sourceHeader": "Community Empowerment",
+              "sourceSection": "Community Empowerment",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Long-term community transformation through arts education",
+              "sourcePage": 1,
+              "sourceHeader": "Community Empowerment",
+              "sourceSection": "Community Empowerment",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Respect for Tradition & Innovation",
+          "items": [
+            {
+              "text": "Long-lasting relevance of Afro-Brazilian traditions in contemporary art",
+              "sourcePage": 1,
+              "sourceHeader": "Respect for Tradition & Innovation",
+              "sourceSection": "Respect for Tradition & Innovation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Tradition fused with innovation for future generations",
+              "sourcePage": 1,
+              "sourceHeader": "Respect for Tradition & Innovation",
+              "sourceSection": "Respect for Tradition & Innovation",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Diversity & Inclusion",
+          "items": [
+            {
+              "text": "Inclusive cultural spaces where Afro-Brazilian culture is shared and celebrated by diverse communities globally",
+              "sourcePage": 1,
+              "sourceHeader": "Diversity & Inclusion",
+              "sourceSection": "Diversity & Inclusion",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "impact": {
+      "content": []
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "ok",
+    "extractionConfidence": "high",
+    "layoutFamily": "vertical_columns",
+    "generalOutcomes": {
+      "content": []
+    },
+    "unmapped": {
+      "content": []
+    },
+    "mappingCorrections": []
+  }
+}

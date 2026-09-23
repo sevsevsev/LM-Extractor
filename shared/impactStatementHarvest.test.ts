@@ -111,10 +111,9 @@ test('markdown markers do not reach the harvested statement', () => {
 
 test('a stop word inside a longer heading does not strand its first word on the end', () => {
   // firsthand's slide 1 runs "...career opportunities. BRIEF PROGRAM OVERVIEW/MISSION ...".
-  // SECTION_STOP matches "program overview" and used to leave a trailing "BRIEF" behind.
-  // Deliberately NOT written on YOUTHMOVES_PROSE: that sentence contains the words "long-term",
-  // which SECTION_STOP matches mid-sentence and truncates. That is a separate defect in this
-  // module, reported but not fixed here — see the note above SECTION_STOP.
+  // SECTION_STOP matches "program overview" four characters into the heading and used to leave a
+  // trailing "BRIEF" behind. `findSectionStop` accepts the match because the run back to the last
+  // sentence end ("BRIEF ") carries no lower-case prose; `sliceAfterHeading` then trims the word.
   const got = harvestImpactStatementFromPlainText(
     'IMPACT STATEMENT Philadelphia middle and high school students gain the skills to navigate ' +
       'science education and the careers that follow it with confidence. ' +
@@ -125,4 +124,50 @@ test('a stop word inside a longer heading does not strand its first word on the 
     got!.endsWith('with confidence.'),
     `tail not trimmed: ${JSON.stringify(got!.slice(-40))}`
   );
+});
+
+test('a stop word inside a sentence no longer truncates the statement', () => {
+  // Performance Garage, the 2026-09-23 audit's measured case. Its real impact statement ends
+  // "...expanding their educational pathways and long-term career opportunities in the arts and
+  // beyond." — and "long-term" is a section stop word. The first match used to win wherever it
+  // sat, cutting the sentence after "pathways and".
+  const got = harvestImpactStatementFromPlainText(
+    `IMPACT STATEMENT ${YOUTHMOVES_PROSE} RESOURCES Human Resources Dance Teacher`
+  );
+  assert.ok(got);
+  assert.ok(got!.endsWith('in the arts and beyond.'), `truncated: ${JSON.stringify(got!.slice(-40))}`);
+  assert.ok(!got!.includes('Dance Teacher'));
+});
+
+test('a stop word in the final clause no longer truncates the statement', () => {
+  // Oxford Circle's, which ends on "resources" itself — the hardest position for the old rule,
+  // because the cut landed two words from the end and still read like a sentence.
+  const got = harvestImpactStatementFromPlainText(
+    'IMPACT STATEMENT Families in the Carnell school community will be connected to stronger ' +
+      'support networks - creating a safer, more resilient community with support and family ' +
+      'resources. TARGET POPULATION Families of students at Carnell Elementary'
+  );
+  assert.ok(got);
+  assert.ok(got!.endsWith('support and family resources.'), `truncated: ${JSON.stringify(got)}`);
+  assert.ok(!got!.includes('Carnell Elementary'));
+});
+
+test('a single emphasised sentence is not mistaken for a list', () => {
+  // One bold span is a wrapped sentence; two or more are a band of headings. Counting asterisk
+  // pairs instead of spans threw this statement away.
+  const got = harvestImpactStatementFromPlainText(`IMPACT STATEMENT **${YOUTHMOVES_PROSE}** MISSION`);
+  assert.ok(got?.startsWith('Through sustained participation'));
+  assert.ok(!got!.includes('*'));
+});
+
+test('the fast path refuses a slice that runs past any plausible statement', () => {
+  // No heading follows, so no section stop is found and the slice runs to the end of the text.
+  // Without a ceiling the fast path returned all of it. The sentence scan still gets its chance,
+  // and rejects each sentence here for being too short to be an impact statement.
+  const runOn = Array.from(
+    { length: 12 },
+    (_, i) => `Participants in cohort ${i + 1} attend weekly sessions and report steady progress.`
+  ).join(' ');
+  const got = harvestImpactStatementFromPlainText(`IMPACT STATEMENT ${runOn}`);
+  assert.equal(got, null);
 });
