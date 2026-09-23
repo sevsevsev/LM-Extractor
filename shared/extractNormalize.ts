@@ -16,7 +16,10 @@ type GroupedDomain =
   | 'impact';
 
 export interface NormalizeExtractOptions {
-  /** PDF/DOCX text layer used to recover labeled Impact Statement when vision drops it. */
+  /**
+   * The bundle's Track A text. Recovers a labelled Impact Statement when vision drops it, and
+   * feeds the page-coverage check in `reconcileExtractionFidelity` (shared/pageCoverage.ts).
+   */
   sourceText?: string;
   /** From DocumentBundle warnings — drives extraction fidelity rollup. */
   lowLegibility?: boolean;
@@ -196,6 +199,9 @@ export function normalizeExtractedLogicModel(
   reconcileExtractionFidelity(model, {
     lowLegibility: options?.lowLegibility,
     textOnlyFallback: options?.textOnlyFallback,
+    // Same Track A text `fillMissingImpactStatementFromSourceText` reads above, reused here for
+    // the page-coverage check rather than threaded in as a second parameter.
+    sourceText: options?.sourceText,
   });
   return model;
 }

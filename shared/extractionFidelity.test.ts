@@ -400,3 +400,76 @@ test('Gemini-reported possiblyMissedRegions are normalized and deduped', () => {
     });
   }
 }
+
+/**
+ * Page coverage — the code-side missed-content signal (shared/pageCoverage.ts). Its own unit tests
+ * cover what it detects; these cover how the rollup treats it. All wording below is invented.
+ */
+function coveragePage(words: string[]): string {
+  // Every line is unique and shares no 12-character run with another page's lines, so "this page's
+  // wording is not in the extraction" is a fact about the fixture rather than a coincidence.
+  const body: string[] = [];
+  for (let i = 0; i < 26; i++) {
+    const w = words[i % words.length];
+    body.push(`${w}${i} delivers ${w}sustained${i} through ${w}practice${i} for ${w}cohort${i} each term`);
+  }
+  return [
+    'RESOURCES ACTIVITIES OUTPUTS SHORT-TERM OUTCOMES MEDIUM-TERM OUTCOMES LONG-TERM OUTCOMES',
+    ...body,
+  ].join(' ');
+}
+
+const COVERAGE_KEPT = coveragePage(['quartzberry', 'lampwright', 'fernshadow', 'cobblemist', 'harrowvane']);
+const COVERAGE_DROPPED = coveragePage(['zephyrgloam', 'thistledown', 'ironbrook', 'velvetspire', 'pinewhistle']);
+const COVERAGE_TRACK = `## Slide 1\n${COVERAGE_KEPT}\n## Slide 2\n${COVERAGE_DROPPED}`;
+
+function coverageModel(): LogicModel {
+  return baseModel({ inputs: { content: groups([item(COVERAGE_KEPT)]) } });
+}
+
+test('a page of grid content missing from the extraction caps ok/high at partial/medium', () => {
+  const model = coverageModel();
+  reconcileExtractionFidelity(model, { sourceText: COVERAGE_TRACK });
+  assert.equal(model.extractionStatus, 'partial');
+  assert.equal(model.extractionConfidence, 'medium');
+  assert.ok(model.extractionBlockers?.some(b => b.startsWith(FIDELITY_BLOCKERS.pageNotExtracted)));
+});
+
+test('the page-coverage blocker names the page', () => {
+  const model = coverageModel();
+  reconcileExtractionFidelity(model, { sourceText: COVERAGE_TRACK });
+  const blocker = model.extractionBlockers?.find(b => b.startsWith(FIDELITY_BLOCKERS.pageNotExtracted));
+  assert.equal(blocker, `${FIDELITY_BLOCKERS.pageNotExtracted} (page 2)`);
+});
+
+test('page coverage never hard-stops an extraction', () => {
+  const model = coverageModel();
+  reconcileExtractionFidelity(model, { sourceText: COVERAGE_TRACK });
+  assert.equal(shouldHardStopExtraction(model), false);
+  assert.equal(shouldShowFidelityBanner(model), true);
+});
+
+test('a fully covered document is untouched by the check', () => {
+  const model = baseModel({ inputs: { content: groups([item(COVERAGE_KEPT)]) } });
+  reconcileExtractionFidelity(model, { sourceText: `## Slide 1\n${COVERAGE_KEPT}` });
+  assert.equal(model.extractionStatus, 'ok');
+  assert.equal(model.extractionConfidence, 'high');
+  assert.equal(model.extractionBlockers, undefined);
+});
+
+test('re-reconciling without the text track keeps the page-coverage warning', () => {
+  // App.tsx's `modelForExport` re-normalizes with no bundle in hand. A warning raised on the first
+  // pass must survive that, or the export would quietly disagree with the board.
+  const model = coverageModel();
+  reconcileExtractionFidelity(model, { sourceText: COVERAGE_TRACK });
+  reconcileExtractionFidelity(model, {});
+  assert.equal(model.extractionStatus, 'partial');
+  assert.ok(model.extractionBlockers?.some(b => b.startsWith(FIDELITY_BLOCKERS.pageNotExtracted)));
+});
+
+test('page coverage stays quiet when nothing came back at all', () => {
+  const model = baseModel();
+  reconcileExtractionFidelity(model, { sourceText: COVERAGE_TRACK });
+  assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.noContent));
+  assert.ok(!model.extractionBlockers?.some(b => b.startsWith(FIDELITY_BLOCKERS.pageNotExtracted)));
+});
