@@ -1,10 +1,10 @@
 {
   "id": "firsthand-pptx",
-  "promptVersion": "2026-09-19.2",
-  "promptVariant": "text-only",
-  "capturedAt": "2026-09-19T20:59:47.051Z",
+  "promptVersion": "2026-09-20.6",
+  "promptVariant": "vision+text",
+  "capturedAt": "2026-09-23T02:52:56.135Z",
   "model": {
-    "organization": "FirstHand",
+    "organization": "Science Center",
     "program": "FirstHand",
     "mission": {
       "content": "FirstHand operates at the intersection of three essential components: Philadelphia students, a hub of STEM industry professionals, and a dedicated program team committed to fostering equitable learning environments. FirstHand offers multi-week programming to middle- and high-school students that includes hands-on experiments, mentorship from STEM-industry professionals, interactive lessons, and collaborative projects."
@@ -19,7 +19,8 @@
           "items": [
             {
               "text": "Dedicated, highly-qualified team of full-time educators",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Human",
               "sourceSection": "Human",
               "mappedBy": "auto",
@@ -27,7 +28,8 @@
             },
             {
               "text": "Philadelphia middle and high school students",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Human",
               "sourceSection": "Human",
               "mappedBy": "auto",
@@ -35,7 +37,8 @@
             },
             {
               "text": "Long-standing partnerships with schools and community",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Human",
               "sourceSection": "Human",
               "mappedBy": "auto",
@@ -43,7 +46,8 @@
             },
             {
               "text": "Network of local STEM professionals who serve as mentors",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Human",
               "sourceSection": "Human",
               "mappedBy": "auto",
@@ -56,7 +60,8 @@
           "items": [
             {
               "text": "Dedicated and welcoming learning lab with industry-standard equipment",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Material",
               "sourceSection": "Material",
               "mappedBy": "auto",
@@ -64,7 +69,8 @@
             },
             {
               "text": "Student Resources (e.g., healthy snacks, personal care items, quiet spaces, flyers for wraparound services)",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Material",
               "sourceSection": "Material",
               "mappedBy": "auto",
@@ -77,7 +83,8 @@
           "items": [
             {
               "text": "Private, public, and individual funders",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Financial",
               "sourceSection": "Financial",
               "mappedBy": "auto",
@@ -90,7 +97,8 @@
           "items": [
             {
               "text": "Multi-week curricular tracks that align to school curricula and in-demand STEM careers",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Knowledge",
               "sourceSection": "Knowledge",
               "mappedBy": "auto",
@@ -106,38 +114,42 @@
           "name": "General",
           "items": [
             {
-              "text": "Program staff lead students in high-quality, hands-on STEM learning",
-              "verbatim": true,
-              "mappedBy": "auto",
-              "mappingConfidence": "spatial"
-            },
-            {
               "text": "Students participate in multi-week STEM programs",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Alumni benefit from ongoing support and connection to continuing opportunities",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Mentors develop, refine, and deliver industry-relevant activities within each multi-week program",
-              "verbatim": true,
+              "fillColor": "navy",
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Partnership building with academic institutions and community-serving organizations",
-              "verbatim": true,
+              "fillColor": "purple",
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Program staff create and continually refine curricula to align to quality measures, student needs, and District priorities",
-              "verbatim": true,
+              "text": "Program staff lead students in high-quality, hands-on STEM learning",
+              "fillColor": "blue",
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -152,55 +164,73 @@
           "items": [
             {
               "text": "350 students from ≥40 Philadelphia schools participate",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Middle school students participate weekly in 11-week, 22-hour programs",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "High school students part icipate weekly in ≥8-week, ≥16-hour programs",
-              "verbatim": true,
+              "text": "High school students participate weekly in ≥8-week, ≥16-hour programs",
+              "fillColor": "teal",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Average attendance rate of ≥85%",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "High school students earn $15/hour stipends (≥$25,000 total paid to students annually)",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "15% of alumni participate are supported in seeking and completing an additional opportunity (e.g., FirstHand programming, a paid internship, and/or continuing education program)",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "≥100 professionals with ≥20 companies serve as mentors",
-              "verbatim": true,
+              "fillColor": "navy",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "≥10 mutually-beneficial partnerships with academic institutions and community-serving organizations",
-              "verbatim": true,
+              "fillColor": "purple",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Program quality is consistently high (e.g., safe environment, interaction, engagement, and STEM skill building)",
-              "verbatim": true,
+              "fillColor": "blue",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -215,43 +245,73 @@
           "items": [
             {
               "text": "Students build confidence in STEM coursework",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Students gain awareness of and interest in STEM career paths",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Students increase valuing and understanding of how science in relevant in everyday life",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Students have positive relationships with program adults (staff and mentors)",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Students feel welcome, safe, and like they belong at FirstHand",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Students enhance professional network through mentor experiences",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Mentors gain confidence engaging with youth and communicating their work",
-              "verbatim": true,
+              "fillColor": "navy",
+              "sourceColumn": 4,
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Partnerships lead to seamless cross-program referrals and resource sharing to support students’ academic, employment, and basic needs",
+              "fillColor": "purple",
+              "sourceColumn": 4,
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Program is embedded in school culture resulting in student enthusiasm and retention, and alignment to school priorities",
+              "fillColor": "blue",
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -266,55 +326,65 @@
           "items": [
             {
               "text": "Alumni feel sense of belonging in continuing opportunities and internship",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Alumni leverage professional network and program partnerships to access new opportunities",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Alumni enroll in advanced and/or elective STEM coursework",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Alumni increase academic performance in STEM courses",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Mentors deepen involvement and recruit colleagues to volunteer",
-              "verbatim": true,
+              "fillColor": "navy",
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Mentors increase awareness of barriers facing youth from marginalized communities in STEM",
-              "verbatim": true,
-              "mappedBy": "auto",
-              "mappingConfidence": "spatial"
-            },
-            {
-              "text": "Partnerships secure collaborative funding and develop complementary programming",
-              "verbatim": true,
+              "fillColor": "navy",
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Partnerships result in broad and continued support for shared participants",
-              "verbatim": true,
+              "fillColor": "purple",
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Program is embedded in school culture resulting in student enthusiasm and retention, and alignment to school priorities",
-              "verbatim": true,
+              "text": "Program staff create and continually refine curricula to align to quality measures, student needs, and District priorities",
+              "fillColor": "blue",
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -329,37 +399,49 @@
           "items": [
             {
               "text": "Alumni pursue post-secondary education or training in STEM",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 6,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Alumni retain lifelong STEM curiosity and literacy",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 6,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Alumni achieve upward economic mobility",
-              "verbatim": true,
+              "fillColor": "teal",
+              "sourceColumn": 6,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Regional STEM industry is more diverse and inclusive",
-              "verbatim": true,
+              "fillColor": "navy",
+              "sourceColumn": 6,
+              "sourcePage": 2,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Partnerships secure collaborative funding and develop complementary programming",
+              "fillColor": "purple",
+              "sourceColumn": 6,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Program is locally and nationally recognized as a model for high-quality STEM programming",
-              "verbatim": true,
-              "mappedBy": "auto",
-              "mappingConfidence": "spatial"
-            },
-            {
-              "text": "Partnerships lead to seamless cross-program referrals and resource sharing to support students’ academic, employment, and basic needs",
-              "verbatim": true,
+              "fillColor": "blue",
+              "sourceColumn": 6,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -371,9 +453,9 @@
       "content": []
     },
     "documentTypeAssessment": "logic_model",
-    "extractionStatus": "partial",
+    "extractionStatus": "ok",
     "colorLegend": "",
-    "extractionConfidence": "medium",
+    "extractionConfidence": "high",
     "generalOutcomes": {
       "content": []
     },
@@ -384,9 +466,6 @@
     "unmapped": {
       "content": []
     },
-    "mappingCorrections": [],
-    "extractionBlockers": [
-      "Extracted from text only — the document could not be read as images, so layout-based columns and formatting may be less reliable"
-    ]
+    "mappingCorrections": []
   }
 }

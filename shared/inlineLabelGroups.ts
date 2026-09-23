@@ -1,5 +1,5 @@
 import type { LogicModel, LogicModelGroup } from '../types';
-import { synonymToDomain, type CanonicalGroupedDomain } from './domainSynonyms.js';
+import { columnNameToDomain, type CanonicalGroupedDomain } from './domainSynonyms.js';
 
 /**
  * Promotes an inline `Label: …` prefix to `Group.name` when a column carries a visible band of
@@ -101,25 +101,31 @@ function isUngrouped(group: LogicModelGroup): boolean {
 
 /**
  * Whether this column's labels can be promoted without `applySourceAwareMapping` then moving the
- * items somewhere else.
+ * items somewhere else. It asks exactly the question that pass asks, with the same predicate, so
+ * the two cannot drift apart: a label that would not trigger a move cannot disqualify a band.
  *
- * This guard was not foreseen — it was found by running candidate labels through
- * `synonymToDomain`. YMCA's Long-Term Outcomes column reads `Empowered Civic Participation:`,
- * `College and Career Readiness:`, `Sustained Community Impact:`. The third ends in "Impact",
- * which is an `impact`-domain synonym, so without this guard a long-term outcome would be
- * promoted and then moved into the Impact column on the very next pass. A column of activity
- * horizons (`Short-term engagements:` beside `Mid-term residencies:`) fails the same way, and
- * asymmetrically: "short-term" is a synonym key and "mid-term" is not.
+ * This guard was not foreseen — it was found by running candidate labels through the synonym
+ * table. YMCA's Long-Term Outcomes column reads `Empowered Civic Participation:`, `College and
+ * Career Readiness:`, `Sustained Community Impact:`, and the third ends in "Impact".
  *
- * One offending label therefore disqualifies the WHOLE group rather than just itself. Promoting
- * the other members of a band and leaving one behind is worse for a reviewer than leaving the
- * column alone, and "this column contains a label that names another column" is a fair signal
+ * It used to ask `synonymToDomain`, which matches a domain word anywhere at a word boundary, so
+ * "Sustained Community Impact" read as the Impact column and disqualified the whole band. That
+ * was the right call against the mapper as it then behaved and it cost this document its
+ * Long-Term Outcomes grouping: four sections of five promoted, the fifth left with its labels
+ * inline, same page and same markup. The 2026-09-23 audit filed it as a defect in its own right;
+ * it was this guard firing as designed. `columnNameToDomain` now requires the unqualified column
+ * name, so a qualified sub-heading is no longer read as a column and the fifth section promotes
+ * like the other four.
+ *
+ * One offending label still disqualifies the WHOLE group rather than just itself. Promoting the
+ * other members of a band and leaving one behind is worse for a reviewer than leaving the column
+ * alone, and "this column contains a label that names another column outright" is a fair signal
  * that its labels are not categories in the sense this pass is looking for.
  */
 function labelsStayInThisColumn(labels: string[], domain: CanonicalGroupedDomain): boolean {
   return labels.every(label => {
-    const synonym = synonymToDomain(label);
-    return synonym === null || synonym === domain;
+    const named = columnNameToDomain(label);
+    return named === null || named === domain;
   });
 }
 

@@ -1,16 +1,16 @@
 {
   "id": "healthy-newsworks-core-reporter",
-  "promptVersion": "2026-09-19.2",
+  "promptVersion": "2026-09-20.6",
   "promptVariant": "vision+text",
-  "capturedAt": "2026-09-19T20:58:53.739Z",
+  "capturedAt": "2026-09-23T02:52:15.043Z",
   "model": {
     "organization": "Healthy NewsWorks",
-    "program": "Core Reporter Program",
+    "program": "Healthy NewsWorks Core Reporter Program",
     "mission": {
       "content": "Healthy NewsWorks empowers elementary and middle school students to become researchers, writers, critical thinkers, and confident communicators who advance health understanding and literacy through their factual publications and digital media."
     },
     "targetPopulation": {
-      "content": "Elementary and middle school teachers and students (Core Reporters 4-8th Grade; Cub Reporters K-3rd Grade) in Philadelphia, Norristown, Pennsauken, Chester, and Camden (NJ)\nServes 2,000+ students annually"
+      "content": "Elementary and middle school teachers and students (Core Reporters 4-8th Grade; Cub Reporters K-3rd Grade) in Philadelphia, Norristown, Pennsauken, Chester, and Camden (NJ); Serves 2,000+ students annually"
     },
     "inputs": {
       "content": [
@@ -19,7 +19,8 @@
           "items": [
             {
               "text": "HNW Board Members, Leadership, Staff, and Volunteers",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Human Resources",
               "sourceSection": "Human Resources",
               "mappedBy": "auto",
@@ -27,7 +28,8 @@
             },
             {
               "text": "School personnel, students, and families",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Human Resources",
               "sourceSection": "Human Resources",
               "mappedBy": "auto",
@@ -35,7 +37,8 @@
             },
             {
               "text": "Consultants",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Human Resources",
               "sourceSection": "Human Resources",
               "mappedBy": "auto",
@@ -43,7 +46,8 @@
             },
             {
               "text": "Local and national health experts",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Human Resources",
               "sourceSection": "Human Resources",
               "mappedBy": "auto",
@@ -56,7 +60,8 @@
           "items": [
             {
               "text": "Curriculum aligned to national educational standards and leveled; updated annually",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Material Resources",
               "sourceSection": "Material Resources",
               "mappedBy": "auto",
@@ -64,7 +69,8 @@
             },
             {
               "text": "Teacher training materials",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Material Resources",
               "sourceSection": "Material Resources",
               "mappedBy": "auto",
@@ -72,7 +78,8 @@
             },
             {
               "text": "ACT 48 provider approval",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Material Resources",
               "sourceSection": "Material Resources",
               "mappedBy": "auto",
@@ -80,7 +87,8 @@
             },
             {
               "text": "Website",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Material Resources",
               "sourceSection": "Material Resources",
               "mappedBy": "auto",
@@ -88,7 +96,8 @@
             },
             {
               "text": "Technology and Equipment",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Material Resources",
               "sourceSection": "Material Resources",
               "mappedBy": "auto",
@@ -101,7 +110,8 @@
           "items": [
             {
               "text": "Foundation grants",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Financial Resources",
               "sourceSection": "Financial Resources",
               "mappedBy": "auto",
@@ -109,7 +119,8 @@
             },
             {
               "text": "Private donations",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Financial Resources",
               "sourceSection": "Financial Resources",
               "mappedBy": "auto",
@@ -117,7 +128,8 @@
             },
             {
               "text": "Direct services",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Financial Resources",
               "sourceSection": "Financial Resources",
               "mappedBy": "auto",
@@ -125,7 +137,8 @@
             },
             {
               "text": "Mission-aligned sponsors",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Financial Resources",
               "sourceSection": "Financial Resources",
               "mappedBy": "auto",
@@ -138,7 +151,8 @@
           "items": [
             {
               "text": "Journalism and health experts",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Knowledge Resources",
               "sourceSection": "Knowledge Resources",
               "mappedBy": "auto",
@@ -146,7 +160,8 @@
             },
             {
               "text": "Educational expertise",
-              "verbatim": true,
+              "sourceColumn": 1,
+              "sourcePage": 2,
               "sourceHeader": "Knowledge Resources",
               "sourceSection": "Knowledge Resources",
               "mappedBy": "auto",
@@ -163,7 +178,8 @@
           "items": [
             {
               "text": "Deliver classroom lessons",
-              "verbatim": true,
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "sourceHeader": "Program Delivery",
               "sourceSection": "Program Delivery",
               "mappedBy": "auto",
@@ -171,7 +187,8 @@
             },
             {
               "text": "Hands-on guidance provided to students and teachers on research, interviewing, and writing print and digital media",
-              "verbatim": true,
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "sourceHeader": "Program Delivery",
               "sourceSection": "Program Delivery",
               "mappedBy": "auto",
@@ -179,7 +196,8 @@
             },
             {
               "text": "Coordinate interviews with experts",
-              "verbatim": true,
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "sourceHeader": "Program Delivery",
               "sourceSection": "Program Delivery",
               "mappedBy": "auto",
@@ -187,7 +205,8 @@
             },
             {
               "text": "Develop student-created videos",
-              "verbatim": true,
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "sourceHeader": "Program Delivery",
               "sourceSection": "Program Delivery",
               "mappedBy": "auto",
@@ -195,7 +214,8 @@
             },
             {
               "text": "Edit, design, print, and disseminate newspaper editions for each school",
-              "verbatim": true,
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "sourceHeader": "Program Delivery",
               "sourceSection": "Program Delivery",
               "mappedBy": "auto",
@@ -203,7 +223,8 @@
             },
             {
               "text": "Edit, design, print, and disseminate magazines",
-              "verbatim": true,
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "sourceHeader": "Program Delivery",
               "sourceSection": "Program Delivery",
               "mappedBy": "auto",
@@ -216,7 +237,8 @@
           "items": [
             {
               "text": "Provide one-on-one mentoring",
-              "verbatim": true,
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "sourceHeader": "Teacher Training",
               "sourceSection": "Teacher Training",
               "mappedBy": "auto",
@@ -224,7 +246,8 @@
             },
             {
               "text": "Hold in-person and online training",
-              "verbatim": true,
+              "sourceColumn": 2,
+              "sourcePage": 2,
               "sourceHeader": "Teacher Training",
               "sourceSection": "Teacher Training",
               "mappedBy": "auto",
@@ -241,47 +264,53 @@
           "items": [
             {
               "text": "Lessons delivered to more than 600 students in 24 classrooms",
-              "verbatim": true,
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "sourceHeader": "Program Delivery",
               "sourceSection": "Program Delivery",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "40+ school newspapers published",
-              "verbatim": true,
+              "text": "Student Publications — 40+ school newspapers published",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "sourceHeader": "Program Delivery",
               "sourceSection": "Program Delivery",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "2 magazines published",
-              "verbatim": true,
+              "text": "Student Publications — 2 magazines published",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "sourceHeader": "Program Delivery",
               "sourceSection": "Program Delivery",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "6+ videos",
-              "verbatim": true,
+              "text": "Student Publications — 6+ videos",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "sourceHeader": "Program Delivery",
               "sourceSection": "Program Delivery",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "20+ interviews with health experts",
-              "verbatim": true,
+              "text": "Student Publications — 20+ interviews with health experts",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "sourceHeader": "Program Delivery",
               "sourceSection": "Program Delivery",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "7,000 students, teachers, family members reached",
-              "verbatim": true,
+              "text": "Student Publications — 7,000 students, teachers, family members reached",
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "sourceHeader": "Program Delivery",
               "sourceSection": "Program Delivery",
               "mappedBy": "auto",
@@ -294,7 +323,8 @@
           "items": [
             {
               "text": "In-person and online teacher trainings held",
-              "verbatim": true,
+              "sourceColumn": 3,
+              "sourcePage": 2,
               "sourceHeader": "Teacher Training",
               "sourceSection": "Teacher Training",
               "mappedBy": "auto",
@@ -311,7 +341,8 @@
           "items": [
             {
               "text": "Increased academic skill development (e.g., writing, research, identifying trustworthy information, interviewing skills, and communication)",
-              "verbatim": true,
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "sourceHeader": "Student Reporters",
               "sourceSection": "Student Reporters",
               "mappedBy": "auto",
@@ -319,7 +350,8 @@
             },
             {
               "text": "Increased soft skills (e.g., social-emotional learning skills and confidence)",
-              "verbatim": true,
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "sourceHeader": "Student Reporters",
               "sourceSection": "Student Reporters",
               "mappedBy": "auto",
@@ -327,7 +359,8 @@
             },
             {
               "text": "Increased health knowledge",
-              "verbatim": true,
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "sourceHeader": "Student Reporters",
               "sourceSection": "Student Reporters",
               "mappedBy": "auto",
@@ -340,7 +373,8 @@
           "items": [
             {
               "text": "Increase in teacher knowledge of health and journalism",
-              "verbatim": true,
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "sourceHeader": "Teachers",
               "sourceSection": "Teachers",
               "mappedBy": "auto",
@@ -348,7 +382,8 @@
             },
             {
               "text": "Development of new teaching skills",
-              "verbatim": true,
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "sourceHeader": "Teachers",
               "sourceSection": "Teachers",
               "mappedBy": "auto",
@@ -356,7 +391,8 @@
             },
             {
               "text": "Increased teacher confidence in their teaching practice",
-              "verbatim": true,
+              "sourceColumn": 4,
+              "sourcePage": 2,
               "sourceHeader": "Teachers",
               "sourceSection": "Teachers",
               "mappedBy": "auto",
@@ -373,7 +409,8 @@
           "items": [
             {
               "text": "Improved academic and literacy skills",
-              "verbatim": true,
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "sourceHeader": "Student Reporters",
               "sourceSection": "Student Reporters",
               "mappedBy": "auto",
@@ -381,7 +418,8 @@
             },
             {
               "text": "Demonstrate understanding of soft skills, including social-emotional learning skills",
-              "verbatim": true,
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "sourceHeader": "Student Reporters",
               "sourceSection": "Student Reporters",
               "mappedBy": "auto",
@@ -389,7 +427,8 @@
             },
             {
               "text": "Application of health knowledge and health behavior in real-world contexts",
-              "verbatim": true,
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "sourceHeader": "Student Reporters",
               "sourceSection": "Student Reporters",
               "mappedBy": "auto",
@@ -402,7 +441,8 @@
           "items": [
             {
               "text": "Sustained integration of health and media literacy into classroom instruction",
-              "verbatim": true,
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "sourceHeader": "Teachers",
               "sourceSection": "Teachers",
               "mappedBy": "auto",
@@ -410,7 +450,8 @@
             },
             {
               "text": "Increased knowledge in health and media literacy skills",
-              "verbatim": true,
+              "sourceColumn": 5,
+              "sourcePage": 2,
               "sourceHeader": "Teachers",
               "sourceSection": "Teachers",
               "mappedBy": "auto",
@@ -427,25 +468,29 @@
           "items": [
             {
               "text": "Sustained teaching workforce equipped to integrate health and media literacy in instructional practice",
-              "verbatim": true,
+              "sourceColumn": 6,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Students demonstrate ongoing academic success, critical thinking skills, and health literacy skills",
-              "verbatim": true,
+              "sourceColumn": 6,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Students show improved ability to evaluate health information, leading to reduced susceptibility to misinformation",
-              "verbatim": true,
+              "sourceColumn": 6,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Improved health knowledge and norms within school communities",
-              "verbatim": true,
+              "sourceColumn": 6,
+              "sourcePage": 2,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -459,6 +504,7 @@
     "documentTypeAssessment": "logic_model",
     "extractionStatus": "ok",
     "colorLegend": "",
+    "extractionConfidence": "high",
     "generalOutcomes": {
       "content": []
     },
@@ -469,7 +515,6 @@
     "unmapped": {
       "content": []
     },
-    "mappingCorrections": [],
-    "extractionConfidence": "high"
+    "mappingCorrections": []
   }
 }

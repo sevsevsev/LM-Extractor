@@ -2134,6 +2134,7 @@ them and the manifest text follows from the result.                             
 | 27 | 2026-09-22 | 9 decks (hosted) | hosted PPTX never reached LibreOffice: honest content type discarded by the host, wasm never deployed | setup | N |
 | 28 | 2026-09-22 | 6 PDFs + triage | 5 of 15 documents never touched pdf.js; 2 of 6 PDFs really damaged (Rock School wholly, Achieve Now one box); scanner over-reported until pixels checked it | audit-instrument | N |
 | 29 | 2026-09-23 | 14 docs, 678 items | accuracy audit: 678 of 678 found on the pages, 0 invented; Cub Reporter's 144->124 is 18 promoted category labels + 2 headers, not content; 6 structural defects, 1 of them a retraction of my own session-28 claim | audit | N |
+| 30 | 2026-09-23 | 14 docs (raw vs normalized) | audit defects 2-4 were ONE bug and it was ours: the synonym remapper moved items out of columns Gemini had right, 4 moves on the set and all 4 wrong; fixed, 3 docs change and 11 byte-identical; section-stop and baselines fixed too | setup + audit-instrument | N |
 
 ---
 
@@ -2575,3 +2576,63 @@ title. Oxford Circle's two "-" fields produced no invented mission. Both PPTX co
 out of their boxes and both times Track A supplied the whole item. Rock School and Art Thru Youth
 head their outcome column "OUTCOMES" with no horizon and correctly go to `generalOutcomes` rather
 than guessing a time split. BioEYES reports itself `not_logic_model` / partial / medium, and is.
+
+---
+
+## Session 30 — the grouping defects were ours, and the audit named the wrong mechanism
+
+```
+Date:                     2026-09-23
+Operator:                 agent (thread: "Recheck our numbers after the fix")
+Files:                    the 14 recaptured documents (bundles only; no re-capture)
+Host mode:                npm run dev :3000 + :3011
+Cost:                     46 extract calls
+```
+
+--- What happened ---
+
+Session 29 filed three of its six defects as one bug and named the mechanism from the shape of the
+source pages: "a label with no bullet marker". Asked to address the outstanding items, the first
+move was to stop reasoning about the pages and dump Gemini's RAW output beside the normalized
+result for all fourteen documents. The raw output had all three right. `applySourceAwareMapping`
+moved them.
+
+`synonymToDomain` matches a domain word anywhere at a word boundary, which is correct for reading
+what a header means and wrong for overruling a column, because a sub-heading of a correctly-placed
+column reads "\<qualifier\> \<domain word\>" almost every time: `Youth Outcomes`,
+`Teacher/School Resources`, `Sustained Community Impact`. Over the fourteen documents the remapper
+fired a move four times and was wrong all four. It has never moved anything correctly on any
+document in hand.
+
+--- What made it cheap ---
+
+The raw dump turned normalization into a pure function of saved JSON, so every candidate fix could
+be measured over all fourteen documents offline, with no API call and no conversion step. The
+harness was checked against the server first: same input, byte-identical output, fourteen for
+fourteen. Three passes of tuning cost nothing. That is the instrument to reach for the next time
+anything in `shared/` post-processes an extraction — it isolates our code from the model's variance
+completely, which is the thing the census cannot do.
+
+--- Lessons ---
+
+1. **A defect in the output is not evidence about which side produced it.** Session 29 read three
+   pages carefully and still attributed all three defects to the wrong component, because it never
+   looked at what the model actually returned. The same session's headline lesson was "look at the
+   exact box before calling it renderer damage"; this is that lesson again with a different
+   component in it. When the pipeline has a model step and a code step, dump the seam.
+2. **A guard can be a defect's second hat.** YMCA's fifth section kept its labels inline because
+   `inlineLabelGroups.ts` was correctly refusing to feed a label to a remapper that would mishandle
+   it. Filed as its own defect; it was armour. Fix the thing being defended against and the guard
+   stops firing on its own.
+3. **A test can pass because of a bug.** "Markdown markers do not reach the harvested statement"
+   passed only while the truncation defect was cutting the closing `**` off the slice. Fixing the
+   truncation broke it, which is how the asterisk-pair count was found to be reading a single
+   emphasised sentence as a list.
+4. **Stale baselines are worse than none.** Every snapshot sat at prompt `2026-09-19.2` against a
+   live `2026-09-20.6`, so the check reported a change for every document and there was nothing to
+   read. Re-baselined here: 7 refreshed, 7 given a first baseline, 12 of 14 reproducing immediately
+   and the two that do not varying inside the gate.
+```
+Cause tag:                setup + audit-instrument
+Stop using the tool?      N
+```

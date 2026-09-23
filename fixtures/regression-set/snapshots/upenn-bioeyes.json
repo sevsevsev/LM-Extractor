@@ -1,0 +1,122 @@
+{
+  "id": "upenn-bioeyes",
+  "promptVersion": "2026-09-20.6",
+  "promptVariant": "vision-only",
+  "capturedAt": "2026-09-23T02:54:07.031Z",
+  "model": {
+    "organization": "Penn",
+    "program": "Effective University-School Partnerships",
+    "mission": {
+      "content": ""
+    },
+    "targetPopulation": {
+      "content": "Teachers and students"
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Teachers get necessary skills and equipment for teaching life science effectively.",
+              "fillColor": "light gray",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Students engage in hands-on, meaningful science experiments.",
+              "fillColor": "light gray",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": []
+    },
+    "shortTermOutcomes": {
+      "content": []
+    },
+    "mediumTermOutcomes": {
+      "content": []
+    },
+    "longTermOutcomes": {
+      "content": []
+    },
+    "impact": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Students employed in STEM fields.",
+              "fillColor": "light gray",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "documentTypeAssessment": "not_logic_model",
+    "extractionStatus": "partial",
+    "colorLegend": "",
+    "documentTypeNote": "Presents a Theory of Change causal chain diagram without standardized input, activity, output, and outcome column headers.",
+    "generalOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Students develop relevant science skills and a positive attitude towards science.",
+              "fillColor": "light gray",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students see science careers as a possible option.",
+              "fillColor": "light gray",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students pursue additional Penn STEM opportunities focused on college and career preparedness.",
+              "fillColor": "light gray",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "impactStatement": {
+      "content": ""
+    },
+    "layoutFamily": "diagram",
+    "unmapped": {
+      "content": []
+    },
+    "mappingCorrections": [],
+    "extractionConfidence": "medium",
+    "extractionBlockers": [
+      "This may not be a logic model — check the document before relying on this extraction (Presents a Theory of Change causal chain diagram without standardized input, activity, output, and outcome column headers.)"
+    ]
+  }
+}

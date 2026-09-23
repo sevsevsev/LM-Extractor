@@ -136,12 +136,37 @@ describe('promoteInlineColonLabels', () => {
   });
 
   /**
-   * The guard that was found by measurement rather than foresight, on YMCA's Long-Term Outcomes
-   * column verbatim. "Sustained Community Impact" ends in an `impact`-domain synonym — promote it
-   * and `applySourceAwareMapping` moves a long-term outcome into the Impact column on the very
-   * next pass. One offending label disqualifies the whole group.
+   * The guard still fires when a label names another column OUTRIGHT: promote "Impact" here and
+   * `applySourceAwareMapping` moves a long-term outcome into the Impact column on the very next
+   * pass. One offending label disqualifies the whole group.
    */
-  it('refuses a column whose label names another column', () => {
+  it('refuses a column whose label names another column outright', () => {
+    const m = model({
+      longTermOutcomes: {
+        content: [
+          group(
+            'General',
+            'Empowered Civic Participation: Students become active, informed citizens.',
+            'College and Career Readiness: Development of adaptable skills.',
+            'Impact: A network of youth who continue to engage.'
+          ),
+        ],
+      },
+    });
+    const before = JSON.stringify(m.longTermOutcomes.content);
+    promoteInlineColonLabels(m);
+    assert.equal(JSON.stringify(m.longTermOutcomes.content), before);
+  });
+
+  /**
+   * And it no longer fires on a label that merely ENDS in a domain word. This is YMCA's Long-Term
+   * Outcomes column verbatim, and the 2026-09-23 audit's fourth defect: "Sustained Community
+   * Impact" used to read as the Impact column, so four of that document's five sections promoted
+   * their labels and this one did not — same page, same markup, two behaviours. It is a
+   * sub-heading, and `columnNameToDomain` now says so, so the fifth section promotes like the
+   * rest.
+   */
+  it('promotes a band whose label only ends in a domain word', () => {
     const m = model({
       longTermOutcomes: {
         content: [
@@ -154,9 +179,11 @@ describe('promoteInlineColonLabels', () => {
         ],
       },
     });
-    const before = JSON.stringify(m.longTermOutcomes.content);
     promoteInlineColonLabels(m);
-    assert.equal(JSON.stringify(m.longTermOutcomes.content), before);
+    assert.deepEqual(
+      (m.longTermOutcomes.content ?? []).map(g => g.name),
+      ['Empowered Civic Participation', 'College and Career Readiness', 'Sustained Community Impact']
+    );
   });
 
   /** YMCA's Inputs column: "Resources" is an `inputs` synonym, and it already sits in Inputs. */
@@ -367,7 +394,19 @@ describe('promoteInlineColonLabels over the blessed snapshots', () => {
       return grouping(m) !== before;
     });
 
-  it('regroups ymca-youth-civic-engagement and nothing else', () => {
-    assert.deepEqual(changed, ['ymca-youth-civic-engagement.json']);
+  /**
+   * This used to assert `['ymca-youth-civic-engagement.json']` — the one snapshot of ten this pass
+   * regrouped, which was the blast-radius measurement PR #9 shipped on. Those snapshots predated
+   * the pass, so re-running it over them did real work.
+   *
+   * The snapshots were recaptured on 2026-09-23 with the pass live, so every one of them already
+   * carries its result and running it again is a no-op. That is a different guard and still a
+   * useful one over seventeen real documents: the pass is idempotent (`promoteInlineColonLabels`
+   * says it is safe to call twice, and this is what checks it), and it does not newly fire on any
+   * blessed document. What it no longer covers is the original question — how many real documents
+   * the pass changes at all — which now lives in the verification documents rather than here.
+   */
+  it('is a no-op over every blessed snapshot', () => {
+    assert.deepEqual(changed, []);
   });
 });

@@ -1,11 +1,11 @@
 {
   "id": "oxford-circle-carnell-frc",
-  "promptVersion": "2026-09-19.2",
+  "promptVersion": "2026-09-20.6",
   "promptVariant": "vision+text",
-  "capturedAt": "2026-09-19T20:58:24.476Z",
+  "capturedAt": "2026-09-23T02:51:43.692Z",
   "model": {
     "organization": "Oxford Circle Christian Community Development Association",
-    "program": "Carnell FRC",
+    "program": "Oxford Circle CCDA - Carnell FRC",
     "mission": {
       "content": ""
     },
@@ -22,7 +22,6 @@
               "fillColor": "yellow",
               "sourceColumn": 1,
               "sourcePage": 2,
-              "verbatim": true,
               "sourceHeader": "Frontline Staff",
               "sourceSection": "Frontline Staff",
               "mappedBy": "auto",
@@ -33,7 +32,6 @@
               "fillColor": "yellow",
               "sourceColumn": 1,
               "sourcePage": 2,
-              "verbatim": true,
               "sourceHeader": "Frontline Staff",
               "sourceSection": "Frontline Staff",
               "mappedBy": "auto",
@@ -44,7 +42,6 @@
               "fillColor": "yellow",
               "sourceColumn": 1,
               "sourcePage": 2,
-              "verbatim": true,
               "sourceHeader": "Frontline Staff",
               "sourceSection": "Frontline Staff",
               "mappedBy": "auto",
@@ -55,7 +52,6 @@
               "fillColor": "yellow",
               "sourceColumn": 1,
               "sourcePage": 2,
-              "verbatim": true,
               "sourceHeader": "Frontline Staff",
               "sourceSection": "Frontline Staff",
               "mappedBy": "auto",
@@ -71,7 +67,6 @@
               "fillColor": "yellow",
               "sourceColumn": 1,
               "sourcePage": 2,
-              "verbatim": true,
               "sourceHeader": "Partners",
               "sourceSection": "Partners",
               "mappedBy": "auto",
@@ -82,7 +77,6 @@
               "fillColor": "yellow",
               "sourceColumn": 1,
               "sourcePage": 2,
-              "verbatim": true,
               "sourceHeader": "Partners",
               "sourceSection": "Partners",
               "mappedBy": "auto",
@@ -93,7 +87,6 @@
               "fillColor": "yellow",
               "sourceColumn": 1,
               "sourcePage": 2,
-              "verbatim": true,
               "sourceHeader": "Partners",
               "sourceSection": "Partners",
               "mappedBy": "auto",
@@ -109,7 +102,6 @@
               "fillColor": "yellow",
               "sourceColumn": 1,
               "sourcePage": 2,
-              "verbatim": true,
               "sourceHeader": "Material & Financial Resources",
               "sourceSection": "Material & Financial Resources",
               "mappedBy": "auto",
@@ -120,7 +112,6 @@
               "fillColor": "yellow",
               "sourceColumn": 1,
               "sourcePage": 2,
-              "verbatim": true,
               "sourceHeader": "Material & Financial Resources",
               "sourceSection": "Material & Financial Resources",
               "mappedBy": "auto",
@@ -131,7 +122,6 @@
               "fillColor": "yellow",
               "sourceColumn": 1,
               "sourcePage": 2,
-              "verbatim": true,
               "sourceHeader": "Material & Financial Resources",
               "sourceSection": "Material & Financial Resources",
               "mappedBy": "auto",
@@ -142,7 +132,6 @@
               "fillColor": "yellow",
               "sourceColumn": 1,
               "sourcePage": 2,
-              "verbatim": true,
               "sourceHeader": "Material & Financial Resources",
               "sourceSection": "Material & Financial Resources",
               "mappedBy": "auto",
@@ -153,7 +142,6 @@
               "fillColor": "yellow",
               "sourceColumn": 1,
               "sourcePage": 2,
-              "verbatim": true,
               "sourceHeader": "Material & Financial Resources",
               "sourceSection": "Material & Financial Resources",
               "mappedBy": "auto",
@@ -164,7 +152,6 @@
               "fillColor": "yellow",
               "sourceColumn": 1,
               "sourcePage": 2,
-              "verbatim": true,
               "sourceHeader": "Material & Financial Resources",
               "sourceSection": "Material & Financial Resources",
               "mappedBy": "auto",
@@ -180,7 +167,6 @@
               "fillColor": "yellow",
               "sourceColumn": 1,
               "sourcePage": 2,
-              "verbatim": true,
               "sourceHeader": "Knowledge Resources",
               "sourceSection": "Knowledge Resources",
               "mappedBy": "auto",
@@ -191,7 +177,6 @@
               "fillColor": "yellow",
               "sourceColumn": 1,
               "sourcePage": 2,
-              "verbatim": true,
               "sourceHeader": "Knowledge Resources",
               "sourceSection": "Knowledge Resources",
               "mappedBy": "auto",
@@ -211,7 +196,6 @@
               "fillColor": "orange",
               "sourceColumn": 2,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -220,7 +204,6 @@
               "fillColor": "orange",
               "sourceColumn": 2,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -229,7 +212,6 @@
               "fillColor": "purple",
               "sourceColumn": 2,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -238,7 +220,6 @@
               "fillColor": "purple",
               "sourceColumn": 2,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -246,9 +227,7 @@
               "text": "Referrals to Trauma-focused Cognitive Behavioral Therapy (TF-CBT) for students of all",
               "fillColor": "orange",
               "sourceColumn": 2,
-              "sourceNote": "Box text cuts off at 'all'",
               "sourcePage": 2,
-              "verbatim": false,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -257,7 +236,6 @@
               "fillColor": "purple",
               "sourceColumn": 2,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -275,7 +253,6 @@
               "fillColor": "orange",
               "sourceColumn": 3,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -284,7 +261,6 @@
               "fillColor": "orange",
               "sourceColumn": 3,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -293,7 +269,6 @@
               "fillColor": "orange",
               "sourceColumn": 3,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -302,7 +277,6 @@
               "fillColor": "purple",
               "sourceColumn": 3,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -311,7 +285,6 @@
               "fillColor": "purple",
               "sourceColumn": 3,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -320,7 +293,6 @@
               "fillColor": "orange",
               "sourceColumn": 3,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -329,7 +301,6 @@
               "fillColor": "coral",
               "sourceColumn": 3,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -338,7 +309,6 @@
               "fillColor": "coral",
               "sourceColumn": 3,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -356,7 +326,6 @@
               "fillColor": "orange",
               "sourceColumn": 4,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -365,7 +334,6 @@
               "fillColor": "orange",
               "sourceColumn": 4,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -374,7 +342,6 @@
               "fillColor": "purple",
               "sourceColumn": 4,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -383,7 +350,6 @@
               "fillColor": "purple",
               "sourceColumn": 4,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -392,7 +358,6 @@
               "fillColor": "purple",
               "sourceColumn": 4,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -401,7 +366,6 @@
               "fillColor": "coral",
               "sourceColumn": 4,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -419,7 +383,6 @@
               "fillColor": "orange",
               "sourceColumn": 5,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -428,7 +391,6 @@
               "fillColor": "orange",
               "sourceColumn": 5,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -437,7 +399,6 @@
               "fillColor": "purple",
               "sourceColumn": 5,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -446,7 +407,6 @@
               "fillColor": "purple",
               "sourceColumn": 5,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -455,7 +415,6 @@
               "fillColor": "coral",
               "sourceColumn": 5,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }
@@ -473,7 +432,6 @@
               "fillColor": "orange",
               "sourceColumn": 6,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -482,7 +440,6 @@
               "fillColor": "orange",
               "sourceColumn": 6,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -491,7 +448,6 @@
               "fillColor": "purple",
               "sourceColumn": 6,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
@@ -500,7 +456,6 @@
               "fillColor": "coral",
               "sourceColumn": 6,
               "sourcePage": 2,
-              "verbatim": true,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             }

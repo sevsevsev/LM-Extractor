@@ -1,0 +1,461 @@
+{
+  "id": "sample-achieve-now",
+  "promptVersion": "2026-09-20.6",
+  "promptVariant": "vision+text",
+  "capturedAt": "2026-09-23T02:55:03.664Z",
+  "model": {
+    "organization": "Achieve Now",
+    "program": "Achieve Now",
+    "mission": {
+      "content": "Achieve Now supports K–2 students in Greater Philadelphia by building the foundational literacy skills most predictive of future academic success, preparing them to become strong, confident, and joyful readers."
+    },
+    "targetPopulation": {
+      "content": "K–2 students in Greater Philadelphia"
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "Human",
+          "items": [
+            {
+              "text": "Volunteers",
+              "sourcePage": 1,
+              "sourceHeader": "Human",
+              "sourceSection": "Human",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "School Personnel",
+              "sourcePage": 1,
+              "sourceHeader": "Human",
+              "sourceSection": "Human",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students' Families",
+              "sourcePage": 1,
+              "sourceHeader": "Human",
+              "sourceSection": "Human",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "RFA Partnership",
+              "sourcePage": 1,
+              "sourceHeader": "Human",
+              "sourceSection": "Human",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Material",
+          "items": [
+            {
+              "text": "Multiple Curricula",
+              "sourcePage": 1,
+              "sourceHeader": "Material",
+              "sourceSection": "Material",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Leveled Books",
+              "sourcePage": 1,
+              "sourceHeader": "Material",
+              "sourceSection": "Material",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Instructional Materials",
+              "sourcePage": 1,
+              "sourceHeader": "Material",
+              "sourceSection": "Material",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Financial",
+          "items": [
+            {
+              "text": "Corporate Pledges",
+              "sourcePage": 1,
+              "sourceHeader": "Financial",
+              "sourceSection": "Financial",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Foundation Grants",
+              "sourcePage": 1,
+              "sourceHeader": "Financial",
+              "sourceSection": "Financial",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Individual Donors",
+              "sourcePage": 1,
+              "sourceHeader": "Financial",
+              "sourceSection": "Financial",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "PA State Funding",
+              "sourcePage": 1,
+              "sourceHeader": "Financial",
+              "sourceSection": "Financial",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Knowledge",
+          "items": [
+            {
+              "text": "Growth Mindset",
+              "sourcePage": 1,
+              "sourceHeader": "Knowledge",
+              "sourceSection": "Knowledge",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Experienced Educators",
+              "sourcePage": 1,
+              "sourceHeader": "Knowledge",
+              "sourceSection": "Knowledge",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Science of Reading",
+              "sourcePage": 1,
+              "sourceHeader": "Knowledge",
+              "sourceSection": "Knowledge",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Volunteer Recruitment & Training",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "One-to-one Remote Instruction",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "In-person Small Group Instruction",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Curriculum Development",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Parent & Family Communication",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "#Volunteers",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "# 1:1 Tutoring Sessions",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "# Students in 1:1 model",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Avg. # Sessions Attended",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Avg Student Gains",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "# Students in SG model",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Avg. Sessions per week",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Avg Student Gains",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "# of lessons",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "# of new lessons",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "# of lessons adapted",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "# of students served due to lesson creation",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "# of positive communications",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "# of Family Connection Sheets",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "# reports sent home & follow-ups",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Volunteer coaches work with student for 25-28 sessions",
+              "fillColor": "teal",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Coaches give growth mindset feedback during lessons",
+              "fillColor": "dark blue",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Weekly synthetic phonics instruction",
+              "fillColor": "blue",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Parents receive regular updates about their child's progress",
+              "fillColor": "dark grey",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Professional development opportunities throughout year",
+              "fillColor": "light green",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Teachers observe sessions and receive weekly updates",
+              "fillColor": "orange",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "mediumTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Volunteer coaches have a joyful, impactful experience",
+              "fillColor": "teal",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students receive robust process praise",
+              "fillColor": "dark blue",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students acquire skills and strategies",
+              "fillColor": "blue",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Parents better understand the skills their child is learning",
+              "fillColor": "dark grey",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Achieve Now staff gain expertise",
+              "fillColor": "light green",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Teachers feel heard, respected, and supported",
+              "fillColor": "orange",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "longTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Hjgh rate of volunteer retention",
+              "fillColor": "teal",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students show increased growth mindset and resilience",
+              "fillColor": "dark blue",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students meet or exceed ELA standards",
+              "fillColor": "blue",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Parents equipped to support their child's reading journey",
+              "fillColor": "dark grey",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Volunteers and students receive stronger, more targeted support",
+              "fillColor": "light green",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Teachers invest in and become ambassadors for the program",
+              "fillColor": "orange",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "impact": {
+      "content": []
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "ok",
+    "colorLegend": "",
+    "extractionConfidence": "high",
+    "generalOutcomes": {
+      "content": []
+    },
+    "impactStatement": {
+      "content": ""
+    },
+    "layoutFamily": "vertical_columns",
+    "unmapped": {
+      "content": []
+    },
+    "mappingCorrections": []
+  }
+}

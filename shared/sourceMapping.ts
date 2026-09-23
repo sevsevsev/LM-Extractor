@@ -7,6 +7,7 @@ import type {
 } from '../types';
 import {
   synonymToDomain,
+  columnNameToDomain,
   isKnownInputSubBucket,
   type CanonicalGroupedDomain,
   normalizeHeader,
@@ -100,6 +101,10 @@ export function applySourceAwareMapping(model: LogicModel): LogicModel {
     for (const group of groups) {
       const header = (group.name || 'General').trim() || 'General';
       const synonym = synonymToDomain(header);
+      // A MOVE needs the unqualified column name, not a header that merely ends in a domain word:
+      // "Youth Outcomes" is a sub-heading of whatever column it is sitting in, not a claim that
+      // its items are general outcomes. See `columnNameToDomain` for the measurement.
+      const movesTo = columnNameToDomain(header);
       const remaining: LogicModelItem[] = [];
 
       for (const raw of group.items) {
@@ -108,14 +113,14 @@ export function applySourceAwareMapping(model: LogicModel): LogicModel {
           continue;
         }
 
-        // Synonym says this header belongs elsewhere → evidence-based move.
-        if (synonym && synonym !== domain) {
+        // The header names another column outright → evidence-based move.
+        if (movesTo && movesTo !== domain) {
           const moved = annotateItem(raw, {
             sourceHeader: header,
             mappedBy: 'auto',
             mappingConfidence: 'synonym',
           });
-          pushItem(getGroups(model[synonym]), 'General', moved);
+          pushItem(getGroups(model[movesTo]), 'General', moved);
           continue;
         }
 

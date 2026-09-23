@@ -1,0 +1,671 @@
+{
+  "id": "sample-rock-school-rockreach",
+  "promptVersion": "2026-09-20.6",
+  "promptVariant": "vision+text",
+  "capturedAt": "2026-09-23T02:54:43.629Z",
+  "model": {
+    "organization": "The Rock School for Dance Education",
+    "program": "RockReach",
+    "mission": {
+      "content": "The program provides Philadelphia’s student youth with high-quality arts instruction and interaction, emphasizing all aspects of socio-emotional learning as part of their individual in-school classroom curriculum and school community mission."
+    },
+    "targetPopulation": {
+      "content": "RockReach engages K-12 participants from low income schools in under resourced communities, including Title 1, public, and charter schools with few or no arts offerings in Philadelphia county. Most RockReach school sites serve predominantly students of color. They include ESL learners, special needs students with Individualized Education Programs, including students who are non-verbal, have Autism Spectrum Disorder, mobility impairments, and are blind or low-sight."
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "Human Resources",
+          "items": [
+            {
+              "text": "Classroom Teachers’ time",
+              "sourceColumn": 1,
+              "sourcePage": 3,
+              "sourceHeader": "Human Resources",
+              "sourceSection": "Human Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Students’ time",
+              "sourceColumn": 1,
+              "sourcePage": 3,
+              "sourceHeader": "Human Resources",
+              "sourceSection": "Human Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Parents/Guardians’ time",
+              "sourceColumn": 1,
+              "sourcePage": 3,
+              "sourceHeader": "Human Resources",
+              "sourceSection": "Human Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Principals’ time",
+              "sourceColumn": 1,
+              "sourcePage": 3,
+              "sourceHeader": "Human Resources",
+              "sourceSection": "Human Resources",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            }
+          ]
+        },
+        {
+          "name": "Rock staff time (skilled participation)",
+          "items": [
+            {
+              "text": "Teaching Artists",
+              "sourceColumn": 1,
+              "sourcePage": 3,
+              "sourceHeader": "Rock staff time (skilled participation)",
+              "sourceSection": "Rock staff time (skilled participation)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Development staff",
+              "sourceColumn": 1,
+              "sourcePage": 3,
+              "sourceHeader": "Rock staff time (skilled participation)",
+              "sourceSection": "Rock staff time (skilled participation)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Administrative staff",
+              "sourceColumn": 1,
+              "sourcePage": 3,
+              "sourceHeader": "Rock staff time (skilled participation)",
+              "sourceSection": "Rock staff time (skilled participation)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Marketing staff",
+              "sourceColumn": 1,
+              "sourcePage": 3,
+              "sourceHeader": "Rock staff time (skilled participation)",
+              "sourceSection": "Rock staff time (skilled participation)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Board time (limited)",
+              "sourceColumn": 1,
+              "sourcePage": 3,
+              "sourceHeader": "Rock staff time (skilled participation)",
+              "sourceSection": "Rock staff time (skilled participation)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Space and Materials",
+          "items": [
+            {
+              "text": "Space: classrooms, gyms, auditoriums",
+              "sourceColumn": 1,
+              "sourcePage": 3,
+              "sourceHeader": "Space and Materials",
+              "sourceSection": "Space and Materials",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Equipment: Audio, Cajon, sticks",
+              "sourceColumn": 1,
+              "sourcePage": 3,
+              "sourceHeader": "Space and Materials",
+              "sourceSection": "Space and Materials",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Materials: Buckets, sticks, lesson plans, Nutcracker Study guide, Nutcracker story book, bus transportation, final student performance costumes",
+              "sourceColumn": 1,
+              "sourcePage": 3,
+              "sourceHeader": "Space and Materials",
+              "sourceSection": "Space and Materials",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Funding",
+          "items": [
+            {
+              "text": "Foundation and individual donors.",
+              "sourceColumn": 1,
+              "sourcePage": 3,
+              "sourceHeader": "Funding",
+              "sourceSection": "Funding",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "Recruit, Hire, and Retain Dance and Music Teaching Artists",
+          "items": [
+            {
+              "text": "Respond to requests from schools for both in-school and after-school programs.",
+              "sourceColumn": 2,
+              "sourcePage": 3,
+              "sourceHeader": "Recruit, Hire, and Retain Dance and Music Teaching Artists",
+              "sourceSection": "Recruit, Hire, and Retain Dance and Music Teaching Artists",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Initial and ongoing training and assessments for all staff",
+              "sourceColumn": 2,
+              "sourcePage": 3,
+              "sourceHeader": "Recruit, Hire, and Retain Dance and Music Teaching Artists",
+              "sourceSection": "Recruit, Hire, and Retain Dance and Music Teaching Artists",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Plan Curriculum",
+          "items": [
+            {
+              "text": "Chosen program year theme customized for each partner school according to grade level, schedule, space logistics; write milestones",
+              "sourceColumn": 2,
+              "sourcePage": 3,
+              "sourceHeader": "Plan Curriculum",
+              "sourceSection": "Plan Curriculum",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Recruitment, Registration and Selection",
+          "items": [
+            {
+              "text": "School partnerships confirmed with memorandum of understanding, contracts, insurance information. Attend ‘Back to School Nights’, submit curriculum, program description to school leadership",
+              "sourceColumn": 2,
+              "sourcePage": 3,
+              "sourceHeader": "Recruitment, Registration and Selection",
+              "sourceSection": "Recruitment, Registration and Selection",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students submit program enrollment forms and waivers",
+              "sourceColumn": 2,
+              "sourcePage": 3,
+              "sourceHeader": "Recruitment, Registration and Selection",
+              "sourceSection": "Recruitment, Registration and Selection",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Confirm weekly class schedule, Nutcracker and final student performance field trip with schools",
+              "sourceColumn": 2,
+              "sourcePage": 3,
+              "sourceHeader": "Recruitment, Registration and Selection",
+              "sourceSection": "Recruitment, Registration and Selection",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Classes (In-school and afterschool Ballet Fundamentals program)",
+          "items": [
+            {
+              "text": "Teaching Artists travel and instruct 45 minutes a week for 32 weeks",
+              "sourceColumn": 2,
+              "sourcePage": 3,
+              "sourceHeader": "Classes (In-school and afterschool Ballet Fundamentals program)",
+              "sourceSection": "Classes (In-school and afterschool Ballet Fundamentals program)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students attend all classes",
+              "sourceColumn": 2,
+              "sourcePage": 3,
+              "sourceHeader": "Classes (In-school and afterschool Ballet Fundamentals program)",
+              "sourceSection": "Classes (In-school and afterschool Ballet Fundamentals program)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students perform in-school lecture demonstration for peers during school year",
+              "sourceColumn": 2,
+              "sourcePage": 3,
+              "sourceHeader": "Classes (In-school and afterschool Ballet Fundamentals program)",
+              "sourceSection": "Classes (In-school and afterschool Ballet Fundamentals program)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Performances/Events",
+          "items": [
+            {
+              "text": "Produce and present student performances",
+              "sourceColumn": 2,
+              "sourcePage": 4,
+              "sourceHeader": "Performances/Events",
+              "sourceSection": "Performances/Events",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students attend live dance performance and perform live for family, friends, and school community",
+              "sourceColumn": 2,
+              "sourcePage": 4,
+              "sourceHeader": "Performances/Events",
+              "sourceSection": "Performances/Events",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Raise Funds",
+          "items": [
+            {
+              "text": "Research, write and steward grant proposals (government, corporate and foundation)",
+              "sourceColumn": 2,
+              "sourcePage": 4,
+              "sourceHeader": "Raise Funds",
+              "sourceSection": "Raise Funds",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Call on donors (to a degree)",
+              "sourceColumn": 2,
+              "sourcePage": 4,
+              "sourceHeader": "Raise Funds",
+              "sourceSection": "Raise Funds",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Direct mail (limited/shared)",
+              "sourceColumn": 2,
+              "sourcePage": 4,
+              "sourceHeader": "Raise Funds",
+              "sourceSection": "Raise Funds",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Accept and steward in-kind donations (if any)",
+              "sourceColumn": 2,
+              "sourcePage": 4,
+              "sourceHeader": "Raise Funds",
+              "sourceSection": "Raise Funds",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "City Dance Scholarship",
+          "items": [
+            {
+              "text": "Enroll interested students in Ballet Fundamentals program in fall and spring providing free classes and uniforms",
+              "sourceColumn": 2,
+              "sourcePage": 4,
+              "sourceHeader": "City Dance Scholarship",
+              "sourceSection": "City Dance Scholarship",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Seamlessly facilitate interested and identified RockReach students and families graduating from Ballet Fundamentals program to The Rock School Ballet Division Program year-round participating in The Rock schools Nutcracker and spring showcase performances on scholarship",
+              "sourceColumn": 2,
+              "sourcePage": 4,
+              "sourceHeader": "City Dance Scholarship",
+              "sourceSection": "City Dance Scholarship",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Dance and rhythm classes in schools",
+              "sourceColumn": 3,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Student lecture demonstrations and final performances",
+              "sourceColumn": 3,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Class lesson plans customized for all ages, grades, and learners",
+              "sourceColumn": 3,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Serve an entire grade in each partner school to solidify RockReach as part of the school’s overall curriculum",
+              "sourceColumn": 3,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Optimize the number of students exposed to the practice of dance and music making",
+              "sourceColumn": 3,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Final student performance and graduation event at The Rock School in studio theater with The Rock School’s professional division student performances",
+              "sourceColumn": 3,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "All partner schools are transported to Rock School productions of The Classic Nutcracker presented at The Miller Theater in Philadelphia",
+              "sourceColumn": 3,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Currently 10 RockReach school partnerships are funded and serve 23 classrooms grades K-12",
+              "sourceColumn": 3,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": []
+    },
+    "mediumTermOutcomes": {
+      "content": []
+    },
+    "longTermOutcomes": {
+      "content": []
+    },
+    "impact": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Changed perspective and ability to give thorough critical responses",
+              "sourceColumn": 5,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Social emotional learning",
+              "sourceColumn": 5,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Active arts participants, both as performers and as audience members",
+              "sourceColumn": 5,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased knowledge and appreciation for the arts locally and globally",
+              "sourceColumn": 5,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Understanding multiple ways to experience and interact with art",
+              "sourceColumn": 5,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Seeing the diversity of and understanding the value of the arts and creative sector in their personal lives and as a Philadelphia citizen",
+              "sourceColumn": 5,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Increased student focus and attention",
+              "sourceColumn": 5,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "An improved growth mindset, increase in tenacity, confidence, and curiosity",
+              "sourceColumn": 5,
+              "sourcePage": 3,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Enhanced ability to work collaboratively, teamwork, empathy, and leadership",
+              "sourceColumn": 5,
+              "sourcePage": 4,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Broad range of general physical and cognitive activities Increased physical and mental health wellness",
+              "sourceColumn": 5,
+              "sourcePage": 4,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "ok",
+    "colorLegend": "",
+    "generalOutcomes": {
+      "content": [
+        {
+          "name": "Students knowledge of dance increases",
+          "items": [
+            {
+              "text": "Students learn and demonstrate fundamental dance and drumming vocabulary",
+              "sourceColumn": 4,
+              "sourcePage": 3,
+              "sourceHeader": "Students knowledge of dance increases",
+              "sourceSection": "Students knowledge of dance increases",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Performance etiquette is learned both as an audience member and as a performer",
+              "sourceColumn": 4,
+              "sourcePage": 3,
+              "sourceHeader": "Students knowledge of dance increases",
+              "sourceSection": "Students knowledge of dance increases",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Students learn new skills",
+          "items": [
+            {
+              "text": "Students understand and demonstrate basics of movement and music making through dance vocabulary and bucket drumming technique",
+              "sourceColumn": 4,
+              "sourcePage": 3,
+              "sourceHeader": "Students learn new skills",
+              "sourceSection": "Students learn new skills",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students gain a comfortable command of dance phrases/combinations and rhythm/beats",
+              "sourceColumn": 4,
+              "sourcePage": 3,
+              "sourceHeader": "Students learn new skills",
+              "sourceSection": "Students learn new skills",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students gain some command of the vocabulary of ballet positions in preparation for The Nutcracker performance.",
+              "sourceColumn": 4,
+              "sourcePage": 3,
+              "sourceHeader": "Students learn new skills",
+              "sourceSection": "Students learn new skills",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Changed attitudes (or opinions or values)",
+          "items": [
+            {
+              "text": "Students are excited to come to school on days when RockReach is taught.",
+              "sourceColumn": 4,
+              "sourcePage": 3,
+              "sourceHeader": "Changed attitudes (or opinions or values)",
+              "sourceSection": "Changed attitudes (or opinions or values)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students understand that all dance and music forms are successfully executed by all genders, races, and backgrounds.",
+              "sourceColumn": 4,
+              "sourcePage": 3,
+              "sourceHeader": "Changed attitudes (or opinions or values)",
+              "sourceSection": "Changed attitudes (or opinions or values)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students demonstrate a growth mindset and SEL goals",
+              "sourceColumn": 4,
+              "sourcePage": 3,
+              "sourceHeader": "Changed attitudes (or opinions or values)",
+              "sourceSection": "Changed attitudes (or opinions or values)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Students’ enthusiasm for dance and rhythm classes increases throughout the year encouraging personal art making and art appreciation through community and citizenship",
+              "sourceColumn": 4,
+              "sourcePage": 3,
+              "sourceHeader": "Changed attitudes (or opinions or values)",
+              "sourceSection": "Changed attitudes (or opinions or values)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "Student caregivers and school leadership are enthusiastic at all performances. Audiences appreciate ballet, dance, and music informed by what they have experienced through RR classes and live performances",
+              "sourceColumn": 4,
+              "sourcePage": 4,
+              "sourceHeader": "Changed attitudes (or opinions or values)",
+              "sourceSection": "Changed attitudes (or opinions or values)",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        },
+        {
+          "name": "Changed motivations",
+          "items": [
+            {
+              "text": "Students are enthusiastic about expressing themselves through dance and music regardless of their gender, age, or skill level",
+              "sourceColumn": 4,
+              "sourcePage": 4,
+              "sourceHeader": "Changed motivations",
+              "sourceSection": "Changed motivations",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
+              "text": "RockReach families and school communities have opportunities to attend live performances where they see their students engage and succeed in new ways",
+              "sourceColumn": 4,
+              "sourcePage": 4,
+              "sourceHeader": "Changed motivations",
+              "sourceSection": "Changed motivations",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            }
+          ]
+        }
+      ]
+    },
+    "impactStatement": {
+      "content": ""
+    },
+    "layoutFamily": "vertical_columns",
+    "unmapped": {
+      "content": [
+        {
+          "name": "PROBLEM STATEMENT",
+          "items": [
+            {
+              "text": "1. RockReach was created in 2000 in response to the lack of performing arts education offerings specifically dance and music in Philadelphia public school’s classroom curriculum. RockReach includes dance and bucket drumming, student performances, and opportunities to attend live dance performance in Philadelphia.",
+              "sourcePage": 2,
+              "sourceHeader": "PROBLEM STATEMENT",
+              "sourceSection": "PROBLEM STATEMENT",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "CONTEXT / RATIONALE",
+          "items": [
+            {
+              "text": "RockReach enriches these students’ education through professional teaching artists who understand their needs and encourage them to explore dance and music in new ways.",
+              "sourcePage": 2,
+              "sourceHeader": "CONTEXT / RATIONALE",
+              "sourceSection": "CONTEXT / RATIONALE",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        }
+      ]
+    },
+    "mappingCorrections": [],
+    "extractionConfidence": "high"
+  }
+}
