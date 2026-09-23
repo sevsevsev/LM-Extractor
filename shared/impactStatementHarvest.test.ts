@@ -73,3 +73,56 @@ test('returns null without an explicit heading, even when prose reads like an im
   const got = harvestImpactStatementFromPlainText(`Page 1 overview. ${YOUTHMOVES_PROSE}`);
   assert.equal(got, null);
 });
+
+test('a numbered "LONG-TERM IMPACT" section followed by a bulleted list is not an impact statement', () => {
+  // The 2026-09-23 accuracy audit's one user-visible defect. A New Dawn's DOCX has no impact
+  // statement at all; its last section is the long-term outcomes list, headed "6. LONG-TERM
+  // IMPACT (3-5 years)". Gemini correctly left `impactStatement` empty and this fallback filled
+  // it with 591 characters of that list — asterisks, heading remainder, dangling hyphen and all —
+  // straight into the review board and the PDF export.
+  const got = harvestImpactStatementFromPlainText(
+    'Improvement in school climate, belonging, and pride ' +
+      '**6\\. LONG-TERM IMPACT (3–5 years)** **For Students** ' +
+      '- Increased graduation rates and post-secondary readiness ' +
+      '- Career pathways in agriculture, technology and sustainability ' +
+      '- Stronger resilience, emotional health, and life skills ' +
+      '**For Schools & Communities** - Healthier, greener, safer neighborhoods ' +
+      '- Increased local food security - Stronger school-community bonds ' +
+      '- Long-term reduction in violence through healing-centered engagement'
+  );
+  assert.equal(got, null);
+});
+
+test('the "Long-Term Impact" synonym still harvests real prose under it', () => {
+  // The guard above rejects LISTS, not the synonym — a genuine impact statement under that
+  // heading is still picked up. This is the pairing that keeps the fix narrow.
+  const got = harvestImpactStatementFromPlainText(`Long-Term Impact ${YOUTHMOVES_PROSE} Resources`);
+  assert.ok(got?.includes('Through sustained participation'));
+});
+
+test('markdown markers do not reach the harvested statement', () => {
+  const got = harvestImpactStatementFromPlainText(
+    `IMPACT STATEMENT **${YOUTHMOVES_PROSE}** Resources Human Resources`
+  );
+  assert.ok(got);
+  assert.ok(!got!.includes('*'), `markdown leaked: ${got}`);
+  assert.ok(got!.startsWith('Through sustained participation'));
+});
+
+test('a stop word inside a longer heading does not strand its first word on the end', () => {
+  // firsthand's slide 1 runs "...career opportunities. BRIEF PROGRAM OVERVIEW/MISSION ...".
+  // SECTION_STOP matches "program overview" and used to leave a trailing "BRIEF" behind.
+  // Deliberately NOT written on YOUTHMOVES_PROSE: that sentence contains the words "long-term",
+  // which SECTION_STOP matches mid-sentence and truncates. That is a separate defect in this
+  // module, reported but not fixed here — see the note above SECTION_STOP.
+  const got = harvestImpactStatementFromPlainText(
+    'IMPACT STATEMENT Philadelphia middle and high school students gain the skills to navigate ' +
+      'science education and the careers that follow it with confidence. ' +
+      'BRIEF PROGRAM OVERVIEW/MISSION Who the program serves'
+  );
+  assert.ok(got);
+  assert.ok(
+    got!.endsWith('with confidence.'),
+    `tail not trimmed: ${JSON.stringify(got!.slice(-40))}`
+  );
+});
