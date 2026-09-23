@@ -148,7 +148,40 @@ NewsWorks models.
 tested at all), and `seamaac-urban-arts`, which is cleared by its own visual audit rather than by
 this scan.
 
-## The next measurement, in the order that makes it defensible
+## The measurement itself, run 2026-09-23
+
+Severin uploaded 14 of the 17. Every one was recaptured from source on today's code — the stored
+bundles held the damaged rasters and were deleted first — then run three times. 56 Gemini calls.
+
+**12 of 14 came back byte-identical across three runs.** The two that moved were Oxford Circle and
+Art Thru Youth, both with identical item counts on every pass. Four documents that were unstable in
+the September 20 census now reproduce exactly: Performance Garage (47), Cub Reporter (124), Trinity
+(54) and Rock School (61).
+
+Then both movers were taken apart with a probe that compares per-domain item membership, not just
+group names:
+
+- **Oxford Circle: zero items changed column, none appeared, none vanished.** The whole of its
+  instability was four group names arriving as `Frontline Staff:` on one run and `Frontline Staff`
+  on the next. `trimGroupNameColons` in `shared/extractNormalize.ts` drops a trailing colon from a
+  group name — no committed snapshot has one, and `promoteInlineColonLabels` already strips its
+  own, so it only catches names the model wrote. With it live the census returns Oxford Circle
+  STABLE, byte-identical across three runs.
+- **Art Thru Youth: zero items changed column, and three fresh passes showed no differences at
+  all.** The document the census had just called unstable then agreed with itself three times. It
+  is the 1024×768 low-legibility PNG that has flipped in every direction across sessions, so it is
+  an occasional flipper rather than a solved case.
+
+**So: 13 of 14 hold byte-identical, and 14 of 14 produced the same items in the same columns on
+every pass.** Against 7 of 15 unstable on September 20.
+
+Two things this does not say. **#8 and #9 both landed between the censuses**, so this is a
+statement about today's code, not proof that the renderer fix did it. And **item counts moved** —
+Cub Reporter 144 to 124, Rock School 63 to 61 — so these are different extractions from the ones
+that were audited, and nobody has checked the new ones for accuracy. Reproducible and wrong is the
+one failure this loop cannot see.
+
+## What is left, in the order that makes it defensible
 
 1. **Scan the corpus.** `npx tsx scripts/renderer-impact-scan.ts <corpus-dir> --json scan.json`
    over all 103 documents. No API calls, no key, minutes. It yields a number nobody has: what

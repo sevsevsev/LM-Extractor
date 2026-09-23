@@ -2440,14 +2440,63 @@ harness shims them for parity — but they are the same shape as the two that ca
 a reviewer on a browser a few versions behind gets the same silent text-only fallback. Adding them
 to polyfills.ts is a few lines. NOT done here: it is a launch decision, not a finding.
 
+--- THE CENSUS, RE-RUN ON TODAY'S CODE: 7 OF 15 UNSTABLE BECOMES 1 OF 14 ---
+Severin uploaded 14 of the 17. All 14 recaptured from source (the old bundles hold the damaged
+rasters, so they were deleted first), then 3 passes each. 42 + 14 = 56 Gemini calls.
+
+  BYTE-IDENTICAL ACROSS 3 RUNS (12)        WAS
+  performance-garage       47   items      45/47/47 UNSTABLE, and text-only at that
+  healthy-newsworks-cub   124              144/133/133 UNSTABLE
+  trinity-boys-girls       54              53/54/54 UNSTABLE
+  sample-rock-school       61              63/62/62 UNSTABLE, and mojibake at that
+  healthy-newsworks-core    45             45 stable
+  firsthand-pptx            45             45 stable, text-only
+  ymca-youth-civic          18             18 stable
+  ymca-teen-workforce       29             29 stable
+  a-new-dawn                60             never tested
+  sample-achieve-now        52             52 stable
+  upenn-bioeyes              6 (scalars drift)    6 stable
+  sample-mamadele           80 (scalars drift)   80 stable
+
+  MOVED (2)
+  oxford-circle            44/44/44   grouping differed — was byte-identical stable
+  art-thru-youth           13/13/13   grouping differed — was 17/13/17 UNSTABLE
+
+  NOT TESTED: harlem-lacrosse, philadelphia-ballet (not uploaded), seamaac (not uploaded).
+
+ATTRIBUTION, stated because it is easy to overclaim here: #8 (renderer) AND #9 (inline label
+promotion) both landed between the two censuses, so this is "today's code", not "the renderer fix
+did it". Item counts moved on several documents — cub 144->124, rock 63->61 — which means these are
+DIFFERENT extractions, and nobody has audited the new ones for accuracy. Stability is not accuracy.
+
+--- BOTH UNSTABLE DOCUMENTS, TAKEN APART ---
+A verdict of "grouping differs" does not say what differed, so both were re-run 3 more times with a
+probe that compares per-domain item membership as well as group names.
+
+OXFORD CIRCLE: 0 items changed column, 0 appeared, 0 vanished, across all pairs. The entire
+instability was four group names coming back as `Frontline Staff:` one run and `Frontline Staff`
+the next. Fixed in code, not in the prompt: `trimGroupNameColons` in shared/extractNormalize.ts
+drops a trailing colon from a group name. No committed snapshot has a name ending in a colon and
+`promoteInlineColonLabels` already strips its own, so this only catches names Gemini wrote. With it
+live the census returns Oxford Circle STABLE byte-identical across 3 runs.   | cause: setup
+
+ART THRU YOUTH: 0 items changed column either, and 3 fresh passes produced NO differences at all —
+the document that the census had just called unstable agreed with itself three times running. It is
+the 1024x768 low-legibility PNG and it has flipped in every direction across sessions. Reported as
+what it is: an occasional flipper, not a solved case.
+
+So on the 14 documents measured: 13 hold across 3 runs with the colon fix, and every one of the 14
+produced the same items in the same columns on every pass. Under "same items, same columns" the set
+is 14 of 14; under byte-identical it is 13 of 14. Which of those is the launch gate is SEVERIN'S
+call and he has been asked.
+
 --- Next ---
-1. Scan the corpus (free, offline). It yields the number nobody has: what share of 103 documents
-   was being read through a broken renderer, split by fault.
-2. DELETE the old bundles before any re-run. `npm run census` extracts from stored bundles, so
-   re-running it against the captured rasters re-measures the damage and looks like new evidence.
-   Recapture (17 calls) and then census at --passes=3 (51 calls): ~68 calls for a reproducibility
-   figure measured on the path the tool now takes.
-3. Re-audit only the documents the scan flags; the rest keep their audits.
+1. Audit the NEW extractions. Cub Reporter lost 20 items and Rock School gained a working vision
+   track; both reproduce perfectly and neither has been checked for correctness. Reproducible and
+   wrong is the failure mode this whole loop cannot see.
+2. The three not uploaded: harlem-lacrosse, seamaac, philadelphia-ballet.
+3. Scan the rest of the corpus (free, offline) for the two faults, now that the verdict names mean
+   what they say.
 4. Give manifest.json an explicit source-format field, so this sorting is mechanical next time
    rather than a reading of prose.
 ```
