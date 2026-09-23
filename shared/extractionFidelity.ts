@@ -8,6 +8,7 @@ import type {
   PossiblyMissedRegion,
 } from '../types';
 import { stringDomainHasContent, groupedDomainHasContent } from './domainPresence.js';
+import { findUncoveredGridPages, formatUncoveredPages } from './pageCoverage.js';
 import { shouldSuggestMismatch } from './sourceMapping.js';
 
 const STATUSES: readonly ExtractionStatus[] = ['ok', 'partial', 'abstained'];
@@ -74,6 +75,19 @@ export const FIDELITY_BLOCKERS = {
   /** Vision conversion failed entirely (not just low-res) — extracted from the text layer alone. */
   textOnlyFallback:
     'This document could not be read as images, only as text, so the columns and formatting may be wrong',
+  /**
+   * A page of the document holds a logic model grid whose wording is not in this extraction — see
+   * shared/pageCoverage.ts for what is measured and why the bar is set where it is.
+   *
+   * This is the only missed-content signal in the app that does not come from Gemini. The wording
+   * therefore says what was observed ("not in this extraction") rather than diagnosing why, because
+   * the check cannot tell a second version of the same logic model from a second programme's grid
+   * from a page the model simply skipped — and the operator, looking at the page, can.
+   *
+   * The page number is appended at the point of use, the way `notLogicModel` appends its note.
+   */
+  pageNotExtracted:
+    'Part of this document holds a logic model that is not in this extraction — open the page named and check what is missing',
   /** Overview text (mission/target/impact) was recovered but the grid itself came back empty. */
   noGridItems:
     'No Inputs, Activities, Outputs or Outcomes were found — check whether this document actually has a logic model grid',
@@ -280,6 +294,14 @@ export interface ReconcileFidelityOptions {
   lowLegibility?: boolean;
   /** True when vision conversion failed entirely — see `bundleUsedTextOnlyFallback` in types.ts. */
   textOnlyFallback?: boolean;
+  /**
+   * The bundle's Track A text, for the page-coverage check (shared/pageCoverage.ts). Optional, and
+   * absent means "no opinion", not "covered": re-normalizing an already-reconciled model without it
+   * (App.tsx's `modelForExport`) must not clear a warning the first pass raised. It does not:
+   * blockers already on the model are read back through `modelBlockers` and re-pushed below, and
+   * `status` is never downgraded.
+   */
+  sourceText?: string;
 }
 
 /**
@@ -337,6 +359,14 @@ export function reconcileExtractionFidelity(
   // Review" flags. See docs/specs/extraction-confidence-v1.md.
   const geminiMissedRegions = normalizePossiblyMissedRegions(model.possiblyMissedRegions);
   const hasMissedContentSignal = geminiMissedRegions.length > 0;
+  // The code-side counterpart to the self-report above: pages that structurally hold a logic model
+  // grid whose wording did not come back. Deliberately a separate signal with its own blocker
+  // rather than a second contributor to `possiblyMissedRegions` — see shared/pageCoverage.ts.
+  // Same trust ceiling as everything else in this block: ok -> partial/medium, never a hard stop.
+  // Skipped when nothing came back at all, since `noContent`/`noGridItems` say that far louder.
+  const uncoveredPages =
+    noContent || noGridItems ? [] : findUncoveredGridPages(model, options?.sourceText);
+  const hasUncoveredPages = uncoveredPages.length > 0;
 
   if (status === 'ok') {
     if (
@@ -348,7 +378,8 @@ export function reconcileExtractionFidelity(
       (L && N >= 6) ||
       modelBlockers.length > 0 ||
       noContent ||
-      hasMissedContentSignal
+      hasMissedContentSignal ||
+      hasUncoveredPages
     ) {
       status = upgradeStatus(status, 'partial');
     }
@@ -384,6 +415,13 @@ export function reconcileExtractionFidelity(
     );
   }
   if (hasMissedContentSignal) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.possiblyIncomplete);
+  if (hasUncoveredPages) {
+    pushBlocker(
+      blockers,
+      seen,
+      `${FIDELITY_BLOCKERS.pageNotExtracted} (${formatUncoveredPages(uncoveredPages)})`
+    );
+  }
 
   let confidence: ExtractionConfidence;
   // `low` is reserved for "there is nothing worth showing the operator" — the model abstained, or
