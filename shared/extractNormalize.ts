@@ -148,6 +148,30 @@ function fillMissingImpactStatementFromSourceText(model: LogicModel, sourceText?
 }
 
 /**
+ * Drop a trailing colon from a group name.
+ *
+ * MEASURED, not tidied: the 2026-09-22 census had Oxford Circle down as the one unstable PDF left
+ * in the set, and the whole of its instability was four group names coming back as
+ * `Frontline Staff:` on one run and `Frontline Staff` on the next. Zero items moved column, none
+ * appeared or vanished. The model simply carries the source's colon into the name some runs and
+ * not others, and a regression diff cannot tell that apart from a real regrouping.
+ *
+ * Safe because no group name legitimately ends in a colon: none of the ten committed snapshots has
+ * one, and `promoteInlineColonLabels` already strips the colon off the labels it promotes, so this
+ * only catches names Gemini wrote itself. A name that is nothing BUT punctuation is left alone
+ * rather than emptied.
+ */
+function trimGroupNameColons(model: LogicModel): void {
+  for (const field of Object.values(model) as { content?: LogicModelGroup[] }[]) {
+    if (!field || !Array.isArray(field.content)) continue;
+    for (const group of field.content) {
+      const trimmed = (group.name ?? '').trim().replace(/\s*:+$/, '').trim();
+      if (trimmed) group.name = trimmed;
+    }
+  }
+}
+
+/**
  * Post-extract fixes that preserve source fidelity.
  * Does NOT force YouthMoves-style output rebucketing or clear a real Impact column.
  * Source-aware synonym annotation/remap runs after presence recoveries.
@@ -165,6 +189,9 @@ export function normalizeExtractedLogicModel(
   // Before applySourceAwareMapping, so a promoted label reaches `sourceHeader` by the same path
   // every other group name takes. See shared/inlineLabelGroups.ts for what it fires on.
   promoteInlineColonLabels(model);
+  // After promotion (whose labels never carry one) and before mapping, so `sourceHeader` and every
+  // later comparison see the same name the reviewer will.
+  trimGroupNameColons(model);
   applySourceAwareMapping(model);
   reconcileExtractionFidelity(model, {
     lowLegibility: options?.lowLegibility,

@@ -297,3 +297,18 @@ test('impact-statement promotion is unchanged when there is no text layer to che
   const result = normalizeExtractedLogicModel(modelWithOutcomeProse(), {});
   assert.equal(result.impactStatement?.content, OVERVIEW_PROSE);
 });
+
+test('a trailing colon on a group name is dropped, and a bare punctuation name is left alone', () => {
+  const model = normalizeExtractedLogicModel({
+    ...structuredClone(youthMovesMisparse),
+    inputs: {
+      content: [
+        { name: 'Frontline Staff:', items: [{ text: 'Two family advocates' }] },
+        { name: 'Partners :', items: [{ text: 'Local schools' }] },
+        { name: ':', items: [{ text: 'Unnamed' }] },
+      ],
+    },
+  });
+  const names = model.inputs.content.map(g => g.name);
+  assert.deepEqual(names, ['Frontline Staff', 'Partners', ':']);
+});
