@@ -133,13 +133,21 @@ programme name, contact, the lot — and a fresh capture produces five page imag
 says there should be none. Its `covers` string, its role in the set and its 63/62/62 instability
 verdict all need rewriting.
 
-**Achieve Now lost one box, and one letter that a fixture depends on.** The mojibake box in
-Long-Term Outcomes now reads "Volunteers and students receive stronger, more targeted support". On
-the same page the manifest records a deliberate trap: "the source genuinely reads `Hjgh rate of
-volunteer retention`, and an extraction that 'fixes' it to `High` is a regression". The source does
-not read `Hjgh`. The renderer was substituting that glyph. On a healthy renderer the box reads
-`High`, so the guard as written would now fail a correct extraction — a fixture that has turned
-into a trap for the truth.
+**Achieve Now lost one box.** The mojibake box in Long-Term Outcomes now reads "Volunteers and
+students receive stronger, more targeted support", so this file no longer covers dual-track fusion
+on a single cell.
+
+**RETRACTED 2026-09-23 — the second half of that paragraph was wrong.** It said the manifest's
+never-repair guard had turned backwards: that "the source does not read `Hjgh`", that the renderer
+was substituting the glyph, and that on a healthy renderer the box reads `High`. Magnified 6x, the
+first Long-term box reads `Hjgh` on today's renderer AND on the pre-fix render. The typeface moved;
+the letters never did. The typo belongs to the source document, the guard as originally written is
+right, and an extraction that tidies it to `High` is still a regression.
+
+The mistake is worth naming because it is the same one this document already confesses to one
+section above. Achieve Now has two boxes in play — the damaged mojibake one and the `Hjgh` one,
+three rows apart — and the claim went in on the assumption that they were the same box, without
+cropping and reading it. A verdict published ahead of the pixels, twice on one document.
 
 **The other four PDFs keep their numbers**, including Oxford Circle's 44/44 and both Healthy
 NewsWorks models.

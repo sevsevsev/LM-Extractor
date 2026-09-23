@@ -2133,6 +2133,7 @@ them and the manifest text follows from the result.                             
 | 26 | 2026-09-22 | 7 decks (PPTX) | renderer broken in pdf.js's worker realm: 0 images on every deck, mojibake where it did render | setup | N |
 | 27 | 2026-09-22 | 9 decks (hosted) | hosted PPTX never reached LibreOffice: honest content type discarded by the host, wasm never deployed | setup | N |
 | 28 | 2026-09-22 | 6 PDFs + triage | 5 of 15 documents never touched pdf.js; 2 of 6 PDFs really damaged (Rock School wholly, Achieve Now one box); scanner over-reported until pixels checked it | audit-instrument | N |
+| 29 | 2026-09-23 | 14 docs, 678 items | accuracy audit: 678 of 678 found on the pages, 0 invented; Cub Reporter's 144->124 is 18 promoted category labels + 2 headers, not content; 6 structural defects, 1 of them a retraction of my own session-28 claim | audit | N |
 
 ---
 
@@ -2419,10 +2420,16 @@ capture produces FIVE page images. The diagnosis was this bug. Its covers string
 63/62/62 verdict all need rewriting.
 
 ACHIEVE NOW's mojibake box now reads "Volunteers and students receive stronger, more targeted
-support". Worse, the same page carries the never-repair guard: the manifest states the source
-"genuinely reads `Hjgh rate of volunteer retention`" and that an extraction tidying it to `High` is
-a regression. THE SOURCE READS `High`. The renderer was substituting the glyph. The guard as
-written now fails a correct extraction — a fixture that became a trap for the truth.
+support", so it no longer covers dual-track fusion on a single cell.
+
+[RETRACTED in session 29 — the rest of this entry was wrong.] It went on: the same page carries the
+never-repair guard, the manifest states the source "genuinely reads `Hjgh rate of volunteer
+retention`", THE SOURCE READS `High`, the renderer was substituting the glyph, the guard now fails
+a correct extraction. Every sentence of that is false. At 6x the box reads `Hjgh` on today's
+renderer and on the pre-fix render alike. Achieve Now has TWO boxes in play, three rows apart, and
+I treated them as one without cropping and reading the second. Published ahead of the pixels for
+the second time in one hour, on the same document, in the same session that had just written up
+the first instance as its headline lesson.
 
 NOT YET EDITED. Both are stated here and in the verification doc; the manifest edits wait until the
 census finishes, so one commit carries the corrections and the numbers that motivate them.
@@ -2500,3 +2507,71 @@ call and he has been asked.
 4. Give manifest.json an explicit source-format field, so this sorting is mechanical next time
    rather than a reading of prose.
 ```
+
+---
+
+## Session 29 — reading all 678 items against the pages, and retracting yesterday's fixture claim
+
+Severin settled the launch gate in one line — "Same items in same columns is sufficient, I think.
+Let's audit." — and the audit is this. Fourteen documents, 678 items, every page image written out
+of its bundle and read against the extraction in both directions. No API calls.
+
+**678 OF 678 FOUND ON THE PAGES. 0 INVENTED.** Nine of the fourteen are clean on every axis. Full
+table and per-document reasoning in docs/verification/2026-09-23-accuracy-audit.md.
+
+--- The thing the whole audit existed to settle ---
+CUB REPORTER'S 144 -> 124 IS NOT CONTENT LOSS, and it accounts exactly. 18 of the 20 are the
+category labels ("Academic Skills", "Soft Skills", "Health Knowledge & Behaviors") under Core and
+Cub across three outcome columns — 3 x 2 x 3 — now prefixes on the items they head, which is PR #9
+working. The other 2 are section headers that became group names. 124 + 18 + 2 = 144. Rock School's
+63 -> 61 cannot be attributed (the old extraction died with the broken renderer) but its 61 are
+verified complete.
+
+--- I RETRACTED MY OWN FIXTURE CORRECTION, ONE DAY OLD, ALREADY MERGED ---
+PR #12 changed the Achieve Now manifest entry to say the never-repair guard had gone backwards:
+that the source does not read `Hjgh rate of volunteer retention`, that it reads `High`, that the
+renderer was substituting the glyph. At 6x the box reads `Hjgh` on today's renderer. Cropped at the
+same coordinates, the PRE-FIX render reads `Hjgh` too, in a substituted face. The typeface moved;
+the letters never did. The typo is the document's own and the original guard was right all along.
+
+Achieve Now has TWO boxes in play: the genuinely damaged mojibake one, and the `Hjgh` one three
+rows above it. I treated them as one and published without cropping and reading the second. That is
+the identical failure to the scan verdict that session 28 opens by confessing to — committed about
+an hour later, on the same document, in the same session, while the confession was still being
+typed. Writing the lesson down is not the same as having learned it. The only thing that has
+actually worked, twice now, is putting the pixels in front of my own eyes at magnification before
+the claim goes anywhere.
+
+--- Four more near-misses, all caught before filing ---
+Core Reporter's impact statement looked dropped (it was below the fold of my own dump script).
+Performance Garage's looked rewritten (slide 1 of 2 carries the extraction's wording). firsthand's
+medium-term column looked one short (the 8th item is clipped off the converted slide and lives in
+Track A). Oxford Circle's TF-CBT item looked truncated (the box on the page truncates it). Every one
+is the same shape: a probe narrower than the data, manufacturing an absence. Session 22 named it,
+and it has now cost four false findings in a single afternoon's work. The counter-move that works
+is cheap: before filing an absence, check the other track, the other page, and the whole field list.
+
+--- The six real defects, none of them content loss ---
+1. A New Dawn's `impactStatement` is a raw Markdown fragment — begins mid-heading, literal `**`,
+   duplicates longTermOutcomes, ends on a dangling hyphen. User-visible in the board and the export.
+2. A New Dawn's `shortTermOutcomes` is [] while its 9 items, under a heading that literally reads
+   "SHORT-TERM OUTCOMES (3-12 months)", sit in `generalOutcomes`. Its subheadings were flattened,
+   while section 6 of the same document kept both of its subheadings as groups.
+3. Cub Reporter files 4 items under `inputs` that belong to Activities (1) and Outputs (3).
+4. YMCA Youth Civic promotes inline labels in four sections and not in the fifth.
+5. Trinity self-reports `partial` / medium on a complete 54-of-54 extraction.
+6. Rock School drops the template's DATE and contact fields entirely (no schema field for them).
+
+2, 3 and 4 are one bug in three hats: a label with no bullet marker. All three reproduce, which
+means THE GATE AS DEFINED WILL PASS THEM FOREVER. A reproducibility gate cannot see a defect that
+reproduces — which is the argument for this audit existing at all, and for repeating it whenever
+the grouping code changes.
+
+--- What the set does well, recorded because the defect list reads bleaker than the truth ---
+Mamadele is a real 6x6 matrix and comes back as 36 groups with all 80 cells placed correctly.
+Never-repair held on six source typos across four documents, including the two YMCA siblings
+disagreeing with each other about "Great" vs "Greater Philadelphia YMCA" — each copies its own
+title. Oxford Circle's two "-" fields produced no invented mission. Both PPTX conversions clip text
+out of their boxes and both times Track A supplied the whole item. Rock School and Art Thru Youth
+head their outcome column "OUTCOMES" with no horizon and correctly go to `generalOutcomes` rather
+than guessing a time split. BioEYES reports itself `not_logic_model` / partial / medium, and is.
