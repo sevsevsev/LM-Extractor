@@ -21,11 +21,8 @@ import {
   type SourceImageRef,
 } from '../types';
 import { polyfilledPdfWorkerSrc } from './pdfWorkerSrc';
-import {
-  PPTX_VISION_UNAVAILABLE_MESSAGE,
-  VisionUnavailableError,
-  isVisionUnavailable,
-} from '../shared/visionFallback';
+import { isVisionFailure } from '../shared/visionFallback';
+import { requestPptxPdfBase64 } from '../shared/pptxConvertRequest';
 
 // Not pdf.js's own worker URL directly: that worker is a separate realm and needs `polyfills.ts`
 // installed inside it, or `Dict.merge` throws and embedded fonts silently fail to load.
@@ -1318,33 +1315,28 @@ async function pptxArrayBufferToTextTrack(arrayBuffer: ArrayBuffer): Promise<str
  */
 async function convertPptxToPdfBytes(arrayBuffer: ArrayBuffer, filename: string): Promise<Uint8Array> {
   const qs = `?filename=${encodeURIComponent(filename)}`;
-  const response = await fetch(`/api/convert/pptx-to-pdf${qs}`, {
-    method: 'POST',
-    headers: {
-      // `application/octet-stream`, not the OOXML presentation type this file actually is.
-      // A serverless host parses the body by content type and hands the function `undefined` for
-      // anything outside a short list — with the honest type, the deck's bytes never arrived and
-      // the route answered "must include raw PPTX bytes" before LibreOffice was ever reached
-      // (hosted, 2026-09-22: every deck fell back to text-only). The real type is not information
-      // the route needs; `?filename=` already carries the extension it converts by.
-      'Content-Type': 'application/octet-stream',
-    },
-    body: arrayBuffer,
-  });
-  const payload = (await response.json().catch(() => ({}))) as {
-    pdfBase64?: string;
-    error?: string;
-  };
-  if (!response.ok || !payload.pdfBase64) {
-    // Every failure here is the same fact for the user: this deployment cannot turn a deck into
-    // pages. Raised as `VisionUnavailableError` so App.tsx refuses the text-only fallback instead
-    // of spending a Gemini call on a result whose columns are guesses.
-    throw new VisionUnavailableError(
-      PPTX_VISION_UNAVAILABLE_MESSAGE,
-      payload.error || `Server LibreOffice convert failed (status ${response.status}).`
-    );
-  }
-  return base64ToUint8Array(payload.pdfBase64);
+  const pdfBase64 = await requestPptxPdfBase64(
+    () =>
+      fetch(`/api/convert/pptx-to-pdf${qs}`, {
+        method: 'POST',
+        headers: {
+          // `application/octet-stream`, not the OOXML presentation type this file actually is.
+          // A serverless host parses the body by content type and hands the function `undefined`
+          // for anything outside a short list — with the honest type, the deck's bytes never
+          // arrived and the route answered "must include raw PPTX bytes" before LibreOffice was
+          // ever reached (hosted, 2026-09-22: every deck fell back to text-only). The real type is
+          // not information the route needs; `?filename=` already carries the extension it
+          // converts by.
+          'Content-Type': 'application/octet-stream',
+        },
+        body: arrayBuffer,
+      }),
+    {
+      onRetry: (attempt, detail) =>
+        console.warn(`PPTX convert attempt ${attempt} failed (${detail}); retrying once.`),
+    }
+  );
+  return base64ToUint8Array(pdfBase64);
 }
 
 /**
@@ -1391,7 +1383,7 @@ export const convertPptxToImages = async (file: File): Promise<DocumentBundle> =
     return bundle;
   } catch (error) {
     console.error('PPTX Image Conversion Error:', error);
-    if (isVisionUnavailable(error)) throw error;
+    if (isVisionFailure(error)) throw error;
     throw new Error(
       'Failed to convert PowerPoint via LibreOffice WASM. Ensure the API server is running (`npm run dev`) so `/api/convert/pptx-to-pdf` is available.'
     );

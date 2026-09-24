@@ -2636,3 +2636,60 @@ completely, which is the thing the census cannot do.
 Cause tag:                setup + audit-instrument
 Stop using the tool?      N
 ```
+
+---
+
+## Session 28 — an intermittent hosted PowerPoint failure, and a message that explained it wrongly
+
+```
+Date:                     2026-09-24
+Operator:                 owner (reported it); agent session (claude/project-thread-6iwsap)
+Files:                    synthetic decks only — scripts/make-synthetic-deck.mjs, added here
+Prompt version:           2026-09-20.6 UNCHANGED
+Host mode:                local production build (:3012) driven headlessly; the report is hosted
+Gemini calls:             0 (every browser run blocks /api/gemini/*)
+
+--- THE REPORT ---
+A deck fails in the hosted app when it goes up with other files, and the same deck converts when
+uploaded on its own. The error shown is session 27's "PowerPoint conversion is not available on
+this deployment". The owner later could not reproduce it: the same batch worked. So: intermittent.
+
+--- WHAT WAS RULED OUT, by measurement rather than reasoning ---
+Concurrency. Three decks uploaded together produce THREE SERIAL convert requests — never more than
+one in flight (instrumented in a browser against the real build). `convertingRef` holds the guard
+synchronously before its first await, so the batch cannot overlap. Whatever a batch does to the
+server, it does one request at a time.
+
+A leak across conversions. Six conversions in one process: RSS 1269MB after the first deck, 1303MB
+after the sixth, about 19MB per deck. Against the 2048MB ceiling that is roughly 40 decks, not
+three. A warm instance is not filling up during a batch.
+
+Server-side slowness. Cold, through HTTP: 3.4s including a 2.2s LibreOffice init. Warm: 0.16s.
+
+--- WHAT WAS NOT ESTABLISHED ---
+The actual cause. No console line from a failing run exists, this environment cannot reach the
+deployment or read its logs, and the failure did not reproduce. An intermittent failure on a
+serverless route whose function carries a 239MB bundle and a 2048MB ceiling has several candidates
+— a cold start meeting the 60s limit, an instance reclaimed mid-batch, a truncated response — and
+nothing here distinguishes them. Recorded as unknown rather than guessed.
+
+--- WHAT WAS WRONG REGARDLESS, and is fixed ---
+Session 27 raised `VisionUnavailableError` for EVERY unhappy answer from the convert route, so a
+timeout, a crash and a truncated body all told the user their deployment cannot do PowerPoint. To
+a user whose next upload of the same deck works, that sentence is simply false, and it points at
+the one action (stop trying, export a PDF) that the evidence contradicts.
+
+Now split: 503, this app's own "no LibreOffice here", still says unavailable and does not retry.
+Everything else is transient — retried once, and if it still fails, the file says the conversion
+failed this time and to try again, with the status in the sentence. A refused request (4xx) says a
+retry will not help. `shared/pptxConvertRequest.ts` holds it, away from fileService's pdfjs/jszip
+import graph so it can be tested: nine tests drive every response shape the route can produce.
+
+Verified in a browser on the production build: a 504 answered in HTML is retried and the second
+attempt produces page images; a 503 makes exactly one request and shows the permanent message.
+
+--- NOTE ---
+The retry is the right fix for an intermittent failure but it is a mitigation, not a diagnosis. If
+a deck fails twice in a row hosted, the sentence now carries the status, and THAT is the line worth
+collecting — it is what this session lacked.
+```

@@ -54,6 +54,70 @@ export function isVisionUnavailable(error: unknown): error is VisionUnavailableE
   );
 }
 
-/** Shown to the user when the PPTX→PDF service is not reachable or has no LibreOffice. */
+/** True for both vision errors: the ones App.tsx must not quietly downgrade to a text extraction. */
+export function isVisionFailure(
+  error: unknown
+): error is VisionUnavailableError | VisionConversionFailedError {
+  return (
+    isVisionUnavailable(error) ||
+    error instanceof VisionConversionFailedError ||
+    (error instanceof Error && error.name === 'VisionConversionFailedError')
+  );
+}
+
+/**
+ * Shown when the deployment genuinely cannot convert PowerPoint: the convert route itself says its
+ * LibreOffice is missing. Retrying cannot change that, so the sentence tells the user to stop
+ * trying and do something else.
+ */
 export const PPTX_VISION_UNAVAILABLE_MESSAGE =
   'PowerPoint conversion is not available on this deployment, so this deck can only be read as plain text — which loses the column layout. Upload a PDF export of the deck instead, or run the app locally.';
+
+/**
+ * Shown when the conversion failed THIS TIME: a timeout, a crash, a truncated response.
+ *
+ * Kept separate because the sentence above was first written to cover both, and it lied about the
+ * common case — a deck that converts on its own and then fails in a batch is proof that the
+ * deployment can convert PowerPoint, so telling that user their deployment cannot is both wrong
+ * and unactionable (reported 2026-09-24). `cause` carries the status or message the server gave,
+ * because the user reading this is the only person who can see it.
+ */
+export function pptxConversionFailedMessage(cause: string, retried: boolean): string {
+  const trimmed = cause.replace(/\s+/g, ' ').trim();
+  const bounded =
+    trimmed.length > MAX_REASON_CHARS ? `${trimmed.slice(0, MAX_REASON_CHARS - 1)}…` : trimmed;
+  const what = `Couldn't convert this deck to pages${bounded ? ` (${bounded})` : ''}.`;
+  // A refused request and an unlucky one need opposite advice, and the wrong one wastes the user's
+  // time: telling someone to retry a 413 sends them round the same loop.
+  return retried
+    ? `${what} It was already retried once. Try this file again on its own — if it keeps failing, upload a PDF export of the deck.`
+    : `${what} The server refused the request rather than failing at it, so another attempt will do the same. Upload a PDF export of the deck instead.`;
+}
+
+/**
+ * The conversion failed in a way that another attempt might survive, so the file is worth
+ * retrying — unlike `VisionUnavailableError`, which no number of attempts will fix.
+ */
+export class VisionConversionFailedError extends Error {
+  readonly detail?: string;
+
+  constructor(message: string, detail?: string) {
+    super(message);
+    this.name = 'VisionConversionFailedError';
+    this.detail = detail;
+  }
+}
+
+/**
+ * Which failures are worth another attempt.
+ *
+ * 503 is this app's own "no LibreOffice here" answer from the convert route, and 4xx generally
+ * means the request was wrong rather than unlucky — neither improves on a second try. Everything
+ * else (a 5xx crash, a gateway timeout on a cold start, a response whose body never arrived) is
+ * the kind of failure a retry exists for.
+ */
+export function isRetryableConvertStatus(status: number): boolean {
+  if (status === 503) return false;
+  if (status >= 400 && status < 500) return false;
+  return true;
+}
