@@ -22,7 +22,7 @@ import {
 } from './shared/regressionCapture';
 import { brand } from './config/brand';
 import { shouldSuggestMismatch } from './shared/sourceMapping';
-import { isVisionUnavailable, textOnlyFallbackWarning } from './shared/visionFallback';
+import { isVisionFailure, textOnlyFallbackWarning } from './shared/visionFallback';
 import {
   formatHardStopMessage,
   shouldHardStopExtraction,
@@ -219,7 +219,7 @@ const PERSIST_DEBOUNCE_MS = 1200;
 const friendlyError = (error: unknown): string => {
   // Already written for the user, and specific about what to do next: pass it through before the
   // patterns below rewrite it into something vaguer.
-  if (isVisionUnavailable(error)) return error.message;
+  if (isVisionFailure(error)) return error.message;
   const message = error instanceof Error ? error.message : String(error || 'Something went wrong');
   if (/api key|401|unauthorized/i.test(message)) {
     return "Couldn't reach Gemini — check that GEMINI_API_KEY is set in .env.local.";
@@ -508,7 +508,7 @@ const App: React.FC = () => {
           // Vision being unavailable on this deployment is not a document that needs a gentler
           // path: the text-only result is one no reviewer can trust, and no retry improves it.
           // Surface it instead of quietly extracting — see shared/visionFallback.ts.
-          if (isVisionUnavailable(visionError)) {
+          if (isVisionFailure(visionError)) {
             // The user-facing sentence stays clean; the server's own words go to the console,
             // which is where a hosted failure gets read from.
             console.error('Vision unavailable:', visionError.message, '| server said:', visionError.detail);
