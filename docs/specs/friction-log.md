@@ -2693,3 +2693,108 @@ The retry is the right fix for an intermittent failure but it is a mitigation, n
 a deck fails twice in a row hosted, the sentence now carries the status, and THAT is the line worth
 collecting — it is what this session lacked.
 ```
+
+## Session 31 — the stall behind the intermittent PowerPoint failure, found by timing it
+
+```
+Date:                     2026-09-26
+Operator:                 owner asked for the two PowerPoint loose ends; agent session
+Files:                    the owner's seven decks, read from the project's own uploads; nothing committed
+Prompt version:           untouched — nothing here ran an extraction
+Gemini calls:             0 (the monthly cap is reached; none was needed)
+```
+
+--- THE FONT WARNING, CLOSED ---
+Firefox logged `downloadable font: glyf: empty gid 4 used as component in glyph 40` on one of the
+three decks the owner ran against the hosted preview on 2026-09-22, and nobody had looked at the
+page image. Which deck was never recorded, so it was found rather than guessed: all seven decks
+were converted through `convertPptxBufferToPdf`, every embedded TrueType font pulled out of the
+seven PDFs, and each font's composite glyphs walked for a component pointing at a zero-length
+glyph — the exact condition the sanitiser reports. One deck matches, with those exact glyph
+numbers. A second deck has the same construction at different numbers (empty gid 10 in glyph 37),
+so it would log a different line and the same verdict applies.
+
+The font is `DAAAAA+LiberationSans` — LibreOffice's own metric substitute for Arial, subset by its
+PDF export, not a font from the deck. In that subset glyph 4 is U+0020 SPACE, correctly empty
+because a space has no outline, and glyph 40 is U+00A0 NO-BREAK SPACE, written as a composite
+whose single component is the space, at offset (0,0), bbox all zeroes, advance 569/2048 — the same
+width the PDF's own `/Widths` gives both codes. So the sanitiser is objecting to one whitespace
+character defined as a copy of another, and blank is the correct rendering of both. The deck
+contains exactly one no-break space, in a text run on slide 1.
+
+Confirmed at the pixels anyway, because that is the standing rule here: both pages rendered through
+pdf.js at scale 1.6 and again at scale 4. Every letter, apostrophe, hyphen and percent sign is
+correct and in the right typeface. Rendered in Chromium rather than Firefox, but both browsers
+sanitise with OTS and there is no outline to lose either way.
+
+Noticed while looking, and NOT a font problem: the deck's title wraps to a second line, and
+LibreOffice lets that line run under the table instead of shrinking the title to fit, so it is
+half-hidden on both pages. Cosmetic, and those words are in the text track regardless. Left with
+the owner.
+
+--- THE INTERMITTENT HOSTED FAILURE: a mechanism, at last ---
+Session 28 ruled out concurrency and memory growth and could not say what the cause was. This one
+timed the thing itself. Same deck, same code, one cold process per run:
+
+```
+first conversion, 21 cold runs:   ~4s on 14 of them, ~85s on 7 of them
+warm conversions, every time:     ~1s
+the slow mode, one captured run:  83.6s wall, 15.2s user CPU, 4.2s system CPU
+a fast run for comparison:        4.2s wall, 10.0s user CPU
+```
+
+The slow mode is not the machine being busy and not a bigger job: it adds about 79 seconds of wall
+time for about 5 seconds of CPU. It is idle waiting. With the converter's own logging on, the 82
+seconds is a single silent gap inside `convert` with no output at all, after LibreOffice has
+reported itself initialised. What it waits on is inside the WASM build and was not chased further.
+
+Why that is the whole story of the owner's report. `vercel.json` gives the convert function
+`maxDuration: 60`, and 60s is the ceiling on a personal account, not a setting that can be raised.
+A cold first conversion landing in the slow mode therefore outlives its own function: the platform
+kills the invocation and answers with its own gateway page. Before session 28's split, the browser
+turned any such answer into "PowerPoint conversion is not available on this deployment" — the exact
+sentence the owner saw. The retry he tried afterwards hit a warm instance, where the same deck
+converts in a second, which is exactly why it would not reproduce.
+
+Not claimed: that this is what happened on 2026-09-24. The hosted logs are unreadable from here.
+What is claimed is that this mechanism exists, is reproducible, produces that precise sentence, and
+is cured by a retry.
+
+--- A SECOND DEFECT, OURS, FOUND WHILE READING THE PATH ---
+`getLibreOfficeConverter` could never replace a converter that had stopped working. The package's
+worker `error` handler rejects the calls in flight but leaves the instance in place, so `isReady()`
+goes false while the cached init promise still resolves to that same dead instance — and the first
+line of the function only consulted `isReady()` to decide whether to return early, never to decide
+whether to rebuild. Demonstrated against the real module: convert, convert again, put the worker
+out of action, convert a third time.
+
+```
+before:  third convert FAILED after 0ms: Converter not initialized. Call initialize() first.
+after:   [LibreOffice WASM] Ready in 1865ms — third convert OK 117779B in 4248ms
+```
+
+One lost worker therefore broke one warm serverless instance for the rest of its life, while a
+request routed to any other instance succeeded. That is also what "fails in a batch, works on its
+own" looks like from outside, and it needs no stall to happen.
+
+--- WHAT CHANGED ---
+`acquireConverter` and `discardConverter` hold the lifecycle, with the slot passed in so the states
+can be tested without starting a 900MB LibreOffice: reuse while ready, replace once not, terminate
+the one being dropped, do not cache a failed start, and let concurrent callers share one start.
+
+`withDeadline` bounds a conversion — start included, since what the route owes is an answer before
+the platform stops waiting, not an answer from any one stage. Default 45s, under the function's
+60s, overridable with `LM_CONVERT_DEADLINE_MS` for the local Express server, which has no such
+limit. On expiry the stuck converter is dropped, so the client's one retry starts against a fresh
+one instead of queueing behind the stall, and the route answers 500 with a sentence naming the
+timeout rather than being killed mid-request and answering in HTML.
+
+The deadline timer is deliberately not `unref`'d. It was, for one revision, and the tests caught
+it: an unref'd deadline never fires when the stalled conversion is the last thing keeping the loop
+alive, which is precisely the case it exists for.
+
+--- WHAT THIS DOES NOT DO ---
+It does not remove the stall. A cold conversion that lands in the slow mode still costs the user 45
+seconds before the retry gets them a result, and on a personal account the 60s function limit
+cannot be raised to absorb it. Making the stall itself go away means understanding what LibreOffice
+WASM waits on, or keeping an instance warm so no conversion is ever the first one.
