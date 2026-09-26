@@ -174,6 +174,9 @@ test('the splitter produces exactly the parts every committed spec declares', ()
   for (const doc of loadAll()) {
     for (const slide of doc.slides) {
       for (const column of slide.columns) {
+        // `splitRunOnItems` walks the grid domains only, so a non-grid column (a budget line, a
+        // prose paragraph) never reaches the splitter however its sentences are punctuated.
+        if (column.domain === null) continue;
         for (const item of column.items) {
           const declared = column.splits?.[item] ?? null;
           assert.deepEqual(
@@ -207,4 +210,45 @@ test('leaving run-on cells whole costs recall on the document written to catch i
   const split = scoreExtraction(golden, perfectExtraction(doc), { sourceText });
   assert.ok(asPrinted.recall < 0.75, `unsplit recall should be poor, got ${asPrinted.recall}`);
   assert.equal(split.recall, 1);
+});
+
+/**
+ * The set's hard shapes, asserted so they cannot be weakened by editing a spec. Each names the
+ * real failure it stands in for; a document that stops exercising it should be replaced, not
+ * quietly flattened.
+ */
+test('the set prints a column nested two heading levels deep', () => {
+  const doc = loadAll().find(d => d.id === 'nested-outcome-sections');
+  assert.ok(doc, 'nested-outcome-sections must stay in the set');
+  const outcomes = doc.slides[0].columns.find(c => c.domain === 'generalOutcomes');
+  assert.ok(outcomes, 'its outcomes column is the point of the document');
+  // A section, a sub-section under it, then the bullets: two levels above the item, which is one
+  // more than the schema's Group.name can hold. Neither level is an expected item.
+  assert.ok((outcomes.labels?.length ?? 0) >= 4, 'two heading levels means several labels');
+  const expected = goldenFromDocument(doc).items.generalOutcomes ?? [];
+  for (const label of outcomes.labels ?? []) {
+    assert.ok(!expected.includes(label), `${label} is a heading, not an item`);
+  }
+  assert.ok(expected.length >= 6, 'the bullets under both levels are all expected');
+});
+
+test('the set prints one programme twice in two different templates', () => {
+  const doc = loadAll().find(d => d.id === 'two-templates-one-content');
+  assert.ok(doc, 'two-templates-one-content must stay in the set');
+  const headed = doc.slides.flatMap(s => s.columns).filter(c => c.domain !== null && c.heading);
+  const headerless = doc.slides.flatMap(s => s.columns).filter(c => c.domain !== null && !c.heading);
+  assert.ok(headed.length >= 5, 'one pass is a headed grid');
+  assert.ok(headerless.length >= 5, 'the other pass prints no headings at all');
+  // Both passes are expected in full, so dropping either shows up as lost recall.
+  const expected = Object.values(goldenFromDocument(doc).items).flat();
+  assert.equal(expected.length, headed.concat(headerless).reduce((n, c) => n + c.items.length, 0));
+});
+
+test('a column can mix cells that split with cells that must survive whole', () => {
+  const doc = loadAll().find(d => d.id === 'mixed-separators');
+  assert.ok(doc, 'mixed-separators must stay in the set');
+  const mixed = doc.slides[0].columns.filter(
+    c => Object.keys(c.splits ?? {}).length > 0 && c.items.some(i => !(c.splits ?? {})[i])
+  );
+  assert.ok(mixed.length >= 3, 'the point is both kinds side by side, not one shape per column');
 });

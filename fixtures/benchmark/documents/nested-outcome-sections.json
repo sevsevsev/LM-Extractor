@@ -1,0 +1,68 @@
+{
+  "id": "nested-outcome-sections",
+  "label": "Rushmere Reading Project — outcomes nested two levels deep",
+  "covers": "The OUTCOMES column carries TWO levels of in-column heading above its items: a section ('For young people') and a sub-section under it ('While they are with us'), then the bullets. The regression set records this shape as the one that churns — the README traces a document moving 111 to 115 items under an UNCHANGED prompt to nesting four levels deep in its outcome columns, and names it as the model re-rolling an underdetermined choice about how to flatten 3-4 source levels into this schema's two (Group.name -> items[]), which nothing in the prompt specifies. Both heading levels are declared as labels, so a run that folds them either way still scores 100% on items in columns; what this document makes visible is whether the ITEMS survive the flattening, which is the launch gate's question and the one no synthetic document in the set previously asked.",
+  "organization": "Rushmere Reading Project",
+  "program": "Page Turners",
+  "slides": [
+    {
+      "title": "Page Turners — Logic Model",
+      "columns": [
+        {
+          "heading": "INPUTS",
+          "domain": "inputs",
+          "items": [
+            "Staffing",
+            "A part-time reading coordinator based at the library",
+            "Six trained volunteer reading partners",
+            "Materials",
+            "A rotating collection of four hundred levelled readers",
+            "Printed reading records for every child enrolled"
+          ],
+          "labels": ["Staffing", "Materials"]
+        },
+        {
+          "heading": "ACTIVITIES",
+          "domain": "activities",
+          "items": [
+            "Weekly one-to-one reading sessions of thirty minutes",
+            "A half-term family reading morning at the library",
+            "Termly training refreshers for the volunteer partners"
+          ]
+        },
+        {
+          "heading": "OUTPUTS",
+          "domain": "outputs",
+          "items": [
+            "Around six hundred reading sessions delivered each year",
+            "Three family reading mornings held across the year"
+          ]
+        },
+        {
+          "heading": "OUTCOMES",
+          "domain": "generalOutcomes",
+          "items": [
+            "For young people",
+            "While they are with us",
+            "Children choose a book without being prompted",
+            "Children read aloud to an adult without visible anxiety",
+            "After they leave us",
+            "Children keep a library membership of their own",
+            "Children move up a reading band by the end of the year",
+            "For families",
+            "While they are with us",
+            "Parents and carers hear their child read at home each week",
+            "After they leave us",
+            "Families visit the library together outside session times"
+          ],
+          "labels": [
+            "For young people",
+            "While they are with us",
+            "After they leave us",
+            "For families"
+          ]
+        }
+      ]
+    }
+  ]
+}

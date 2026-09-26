@@ -1,6 +1,6 @@
 # Accuracy benchmark
 
-Seven invented logic-model documents whose correct extraction is known by construction, and a
+Fourteen invented logic-model documents whose correct extraction is known by construction, and a
 scorer that turns an extraction into four numbers.
 
 ## Why this exists beside the regression set
@@ -67,6 +67,10 @@ The documents are as hard as they were written to be and no harder. A perfect sc
 that a change did not break the failure modes in the set — the ones this project has actually
 shipped bugs against — and is not evidence about a partner's real document.
 
-Deliberately **not** in the set: a three-level-nested document. The two-level schema cannot
-represent one, so its correct answer is undecided policy rather than fact, and a benchmark must not
-pretend to score an open question.
+Deeper nesting is in the set, but only the part of it that is a fact.
+`nested-outcome-sections` prints a section and a sub-section above its outcome bullets, which is
+three source levels into a schema that holds two. What a run should do with the two heading levels
+is undecided policy, so both are declared as labels and left unscored, exactly as group names are;
+what the document does measure is whether the ITEMS under them survive the flattening, which is the
+launch gate's question and a fact either way. A benchmark must not pretend to score an open
+question, and this one still does not.
