@@ -67,14 +67,50 @@ including an item of the same shape as the one read on the real document's page 
 scorer fix is what makes that visible** — before it, tolerance excused a surplus item wherever it
 landed, so the report half scored a clean 100%.
 
+## Measured on the real documents
+
+Replayed on the owner's machine against the captured bundles. Judged on items in columns only —
+this is the first prompt change since the `2026-09-20.6` baselines, so group-name, delimiter and
+wording churn across the set is expected and the launch gate ("same items in same columns") does
+not count it.
+
+| document | grid items, old to new | columns | verdict |
+|---|---|---|---|
+| `philadelphia-ballet-lets-dance` | 36 to **0** (42 unmapped) | all cleared | **gate met** |
+| `harlem-lacrosse` | 23 to **27** | none moved, 4 gained in `impact` | **gate met** |
+| `seamaac-urban-arts` | 33 to 33 | **identical distribution** | wording and grouping only |
+| `upenn-bioeyes` | 6 to 6 | **one moved**, `inputs` to `generalOutcomes` | owner's call |
+
+Ballet's counter reads `0 -> 42 items` because that total sums grid and unmapped; the split is what
+matters and the grid is empty. Stable across two runs. Harlem Lacrosse gained items and lost none,
+so the narrowing does not empty a document written in the organisation's own voice — the thing that
+had to hold. SEAMAAC is the control: an ordinary headed grid, same 33 items in the same six columns
+before and after, `{inputs 10, activities 10, outputs 5, short 3, medium 4, long 1}`.
+
+`upenn-bioeyes` was examined for the first time. It is a single image of six boxes joined by
+arrows — teachers gaining skills, students doing experiments, students developing skills and
+attitude, seeing science careers, pursuing further opportunities, employment in STEM — with no
+named author, no signature and no findings passage, in the present and future tense. That is an
+organisation's own chain of intended change, so the fallback correctly applies and extracting is
+right. The one moved item is the first box, teachers acquiring skills and equipment, going from
+`inputs` to `generalOutcomes`; that reads as the better placement, being a change in people rather
+than a resource the programme holds, but it is a movement and so the owner's to accept.
+
+## The flag no longer decides whether to extract
+
+`documentTypeAssessment` is `not_logic_model` on all three of Ballet, Harlem Lacrosse and UPenn
+BioEyes — including the two that legitimately extract. The flag describes layout: there is no
+column grid to read domains off, so the app assigned them. The extract-or-not decision now keys on
+authorial stance instead, so the two are independent. **Reading the flag alone will mislead**, and
+`fixtures/regression-set/manifest.json` should not be read as saying a flagged document yields
+nothing.
+
 ## What this does not measure
 
-The seventeen real regression documents. `harlem-lacrosse` is the guard that matters most and it
-lives on the owner's machine; `upenn-bioeyes` is a third document flagged `not_logic_model`, with 6
-grid items, and was not examined. A prompt change moves Gemini's own wording, so a re-capture of
-the regression set will show group-name and delimiter churn that the launch gate does not count —
-what has to be checked there is items in columns, and specifically that Harlem Lacrosse keeps its
-grid and Philadelphia Ballet returns to zero.
+Thirteen of the seventeen regression documents. Bundles are gitignored, so a fresh clone
+holds none, and only the four above had one. Capturing the rest needs their source files plus one
+call each. The four cover both sides of the new rule and an unaffected control, but they are not
+the whole set.
 
 The replay fixtures for the other nine documents were deliberately **not** re-collected. They pin
 post-processing, which this change does not touch, and letting them churn with every prompt edit
