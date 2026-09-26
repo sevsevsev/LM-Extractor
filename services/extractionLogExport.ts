@@ -7,6 +7,7 @@ import { isExportReady } from '../shared/sessionQueue.js';
 // Dependency-free by design, so this static import does not pull pdfjs/mammoth/jszip into the
 // initial bundle the way importing services/fileService.ts would.
 import { sourceFormatFromFileName } from '../shared/uploadFormats.js';
+import { csvBlob } from '../shared/csvDownload.js';
 
 /**
  * Per-document QA log — one row per processed file, not per content item (unlike the granular
@@ -131,7 +132,7 @@ export function downloadExtractionLogCsv(
   if (!csv) {
     return { ok: false, reason: 'No files have finished processing yet.' };
   }
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = csvBlob(csv);
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
