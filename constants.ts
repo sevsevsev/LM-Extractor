@@ -32,7 +32,7 @@
  * (`services/extractionLogExport.ts`) so a batch's results can be attributed to the exact prompt
  * that produced them. Format: `YYYY-MM-DD.N`.
  */
-export const PROMPT_VERSION = '2026-09-20.6';
+export const PROMPT_VERSION = '2026-09-26.1';
 
 /** Same contract as `PROMPT_VERSION`, versioned separately — different call, different failure mode. */
 export const DETECT_PROMPT_VERSION = '2026-09-19.1';
@@ -418,7 +418,24 @@ const columnFidelitySection = `
 
     **WHEN THERE IS NO GRID** (Theory of Change, narrative, brochure — a source with no column headers):
     Every rule above assigns by POSITION, and a document without column headers gives you no position
-    to use. **Only then**, decide by what an item IS — never by what it merely sounds like, and never
+    to use.
+
+    **First decide whether this section applies at all, and decide it for the WHOLE DOCUMENT, not
+    per item.** It applies only when the document is **the organisation setting out its own
+    programme** — its own voice, saying what it has, what it does and what it intends to change.
+    It does **not** apply when the document is **someone reporting on a programme**: an assessment,
+    an evaluation, a review, a case study, a funder report — an author describing, usually in the
+    past tense, what was observed, measured or concluded. A named external author, a signature, a
+    methods or survey passage, or findings written about the programme rather than by it, are the
+    tell.
+    When it does not apply, put **everything** in \`unmapped\` under its own heading, leave every
+    grid domain empty, and set \`documentTypeAssessment\` to \`"not_logic_model"\`. **Do this even
+    where individual sentences state the programme's goals or describe what it is designed to
+    achieve** — a report about a programme quotes its intentions, and those sentences read exactly
+    like outcomes on their own. The document's author and stance decide this, not the wording of
+    any one line.
+
+    When it does apply, decide by what an item IS — never by what it merely sounds like, and never
     when a column header does exist:
     - **Inputs** — a resource the program HAS or USES: people, money, materials, partnerships, curriculum.
     - **Activities** — something the program DOES.

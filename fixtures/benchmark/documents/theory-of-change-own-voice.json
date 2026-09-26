@@ -1,0 +1,50 @@
+{
+  "id": "theory-of-change-own-voice",
+  "label": "Rowan Street Arts — Stage Steps Theory of Change",
+  "covers": "A Theory of Change with NO column headers and no headings at all, written by the organisation about itself in the present tense. It genuinely states a programme's plan, so the headerless fallback should categorise it — this document is the guard that any narrowing of that fallback does not empty the documents it was written for. Its pair is assessment-report-third-party, which differs only in authorial stance.",
+  "organization": "Rowan Street Arts",
+  "program": "Stage Steps",
+  "documentTypeAssessment": "not_logic_model",
+  "slides": [
+    {
+      "title": "Rowan Street Arts — Stage Steps: Our Theory of Change",
+      "columns": [
+        {
+          "heading": "",
+          "domain": "inputs",
+          "items": [
+            "Two teaching artists and one programme coordinator",
+            "A rehearsal studio on Rowan Street and a hall in each partner school",
+            "A three-year grant from the borough arts fund"
+          ]
+        },
+        {
+          "heading": "",
+          "domain": "activities",
+          "items": [
+            "We run weekly dance and drama workshops in four partner schools",
+            "We rehearse and stage one public performance each term",
+            "We hold open sessions for families in the school holidays"
+          ]
+        },
+        {
+          "heading": "",
+          "domain": "outputs",
+          "items": [
+            "Ninety young people take part across the school year",
+            "Three public performances are staged each year"
+          ]
+        },
+        {
+          "heading": "",
+          "domain": "generalOutcomes",
+          "items": [
+            "Young people grow in confidence performing in front of others",
+            "Young people build friendships across year groups",
+            "Families come into school buildings they had not entered before"
+          ]
+        }
+      ]
+    }
+  ]
+}
