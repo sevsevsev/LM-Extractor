@@ -1,0 +1,134 @@
+{
+  "id": "theory-of-change-own-voice",
+  "promptVersion": "2026-09-26.1",
+  "options": {
+    "sourceText": "## Slide 1\n\nRowan Street Arts — Stage Steps: Our Theory of Change Two teaching artists and one programme coordinator A rehearsal studio on Rowan Street and a hall in each partner school A three-year grant from the borough arts fund We run weekly dance and drama workshops in four partner schools We rehearse and stage one public performance each term We hold open sessions for families in the school holidays Ninety young people take part across the school year Three public performances are staged each year Young people grow in confidence performing in front of others Young people build friendships across year groups Families come into school buildings they had not entered before",
+    "lowLegibility": false,
+    "textOnlyFallback": false
+  },
+  "raw": {
+    "organization": "Rowan Street Arts",
+    "program": "Stage Steps",
+    "mission": {
+      "content": ""
+    },
+    "targetPopulation": {
+      "content": ""
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Two teaching artists and one programme coordinator",
+              "sourceColumn": 1,
+              "sourcePage": 1
+            },
+            {
+              "text": "A rehearsal studio on Rowan Street and a hall in each partner school",
+              "sourceColumn": 1,
+              "sourcePage": 1
+            },
+            {
+              "text": "A three-year grant from the borough arts fund",
+              "sourceColumn": 1,
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "We run weekly dance and drama workshops in four partner schools",
+              "sourceColumn": 2,
+              "sourcePage": 1
+            },
+            {
+              "text": "We rehearse and stage one public performance each term",
+              "sourceColumn": 2,
+              "sourcePage": 1
+            },
+            {
+              "text": "We hold open sessions for families in the school holidays",
+              "sourceColumn": 2,
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Ninety young people take part across the school year",
+              "sourceColumn": 3,
+              "sourcePage": 1
+            },
+            {
+              "text": "Three public performances are staged each year",
+              "sourceColumn": 3,
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": []
+    },
+    "mediumTermOutcomes": {
+      "content": []
+    },
+    "longTermOutcomes": {
+      "content": []
+    },
+    "impact": {
+      "content": []
+    },
+    "documentTypeAssessment": "not_logic_model",
+    "extractionStatus": "ok",
+    "colorLegend": "",
+    "documentTypeNote": "Presents as a Theory of Change diagram arranged in columns without category headers.",
+    "extractionConfidence": "high",
+    "generalOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Young people grow in confidence performing in front of others",
+              "sourceColumn": 4,
+              "sourcePage": 1
+            },
+            {
+              "text": "Young people build friendships across year groups",
+              "sourceColumn": 4,
+              "sourcePage": 1
+            },
+            {
+              "text": "Families come into school buildings they had not entered before",
+              "sourceColumn": 4,
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "impactStatement": {
+      "content": ""
+    },
+    "layoutFamily": "vertical_columns",
+    "unmapped": {
+      "content": []
+    }
+  }
+}
