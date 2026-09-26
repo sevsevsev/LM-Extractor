@@ -19,6 +19,13 @@ export interface RegressionTally {
   missingBundles: number;
   /** Documents whose extract call errored — the API is down, or the key is missing. */
   failures: number;
+  /**
+   * Documents that ran but had no committed snapshot to be checked against. Counted separately
+   * from `unchanged` because a first capture is not evidence of anything: until a person has read
+   * it, it is one run of unknown quality, and writing it as the baseline makes whatever came out
+   * that day the thing every later run is measured against.
+   */
+  unblessed: number;
   /** True when the run was invoked with --update, so a change is an intention, not a regression. */
   update: boolean;
   /** True when the caller asked for every manifest document to be measurable. */
@@ -33,6 +40,8 @@ export interface RegressionOutcome {
 
 export function regressionOutcome(tally: RegressionTally): RegressionOutcome {
   const measured = tally.unchanged + tally.changed;
+  /** Documents that actually ran, whether or not there was anything to compare them with. */
+  const produced = measured + tally.unblessed;
 
   if (tally.failures > 0) {
     return {
@@ -41,9 +50,9 @@ export function regressionOutcome(tally: RegressionTally): RegressionOutcome {
     };
   }
 
-  // Nothing measured is not a pass, whatever the reason. This is the case the old rule was really
+  // Nothing ran is not a pass, whatever the reason. This is the case the old rule was really
   // guarding, and the only one that needs to be an error.
-  if (measured === 0) {
+  if (produced === 0) {
     return {
       exitCode: 2,
       summary:
@@ -61,6 +70,18 @@ export function regressionOutcome(tally: RegressionTally): RegressionOutcome {
     };
   }
 
+  // A document with a bundle and no snapshot used to be blessed on the spot and counted as a pass.
+  // That made an unread run the baseline silently, which is the one way this harness can launder a
+  // defect into the thing every later run is measured against. Blessing is now asked for by name.
+  if (tally.unblessed > 0 && !tally.update) {
+    return {
+      exitCode: 1,
+      summary:
+        `${tally.unblessed} document(s) ran with no committed snapshot and were NOT blessed. ` +
+        'Read the extraction, then accept it with --only=<id> --update.',
+    };
+  }
+
   if (tally.changed > 0 && !tally.update) {
     return {
       exitCode: 1,
@@ -68,6 +89,7 @@ export function regressionOutcome(tally: RegressionTally): RegressionOutcome {
     };
   }
 
+  const blessed = tally.unblessed > 0 ? ` ${tally.unblessed} new baseline(s) written.` : '';
   const skipped =
     tally.missingBundles > 0
       ? ` ${tally.missingBundles} document(s) skipped for want of a bundle — capture them to widen the guard.`
@@ -75,7 +97,7 @@ export function regressionOutcome(tally: RegressionTally): RegressionOutcome {
   return {
     exitCode: 0,
     summary: tally.update
-      ? `${measured} document(s) measured, baselines accepted.${skipped}`
+      ? `${produced} document(s) measured, baselines accepted.${blessed}${skipped}`
       : `${measured} document(s) measured, all unchanged.${skipped}`,
   };
 }

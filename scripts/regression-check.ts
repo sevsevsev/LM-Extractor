@@ -10,6 +10,7 @@
  *   npm run dev                 # the API must be running (default http://localhost:3011)
  *   npm run regression:check    # diff against committed snapshots; non-zero exit on any change
  *   npm run regression:check -- --update   # accept current output as the new baseline
+ *   npm run regression:check -- --only=<id> --update   # bless a document captured for the first time
  *   npm run regression:check -- --only=oxford-circle
  *   npm run regression:check -- --require-bundles   # fail if any document has no bundle here
  *
@@ -99,6 +100,7 @@ async function main(): Promise<void> {
   let unchanged = 0;
   let updated = 0;
   const missingBundles: ManifestEntry[] = [];
+  const unblessed: ManifestEntry[] = [];
   const failures: { entry: ManifestEntry; error: string }[] = [];
   const variantsSeen = new Set<string>();
 
@@ -136,6 +138,16 @@ async function main(): Promise<void> {
     };
 
     if (!existsSync(snapshotPath)) {
+      // Only ever on request. See shared/regressionOutcome.ts for why a first capture is not a
+      // baseline until someone has read it.
+      if (!update) {
+        unblessed.push(entry);
+        console.log(
+          `  ? ${entry.label} — ran, but there is no committed snapshot to check it against ` +
+            `(${result.promptVersion}, ${result.promptVariant})`
+        );
+        continue;
+      }
       writeFileSync(snapshotPath, `${JSON.stringify(snapshot, null, 2)}\n`);
       updated++;
       console.log(`  + ${entry.label} — new baseline (${result.promptVersion}, ${result.promptVariant})`);
@@ -171,11 +183,18 @@ async function main(): Promise<void> {
     console.log('  See fixtures/regression-set/README.md to capture them.');
   }
 
+  if (unblessed.length > 0) {
+    console.log(`\n${unblessed.length} document(s) have no committed snapshot:`);
+    for (const e of unblessed) console.log(`  - ${e.id} (${e.covers})`);
+    console.log('  Read the extraction, then bless it with --only=<id> --update.');
+  }
+
   const outcome = regressionOutcome({
     total: entries.length,
     unchanged,
     changed,
     missingBundles: missingBundles.length,
+    unblessed: unblessed.length,
     failures: failures.length,
     update,
     requireBundles,

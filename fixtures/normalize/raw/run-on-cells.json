@@ -1,0 +1,124 @@
+{
+  "id": "run-on-cells",
+  "promptVersion": "2026-09-20.6",
+  "options": {
+    "sourceText": "## Slide 1\n\nKestrel Valley Youth Music — Ensemble Pathways Logic Model INPUTS A programme director, two teaching artists and a part-time administrator Rehearsal space at the community hall; a shared instrument store; a minibus on loan Part-time counsellor provided under contract (Avery R. Nolan Counselling Center) ACTIVITIES Partnerships confirmed with a memorandum of understanding and insurance documents. Attend orientation evenings and submit the programme description to school leadership Weekly after-school ensemble rehearsals at each partner site Curriculum levelled for each year group; reviewed annually OUTPUTS Avg. Ensemble rehearsals delivered per week across every participating partner site Termly concert programmes printed; recordings archived; photographs catalogued Ninety young people completing at least one full programme year SHORT-TERM OUTCOMES Increased musical skills, improved rehearsal attendance, and stronger goal-setting habits Young people report greater confidence performing in front of an audience LONG-TERM OUTCOMES Graduates continue in ensemble music beyond the programme year. Families report that music has become a settled part of household life Partner schools sustain an ensemble programme without external staffing",
+    "lowLegibility": false,
+    "textOnlyFallback": false
+  },
+  "raw": {
+    "organization": "Kestrel Valley Youth Music",
+    "program": "Ensemble Pathways",
+    "mission": {
+      "content": ""
+    },
+    "targetPopulation": {
+      "content": ""
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "A programme director, two teaching artists and a part-time administrator",
+              "sourcePage": 1
+            },
+            {
+              "text": "Rehearsal space at the community hall; a shared instrument store; a minibus on loan",
+              "sourcePage": 1
+            },
+            {
+              "text": "Part-time counsellor provided under contract (Avery R. Nolan Counselling Center)",
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Partnerships confirmed with a memorandum of understanding and insurance documents. Attend orientation evenings and submit the programme description to school leadership",
+              "sourcePage": 1
+            },
+            {
+              "text": "Weekly after-school ensemble rehearsals at each partner site",
+              "sourcePage": 1
+            },
+            {
+              "text": "Curriculum levelled for each year group; reviewed annually",
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Avg. Ensemble rehearsals delivered per week across every participating partner site",
+              "sourcePage": 1
+            },
+            {
+              "text": "Termly concert programmes printed; recordings archived; photographs catalogued",
+              "sourcePage": 1
+            },
+            {
+              "text": "Ninety young people completing at least one full programme year",
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Increased musical skills, improved rehearsal attendance, and stronger goal-setting habits",
+              "sourcePage": 1
+            },
+            {
+              "text": "Young people report greater confidence performing in front of an audience",
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "mediumTermOutcomes": {
+      "content": []
+    },
+    "longTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Graduates continue in ensemble music beyond the programme year. Families report that music has become a settled part of household life",
+              "sourcePage": 1
+            },
+            {
+              "text": "Partner schools sustain an ensemble programme without external staffing",
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "impact": {
+      "content": []
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "ok"
+  }
+}

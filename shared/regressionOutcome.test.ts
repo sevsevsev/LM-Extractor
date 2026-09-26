@@ -8,6 +8,7 @@ const tally = (partial: Partial<RegressionTally> = {}): RegressionTally => ({
   changed: 0,
   missingBundles: 3,
   failures: 0,
+  unblessed: 0,
   update: false,
   requireBundles: false,
   ...partial,
@@ -72,5 +73,30 @@ test('--require-bundles is satisfied when every bundle is present', () => {
 
 test('a real change outranks a missing bundle, so a regression is never reported as a skip', () => {
   const outcome = regressionOutcome(tally({ unchanged: 13, changed: 1, missingBundles: 3 }));
+  assert.equal(outcome.exitCode, 1);
+});
+
+test('a document that ran with no committed snapshot is not a pass', () => {
+  const outcome = regressionOutcome(tally({ unchanged: 13, unblessed: 1 }));
+  assert.equal(outcome.exitCode, 1);
+  assert.match(outcome.summary, /NOT blessed/);
+});
+
+test('--update is how a first capture becomes a baseline', () => {
+  const outcome = regressionOutcome(tally({ unchanged: 13, unblessed: 1, update: true }));
+  assert.equal(outcome.exitCode, 0);
+  assert.match(outcome.summary, /1 new baseline\(s\) written/);
+});
+
+test('an unblessed document still counts as the run having produced something', () => {
+  const outcome = regressionOutcome(
+    tally({ unchanged: 0, changed: 0, unblessed: 1, missingBundles: 16 })
+  );
+  assert.equal(outcome.exitCode, 1);
+  assert.doesNotMatch(outcome.summary, /Nothing was tested/);
+});
+
+test('an unblessed document does not mask a real change', () => {
+  const outcome = regressionOutcome(tally({ unchanged: 12, changed: 1, unblessed: 1 }));
   assert.equal(outcome.exitCode, 1);
 });
