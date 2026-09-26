@@ -1,16 +1,16 @@
 {
   "id": "harlem-lacrosse",
-  "promptVersion": "2026-09-20.6",
+  "promptVersion": "2026-09-26.1",
   "promptVariant": "vision+text",
-  "capturedAt": "2026-09-26T14:45:33.608Z",
+  "capturedAt": "2026-09-26T15:24:10.236Z",
   "model": {
     "organization": "Harlem Lacrosse",
     "program": "",
     "mission": {
-      "content": "WE ARE COACHES AND CONNECTORS WHO USE LACROSSE TO GUIDE ACADEMIC PROGRESS AND PREPARE STUDENTS FOR LIFE AFTER HIGH SCHOOL. We locate in cities where lacrosse is emerging and additional educational support is needed. We form mutually beneficial partnerships with schools and community leaders to empower the diverse youth we coach. We play the long game, nurturing authentic relationships with students and families from sixth grade through high school graduation. Strengthened by our engaged, well-resourced community of alumni, families, counselors, teachers, partners, and funders, we integrate athletics and academics to support students as they define and pursue a pathway toward college or career. Ultimately, we use our spaces, relationships, and skills to expand educational access and opportunity and foster diversity, equity, inclusion, and belonging in lacrosse."
+      "content": ""
     },
     "targetPopulation": {
-      "content": "Diverse youth in grades 6-12 (middle and high school students) and their families in cities where lacrosse is emerging and additional educational support is needed, including girls and children who are Black, Brown, Indigenous, and LGBTQ+."
+      "content": "Youth in grades 6-12"
     },
     "inputs": {
       "content": []
@@ -236,21 +236,79 @@
       "content": []
     },
     "impact": {
-      "content": []
+      "content": [
+        {
+          "name": "OUR IMPACT",
+          "items": [
+            {
+              "text": "Our students steadily progress as scholars, athletes, and teammates from middle school through high school, each graduating with lacrosse techniques, life skills, and an actionable plan for pursuing a college degree or entering the workforce.",
+              "sourcePage": 2,
+              "sourceHeader": "OUR IMPACT",
+              "sourceSection": "OUR IMPACT",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Our staff is satisfied by their work, appreciated for their efforts, and able to become more effective in their roles – whether that’s coaching students, coaching coaches, or coaching communities. Everyone on the team owns their role as a vital contributor to our sustainable business model.",
+              "sourcePage": 2,
+              "sourceHeader": "OUR IMPACT",
+              "sourceSection": "OUR IMPACT",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Schools are enriched by our added support, our communities are energized with more play, and our network grows with college and career-ready Harlem Lacrosse alumni.",
+              "sourcePage": 2,
+              "sourceHeader": "OUR IMPACT",
+              "sourceSection": "OUR IMPACT",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            },
+            {
+              "text": "Ultimately, there are fewer barriers to fields, classrooms, and board rooms, and each space is strengthened with greater diversity.",
+              "sourcePage": 2,
+              "sourceHeader": "OUR IMPACT",
+              "sourceSection": "OUR IMPACT",
+              "mappedBy": "auto",
+              "mappingConfidence": "synonym"
+            }
+          ]
+        }
+      ]
     },
     "documentTypeAssessment": "not_logic_model",
     "extractionStatus": "partial",
-    "documentTypeNote": "Reads as a Theory of Change narrative and program overview — no input, output, or outcome column structure.",
+    "colorLegend": "",
+    "documentTypeNote": "Reads as a Theory of Change narrative — no input/output/outcome column structure",
     "extractionConfidence": "medium",
     "generalOutcomes": {
       "content": []
     },
     "impactStatement": {
-      "content": "WE EXPAND EDUCATIONAL ACCESS AND OPPORTUNITY, USING EVERYTHING ABOUT THE SPORT WE LOVE TO HELP THE STUDENTS WE LOVE CHASE THEIR BOLDEST DREAMS. Our students steadily progress as scholars, athletes, and teammates from middle school through high school, each graduating with lacrosse techniques, life skills, and an actionable plan for pursuing a college degree or entering the workforce. Our staff is satisfied by their work, appreciated for their efforts, and able to become more effective in their roles – whether that’s coaching students, coaching coaches, or coaching communities. Everyone on the team owns their role as a vital contributor to our sustainable business model. Schools are enriched by our added support, our communities are energized with more play, and our network grows with college and career-ready Harlem Lacrosse alumni. Ultimately, there are fewer barriers to fields, classrooms, and board rooms, and each space is strengthened with greater diversity."
+      "content": "WE EXPAND EDUCATIONAL ACCESS AND OPPORTUNITY, USING EVERYTHING ABOUT THE SPORT WE LOVE TO HELP THE STUDENTS WE LOVE CHASE THEIR BOLDEST DREAMS."
     },
     "layoutFamily": "prose_sections",
     "unmapped": {
       "content": [
+        {
+          "name": "WHO WE ARE",
+          "items": [
+            {
+              "text": "WE ARE COACHES AND CONNECTORS WHO USE LACROSSE TO GUIDE ACADEMIC PROGRESS AND PREPARE STUDENTS FOR LIFE AFTER HIGH SCHOOL.",
+              "sourcePage": 1,
+              "sourceHeader": "WHO WE ARE",
+              "sourceSection": "WHO WE ARE",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "We locate in cities where lacrosse is emerging and additional educational support is needed. We form mutually beneficial partnerships with schools and community leaders to empower the diverse youth we coach. We play the long game, nurturing authentic relationships with students and families from sixth grade through high school graduation. Strengthened by our engaged, well-resourced community of alumni, families, counselors, teachers, partners, and funders, we integrate athletics and academics to support students as they define and pursue a pathway toward college or career. Ultimately, we use our spaces, relationships, and skills to expand educational access and opportunity and foster diversity, equity, inclusion, and belonging in lacrosse.",
+              "sourcePage": 1,
+              "sourceHeader": "WHO WE ARE",
+              "sourceSection": "WHO WE ARE",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
         {
           "name": "WHAT WE BELIEVE",
           "items": [
@@ -344,35 +402,42 @@
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "Staff — Team players who believe in the power of our sport to expand equitable opportunity. Advocates who believe in the power of our students to diversify and enrich the lacrosse community at large",
+              "text": "Staff — Team players who believe in the power of our sport to expand equitable opportunity",
               "sourcePage": 2,
               "sourceHeader": "OUR STAKEHOLDERS",
               "sourceSection": "OUR STAKEHOLDERS",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "Staff: Program Directors (PDs) — Lacrosse and academic coaches who hope to support our athletes through transformative programming",
+              "text": "Staff — Advocates who believe in the power of our students to diversify and enrich the lacrosse community at large",
               "sourcePage": 2,
               "sourceHeader": "OUR STAKEHOLDERS",
               "sourceSection": "OUR STAKEHOLDERS",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "Staff: Managing Directors (MDs) — Team managers who hope to sustain positive impact by supporting our coaches through responsive, inclusive professional development",
+              "text": "Staff — Program Directors (PDs) — Lacrosse and academic coaches who hope to support our athletes through transformative programming",
               "sourcePage": 2,
               "sourceHeader": "OUR STAKEHOLDERS",
               "sourceSection": "OUR STAKEHOLDERS",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "Staff: Executive Directors (EDs) — Team leaders who hope to use their management, entrepreneurial, and advocacy experience to deepen our impact",
+              "text": "Staff — Managing Directors (MDs) — Team managers who hope to sustain positive impact by supporting our coaches through responsive, inclusive professional development",
               "sourcePage": 2,
               "sourceHeader": "OUR STAKEHOLDERS",
               "sourceSection": "OUR STAKEHOLDERS",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "Staff: Executive Leadership Team (ELT) — Harlem Lacrosse champions who hope to use their relational intelligence, executive leadership, and passion for students to cultivate our healthy, sustainable, and impactful work environment and network",
+              "text": "Staff — Executive Directors (EDs) — Team leaders who hope to use their management, entrepreneurial, and advocacy experience to deepen our impact",
+              "sourcePage": 2,
+              "sourceHeader": "OUR STAKEHOLDERS",
+              "sourceSection": "OUR STAKEHOLDERS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Staff — Executive Leadership Team (ELT) — Harlem Lacrosse champions who hope to use their relational intelligence, executive leadership, and passion for students to cultivate our healthy, sustainable, and impactful work environment and network",
               "sourcePage": 2,
               "sourceHeader": "OUR STAKEHOLDERS",
               "sourceSection": "OUR STAKEHOLDERS",
@@ -460,7 +525,7 @@
     "mappingCorrections": [],
     "extractionBlockers": [
       "Some content did not fit any of the standard columns and was put under \"Unmapped\" — check whether it belongs somewhere",
-      "This may not be a logic model — check the document before relying on this extraction (Reads as a Theory of Change narrative and program overview — no input, output, or outcome column structure.)"
+      "This may not be a logic model — check the document before relying on this extraction (Reads as a Theory of Change narrative — no input/output/outcome column structure)"
     ]
   }
 }

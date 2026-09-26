@@ -1,0 +1,151 @@
+{
+  "organization": "Rowan Street Arts",
+  "program": "Stage Steps",
+  "mission": {
+    "content": ""
+  },
+  "targetPopulation": {
+    "content": ""
+  },
+  "inputs": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Two teaching artists and one programme coordinator",
+            "sourceColumn": 1,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "A rehearsal studio on Rowan Street and a hall in each partner school",
+            "sourceColumn": 1,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "A three-year grant from the borough arts fund",
+            "sourceColumn": 1,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "activities": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "We run weekly dance and drama workshops in four partner schools",
+            "sourceColumn": 2,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "We rehearse and stage one public performance each term",
+            "sourceColumn": 2,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "We hold open sessions for families in the school holidays",
+            "sourceColumn": 2,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "outputs": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Ninety young people take part across the school year",
+            "sourceColumn": 3,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Three public performances are staged each year",
+            "sourceColumn": 3,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "shortTermOutcomes": {
+    "content": []
+  },
+  "mediumTermOutcomes": {
+    "content": []
+  },
+  "longTermOutcomes": {
+    "content": []
+  },
+  "impact": {
+    "content": []
+  },
+  "documentTypeAssessment": "not_logic_model",
+  "extractionStatus": "partial",
+  "colorLegend": "",
+  "documentTypeNote": "Presents as a Theory of Change diagram arranged in columns without category headers.",
+  "extractionConfidence": "medium",
+  "generalOutcomes": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Young people grow in confidence performing in front of others",
+            "sourceColumn": 4,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Young people build friendships across year groups",
+            "sourceColumn": 4,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Families come into school buildings they had not entered before",
+            "sourceColumn": 4,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "impactStatement": {
+    "content": ""
+  },
+  "layoutFamily": "vertical_columns",
+  "unmapped": {
+    "content": []
+  },
+  "mappingCorrections": [],
+  "extractionBlockers": [
+    "This may not be a logic model — check the document before relying on this extraction (Presents as a Theory of Change diagram arranged in columns without category headers.)"
+  ]
+}

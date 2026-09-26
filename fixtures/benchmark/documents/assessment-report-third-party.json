@@ -1,0 +1,51 @@
+{
+  "id": "assessment-report-third-party",
+  "label": "Stage Steps — Final Programme Assessment Report",
+  "covers": "An external evaluator's assessment report about a programme, headerless and in the first-person past tense, signed. Everything in it is a finding about what already happened, so nothing belongs in a grid column. It deliberately carries the trap: sentences that genuinely state the programme's goals, which any item-level test would classify as activities and outcomes. The discriminator has to be the document's authorial stance, not the semantics of a line.",
+  "organization": "Rowan Street Arts",
+  "program": "Stage Steps",
+  "documentTypeAssessment": "not_logic_model",
+  "slides": [
+    {
+      "title": "Stage Steps — Final Programme Assessment Report, June 2025",
+      "columns": [
+        {
+          "heading": "ABOUT THIS ASSESSMENT",
+          "domain": null,
+          "items": [
+            "I was commissioned in September to assess the second year of Stage Steps and I visited each partner school twice between October and May.",
+            "The goal of the afterschool programme is to give young people a regular creative outlet and a route into performance.",
+            "The project is designed to give students a way to express themselves physically and to work together toward something public."
+          ]
+        },
+        {
+          "heading": "WHAT I OBSERVED",
+          "domain": null,
+          "items": [
+            "Two teaching artists and a coordinator were in post throughout the year, and I found the staffing stable and the sessions well prepared.",
+            "Weekly workshops ran in all four schools, although the Thursday group lost four weeks in February when the hall was double-booked.",
+            "At the spring performances you could see that the students had learned to hold an audience, to take a cue from one another, and to recover when something went wrong."
+          ]
+        },
+        {
+          "heading": "WHAT THE SURVEYS SHOWED",
+          "domain": null,
+          "items": [
+            "Sixty-one young people returned the end-of-year survey and forty-eight of them said they would take part again.",
+            "Teachers reported that students enjoy the classes, which give them the opportunity to express themselves physically.",
+            "Attendance averaged seventy-one per cent, which I would treat with caution because two schools counted it differently."
+          ]
+        },
+        {
+          "heading": "RECOMMENDATIONS",
+          "domain": null,
+          "items": [
+            "Agree a single definition of attendance across all four schools before the next year begins.",
+            "Commission an independent assessment of the confidence claim, which this report cannot substantiate.",
+            "Signed: A. Merrow, independent evaluator, June 2025."
+          ]
+        }
+      ]
+    }
+  ]
+}
