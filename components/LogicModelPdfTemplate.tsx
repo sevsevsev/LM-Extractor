@@ -1,6 +1,7 @@
 import React, { forwardRef, useMemo } from 'react';
 import { LogicModel, LogicModelGroup } from '../types';
 import { brand } from '../config/brand';
+import { pdfColumnPlan } from '../shared/pdfColumnPlan';
 
 interface Props {
   model: LogicModel;
@@ -39,14 +40,13 @@ const PAGE_N_GRID_HEIGHT = 800;
 
 interface PageContent {
   pageIndex: number;
-  columns: {
-    inputs: LogicModelGroup[];
-    activities: LogicModelGroup[];
-    outputs: LogicModelGroup[];
-    shortTermOutcomes: LogicModelGroup[];
-    mediumTermOutcomes: LogicModelGroup[];
-    longTermOutcomes: LogicModelGroup[];
-  };
+  /**
+   * One entry per printed column, in the order `pdfColumnPlan` gives — not a fixed set of six
+   * fields. A document whose outcomes carry no time horizon prints four columns instead of six (see
+   * shared/pdfColumnPlan.ts), so the column list is the plan's, and pagination only distributes
+   * whatever it is handed.
+   */
+  columns: LogicModelGroup[][];
 }
 
 // Helper to estimate height of a group
@@ -64,34 +64,24 @@ const estimateGroupHeight = (group: LogicModelGroup): number => {
 };
 
 // Core pagination algorithm
-const paginateModel = (model: LogicModel): PageContent[] => {
+export const paginateModel = (model: LogicModel, columnCount: number, columns: LogicModelGroup[][]): PageContent[] => {
   const pages: PageContent[] = [];
-  
+
   const getPage = (index: number) => {
     if (!pages[index]) {
       pages[index] = {
         pageIndex: index,
-        columns: {
-          inputs: [],
-          activities: [],
-          outputs: [],
-          shortTermOutcomes: [],
-          mediumTermOutcomes: [],
-          longTermOutcomes: []
-        }
+        columns: Array.from({ length: columnCount }, () => [] as LogicModelGroup[]),
       };
     }
     return pages[index];
   };
 
   // Helper to distribute a list of groups across pages for a specific column
-  const distributeColumn = (
-    groups: LogicModelGroup[], 
-    colKey: keyof PageContent['columns']
-  ) => {
+  const distributeColumn = (groups: LogicModelGroup[], colIndex: number) => {
     let currentPageIdx = 0;
     let currentHeight = 0;
-    
+
     groups.forEach(group => {
       const gHeight = estimateGroupHeight(group);
       const limit = currentPageIdx === 0 ? PAGE_1_GRID_HEIGHT : PAGE_N_GRID_HEIGHT;
@@ -104,17 +94,12 @@ const paginateModel = (model: LogicModel): PageContent[] => {
       }
 
       const page = getPage(currentPageIdx);
-      page.columns[colKey].push(group);
+      page.columns[colIndex].push(group);
       currentHeight += gHeight;
     });
   };
 
-  distributeColumn(model.inputs.content, 'inputs');
-  distributeColumn(model.activities.content, 'activities');
-  distributeColumn(model.outputs.content, 'outputs');
-  distributeColumn(model.shortTermOutcomes.content, 'shortTermOutcomes');
-  distributeColumn(model.mediumTermOutcomes.content, 'mediumTermOutcomes');
-  distributeColumn(model.longTermOutcomes.content, 'longTermOutcomes');
+  columns.forEach((groups, i) => distributeColumn(groups, i));
 
   return pages;
 };
@@ -175,7 +160,11 @@ const ContextText: React.FC<{ title: string; text: string }> = ({ title, text })
 };
 
 export const LogicModelPdfTemplate = forwardRef<HTMLDivElement, Props>(({ model, id }, ref) => {
-  const pages = useMemo(() => paginateModel(model), [model]);
+  const plan = useMemo(() => pdfColumnPlan(model), [model]);
+  const pages = useMemo(
+    () => paginateModel(model, plan.columns.length, plan.columns.map(c => c.groups)),
+    [model, plan]
+  );
 
   return (
     <div ref={ref} id={id}>
@@ -275,7 +264,7 @@ export const LogicModelPdfTemplate = forwardRef<HTMLDivElement, Props>(({ model,
 
           {/* --- COLUMN HEADERS (Repeated on every page) --- */}
           <div className="flex items-stretch flex-shrink-0">
-             {['Resources (Inputs)', 'Activities', 'Outputs', 'Short-Term Outcomes', 'Medium-Term Outcomes', 'Long-Term Outcomes'].map((title, i) => (
+             {plan.columns.map(({ title }, i) => (
                 <div
                   key={i}
                   className="flex-1 min-w-0 border-r last:border-r-0"
@@ -293,12 +282,9 @@ export const LogicModelPdfTemplate = forwardRef<HTMLDivElement, Props>(({ model,
             className="flex items-stretch border border-t-0 rounded-b overflow-hidden shadow-sm flex-grow"
             style={{ borderColor: PDF_COLORS.gridBorder }}
           >
-             <ColumnRender groups={page.columns.inputs} isContinuation={index > 0} />
-             <ColumnRender groups={page.columns.activities} isContinuation={index > 0} />
-             <ColumnRender groups={page.columns.outputs} isContinuation={index > 0} />
-             <ColumnRender groups={page.columns.shortTermOutcomes} isContinuation={index > 0} />
-             <ColumnRender groups={page.columns.mediumTermOutcomes} isContinuation={index > 0} />
-             <ColumnRender groups={page.columns.longTermOutcomes} isContinuation={index > 0} />
+             {page.columns.map((groups, colIndex) => (
+               <ColumnRender key={colIndex} groups={groups} isContinuation={index > 0} />
+             ))}
           </div>
 
           {/* --- FOOTER REMOVED --- */}
