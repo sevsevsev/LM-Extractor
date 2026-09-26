@@ -37,7 +37,8 @@ function renderSlide(slide) {
         1150000,
         width - 60000,
         5100000,
-        [esc(column.heading), ...column.items.map(esc)]
+        // An empty heading prints no heading line at all — see BenchmarkColumn.heading.
+        [...(column.heading ? [esc(column.heading)] : []), ...column.items.map(esc)]
       )
     )
     .join('');

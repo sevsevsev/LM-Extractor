@@ -1,0 +1,113 @@
+{
+  "organization": "Wexford Trust",
+  "program": "",
+  "mission": {
+    "content": ""
+  },
+  "targetPopulation": {
+    "content": "Participating families"
+  },
+  "inputs": {
+    "content": []
+  },
+  "activities": {
+    "content": []
+  },
+  "outputs": {
+    "content": []
+  },
+  "shortTermOutcomes": {
+    "content": []
+  },
+  "mediumTermOutcomes": {
+    "content": []
+  },
+  "longTermOutcomes": {
+    "content": []
+  },
+  "impact": {
+    "content": []
+  },
+  "documentTypeAssessment": "not_logic_model",
+  "extractionStatus": "partial",
+  "colorLegend": "",
+  "documentTypeNote": "Reads as an evaluation findings report narrative — no input/output/outcome column or logic model structure.",
+  "generalOutcomes": {
+    "content": []
+  },
+  "impactStatement": {
+    "content": ""
+  },
+  "layoutFamily": "prose_sections",
+  "unmapped": {
+    "content": [
+      {
+        "name": "Evaluation Findings",
+        "items": [
+          {
+            "text": "This report sets out what the evaluation team found in the second year of the programme, drawing on attendance records, three site visits and interviews with eleven participating families.",
+            "sourcePage": 1,
+            "sourceHeader": "Evaluation Findings",
+            "sourceSection": "Evaluation Findings",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Staffing was stable across the year, with one coordinator and four sessional tutors in post throughout.",
+            "sourcePage": 1,
+            "sourceHeader": "Evaluation Findings",
+            "sourceSection": "Evaluation Findings",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Weekly sessions ran in all three neighbourhoods, though the Tuesday cohort was suspended for five weeks in February when the hall was unavailable.",
+            "sourcePage": 1,
+            "sourceHeader": "Evaluation Findings",
+            "sourceSection": "Evaluation Findings",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Attendance averaged sixty-eight per cent, which is below the seventy-five per cent the trustees had hoped for but above the sector figure the team benchmarked against.",
+            "sourcePage": 1,
+            "sourceHeader": "Evaluation Findings",
+            "sourceSection": "Evaluation Findings",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Participants reported feeling more confident, although the evaluators note that the self-report instrument was not validated and the sample was small.",
+            "sourcePage": 1,
+            "sourceHeader": "Evaluation Findings",
+            "sourceSection": "Evaluation Findings",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "The evaluation could not establish whether reading gains were attributable to the programme, because no comparison group was available.",
+            "sourcePage": 1,
+            "sourceHeader": "Evaluation Findings",
+            "sourceSection": "Evaluation Findings",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Two recommendations follow: agree a single attendance definition before year three, and commission an independent reading assessment.",
+            "sourcePage": 1,
+            "sourceHeader": "Evaluation Findings",
+            "sourceSection": "Evaluation Findings",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "The trustees will consider these recommendations at the March meeting and report back to the funder in April.",
+            "sourcePage": 1,
+            "sourceHeader": "Evaluation Findings",
+            "sourceSection": "Evaluation Findings",
+            "mappingConfidence": "unmapped"
+          }
+        ]
+      }
+    ]
+  },
+  "mappingCorrections": [],
+  "extractionConfidence": "medium",
+  "extractionBlockers": [
+    "Some content did not fit any of the standard columns and was put under \"Unmapped\" — check whether it belongs somewhere",
+    "This may not be a logic model — check the document before relying on this extraction (Reads as an evaluation findings report narrative — no input/output/outcome column or logic model structure.)"
+  ]
+}

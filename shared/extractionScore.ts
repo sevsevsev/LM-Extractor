@@ -291,6 +291,16 @@ export function scoreExtraction(
 
   const normalizedSource = options.sourceText ? normalizeForMatch(options.sourceText) : null;
   const tolerated = golden.tolerated ?? [];
+  /**
+   * A document whose expected answer holds no grid items at all — a budget, an evaluation report,
+   * anything that is not a logic model — is in the set for one purpose: to prove the extractor
+   * does not manufacture a grid from it. Everything such a document prints is `tolerated`, and
+   * tolerance excuses a surplus item wherever it lands, so filling four columns from one of these
+   * used to score a clean 100%. That defeated the only property the document measures. Here
+   * tolerance stops at the grid: an item may land in `unmapped` freely, and a grid column not at
+   * all.
+   */
+  const expectsNoGridItems = expected.length === 0;
   const surplus: ExtractionScore['surplus'] = [];
   let unsourcedCount = 0;
   let unmappedCount = 0;
@@ -300,7 +310,7 @@ export function scoreExtraction(
     if (a.domain === 'unmapped') unmappedCount++;
     if (matchedActual.has(j)) continue;
     if (a.domain === 'unmapped') continue;
-    if (tolerated.some(t => similarity(t, a.text) >= MATCH_THRESHOLD)) continue;
+    if (!expectsNoGridItems && tolerated.some(t => similarity(t, a.text) >= MATCH_THRESHOLD)) continue;
     surplus.push({
       text: a.text,
       domain: a.domain,

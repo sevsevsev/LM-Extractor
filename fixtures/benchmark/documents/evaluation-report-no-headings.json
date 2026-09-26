@@ -1,0 +1,35 @@
+{
+  "id": "evaluation-report-no-headings",
+  "label": "Wexford Trust — Year Two Evaluation Findings",
+  "covers": "An evaluation REPORT about a programme, written as headingless prose. It is full of sentences that sound like resources, activities and outcomes, but it reports on a programme rather than setting out its logic, so nothing in it belongs in a grid column. The failure this catches is the headerless fallback sorting a results narrative into Inputs, Activities, Outputs and Outcomes because there were no headers to stop it.",
+  "organization": "Wexford Trust",
+  "program": "",
+  "documentTypeAssessment": "not_logic_model",
+  "slides": [
+    {
+      "title": "Wexford Trust — Year Two Evaluation Findings",
+      "columns": [
+        {
+          "heading": "",
+          "domain": null,
+          "items": [
+            "This report sets out what the evaluation team found in the second year of the programme, drawing on attendance records, three site visits and interviews with eleven participating families.",
+            "Staffing was stable across the year, with one coordinator and four sessional tutors in post throughout.",
+            "Weekly sessions ran in all three neighbourhoods, though the Tuesday cohort was suspended for five weeks in February when the hall was unavailable.",
+            "Attendance averaged sixty-eight per cent, which is below the seventy-five per cent the trustees had hoped for but above the sector figure the team benchmarked against."
+          ]
+        },
+        {
+          "heading": "",
+          "domain": null,
+          "items": [
+            "Participants reported feeling more confident, although the evaluators note that the self-report instrument was not validated and the sample was small.",
+            "The evaluation could not establish whether reading gains were attributable to the programme, because no comparison group was available.",
+            "Two recommendations follow: agree a single attendance definition before year three, and commission an independent reading assessment.",
+            "The trustees will consider these recommendations at the March meeting and report back to the funder in April."
+          ]
+        }
+      ]
+    }
+  ]
+}

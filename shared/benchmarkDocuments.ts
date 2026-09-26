@@ -17,7 +17,12 @@
 import type { GoldenAnswer, ScoredDomain } from './extractionScore.js';
 
 export interface BenchmarkColumn {
-  /** The heading printed above the column on the slide. */
+  /**
+   * The heading printed above the column on the slide. The empty string means the box carries NO
+   * heading at all, which is the shape a Theory of Change, a brochure or a report has — and the
+   * shape the extract prompt's `WHEN THERE IS NO GRID` fallback keys on, so the set needs a way to
+   * print it.
+   */
   heading: string;
   /**
    * Where the items under this heading belong. `null` means the column is not grid content at all
@@ -82,7 +87,7 @@ export function goldenFromDocument(doc: BenchmarkDocument): GoldenAnswer {
   for (const slide of doc.slides) {
     tolerated.push(slide.title);
     for (const column of slide.columns) {
-      tolerated.push(column.heading);
+      if (column.heading) tolerated.push(column.heading);
       if (column.domain === null) {
         tolerated.push(...column.items);
         continue;
@@ -112,7 +117,7 @@ export function documentTextTrack(doc: BenchmarkDocument): string {
   doc.slides.forEach((slide, index) => {
     lines.push(`## Slide ${index + 1}`, '', `### ${slide.title}`, '');
     for (const column of slide.columns) {
-      lines.push(`#### ${column.heading}`, '');
+      if (column.heading) lines.push(`#### ${column.heading}`, '');
       for (const item of column.items) lines.push(`- ${item}`);
       lines.push('');
     }
