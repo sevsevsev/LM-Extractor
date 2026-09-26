@@ -1,16 +1,16 @@
 {
   "id": "harlem-lacrosse",
-  "promptVersion": "2026-09-19.2",
+  "promptVersion": "2026-09-20.6",
   "promptVariant": "vision+text",
-  "capturedAt": "2026-09-19T20:59:19.719Z",
+  "capturedAt": "2026-09-26T14:45:33.608Z",
   "model": {
     "organization": "Harlem Lacrosse",
-    "program": "Harlem Lacrosse",
+    "program": "",
     "mission": {
-      "content": ""
+      "content": "WE ARE COACHES AND CONNECTORS WHO USE LACROSSE TO GUIDE ACADEMIC PROGRESS AND PREPARE STUDENTS FOR LIFE AFTER HIGH SCHOOL. We locate in cities where lacrosse is emerging and additional educational support is needed. We form mutually beneficial partnerships with schools and community leaders to empower the diverse youth we coach. We play the long game, nurturing authentic relationships with students and families from sixth grade through high school graduation. Strengthened by our engaged, well-resourced community of alumni, families, counselors, teachers, partners, and funders, we integrate athletics and academics to support students as they define and pursue a pathway toward college or career. Ultimately, we use our spaces, relationships, and skills to expand educational access and opportunity and foster diversity, equity, inclusion, and belonging in lacrosse."
     },
     "targetPopulation": {
-      "content": "Youth in grades 6-12 who hope to play lacrosse, find belonging, develop agency, reach goals, and have fun; specifically serving diverse youth in cities where lacrosse is emerging and additional educational support is needed, with a focus on girls and children who are Black, Brown, Indigenous, and LGBTQ+."
+      "content": "Diverse youth in grades 6-12 (middle and high school students) and their families in cities where lacrosse is emerging and additional educational support is needed, including girls and children who are Black, Brown, Indigenous, and LGBTQ+."
     },
     "inputs": {
       "content": []
@@ -21,9 +21,16 @@
           "name": "WE COACH STUDENTS.",
           "items": [
             {
+              "text": "We provide safe spaces where middle and high school children can find belonging, take risks, make mistakes, and achieve progress by practicing and playing lacrosse.",
+              "sourcePage": 1,
+              "sourceHeader": "WE COACH STUDENTS.",
+              "sourceSection": "WE COACH STUDENTS.",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
               "text": "Authentic relationships with students and families",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE COACH STUDENTS.",
               "sourceSection": "WE COACH STUDENTS.",
               "mappedBy": "auto",
@@ -32,7 +39,6 @@
             {
               "text": "Consistent, high-quality lacrosse practice",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE COACH STUDENTS.",
               "sourceSection": "WE COACH STUDENTS.",
               "mappedBy": "auto",
@@ -41,7 +47,6 @@
             {
               "text": "Lacrosse competitions",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE COACH STUDENTS.",
               "sourceSection": "WE COACH STUDENTS.",
               "mappedBy": "auto",
@@ -50,7 +55,6 @@
             {
               "text": "Connections with college lacrosse teams",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE COACH STUDENTS.",
               "sourceSection": "WE COACH STUDENTS.",
               "mappedBy": "auto",
@@ -62,9 +66,16 @@
           "name": "WE MOTIVATE ACADEMIC SUCCESS.",
           "items": [
             {
+              "text": "We create opportunities for students to practice the resilience, collaboration, and hard work that drive perseverance and lifelong learning.",
+              "sourcePage": 1,
+              "sourceHeader": "WE MOTIVATE ACADEMIC SUCCESS.",
+              "sourceSection": "WE MOTIVATE ACADEMIC SUCCESS.",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
               "text": "Coach’s class",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE MOTIVATE ACADEMIC SUCCESS.",
               "sourceSection": "WE MOTIVATE ACADEMIC SUCCESS.",
               "mappedBy": "auto",
@@ -73,7 +84,6 @@
             {
               "text": "Public School partnerships",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE MOTIVATE ACADEMIC SUCCESS.",
               "sourceSection": "WE MOTIVATE ACADEMIC SUCCESS.",
               "mappedBy": "auto",
@@ -82,7 +92,6 @@
             {
               "text": "PD presence at school",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE MOTIVATE ACADEMIC SUCCESS.",
               "sourceSection": "WE MOTIVATE ACADEMIC SUCCESS.",
               "mappedBy": "auto",
@@ -91,7 +100,6 @@
             {
               "text": "Teacher/family communication",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE MOTIVATE ACADEMIC SUCCESS.",
               "sourceSection": "WE MOTIVATE ACADEMIC SUCCESS.",
               "mappedBy": "auto",
@@ -100,7 +108,6 @@
             {
               "text": "Tutoring connections",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE MOTIVATE ACADEMIC SUCCESS.",
               "sourceSection": "WE MOTIVATE ACADEMIC SUCCESS.",
               "mappedBy": "auto",
@@ -112,36 +119,40 @@
           "name": "WE EMPOWER YOUTH AUTONOMY.",
           "items": [
             {
+              "text": "Through relationship-based programming and strategic connections, our program directors broaden our students’ networks, encourage them to chase bold dreams, and equip them as they forge their paths forward.",
+              "sourcePage": 1,
+              "sourceHeader": "WE EMPOWER YOUTH AUTONOMY.",
+              "sourceSection": "WE EMPOWER YOUTH AUTONOMY.",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
               "text": "Community partnerships based on student interest (tutoring, internships, college application support, etc.)",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE EMPOWER YOUTH AUTONOMY.",
               "sourceSection": "WE EMPOWER YOUTH AUTONOMY.",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "High school placement guidance",
+              "text": "Personal pathing — High school placement guidance",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE EMPOWER YOUTH AUTONOMY.",
               "sourceSection": "WE EMPOWER YOUTH AUTONOMY.",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Post-secondary guidance and planning",
+              "text": "Personal pathing — Post-secondary guidance and planning",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE EMPOWER YOUTH AUTONOMY.",
               "sourceSection": "WE EMPOWER YOUTH AUTONOMY.",
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
-              "text": "College counseling connection",
+              "text": "Personal pathing — College counseling connection",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE EMPOWER YOUTH AUTONOMY.",
               "sourceSection": "WE EMPOWER YOUTH AUTONOMY.",
               "mappedBy": "auto",
@@ -150,7 +161,6 @@
             {
               "text": "Leadership roles within teams",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE EMPOWER YOUTH AUTONOMY.",
               "sourceSection": "WE EMPOWER YOUTH AUTONOMY.",
               "mappedBy": "auto",
@@ -159,7 +169,6 @@
             {
               "text": "Alumni engagement & alumni connections",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE EMPOWER YOUTH AUTONOMY.",
               "sourceSection": "WE EMPOWER YOUTH AUTONOMY.",
               "mappedBy": "auto",
@@ -171,9 +180,16 @@
           "name": "WE BUILD EQUITABLE SYSTEMS.",
           "items": [
             {
+              "text": "As a boldly inclusive organization, we work with our community of students, families, alumni, partners, and funders to diversify the lacrosse network and expand equitable academic and athletic opportunity.",
+              "sourcePage": 1,
+              "sourceHeader": "WE BUILD EQUITABLE SYSTEMS.",
+              "sourceSection": "WE BUILD EQUITABLE SYSTEMS.",
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
+            {
               "text": "Strategic funding",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE BUILD EQUITABLE SYSTEMS.",
               "sourceSection": "WE BUILD EQUITABLE SYSTEMS.",
               "mappedBy": "auto",
@@ -182,7 +198,6 @@
             {
               "text": "Exposure experiences (eg., camps, museum trips, college lacrosse team connections)",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE BUILD EQUITABLE SYSTEMS.",
               "sourceSection": "WE BUILD EQUITABLE SYSTEMS.",
               "mappedBy": "auto",
@@ -191,7 +206,6 @@
             {
               "text": "DEI/antiracist professional development",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE BUILD EQUITABLE SYSTEMS.",
               "sourceSection": "WE BUILD EQUITABLE SYSTEMS.",
               "mappedBy": "auto",
@@ -200,7 +214,6 @@
             {
               "text": "Sustainable staff roles",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WE BUILD EQUITABLE SYSTEMS.",
               "sourceSection": "WE BUILD EQUITABLE SYSTEMS.",
               "mappedBy": "auto",
@@ -227,8 +240,7 @@
     },
     "documentTypeAssessment": "not_logic_model",
     "extractionStatus": "partial",
-    "colorLegend": "",
-    "documentTypeNote": "Reads as a Theory of Change narrative, stakeholder overview, and metrics framework rather than an input/output/outcome logic model grid.",
+    "documentTypeNote": "Reads as a Theory of Change narrative and program overview — no input, output, or outcome column structure.",
     "extractionConfidence": "medium",
     "generalOutcomes": {
       "content": []
@@ -245,7 +257,6 @@
             {
               "text": "Systemic inequities harm our youth. Girls and children who are Black, Brown, Indigenous, and LGBTQ+ are disproportionately impacted by unjust laws, policies, and cultural biases that force them to jump needless hurdles throughout childhood.",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WHAT WE BELIEVE",
               "sourceSection": "WHAT WE BELIEVE",
               "mappingConfidence": "unmapped"
@@ -253,7 +264,6 @@
             {
               "text": "Lacrosse builds power. Individually, lacrosse develops physical, emotional, and relational strength. Globally, lacrosse brings together people, resources, and passion. We believe this sport can be harnessed for equitable youth empowerment.",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WHAT WE BELIEVE",
               "sourceSection": "WHAT WE BELIEVE",
               "mappingConfidence": "unmapped"
@@ -261,7 +271,6 @@
             {
               "text": "Students deserve agency. Our students are playing the game of life. They leverage their skills, energy, and networks to score their personal goals. Our role is not to run the field for them, but to coach them toward victory.",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WHAT WE BELIEVE",
               "sourceSection": "WHAT WE BELIEVE",
               "mappingConfidence": "unmapped"
@@ -269,7 +278,6 @@
             {
               "text": "Progress takes time. On-time graduation is possible. Vibrant diversification of our sport is possible. D1 status is possible. Working with our students day after day, year after year through responsive programming equips them to turn their ambitions into realities.",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WHAT WE BELIEVE",
               "sourceSection": "WHAT WE BELIEVE",
               "mappingConfidence": "unmapped"
@@ -277,7 +285,6 @@
             {
               "text": "Diversity enriches lacrosse. The future of lacrosse depends on inclusion. Teams around the nation and world become stronger when they recruit athletes with identities that have been historically overlooked and systemically excluded.",
               "sourcePage": 1,
-              "verbatim": true,
               "sourceHeader": "WHAT WE BELIEVE",
               "sourceSection": "WHAT WE BELIEVE",
               "mappingConfidence": "unmapped"
@@ -285,91 +292,165 @@
           ]
         },
         {
-          "name": "OUR METRICS - Qualitative",
+          "name": "OUR STAKEHOLDERS",
           "items": [
             {
-              "text": "Sustainable business model",
+              "text": "Families — Parents, guardians, and relatives of our students who seek a safe, consistent, effective opportunity for their children to practice positive habits",
               "sourcePage": 2,
-              "verbatim": true,
-              "sourceHeader": "OUR METRICS - Qualitative",
-              "sourceSection": "OUR METRICS - Qualitative",
+              "sourceHeader": "OUR STAKEHOLDERS",
+              "sourceSection": "OUR STAKEHOLDERS",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "Student progression toward personal goals",
+              "text": "Executive Board — Professionals and HL alum who provide their skills and networks to secure resources, offer sound governance, and ensure financial sustainability",
               "sourcePage": 2,
-              "verbatim": true,
-              "sourceHeader": "OUR METRICS - Qualitative",
-              "sourceSection": "OUR METRICS - Qualitative",
+              "sourceHeader": "OUR STAKEHOLDERS",
+              "sourceSection": "OUR STAKEHOLDERS",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "Staff with the will and the skills for their work",
+              "text": "Advisory Board — Local education and non-profit leaders, lacrosse athletes, and HL alum who hope to support our programming by raising awareness about city-specific programs and securing funding opportunities aligned with city goals",
               "sourcePage": 2,
-              "verbatim": true,
-              "sourceHeader": "OUR METRICS - Qualitative",
-              "sourceSection": "OUR METRICS - Qualitative",
+              "sourceHeader": "OUR STAKEHOLDERS",
+              "sourceSection": "OUR STAKEHOLDERS",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "Positive relationships with all students and families",
+              "text": "Students — Youth in grades 6-12 who hope to play lacrosse, find belonging, develop agency, reach goals, and have fun",
               "sourcePage": 2,
-              "verbatim": true,
-              "sourceHeader": "OUR METRICS - Qualitative",
-              "sourceSection": "OUR METRICS - Qualitative",
+              "sourceHeader": "OUR STAKEHOLDERS",
+              "sourceSection": "OUR STAKEHOLDERS",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "Effective storytelling",
+              "text": "Alumni — Former Harlem Lacrosse participants who hope to advance our mission",
               "sourcePage": 2,
-              "verbatim": true,
-              "sourceHeader": "OUR METRICS - Qualitative",
-              "sourceSection": "OUR METRICS - Qualitative",
+              "sourceHeader": "OUR STAKEHOLDERS",
+              "sourceSection": "OUR STAKEHOLDERS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "School & Community Partners — School administrators and youth-facing leaders who hope to provide students with an effective, immediate place to practice positive emotional, social, and academic habits Volunteers who invest their time and talent to positively impact HL students",
+              "sourcePage": 2,
+              "sourceHeader": "OUR STAKEHOLDERS",
+              "sourceSection": "OUR STAKEHOLDERS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Funders — Corporations, foundations, and individuals who hope that their investment in our organization will consistently yield positive outcomes for students and support a more diverse, equitable, and inclusive lacrosse community",
+              "sourcePage": 2,
+              "sourceHeader": "OUR STAKEHOLDERS",
+              "sourceSection": "OUR STAKEHOLDERS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Staff — Team players who believe in the power of our sport to expand equitable opportunity. Advocates who believe in the power of our students to diversify and enrich the lacrosse community at large",
+              "sourcePage": 2,
+              "sourceHeader": "OUR STAKEHOLDERS",
+              "sourceSection": "OUR STAKEHOLDERS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Staff: Program Directors (PDs) — Lacrosse and academic coaches who hope to support our athletes through transformative programming",
+              "sourcePage": 2,
+              "sourceHeader": "OUR STAKEHOLDERS",
+              "sourceSection": "OUR STAKEHOLDERS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Staff: Managing Directors (MDs) — Team managers who hope to sustain positive impact by supporting our coaches through responsive, inclusive professional development",
+              "sourcePage": 2,
+              "sourceHeader": "OUR STAKEHOLDERS",
+              "sourceSection": "OUR STAKEHOLDERS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Staff: Executive Directors (EDs) — Team leaders who hope to use their management, entrepreneurial, and advocacy experience to deepen our impact",
+              "sourcePage": 2,
+              "sourceHeader": "OUR STAKEHOLDERS",
+              "sourceSection": "OUR STAKEHOLDERS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Staff: Executive Leadership Team (ELT) — Harlem Lacrosse champions who hope to use their relational intelligence, executive leadership, and passion for students to cultivate our healthy, sustainable, and impactful work environment and network",
+              "sourcePage": 2,
+              "sourceHeader": "OUR STAKEHOLDERS",
+              "sourceSection": "OUR STAKEHOLDERS",
               "mappingConfidence": "unmapped"
             }
           ]
         },
         {
-          "name": "OUR METRICS - Quantitative",
+          "name": "OUR METRICS",
           "items": [
             {
-              "text": "YoY student retention",
+              "text": "Qualitative — Sustainable business model",
               "sourcePage": 2,
-              "verbatim": true,
-              "sourceHeader": "OUR METRICS - Quantitative",
-              "sourceSection": "OUR METRICS - Quantitative",
+              "sourceHeader": "OUR METRICS",
+              "sourceSection": "OUR METRICS",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "School attendance (no chronic-absenteeism)",
+              "text": "Qualitative — Student progression toward personal goals",
               "sourcePage": 2,
-              "verbatim": true,
-              "sourceHeader": "OUR METRICS - Quantitative",
-              "sourceSection": "OUR METRICS - Quantitative",
+              "sourceHeader": "OUR METRICS",
+              "sourceSection": "OUR METRICS",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "Post-grad enrollment and employment rates",
+              "text": "Qualitative — Staff with the will and the skills for their work",
               "sourcePage": 2,
-              "verbatim": true,
-              "sourceHeader": "OUR METRICS - Quantitative",
-              "sourceSection": "OUR METRICS - Quantitative",
+              "sourceHeader": "OUR METRICS",
+              "sourceSection": "OUR METRICS",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "Lacrosse competency",
+              "text": "Qualitative — Positive relationships with all students and families",
               "sourcePage": 2,
-              "verbatim": true,
-              "sourceHeader": "OUR METRICS - Quantitative",
-              "sourceSection": "OUR METRICS - Quantitative",
+              "sourceHeader": "OUR METRICS",
+              "sourceSection": "OUR METRICS",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "Staff satisfaction",
+              "text": "Qualitative — Effective storytelling",
               "sourcePage": 2,
-              "verbatim": true,
-              "sourceHeader": "OUR METRICS - Quantitative",
-              "sourceSection": "OUR METRICS - Quantitative",
+              "sourceHeader": "OUR METRICS",
+              "sourceSection": "OUR METRICS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Quantitative — YoY student retention",
+              "sourcePage": 2,
+              "sourceHeader": "OUR METRICS",
+              "sourceSection": "OUR METRICS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Quantitative — School attendance (no chronic-absenteeism)",
+              "sourcePage": 2,
+              "sourceHeader": "OUR METRICS",
+              "sourceSection": "OUR METRICS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Quantitative — Post-grad enrollment and employment rates",
+              "sourcePage": 2,
+              "sourceHeader": "OUR METRICS",
+              "sourceSection": "OUR METRICS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Quantitative — Lacrosse competency",
+              "sourcePage": 2,
+              "sourceHeader": "OUR METRICS",
+              "sourceSection": "OUR METRICS",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Quantitative — Staff satisfaction",
+              "sourcePage": 2,
+              "sourceHeader": "OUR METRICS",
+              "sourceSection": "OUR METRICS",
               "mappingConfidence": "unmapped"
             }
           ]
@@ -378,8 +459,8 @@
     },
     "mappingCorrections": [],
     "extractionBlockers": [
-      "Layout/label mismatch — review unmapped items",
-      "Document may not be a logic model — verify before treating extraction as reliable (Reads as a Theory of Change narrative, stakeholder overview, and metrics framework rather than an input/output/outcome logic model grid.)"
+      "Some content did not fit any of the standard columns and was put under \"Unmapped\" — check whether it belongs somewhere",
+      "This may not be a logic model — check the document before relying on this extraction (Reads as a Theory of Change narrative and program overview — no input, output, or outcome column structure.)"
     ]
   }
 }
