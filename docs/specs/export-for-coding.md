@@ -44,7 +44,7 @@ they actually mean:
 | `color_coding` | The fill colour of the box in the source document, and its border colour if different. Colour is recorded, never interpreted — it does not mean anything on its own. |
 | `needs_review` | `Yes` when the AI flagged this specific item as uncertain. Blank otherwise. Currently always blank: item-level flagging was removed 2026-09-20 (friction-log session 9). |
 | `qa_status` | Whether the whole document was flagged for a second look. `Needs Review` or `Successfully Processed`. |
-| `document_type_flag` | Set when the source may not be a logic model at all — a Theory of Change, an impact report, a brochure. Blank normally. |
+| `document_type_flag` | Set when the source does not lay its logic model out as a labelled column grid — a Theory of Change, an impact report, a brochure. Two things it can say: that the document did not label its columns, so the app decided each item's column (the rows are still usable, check the columns), or that nothing reached the columns at all and the source does not read as a logic model. Blank normally. |
 | `row_id` | An internal identifier. Ignore it unless you need to point back at one exact row. |
 
 **`Needs Review` does not mean the extraction is wrong.** It means something about the document

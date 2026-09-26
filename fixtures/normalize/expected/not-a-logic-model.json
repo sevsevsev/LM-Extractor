@@ -83,6 +83,6 @@
   "extractionConfidence": "medium",
   "extractionBlockers": [
     "The layout of this document could not be worked out, so items may have ended up in the wrong columns",
-    "This may not be a logic model — check the document before relying on this extraction (Reads as a quarterly budget summary table — no logic model structure.)"
+    "Nothing was put in the columns, and this may not be a logic model — check the document before relying on this extraction (Reads as a quarterly budget summary table — no logic model structure.)"
   ]
 }

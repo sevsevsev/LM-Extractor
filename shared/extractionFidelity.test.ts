@@ -233,12 +233,12 @@ test('formatHardStopMessage explains in plain language and keeps the reason verb
   assert.match(formatHardStopMessage(['One', 'Two', 'Three']), /2 other reasons/);
 });
 
-test('countExtractionItems includes unmapped', () => {
+test('countExtractionItems includes unmapped in the total and excludes it from the grid', () => {
   const model = baseModel({
     activities: { content: groups([item('a', true)]) },
     unmapped: { content: groups([item('b', false)], 'Other') },
   });
-  assert.deepEqual(countExtractionItems(model), { total: 2 });
+  assert.deepEqual(countExtractionItems(model), { total: 2, grid: 1 });
 });
 
 // The client-side text-line-counting heuristic that used to live here (comparing candidate
@@ -279,7 +279,49 @@ test('documentTypeAssessment "not_logic_model" flags for review, never hard-stop
   assert.ok(model.extractionBlockers?.some(b => b.includes('Theory of Change narrative')));
   assert.equal(shouldHardStopExtraction(model), false);
   assert.equal(shouldShowFidelityBanner(model), true);
-  assert.match(documentTypeFlagLabel(model), /^Not a logic model — the app sorted these items into columns/);
+  assert.match(documentTypeFlagLabel(model), /^Not a logic model — nothing was extracted into the columns$/);
+});
+
+test('not_logic_model with a populated grid is never called "not a logic model"', () => {
+  // Harlem Lacrosse / UPenn BioEyes shape: flagged because the document has no labelled column
+  // grid, but the extraction fills the grid and is correct. What the reviewer needs to know is that
+  // the app chose the columns, not that the document may not be a logic model.
+  const model = baseModel({
+    documentTypeAssessment: 'not_logic_model',
+    documentTypeNote: 'No column headers; sections read as a programme narrative',
+    activities: { content: groups(manyItems(8, 0)) },
+  });
+  reconcileExtractionFidelity(model);
+  assert.equal(model.extractionStatus, 'partial');
+  assert.equal(model.extractionConfidence, 'medium');
+  assert.ok(model.extractionBlockers?.some(b => b.startsWith(FIDELITY_BLOCKERS.noColumnGrid)));
+  assert.ok(!model.extractionBlockers?.some(b => /may not be a logic model/i.test(b)));
+  assert.ok(model.extractionBlockers?.some(b => b.includes('programme narrative')));
+  assert.match(documentTypeFlagLabel(model), /^No column grid in this document/);
+  assert.ok(!documentTypeFlagLabel(model).includes('Not a logic model'));
+});
+
+test('not_logic_model with items only in Unmapped keeps the document-type verdict', () => {
+  // Philadelphia Ballet shape after PR #23: 42 items, every one of them Unmapped, empty grid. The
+  // item total cannot tell this apart from a full extraction, so the grid count decides.
+  const model = baseModel({
+    documentTypeAssessment: 'not_logic_model',
+    unmapped: { content: groups(manyItems(12, 0)) },
+  });
+  reconcileExtractionFidelity(model);
+  assert.equal(countExtractionItems(model).total, 12);
+  assert.equal(countExtractionItems(model).grid, 0);
+  assert.ok(model.extractionBlockers?.some(b => b.startsWith(FIDELITY_BLOCKERS.notLogicModel)));
+  assert.equal(documentTypeFlagLabel(model), 'Not a logic model — nothing was extracted into the columns');
+});
+
+test('unclear with an empty grid says so rather than blaming the columns', () => {
+  const model = baseModel({
+    documentTypeAssessment: 'unclear',
+    unmapped: { content: groups(manyItems(3, 0)) },
+  });
+  reconcileExtractionFidelity(model);
+  assert.equal(documentTypeFlagLabel(model), 'Unclear document type — nothing was extracted into the columns');
 });
 
 test('documentTypeAssessment "unclear" also flags for review', () => {
@@ -290,7 +332,7 @@ test('documentTypeAssessment "unclear" also flags for review', () => {
   reconcileExtractionFidelity(model);
   assert.equal(model.extractionStatus, 'partial');
   assert.equal(shouldHardStopExtraction(model), false);
-  assert.match(documentTypeFlagLabel(model), /^Unclear document type — some columns may have been assigned/);
+  assert.equal(documentTypeFlagLabel(model), 'Unclear document type — nothing was extracted into the columns');
 });
 
 test('documentTypeAssessment "logic_model" (or absent) never flags', () => {

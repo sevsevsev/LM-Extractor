@@ -92,7 +92,9 @@ test('buildGranularExportRows carries a document type flag when Gemini flags the
   const flagged: LogicModel = { ...baseModel(), documentTypeAssessment: 'not_logic_model' };
   const flaggedRows = buildGranularExportRows([{ model: flagged, sourceFilename: 'toc.pdf' }]);
   assert.ok(flaggedRows.length > 0);
-  assert.ok(flaggedRows.every(r => /^Not a logic model —/.test(r.documentTypeFlag)));
+  // baseModel fills the grid, so no row may claim the document is not a logic model.
+  assert.ok(flaggedRows.every(r => /^No column grid in this document —/.test(r.documentTypeFlag)));
+  assert.ok(flaggedRows.every(r => !r.documentTypeFlag.includes('Not a logic model')));
 });
 
 test('buildGranularExportRows carries an alternate outcome taxonomy through as the group column, not "General"', () => {

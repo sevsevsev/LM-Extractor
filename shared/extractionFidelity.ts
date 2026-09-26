@@ -70,8 +70,28 @@ export const FIDELITY_BLOCKERS = {
   /** Gemini's own per-image self-report — caps at partial/medium, never forces low/abstained. */
   possiblyIncomplete:
     'The AI was not sure it captured everything on part of the page — check the document for anything missing',
-  /** Gemini's document-type self-report (see DOCUMENT TYPE CHECK prompt) — never hard-stops. */
-  notLogicModel: 'This may not be a logic model — check the document before relying on this extraction',
+  /**
+   * Gemini's document-type self-report (see DOCUMENT TYPE CHECK prompt) — never hard-stops.
+   *
+   * There are two of these because the self-report answers a narrower question than its name
+   * suggests. `not_logic_model` comes back whenever the document does not lay its logic model out
+   * as a labelled column grid, which is true of documents that extract perfectly well: Harlem
+   * Lacrosse and UPenn BioEyes are both flagged and both produce a grid a coder can use. Telling
+   * the person checking such an extraction "this may not be a logic model" contradicts what is on
+   * the screen in front of them, and the one thing they can actually act on — that the app, not the
+   * document, decided which column each item belongs in — was buried.
+   *
+   * So the flag is reported by what it means for this extraction, chosen on whether anything landed
+   * in the grid (`countExtractionItems().grid`, which excludes Unmapped):
+   *   - items in the grid  -> `noColumnGrid`: the columns are the app's reading, so check them.
+   *   - nothing in the grid -> `notLogicModel`: the document-type doubt is the whole story.
+   * Neither wording changes any decision; both sit at the same ok -> partial/medium ceiling the
+   * single string had.
+   */
+  noColumnGrid:
+    'This document does not label its columns, so the app worked out which column each item belongs in — check the columns before relying on this extraction',
+  notLogicModel:
+    'Nothing was put in the columns, and this may not be a logic model — check the document before relying on this extraction',
   /** Vision conversion failed entirely (not just low-res) — extracted from the text layer alone. */
   textOnlyFallback:
     'This document could not be read as images, only as text, so the columns and formatting may be wrong',
@@ -120,18 +140,29 @@ export function isPossiblyNotLogicModel(model: LogicModel): boolean {
  * READ the domain for each item off a column header; it decided the domain itself. Those are
  * different claims and a coder has no way to get from the first to the second.
  *
- * So the flag now states the consequence rather than the diagnosis. The underlying rule is clean
- * and needs no new field: when `documentTypeAssessment` is anything other than `logic_model`,
- * every domain assignment in that document is the app's categorization rather than the document's
- * own labelling. `documentTypeNote` carries the specific reason and reaches "Review Reasons" in
- * the full CSV via the fidelity blocker.
+ * So the flag states the consequence rather than the diagnosis. The underlying rule is clean and
+ * needs no new field: when `documentTypeAssessment` is anything other than `logic_model`, every
+ * domain assignment in that document is the app's categorization rather than the document's own
+ * labelling. `documentTypeNote` carries the specific reason and reaches "Review Reasons" in the
+ * full CSV via the fidelity blocker.
+ *
+ * It no longer opens with "Not a logic model" when items did land in the grid. That sentence was
+ * read as a verdict on the document, and it was wrong on both of the flagged documents that
+ * extract correctly; the verdict is kept for the case it is true of, an extraction with an empty
+ * grid.
  */
 export function documentTypeFlagLabel(model: LogicModel): string {
+  if (!isPossiblyNotLogicModel(model)) return '';
+  // Same split as the two blockers above, for the same reason: a populated grid must not be
+  // labelled "not a logic model". See the `noColumnGrid` comment in FIDELITY_BLOCKERS.
+  const populatedGrid = countExtractionItems(model).grid > 0;
   if (model.documentTypeAssessment === 'not_logic_model')
-    return 'Not a logic model — the app sorted these items into columns; the document did not label them';
-  if (model.documentTypeAssessment === 'unclear')
-    return 'Unclear document type — some columns may have been assigned by the app rather than read from the document';
-  return '';
+    return populatedGrid
+      ? 'No column grid in this document — the app sorted these items into columns; the document did not label them'
+      : 'Not a logic model — nothing was extracted into the columns';
+  return populatedGrid
+    ? 'Unclear document type — some columns may have been assigned by the app rather than read from the document'
+    : 'Unclear document type — nothing was extracted into the columns';
 }
 
 export function applyExtractionFidelity(model: LogicModel, fidelity: ExtractionFidelity): LogicModel {
@@ -218,18 +249,23 @@ const GROUPED_DOMAINS: (keyof LogicModel)[] = [
  * reading it was dead code shaped like a guard — the exact thing a previous audit of this file
  * removed once already (see the `N < 6` confidence branch).
  */
-export function countExtractionItems(model: LogicModel): { total: number } {
+export function countExtractionItems(model: LogicModel): { total: number; grid: number } {
   let total = 0;
+  let grid = 0;
   for (const domain of GROUPED_DOMAINS) {
     const field = model[domain] as { content?: LogicModelGroup[] } | undefined;
     for (const group of field?.content ?? []) {
       for (const item of group.items ?? []) {
         if (!item.text?.trim()) continue;
         total += 1;
+        // `grid` is what a reader sees in the columns, so Unmapped does not count towards it. It
+        // exists to tell "no column grid, items placed by content" apart from "nothing extracted",
+        // which `total` cannot: Philadelphia Ballet returns 42 items, all of them Unmapped.
+        if (domain !== 'unmapped') grid += 1;
       }
     }
   }
-  return { total };
+  return { total, grid };
 }
 
 const MAX_MISSED_REGIONS = 6;
@@ -330,7 +366,7 @@ export function reconcileExtractionFidelity(
     });
   }
 
-  const { total: N } = countExtractionItems(model);
+  const { total: N, grid: G } = countExtractionItems(model);
   const L = lowLegibility;
   const T = Boolean(options?.textOnlyFallback);
   const M = shouldSuggestMismatch(model);
@@ -406,12 +442,14 @@ export function reconcileExtractionFidelity(
   if (M) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.mismatch);
   if (Uunk) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.unknownLayout);
   if (notLogicModel) {
+    // Which of the two wordings applies is decided by the grid, not by the flag — see the
+    // `noColumnGrid` comment in FIDELITY_BLOCKERS. `G` counts the same items the board shows in
+    // its columns, so `N` (which includes Unmapped) cannot stand in for it.
+    const base = G > 0 ? FIDELITY_BLOCKERS.noColumnGrid : FIDELITY_BLOCKERS.notLogicModel;
     pushBlocker(
       blockers,
       seen,
-      model.documentTypeNote
-        ? `${FIDELITY_BLOCKERS.notLogicModel} (${model.documentTypeNote})`
-        : FIDELITY_BLOCKERS.notLogicModel
+      model.documentTypeNote ? `${base} (${model.documentTypeNote})` : base
     );
   }
   if (hasMissedContentSignal) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.possiblyIncomplete);

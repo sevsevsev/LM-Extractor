@@ -146,6 +146,6 @@
   },
   "mappingCorrections": [],
   "extractionBlockers": [
-    "This may not be a logic model — check the document before relying on this extraction (Presents as a Theory of Change diagram arranged in columns without category headers.)"
+    "This document does not label its columns, so the app worked out which column each item belongs in — check the columns before relying on this extraction (Presents as a Theory of Change diagram arranged in columns without category headers.)"
   ]
 }
