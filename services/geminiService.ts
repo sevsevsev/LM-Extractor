@@ -53,6 +53,8 @@ export interface ExtractLogicModelResult {
   /** Prompt wording version + variant the server actually used — see constants.ts. */
   promptVersion?: string;
   promptVariant?: string;
+  /** The Gemini model alias that answered — a rolling alias, so it is recorded, not assumed. */
+  modelId?: string;
 }
 
 export const extractLogicModel = async (bundle: DocumentBundle): Promise<ExtractLogicModelResult> => {
@@ -60,10 +62,16 @@ export const extractLogicModel = async (bundle: DocumentBundle): Promise<Extract
     model?: LogicModel;
     promptVersion?: string;
     promptVariant?: string;
+    modelId?: string;
     error?: string;
   }>('/api/gemini/extract', bundle);
   if (!data.model) throw new Error('Server response missing logic model.');
-  return { model: data.model, promptVersion: data.promptVersion, promptVariant: data.promptVariant };
+  return {
+    model: data.model,
+    promptVersion: data.promptVersion,
+    promptVariant: data.promptVariant,
+    modelId: data.modelId,
+  };
 };
 
 /**

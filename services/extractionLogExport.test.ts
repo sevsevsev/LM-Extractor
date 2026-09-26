@@ -88,12 +88,20 @@ test('buildExtractionLogRows records which prompt version and variant produced t
   assert.equal(cell(rows[0], 'prompt_variant'), 'vision+text+lowleg');
 });
 
+test('buildExtractionLogRows records which model answered, not only which prompt ran', () => {
+  // The extract model is a rolling alias, so the served model can change with no code change here.
+  // Without this column an accuracy shift originating at Google leaves no trace in the record.
+  const rows = buildExtractionLogRows([fakeFile('f1', { modelId: 'gemini-flash-latest' })]);
+  assert.equal(cell(rows[0], 'model_id'), 'gemini-flash-latest');
+});
+
 test('buildExtractionLogRows leaves prompt columns blank for a file extracted before they existed', () => {
   // Resumed sessions checkpointed before this shipped carry no prompt provenance; blank is the
   // honest answer, and analysis must be able to tell "unknown" from a real variant.
   const rows = buildExtractionLogRows([fakeFile('f1')]);
   assert.equal(cell(rows[0], 'prompt_version'), '');
   assert.equal(cell(rows[0], 'prompt_variant'), '');
+  assert.equal(cell(rows[0], 'model_id'), '');
 });
 
 test('buildExtractionLogRows carries blockers, counts, and a Needs Review status for a flagged file', () => {
@@ -180,6 +188,7 @@ test('buildExtractionLogCsv has the expected header row', () => {
     'source_filename',
     'prompt_version',
     'prompt_variant',
+    'model_id',
     'qa_status',
     'extraction_status',
     'extraction_confidence',

@@ -4,8 +4,17 @@ import { renderAsync } from 'docx-preview';
 import html2canvas from 'html2canvas';
 import JSZip from 'jszip';
 import TurndownService from 'turndown';
-import { stripBinaryPayloads } from '../shared/textTrackHygiene';
-import { findColumnBands } from './columnDetect';
+import { assembleDocumentBundle } from '../shared/documentBundleAssembly';
+import {
+  analyzeCanvasPixels,
+  computeBboxFrac,
+  computeColumnFracs,
+  resolveContentScale,
+  totalPayloadBytes,
+  type Box,
+} from '../shared/pageRasterAnalysis';
+import { trackImagePlacements, type RasterPlacement } from '../shared/pdfRasterPlacement';
+import { groupTextItemsIntoLines, renderPdfPageText } from '../shared/pdfTextTrack';
 import {
   parseSharedStrings,
   parseSheetGrid,
@@ -15,9 +24,7 @@ import {
   type XlsxSheet,
 } from '../shared/xlsxGrid';
 import {
-  bundleImpliesLowLegibility,
   DocumentBundle,
-  LOW_LEGIBILITY_WARNING,
   type SourceImageRef,
 } from '../types';
 import { polyfilledPdfWorkerSrc } from './pdfWorkerSrc';
@@ -55,66 +62,6 @@ const IMAGE_PAINT_OPS = new Set<number>([
   pdfjsLib.OPS.paintSolidColorImageMask,
 ]);
 
-/** [a, b, c, d, e, f] — PDF content-stream matrix, row-vector convention. */
-type PdfMatrix = [number, number, number, number, number, number];
-const IDENTITY_MATRIX: PdfMatrix = [1, 0, 0, 1, 0, 0];
-
-/** `m1` applied first, then `m2` (matches how a PDF `cm` operator prepends into the CTM). */
-function multiplyPdfMatrix(m1: PdfMatrix, m2: PdfMatrix): PdfMatrix {
-  const [a1, b1, c1, d1, e1, f1] = m1;
-  const [a2, b2, c2, d2, e2, f2] = m2;
-  return [
-    a1 * a2 + b1 * c2,
-    a1 * b2 + b1 * d2,
-    c1 * a2 + d1 * c2,
-    c1 * b2 + d1 * d2,
-    e1 * a2 + f1 * c2 + e2,
-    e1 * b2 + f1 * d2 + f2,
-  ];
-}
-
-interface RasterPlacement {
-  id: string;
-  /** Rendered size of the image's unit square under the CTM at paint time, in PDF points. */
-  widthPt: number;
-  heightPt: number;
-}
-
-/**
- * Replay `save`/`restore`/`transform` alongside each image paint op to recover the CTM in effect
- * at paint time, then derive the on-page rendered size (in points) of that image's unit square —
- * this is what lets `analyzePdfPage` compare a raster's native pixel count against how large it's
- * actually displayed, instead of assuming a fixed absolute pixel floor regardless of placement.
- */
-function trackImagePlacements(opList: { fnArray: number[]; argsArray: unknown[][] }): RasterPlacement[] {
-  const placements: RasterPlacement[] = [];
-  const stack: PdfMatrix[] = [IDENTITY_MATRIX];
-  for (let i = 0; i < opList.fnArray.length; i++) {
-    const fn = opList.fnArray[i];
-    if (fn === pdfjsLib.OPS.save) {
-      stack.push(stack[stack.length - 1]);
-    } else if (fn === pdfjsLib.OPS.restore) {
-      if (stack.length > 1) stack.pop();
-    } else if (fn === pdfjsLib.OPS.transform) {
-      const args = opList.argsArray[i] as number[];
-      if (args?.length === 6) {
-        const cm = args as PdfMatrix;
-        stack[stack.length - 1] = multiplyPdfMatrix(cm, stack[stack.length - 1]);
-      }
-    } else if (IMAGE_PAINT_OPS.has(fn)) {
-      const objId = opList.argsArray[i]?.[0];
-      if (typeof objId === 'string') {
-        const ctm = stack[stack.length - 1];
-        placements.push({
-          id: objId,
-          widthPt: Math.hypot(ctm[0], ctm[1]),
-          heightPt: Math.hypot(ctm[2], ctm[3]),
-        });
-      }
-    }
-  }
-  return placements;
-}
 
 /** Internal PDF render result before assembling DocumentBundle. */
 interface PdfRenderResult {
@@ -188,16 +135,6 @@ const RENDER_TIERS: { scale: number; quality: number }[] = [
 const isLocalHost = (): boolean =>
   typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
 
-/** Base64 chars ≈ payload bytes, so summing lengths approximates the upload size. */
-const totalPayloadBytes = (images: string[]): number =>
-  images.reduce((sum, img) => sum + img.length, 0);
-
-interface Box {
-  x0: number;
-  y0: number;
-  x1: number;
-  y1: number;
-}
 
 interface PageAnalysis {
   pageNumber: number;
@@ -215,80 +152,6 @@ interface PageAnalysis {
   columnFracs: { start: number; end: number }[] | null;
 }
 
-/** Detect the ink bounding box + per-column ink profile from a rendered canvas. */
-function analyzeCanvasPixels(
-  data: Uint8ClampedArray,
-  width: number,
-  height: number
-): { bbox: Box | null; inkProfile: number[] } {
-  const ink = new Array(width).fill(0);
-  let x0 = width;
-  let y0 = height;
-  let x1 = -1;
-  let y1 = -1;
-
-  const stepY = Math.max(1, Math.floor(height / 1000));
-  let sampledRows = 0;
-
-  for (let y = 0; y < height; y += stepY) {
-    sampledRows++;
-    const rowOff = y * width * 4;
-    for (let x = 0; x < width; x++) {
-      const o = rowOff + x * 4;
-      const a = data[o + 3];
-      // Treat near-white / transparent as background.
-      if (a > 10 && (data[o] < 245 || data[o + 1] < 245 || data[o + 2] < 245)) {
-        ink[x]++;
-        if (x < x0) x0 = x;
-        if (x > x1) x1 = x;
-        if (y < y0) y0 = y;
-        if (y > y1) y1 = y;
-      }
-    }
-  }
-
-  const inkProfile = ink.map(c => c / Math.max(1, sampledRows));
-  const bbox = x1 >= x0 && y1 >= y0 ? { x0, y0, x1: x1 + 1, y1: y1 + 1 } : null;
-  return { bbox, inkProfile };
-}
-
-/** Content bbox (pixels) → padded fractional bbox against a canvas/probe of the given size. */
-function computeBboxFrac(bbox: Box | null, width: number, height: number): Box | null {
-  if (!bbox) return null;
-  const pad = CONTENT_PAD_FRAC;
-  return {
-    x0: Math.max(0, bbox.x0 / width - pad),
-    y0: Math.max(0, bbox.y0 / height - pad),
-    x1: Math.min(1, bbox.x1 / width + pad),
-    y1: Math.min(1, bbox.y1 / height + pad),
-  };
-}
-
-/**
- * Column bands: only meaningful for wide, image-dominant grid pages — splitting a page into
- * per-column TRACK B crops raises the effective resolution Gemini sees per column, which only
- * matters when the page is a flattened raster bounded by its own pixel density. A vector/text page
- * already renders at whatever scale the pipeline chooses, so tiling it adds column-provenance
- * labeling without a legibility benefit. Shared by the PDF and DOCX analyzers, which previously
- * duplicated this block with a divergent gate (DOCX omitted the `imageDominant` check) — found via
- * codebase audit (docs/specs/codebase-audit-2026-09-19.md #13).
- */
-function computeColumnFracs(
-  imageDominant: boolean,
-  bbox: Box | null,
-  inkProfile: number[]
-): { start: number; end: number }[] | null {
-  if (!ENABLE_COLUMN_TILING || !imageDominant || !bbox) return null;
-  const cropX0 = bbox.x0;
-  const cropX1 = bbox.x1;
-  const cropWidth = cropX1 - cropX0;
-  const aspect = (bbox.x1 - bbox.x0) / Math.max(1, bbox.y1 - bbox.y0);
-  if (cropWidth <= 40 || aspect <= 0.7) return null;
-  const cropped = inkProfile.slice(cropX0, cropX1);
-  const bands = findColumnBands(cropped);
-  if (bands.length < 3) return null;
-  return bands.map(b => ({ start: b.start / cropWidth, end: b.end / cropWidth }));
-}
 
 /** Cheap probe render → content box (fractional) + column bands + image-dominance flag. */
 async function analyzePdfPage(
@@ -315,7 +178,12 @@ async function analyzePdfPage(
   if (imageDominant) {
     try {
       const opList = await page.getOperatorList();
-      placements = trackImagePlacements(opList);
+      placements = trackImagePlacements(opList, {
+        save: pdfjsLib.OPS.save,
+        restore: pdfjsLib.OPS.restore,
+        transform: pdfjsLib.OPS.transform,
+        imagePaint: IMAGE_PAINT_OPS,
+      });
       hasEmbeddedRaster = placements.length > 0;
     } catch {
       // Unknown either way — err toward the conservative (always-risky) treatment.
@@ -389,24 +257,6 @@ function encodeCanvas(canvas: HTMLCanvasElement, quality: number): string {
   return canvas.toDataURL('image/jpeg', quality).split(',')[1];
 }
 
-/**
- * Shared by the PDF and DOCX renderers: image-dominant content stays denser under budget
- * pressure — softened by `scaleFactor` but never below `dominantMin`, so Track-B-only content
- * keeps usable glyph density regardless of source format.
- */
-function resolveContentScale(
-  imageDominant: boolean,
-  scaleFactor: number,
-  base: number,
-  dominant: number,
-  dominantMin: number,
-  max: number
-): number {
-  if (imageDominant) {
-    return Math.min(max, Math.max(dominantMin, dominant * scaleFactor));
-  }
-  return Math.min(max, Math.max(1, base * scaleFactor));
-}
 
 /**
  * Per-page viewport scale: textless (flattened-raster) pages stay at high DPI; vector pages
@@ -690,55 +540,7 @@ async function convertPdfWithLegacyTiers(
 }
 
 /** Pull text-layer content from an already-loaded PDF (Track A). */
-/**
- * A text run meaningfully taller than the page's typical run height is treated as a probable
- * heading. Glyph height (via `item.height` / the transform's scale term) is on every pdfjs
- * TextItem and is the standard, robust PDF heading signal. Deliberately NOT attempting bold-weight
- * detection: that needs resolving `item.fontName` through `page.commonObjs`, an internal-ish pdfjs
- * API whose behavior isn't guaranteed to be stable across versions (we were burned by exactly this
- * kind of pdfjs internals assumption once already this project — see the getOrInsertComputed
- * polyfill). Height is public, stable, and does the same job for the common case (headings are
- * bigger, not just bold).
- */
-const HEADING_SIZE_RATIO = 1.35;
-const HEADING_MAX_CHARS = 120;
 
-interface PdfTextLine {
-  text: string;
-  maxHeight: number;
-}
-
-/**
- * pdfjs emits text as per-run fragments (mixed with TextMarkedContent items with no `str`), not
- * lines — group by `hasEOL` to reconstruct lines. Takes the raw `getTextContent().items` union
- * directly rather than pre-filtering to a narrower type, since pdfjs-dist doesn't re-export
- * `TextItem` from its package root for a clean type-predicate narrowing.
- */
-function groupTextItemsIntoLines(items: unknown[]): PdfTextLine[] {
-  const lines: PdfTextLine[] = [];
-  let cur: string[] = [];
-  let curMaxHeight = 0;
-  const flush = () => {
-    const text = cur.join(' ').replace(/\s+/g, ' ').trim();
-    if (text) lines.push({ text, maxHeight: curMaxHeight });
-    cur = [];
-    curMaxHeight = 0;
-  };
-  for (const raw of items) {
-    const item = raw as { str?: unknown; height?: unknown; transform?: unknown; hasEOL?: unknown };
-    if (typeof item.str === 'string' && item.str) {
-      cur.push(item.str);
-      const height = typeof item.height === 'number' ? item.height : 0;
-      const transformScale =
-        Array.isArray(item.transform) && typeof item.transform[3] === 'number' ? item.transform[3] : 0;
-      const h = Math.abs(height || transformScale);
-      if (h > curMaxHeight) curMaxHeight = h;
-    }
-    if (item.hasEOL) flush();
-  }
-  flush();
-  return lines;
-}
 
 /**
  * Track A for PDF: page text plus a lightweight structural signal. Lines whose glyph height
@@ -755,65 +557,13 @@ async function textTrackFromPdf(
   for (let i = 1; i <= pageCount; i++) {
     const page = await pdf.getPage(i);
     const textContent = await page.getTextContent();
-    const lines = groupTextItemsIntoLines(textContent.items);
-
-    const heights = lines.map(l => l.maxHeight).filter(h => h > 0);
-    const sortedHeights = [...heights].sort((a, b) => a - b);
-    const medianHeight = sortedHeights.length ? sortedHeights[Math.floor(sortedHeights.length / 2)] : 0;
-    const headingThreshold = medianHeight * HEADING_SIZE_RATIO;
-
-    const pageText = lines
-      .map(line => {
-        const isHeadingSize =
-          medianHeight > 0 && line.maxHeight >= headingThreshold && line.text.length <= HEADING_MAX_CHARS;
-        return isHeadingSize ? `### ${line.text}` : line.text;
-      })
-      .join('\n');
+    const pageText = renderPdfPageText(groupTextItemsIntoLines(textContent.items));
 
     fullText += `\n\n## Page ${i}\n\n${pageText}`;
   }
   return fullText.trim();
 }
 
-function assembleDocumentBundle(
-  sourceFormat: DocumentBundle['sourceFormat'],
-  images: string[],
-  warnings: string[],
-  lowLegibility: boolean,
-  textTrack: string,
-  previewImages?: string[],
-  imageRefs?: SourceImageRef[]
-): DocumentBundle {
-  const mergedWarnings = [...warnings];
-  // Dedupe against `bundleImpliesLowLegibility`'s own matcher (types.ts) rather than a second,
-  // independent one — a hyphen-only/case-sensitive copy here previously missed the DOCX embedded-image
-  // warning's spaced "low resolution" wording, so this pushed LOW_LEGIBILITY_WARNING on top of it
-  // instead of deduping — found via codebase audit (docs/specs/codebase-audit-2026-09-19.md #9).
-  if (lowLegibility && !bundleImpliesLowLegibility({ warnings: mergedWarnings })) {
-    mergedWarnings.push(LOW_LEGIBILITY_WARNING);
-  }
-  const previews =
-    previewImages && previewImages.length > 0
-      ? previewImages
-      : images.length > 0
-        ? images
-        : undefined;
-  const refs =
-    imageRefs && imageRefs.length === images.length
-      ? imageRefs
-      : images.map((_, i) => ({ page: i + 1 }));
-  return {
-    images,
-    imageRefs: images.length ? refs : undefined,
-    previewImages: previews,
-    // Every converter's Track A funnels through here, so this is where the invariant "no binary
-    // payloads in the text we send to Gemini" is enforced for all of them at once rather than for
-    // whichever path was fixed last. See `shared/textTrackHygiene.ts`.
-    textTrack: stripBinaryPayloads(textTrack),
-    warnings: mergedWarnings,
-    sourceFormat,
-  };
-}
 
 /** PDF dual-track ingest: page rasters (Track B) + front-matter text (Track A). */
 export const convertPdfToImages = async (file: File): Promise<DocumentBundle> => {

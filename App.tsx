@@ -37,6 +37,16 @@ import {
   sessionProgressFraction,
 } from './shared/sessionQueue';
 import {
+  friendlyError,
+} from './shared/friendlyError';
+import {
+  hashPersistedRecord,
+  modelForExport,
+  persistedRecordToProcessingFile,
+  resolveHighlightRegions,
+  toPersistedRecord,
+} from './shared/sessionRecord';
+import {
   clearAll as clearSavedSession,
   deleteFile as deleteSavedFile,
   loadAll as loadSavedFiles,
@@ -44,84 +54,6 @@ import {
   type PersistedFileRecord,
 } from './services/sessionStore';
 
-function modelForExport(model: LogicModel, warnings?: string[]): LogicModel {
-  return normalizeExtractedLogicModel(structuredClone(model), {
-    lowLegibility: bundleImpliesLowLegibility({ warnings: warnings ?? [] }),
-  });
-}
-
-/** Checkpoint-relevant fields only — excludes transient/session-only data (previews, progress text). */
-function toPersistedRecord(f: ProcessingFile): PersistedFileRecord {
-  return {
-    id: f.id,
-    file: f.file,
-    status:
-      f.status === 'converting' || f.status === 'detecting' || f.status === 'extracting'
-        ? 'pending'
-        : f.status,
-    result: f.result,
-    warnings: f.warnings,
-    extractionBlockers: f.extractionBlockers,
-    error: f.error,
-    mismatchBannerDismissed: f.mismatchBannerDismissed,
-    fidelityBannerDismissed: f.fidelityBannerDismissed,
-    codingExportFidelityAck: f.codingExportFidelityAck,
-    sourcePaneCollapsed: f.sourcePaneCollapsed,
-    sourceDocumentId: f.sourceDocumentId,
-    sourcePageRange: f.sourcePageRange,
-    splitPartLabel: f.splitPartLabel,
-    forceSingleModel: f.forceSingleModel,
-    promptVersion: f.promptVersion,
-    promptVariant: f.promptVariant,
-  };
-}
-
-/**
- * Resolve `LogicModel.possiblyMissedRegions` (Gemini's own self-report; see
- * `shared/extractionFidelity.ts`) down to plain fractions for `SourceDocumentPane`. `xStart`/`xEnd`
- * are Gemini's own estimate of the region's horizontal span — a region it couldn't estimate one for
- * has no `xStart`/`xEnd` and is dropped rather than drawn as a full-page box, since that would convey
- * nothing the page-jump chip doesn't already say. (The chip itself still shows for every flagged page
- * regardless.)
- */
-function resolveHighlightRegions(file: ProcessingFile): HighlightRegion[] {
-  const regions = file.result?.possiblyMissedRegions;
-  if (!regions || regions.length === 0) return [];
-  return regions
-    .filter(region => typeof region.xStart === 'number' && typeof region.xEnd === 'number')
-    .map(region => ({
-      page: region.page,
-      leftFrac: region.xStart!,
-      widthFrac: Math.max(0, region.xEnd! - region.xStart!),
-      note: region.note,
-    }));
-}
-
-function hashPersistedRecord(record: PersistedFileRecord): string {
-  return JSON.stringify(record, (key, value) => (key === 'file' ? undefined : value));
-}
-
-function persistedRecordToProcessingFile(record: PersistedFileRecord): ProcessingFile {
-  return {
-    id: record.id,
-    file: record.file,
-    status: record.status,
-    result: record.result,
-    warnings: record.warnings,
-    extractionBlockers: record.extractionBlockers,
-    error: record.error,
-    mismatchBannerDismissed: record.mismatchBannerDismissed,
-    fidelityBannerDismissed: record.fidelityBannerDismissed,
-    codingExportFidelityAck: record.codingExportFidelityAck,
-    sourcePaneCollapsed: record.sourcePaneCollapsed,
-    sourceDocumentId: record.sourceDocumentId,
-    sourcePageRange: record.sourcePageRange,
-    splitPartLabel: record.splitPartLabel,
-    forceSingleModel: record.forceSingleModel,
-    promptVersion: record.promptVersion,
-    promptVariant: record.promptVariant,
-  };
-}
 
 // Applies independently to each pipeline stage (extract, detect) via its own counter below — up to
 // this many detects AND up to this many extracts can run at once, so total concurrent Gemini calls
@@ -216,28 +148,6 @@ function captureRegressionExtraction(
 const MAX_CONCURRENT_PER_STAGE = 2;
 const PERSIST_DEBOUNCE_MS = 1200;
 
-const friendlyError = (error: unknown): string => {
-  // Already written for the user, and specific about what to do next: pass it through before the
-  // patterns below rewrite it into something vaguer.
-  if (isVisionFailure(error)) return error.message;
-  const message = error instanceof Error ? error.message : String(error || 'Something went wrong');
-  if (/api key|401|unauthorized/i.test(message)) {
-    return "Couldn't reach Gemini — check that GEMINI_API_KEY is set in .env.local.";
-  }
-  if (/429|rate|quota/i.test(message)) {
-    return 'Gemini is rate-limiting requests. Wait a moment, then try again.';
-  }
-  if (/\b404\b|not found/i.test(message)) {
-    return 'The API endpoint was not found. If this is a hosted deployment, confirm the /api functions deployed.';
-  }
-  if (/\b413\b|payload too large|request entity too large/i.test(message)) {
-    return 'This document is too large for the hosted upload limit. Try a shorter PDF or run locally.';
-  }
-  if (/Failed to convert|Unsupported file format|vision/i.test(message)) {
-    return "Couldn't read this document. Try a PDF, or a simpler DOCX/PPTX.";
-  }
-  return message;
-};
 
 const PREVIEW_GUTTER_PX = 32;
 
@@ -594,7 +504,7 @@ const App: React.FC = () => {
         //
         // The server also reports which prompt it used, so the extraction log can attribute a
         // result to an exact PROMPT_VERSION + variant rather than pooling unlike documents.
-        const { model: extractedResult, promptVersion, promptVariant } =
+        const { model: extractedResult, promptVersion, promptVariant, modelId } =
           await extractLogicModel(extractBundle);
         captureRegressionExtraction(files.find(f => f.id === fileId), extractBundle, {
           model: extractedResult,
@@ -636,6 +546,7 @@ const App: React.FC = () => {
                   result: extractedResult,
                   promptVersion,
                   promptVariant,
+                  modelId,
                   progressMsg: undefined,
                   error: undefined,
                   extractionBlockers: undefined,
