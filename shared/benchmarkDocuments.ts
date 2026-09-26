@@ -35,6 +35,14 @@ export interface BenchmarkColumn {
    * items instead would mark a correct extraction down for doing the right thing.
    */
   labels?: string[];
+  /**
+   * Cells printed as ONE bullet that the expected answer counts as SEVERAL items, keyed by the
+   * printed text. A source that writes three things into one run-on cell still states three
+   * things, so that is what a reviewer should find on the board; `shared/listItemSplit.ts` is what
+   * gets them there. Every key must also appear in `items`, and every part must be a substring of
+   * its key, so the printed page and the expected answer still cannot drift.
+   */
+  splits?: Record<string, string[]>;
 }
 
 export interface BenchmarkSlide {
@@ -82,7 +90,7 @@ export function goldenFromDocument(doc: BenchmarkDocument): GoldenAnswer {
       const labels = new Set(column.labels ?? []);
       for (const item of column.items) {
         if (labels.has(item)) tolerated.push(item);
-        else (items[column.domain] ??= []).push(item);
+        else (items[column.domain] ??= []).push(...(column.splits?.[item] ?? [item]));
       }
     }
   }
@@ -129,6 +137,16 @@ export function parseBenchmarkDocument(raw: unknown, sourceLabel: string): Bench
     for (const column of slide.columns) {
       if (typeof column?.heading !== 'string' || !Array.isArray(column.items)) {
         throw new Error(`${sourceLabel}: column without a heading and items[]`);
+      }
+      for (const [printed, parts] of Object.entries(column.splits ?? {})) {
+        if (!column.items.includes(printed)) {
+          throw new Error(`${sourceLabel}: splits key is not printed in items[]: ${printed}`);
+        }
+        for (const part of parts) {
+          if (!printed.includes(part)) {
+            throw new Error(`${sourceLabel}: split part is not a substring of its cell: ${part}`);
+          }
+        }
       }
     }
   }

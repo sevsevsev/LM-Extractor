@@ -5,6 +5,7 @@ import {
 } from './impactStatementHarvest.js';
 import { applySourceAwareMapping } from './sourceMapping.js';
 import { promoteInlineColonLabels } from './inlineLabelGroups.js';
+import { splitRunOnItems } from './listItemSplit.js';
 import { reconcileExtractionFidelity } from './extractionFidelity.js';
 
 type GroupedDomain =
@@ -195,6 +196,10 @@ export function normalizeExtractedLogicModel(
   // After promotion (whose labels never carry one) and before mapping, so `sourceHeader` and every
   // later comparison see the same name the reviewer will.
   trimGroupNameColons(model);
+  // After the label promoter (which strips a promoted `Label:` prefix, so a cell that was a
+  // labelled list is now a bare list this can act on) and before mapping, so a part that names
+  // its own column is placed on its own rather than dragging the whole cell with it.
+  splitRunOnItems(model);
   applySourceAwareMapping(model);
   reconcileExtractionFidelity(model, {
     lowLegibility: options?.lowLegibility,

@@ -111,6 +111,7 @@ function main(): void {
   }
   mkdirSync(expectedDir, { recursive: true });
   let changed = 0;
+  let unblessed = 0;
   const scores: ExtractionScore[] = [];
   for (const fixture of fixtures) {
     const actual = replayFixture(fixture);
@@ -124,9 +125,18 @@ function main(): void {
       }
     }
     const expectedPath = path.join(expectedDir, `${fixture.id}.json`);
-    if (bless || !existsSync(expectedPath)) {
+    const first = !existsSync(expectedPath);
+    if (bless) {
       writeFileSync(expectedPath, JSON.stringify(actual, null, 2) + '\n');
-      console.log(`${fixture.id.padEnd(30)} ${bless ? 'blessed' : 'written (no prior baseline)'}`);
+      console.log(`${fixture.id.padEnd(30)} ${first ? 'blessed (first baseline)' : 'blessed'}`);
+      continue;
+    }
+    if (first) {
+      // Not written on sight. A first replay is one run of unknown quality, and writing it as the
+      // baseline makes whatever came out today the thing every later replay is measured against —
+      // the same hole closed in scripts/regression-check.ts.
+      unblessed++;
+      console.log(`${fixture.id.padEnd(30)} no baseline yet — read it, then --bless`);
       continue;
     }
     const expected = JSON.parse(readFileSync(expectedPath, 'utf8')) as LogicModel;
@@ -153,9 +163,12 @@ function main(): void {
     console.log(
       changed
         ? `\n${changed} of ${fixtures.length} document(s) changed. Zero Gemini calls, so this is your change and nothing else.`
-        : `\nAll ${fixtures.length} document(s) unchanged.`
+        : `\nAll ${fixtures.length - unblessed} document(s) unchanged.`
     );
-    if (changed) process.exit(1);
+    if (unblessed) {
+      console.log(`${unblessed} document(s) have no committed baseline yet — accept them with --bless.`);
+    }
+    if (changed || unblessed) process.exit(1);
   }
 }
 

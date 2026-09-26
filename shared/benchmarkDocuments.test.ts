@@ -10,6 +10,7 @@ import {
   type BenchmarkDocument,
 } from './benchmarkDocuments.ts';
 import { appearsInSource, normalizeForMatch, scoreExtraction, SCORED_DOMAINS } from './extractionScore.ts';
+import { splitRunOnCell } from './listItemSplit.ts';
 import type { LogicModel, LogicModelGroup } from '../types.ts';
 
 const documentsDir = path.resolve(import.meta.dirname, '..', 'fixtures', 'benchmark', 'documents');
@@ -20,14 +21,21 @@ function loadAll(): BenchmarkDocument[] {
     .map(f => parseBenchmarkDocument(JSON.parse(readFileSync(path.join(documentsDir, f), 'utf8')), f));
 }
 
-/** Build the extraction a perfect run would produce, straight from the spec. */
-function perfectExtraction(doc: BenchmarkDocument): LogicModel {
+/**
+ * Build the extraction a perfect run would produce, straight from the spec. `asPrinted` builds the
+ * cells exactly as the slide prints them instead, which is what the pipeline sees BEFORE
+ * `shared/listItemSplit.ts` runs — the two differ only on a document with run-on cells.
+ */
+function perfectExtraction(doc: BenchmarkDocument, asPrinted = false): LogicModel {
   const model: Record<string, { content: LogicModelGroup[] }> = {};
   for (const domain of SCORED_DOMAINS) model[domain] = { content: [] };
   for (const slide of doc.slides) {
     for (const column of slide.columns) {
       if (column.domain === null) continue;
-      model[column.domain].content.push({ name: column.heading, items: column.items.map(text => ({ text })) });
+      const texts = asPrinted
+        ? column.items
+        : column.items.flatMap(item => column.splits?.[item] ?? [item]);
+      model[column.domain].content.push({ name: column.heading, items: texts.map(text => ({ text })) });
     }
   }
   return {
@@ -133,4 +141,70 @@ test('a non-grid column is tolerated rather than expected anywhere', () => {
   });
   assert.deepEqual(golden.items, {});
   assert.ok(golden.tolerated?.includes('14,200'));
+});
+
+test('a run-on cell is printed whole and expected as its parts', () => {
+  const golden = goldenFromDocument({
+    id: 'x', label: 'x', covers: 'x',
+    slides: [{ title: 'T', columns: [{
+      heading: 'INPUTS', domain: 'inputs',
+      items: ['Staff time; room hire; a minibus', 'Grant funding'],
+      splits: { 'Staff time; room hire; a minibus': ['Staff time', 'room hire', 'a minibus'] },
+    }] }],
+  });
+  assert.deepEqual(golden.items.inputs, ['Staff time', 'room hire', 'a minibus', 'Grant funding']);
+});
+
+test('a splits entry must name a printed cell and cut only its own words', () => {
+  const column = (splits: Record<string, string[]>) => ({
+    id: 'x', label: 'x', covers: 'x',
+    slides: [{ title: 'T', columns: [{ heading: 'INPUTS', domain: 'inputs', items: ['a; b'], splits }] }],
+  });
+  assert.throws(() => parseBenchmarkDocument(column({ 'c; d': ['c', 'd'] }), 'spec'), /not printed/);
+  assert.throws(() => parseBenchmarkDocument(column({ 'a; b': ['a', 'z'] }), 'spec'), /not a substring/);
+});
+
+/**
+ * The tie between the spec and the splitter. A spec declares what a run-on cell SHOULD become;
+ * `shared/listItemSplit.ts` is what makes it so. If either moves without the other, the benchmark
+ * would quietly start grading against an answer the pipeline can no longer reach — so both are
+ * checked against every committed spec here, with no key and no Gemini call.
+ */
+test('the splitter produces exactly the parts every committed spec declares', () => {
+  for (const doc of loadAll()) {
+    for (const slide of doc.slides) {
+      for (const column of slide.columns) {
+        for (const item of column.items) {
+          const declared = column.splits?.[item] ?? null;
+          assert.deepEqual(
+            splitRunOnCell(item),
+            declared,
+            `${doc.id} / ${column.heading}: ${item}`
+          );
+        }
+      }
+    }
+  }
+});
+
+test('the set exercises a run-on cell at all', () => {
+  const declared = loadAll()
+    .flatMap(d => d.slides.flatMap(s => s.columns.flatMap(c => Object.keys(c.splits ?? {}))));
+  assert.ok(declared.length >= 4, 'no committed spec prints a run-on cell');
+});
+
+/**
+ * The benchmark could only ever catch a regression while every document scored 100%. This is the
+ * first document in the set that a correct-but-unsplit pipeline gets WRONG, so the number can now
+ * move upward as well as down.
+ */
+test('leaving run-on cells whole costs recall on the document written to catch it', () => {
+  const doc = loadAll().find(d => d.id === 'run-on-cells');
+  assert.ok(doc, 'run-on-cells must stay in the set');
+  const golden = goldenFromDocument(doc);
+  const sourceText = documentTextTrack(doc);
+  const asPrinted = scoreExtraction(golden, perfectExtraction(doc, true), { sourceText });
+  const split = scoreExtraction(golden, perfectExtraction(doc), { sourceText });
+  assert.ok(asPrinted.recall < 0.75, `unsplit recall should be poor, got ${asPrinted.recall}`);
+  assert.equal(split.recall, 1);
 });

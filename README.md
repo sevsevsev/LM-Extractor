@@ -23,6 +23,7 @@ Builds the client, then serves API + `dist` from Express on `:3011` (override wi
 - `npm run typecheck` — `tsc --noEmit`
 - `npm run replay` — replay post-processing over saved model answers, offline and free (`-- --score` to also score it)
 - `npm run benchmark:accuracy` — extract the synthetic benchmark documents and score them (`-- --capture` first time)
+- `npm run split:survey` — every blessed snapshot cell that the run-on splitter would divide, and into what
 - `npm start` — build + production server
 
 ## Hosted deploy (Vercel)
