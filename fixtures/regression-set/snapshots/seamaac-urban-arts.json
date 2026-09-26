@@ -1,8 +1,8 @@
 {
   "id": "seamaac-urban-arts",
-  "promptVersion": "2026-09-20.6",
+  "promptVersion": "2026-09-26.1",
   "promptVariant": "vision+text",
-  "capturedAt": "2026-09-26T14:45:13.068Z",
+  "capturedAt": "2026-09-26T15:24:25.444Z",
   "model": {
     "organization": "SEAMAAC",
     "program": "Urban Arts Entrepreneurship",
@@ -10,7 +10,7 @@
       "content": ""
     },
     "targetPopulation": {
-      "content": "Youth"
+      "content": ""
     },
     "inputs": {
       "content": [
@@ -19,7 +19,7 @@
           "items": [
             {
               "text": "Teaching Artists",
-              "fillColor": "grey",
+              "fillColor": "slate",
               "sourceColumn": 1,
               "sourcePage": 2,
               "sourceHeader": "Human",
@@ -29,7 +29,7 @@
             },
             {
               "text": "Program Coordinator",
-              "fillColor": "grey",
+              "fillColor": "slate",
               "sourceColumn": 1,
               "sourcePage": 2,
               "sourceHeader": "Human",
@@ -39,7 +39,7 @@
             },
             {
               "text": "Volunteers/Mentors",
-              "fillColor": "grey",
+              "fillColor": "slate",
               "sourceColumn": 1,
               "sourcePage": 2,
               "sourceHeader": "Human",
@@ -54,7 +54,7 @@
           "items": [
             {
               "text": "Curriculum: Arts, Career Readiness, Financial Literacy",
-              "fillColor": "grey",
+              "fillColor": "slate",
               "sourceColumn": 1,
               "sourcePage": 2,
               "sourceHeader": "Knowledge",
@@ -69,7 +69,7 @@
           "items": [
             {
               "text": "Art Supplies",
-              "fillColor": "grey",
+              "fillColor": "slate",
               "sourceColumn": 1,
               "sourcePage": 2,
               "sourceHeader": "Material",
@@ -79,7 +79,7 @@
             },
             {
               "text": "Technology/Equipment",
-              "fillColor": "grey",
+              "fillColor": "slate",
               "sourceColumn": 1,
               "sourcePage": 2,
               "sourceHeader": "Material",
@@ -89,7 +89,7 @@
             },
             {
               "text": "Studio/Classroom Space",
-              "fillColor": "grey",
+              "fillColor": "slate",
               "sourceColumn": 1,
               "sourcePage": 2,
               "sourceHeader": "Material",
@@ -104,7 +104,7 @@
           "items": [
             {
               "text": "Grant Funding",
-              "fillColor": "grey",
+              "fillColor": "slate",
               "sourceColumn": 1,
               "sourcePage": 2,
               "sourceHeader": "Financial",
@@ -114,7 +114,7 @@
             },
             {
               "text": "Program Budget",
-              "fillColor": "grey",
+              "fillColor": "slate",
               "sourceColumn": 1,
               "sourcePage": 2,
               "sourceHeader": "Financial",
@@ -124,7 +124,7 @@
             },
             {
               "text": "Community Partnership",
-              "fillColor": "grey",
+              "fillColor": "slate",
               "sourceColumn": 1,
               "sourcePage": 2,
               "sourceHeader": "Financial",
@@ -344,7 +344,7 @@
           "items": [
             {
               "text": "Increased confidence in self expression",
-              "fillColor": "grey",
+              "fillColor": "slate",
               "sourceColumn": 5,
               "sourcePage": 2,
               "mappedBy": "auto",
@@ -352,7 +352,7 @@
             },
             {
               "text": "Improved decision-making and goal setting",
-              "fillColor": "grey",
+              "fillColor": "slate",
               "sourceColumn": 5,
               "sourcePage": 2,
               "mappedBy": "auto",
@@ -360,7 +360,7 @@
             },
             {
               "text": "Increased school and program participation",
-              "fillColor": "grey",
+              "fillColor": "slate",
               "sourceColumn": 5,
               "sourcePage": 2,
               "mappedBy": "auto",
@@ -368,7 +368,7 @@
             },
             {
               "text": "Stronger leadership, teamwork and communication skills",
-              "fillColor": "grey",
+              "fillColor": "slate",
               "sourceColumn": 5,
               "sourcePage": 2,
               "mappedBy": "auto",
@@ -385,7 +385,7 @@
           "items": [
             {
               "text": "Youth are prepared for post-secondary education and careers",
-              "fillColor": "grey",
+              "fillColor": "slate",
               "sourceColumn": 6,
               "sourcePage": 2,
               "mappedBy": "auto",

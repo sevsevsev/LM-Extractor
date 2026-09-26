@@ -1,16 +1,16 @@
 {
   "id": "philadelphia-ballet-lets-dance",
-  "promptVersion": "2026-09-19.2",
+  "promptVersion": "2026-09-26.1",
   "promptVariant": "vision+text",
-  "capturedAt": "2026-09-19T20:59:33.070Z",
+  "capturedAt": "2026-09-26T15:23:44.991Z",
   "model": {
     "organization": "Philadelphia Ballet",
-    "program": "Community Engagement Projects",
+    "program": "Community Engagement Projects (Dance Chance, Let’s Dance, HSCMP)",
     "mission": {
       "content": ""
     },
     "targetPopulation": {
-      "content": "K-12 school students across Philadelphia"
+      "content": ""
     },
     "inputs": {
       "content": []
@@ -35,8 +35,8 @@
     },
     "documentTypeAssessment": "not_logic_model",
     "extractionStatus": "partial",
-    "colorLegend": "",
-    "documentTypeNote": "Reads as a program assessment and evaluation report with narrative findings and recommendations rather than a logic model structure.",
+    "documentTypeNote": "Reads as an external program assessment/evaluation report by an independent evaluator rather than an organization's logic model.",
+    "extractionConfidence": "medium",
     "generalOutcomes": {
       "content": []
     },
@@ -45,13 +45,362 @@
     },
     "layoutFamily": "prose_sections",
     "unmapped": {
-      "content": []
+      "content": [
+        {
+          "name": "Executive Summary",
+          "items": [
+            {
+              "text": "This report contains assessment data and recommendations on three programs of the Philadelphia Ballet Community Engagement and Public Programming initiatives: Dance Chance, Let’s Dance and the High School Choreographic Mentorship Project (HSCMP). The assessment for each program is divided into values that the program brings to the students and school environment and recommendations for changes or continuity in practice for next year.",
+              "sourcePage": 1,
+              "sourceHeader": "Executive Summary",
+              "sourceSection": "Executive Summary",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "All three programs were successful in providing dance experiences to K-12 school students across Philadelphia, most of whom would not have any other opportunity to participate in organized dance classes. These programs not only provide free, accessible dance experiences, they enhance the reputation and cultural capital of the Philadelphia Ballet by making art accessible to hundreds of families from across the city. They should be considered highly successful projects. The school partnerships vary in character with each school, as some schools are more adept than others at working with outside entities, but all schools expressed the tremendous value that these programs bring to their school community and there is significant demand for their return next year.",
+              "sourcePage": 1,
+              "sourceHeader": "Executive Summary",
+              "sourceSection": "Executive Summary",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "My specific comments for each program are based on in-person observations of the programs, mid-year check ins with teaching artists, attendance at final assemblies/performances, and post program surveys of the participants for Let’s Dance and HSCMP.",
+              "sourcePage": 1,
+              "sourceHeader": "Executive Summary",
+              "sourceSection": "Executive Summary",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "Dance Chance",
+          "items": [
+            {
+              "text": "The Dance Chance program took place at six schools: Dunbar, FACTS, Fitler, Thomas Holmes, Kearny and Tacony. All schools except for FACTS had programs for both first and second grade students. The teachers for this program included Sevon Wright (Dunbar, FACTS, Fitler, and Tacony) Rakiyah Crutchfield (Thomas Holmes) and Gabi Montoya (Kearny).",
+              "sourcePage": 1,
+              "sourceHeader": "Dance Chance",
+              "sourceSection": "Dance Chance",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "The centralized curriculum focused on the dance principles of level, space, shape and rhythm. These concepts were introduced in the first grade and reinforced in the second grade. The curriculum also emphasized the narrative nature of dance, particularly in the ballet idiom, using an anthology of poetry selected for each grade as a basis for choreography involving student input.",
+              "sourcePage": 1,
+              "sourceHeader": "Dance Chance",
+              "sourceSection": "Dance Chance",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "To assess the program, I attended classes at all six locations, as well as attending the final assemblies at Dunbar, Kearny and FACTS elementary schools. I also met for check-ins with the teaching artists and consulted with Randy Benedict, professional staff in charge of Dance Chance for the Philadelphia Ballet.",
+              "sourcePage": 1,
+              "sourceHeader": "Dance Chance",
+              "sourceSection": "Dance Chance",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "Dance Chance Value",
+          "items": [
+            {
+              "text": "Classroom teachers express appreciation for the program and report that students enjoy the classes which give them the opportunity to express themselves physically and to begin an understanding of how to control their movements and understand body language. The teachers also appreciate the opportunity to see the Philadelphia Ballet perform and note that it is not something students would otherwise have access to doing.",
+              "sourcePage": 1,
+              "sourceHeader": "Dance Chance Value",
+              "sourceSection": "Dance Chance Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Students participating in the program reap the benefits of regular and concentrated movement experiences. These experiences are both structured—through routine warmups and practicing classical ballet vocabulary—and creative during improvisational and choreographic moments in class. It is beneficial for children to experience both so that they not only develop physically and hone gross locomotor skills (running, jumping, skipping, etc.) but also learn that movement is used to express ideas and emotions. It is critical that young children learn early in their academic journey that movement has a place in their schooling and that the art of dance is a way of communicating and emoting.",
+              "sourcePage": 2,
+              "sourceHeader": "Dance Chance Value",
+              "sourceSection": "Dance Chance Value",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "Dance Chance Recommendations",
+          "items": [
+            {
+              "text": "1. Work with teaching artists to create a standard time structure for classes so that students at all schools have similar experiences with an aerobic warm up, stretching and development of ballet vocabulary.",
+              "sourcePage": 2,
+              "sourceHeader": "Dance Chance Recommendations",
+              "sourceSection": "Dance Chance Recommendations",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "2. Continue professional development for the teaching artists on choreography for children so there is a wider range of final choreography developed.",
+              "sourcePage": 2,
+              "sourceHeader": "Dance Chance Recommendations",
+              "sourceSection": "Dance Chance Recommendations",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "3. Delete journal writing from the program and instead implement drawing assessment days within the curriculum on pre-structured pages. The journals have not been affective as a communications bridge to the classroom teacher since they only do the journals in the classroom at Tacony and the time is better spent in movement.",
+              "sourcePage": 2,
+              "sourceHeader": "Dance Chance Recommendations",
+              "sourceSection": "Dance Chance Recommendations",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "Let’s Dance",
+          "items": [
+            {
+              "text": "The Let’s Dance program is an afterschool program operating in six area schools including FACTS, Conwell, Kearny, Thomas Holmes, Pan American, AMY5. The goals of this afterschool program are to introduce students to the physical practices of multiple genres of dance as well as the cultural contexts of the dance genres studied, while creating a sense of community through the creation of dance performance. The program also aims to promote self-esteem and experiences of accomplishment through hard work. Teaching artists in this program teach one genre of dance rotating through participating schools, until students have experienced at least three genres of dance. The program culminates in a public performance for all schools together where each school presents three of the dances they have learned, with a program wide finale dance that all students learn.",
+              "sourcePage": 2,
+              "sourceHeader": "Let’s Dance",
+              "sourceSection": "Let’s Dance",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "Let’s Dance Value",
+          "items": [
+            {
+              "text": "The final performances at The Philadelphia Film Institute were attended by parents, family, faculty and school personnel. The audience seemed very enthusiastic with lots of cheers, applause and individual student shout outs. From the performances you could see that the students had learned: Movement vocabulary in multiple genres of dance, Sequential memory, Spatial awareness, Articulation of various movement vocabularies, Confidence, Concentration and focus, Cooperation and connection between students, Peer leadership.",
+              "sourcePage": 2,
+              "sourceHeader": "Let’s Dance Value",
+              "sourceSection": "Let’s Dance Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "From the surveys conducted at the final performances, students responded positively to the Let’s Dance experience. 69 students were surveyed just prior to the final performance. They were asked 15 questions about their experiences and asked to select an answer from a 6-point Likert scale response. (Strongly agree, agree, somewhat agree, somewhat disagree, disagree, strongly disagree). There did not seem to be a significant difference in responses across schools or grades, which speaks to the relative uniformity of experiences with shared teachers from school to school. It also implies the suitability of the program for all age groups grades 5-8.",
+              "sourcePage": 3,
+              "sourceHeader": "Let’s Dance Value",
+              "sourceSection": "Let’s Dance Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "The strongest positive responses were to the statements: My dance teachers at Let’s Dance are encouraging to me; I enjoy dancing in Let’s Dance",
+              "sourcePage": 3,
+              "sourceHeader": "Let’s Dance Value",
+              "sourceSection": "Let’s Dance Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "It seems students enjoyed the social and group nature of the experience, with the next most popular answers to the statements: I enjoy dancing with others; I like the other students I dance with in Let’s Dance; My ability to dance has improved since joining Let’s Dance",
+              "sourcePage": 3,
+              "sourceHeader": "Let’s Dance Value",
+              "sourceSection": "Let’s Dance Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Unfortunately, while generally in agreement, the least positive responses were to the statements: I am interested in taking dance classes in high school.; I am a good dancer; I feel confident in performing dance on stage",
+              "sourcePage": 3,
+              "sourceHeader": "Let’s Dance Value",
+              "sourceSection": "Let’s Dance Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "It seems while students enjoy the program, its structure and the teaching artists, there is some lack of confidence or nerves related to the impending performance which may result in less enthusiasm for taking dance classes when they reach high school.",
+              "sourcePage": 3,
+              "sourceHeader": "Let’s Dance Value",
+              "sourceSection": "Let’s Dance Value",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "Let’s Dance Recommendations",
+          "items": [
+            {
+              "text": "1. Continue to hire high energy focused faculty, including many re-hires from this year.",
+              "sourcePage": 3,
+              "sourceHeader": "Let’s Dance Recommendations",
+              "sourceSection": "Let’s Dance Recommendations",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "2. Continue to have faculty check in with each other in a facilitated zoom meeting throughout the school year so they can ensure continuity between schools, particularly when faculty rotate.",
+              "sourcePage": 3,
+              "sourceHeader": "Let’s Dance Recommendations",
+              "sourceSection": "Let’s Dance Recommendations",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "3. Make sure the introduction to the performance explains the goals of the program to introduce students to multiple genres of dance and relate this to the ballet’s CEPP goals.",
+              "sourcePage": 3,
+              "sourceHeader": "Let’s Dance Recommendations",
+              "sourceSection": "Let’s Dance Recommendations",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "4. Include an introduction of the teaching artist faculty to the audience alongside thanks to school district personnel who supported the program.",
+              "sourcePage": 3,
+              "sourceHeader": "Let’s Dance Recommendations",
+              "sourceSection": "Let’s Dance Recommendations",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "5. Includes slides projected with the name of the school, the genre of dance, and choreographing teacher for each dance presented during the final performance.",
+              "sourcePage": 3,
+              "sourceHeader": "Let’s Dance Recommendations",
+              "sourceSection": "Let’s Dance Recommendations",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "6. Consider hiring a production manager for the final performances to ensure students get adequate time on stage for tech. The nerves of students reflected in the survey may be connected to the need for more on-stage time prior to the performance.",
+              "sourcePage": 3,
+              "sourceHeader": "Let’s Dance Recommendations",
+              "sourceSection": "Let’s Dance Recommendations",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "High School Choreographic Mentorship Program (HSCMP)",
+          "items": [
+            {
+              "text": "This project is designed to give choreographic instruction and opportunity to high school students in Philadelphia. The program operates at High School for the Creative and Performing Arts, Kensington Creative and Performing Arts High School, Northeast High School, Benjamin Rush Arts Academy, Philadelphia High School for Girls, and Esperanza Academy Charter School. Classes at these locations meet during in-school class hours. There is a theme to the curriculum which guides the choreographic assignments each year. This year’s theme was Dreams, focusing in on personal and professional aspirations of the students.",
+              "sourcePage": 4,
+              "sourceHeader": "High School Choreographic Mentorship Program (HSCMP)",
+              "sourceSection": "High School Choreographic Mentorship Program (HSCMP)",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "HSCMP Value",
+          "items": [
+            {
+              "text": "Students involved in this program benefit from a unique experience not duplicated in their regular school dance curriculum. The experience provides students the opportunity to find artistic voice and refine their ability for physical expressiveness, at a time in their psychological maturity where it is most relevant for the development of identity. Additionally, students work in groups for this project and provide critical feedback for their peers, two critical social skills for adolescent growth. From a survey of the participants, students felt heard and respected by the teaching artists, and expressed a positive view of learning new ways to create dances and give feedback with their peers.",
+              "sourcePage": 4,
+              "sourceHeader": "HSCMP Value",
+              "sourceSection": "HSCMP Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "The performances at the Philadelphia Film Institute were, like the Let’s Dance performances, attended by parents, family and school personnel. These were less well attended than the middle school programs, although attendees were very enthusiastic audiences. From the performances it was clear that students were exploring new choreographic ideas and that the students themselves created the work. There were a variety of styles, structures and concepts behind the work shown. I felt that it demonstrated a wider range of skills and experiences than in previous years. Some of this may be due to students engaging with the program over multiple years, as well as more experienced teaching artist staff.",
+              "sourcePage": 4,
+              "sourceHeader": "HSCMP Value",
+              "sourceSection": "HSCMP Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "I conducted a survey of the 77 students present for the two days of performances. They were asked 10 questions about their experiences and asked to select an answer from a 6-point Likert scale response, (Strongly agree, agree, somewhat agree, somewhat disagree, disagree, strongly disagree), as well as four open ended questions about their experiences and suggestions for themes for next year’s program. 27 dancers had been in HSCMP in at least one prior year; 50 dancers were first year participants.",
+              "sourcePage": 4,
+              "sourceHeader": "HSCMP Value",
+              "sourceSection": "HSCMP Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Students most strongly agreed with the statement: I felt my voice was heard by the teaching artists in this program.",
+              "sourcePage": 4,
+              "sourceHeader": "HSCMP Value",
+              "sourceSection": "HSCMP Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "I believe this speaks positively to the key goal of the program of creating an atmosphere where student voice is valued. This was echoed in the positive feeling about the statements: My choreographic group worked well together.; I learned more ways to make dances through the HSCMP.; I learned more about myself as a choreographer in the HSCMP.; I felt my voice was heard by my peers in this process.; I learned how to give constructive feedback to my peers on their choreography.",
+              "sourcePage": 4,
+              "sourceHeader": "HSCMP Value",
+              "sourceSection": "HSCMP Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "More so than the middle school students, the high school students felt a general enthusiasm to share their work with the audience, with students responding “agree” or “strongly agree” to: I am excited to share my choreography with the audience.; I am excited to share my choreography with my peers from other schools.",
+              "sourcePage": 5,
+              "sourceHeader": "HSCMP Value",
+              "sourceSection": "HSCMP Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "This may be because the students were presenting their own choreography in the performance, which can be a more intense level of ownership of the dances than when a work set on them by a teaching artist.",
+              "sourcePage": 5,
+              "sourceHeader": "HSCMP Value",
+              "sourceSection": "HSCMP Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "The least popular statement with which many students disagreed, was related to the theme: I liked the theme of “dreams” for creating dances.",
+              "sourcePage": 5,
+              "sourceHeader": "HSCMP Value",
+              "sourceSection": "HSCMP Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "From the open-ended comments, it seemed that while some students liked the theme of dreams (and several suggested very similar themes for next year) the students in general wanted to choreography to music, rather than begin with a concept. Choreographing without music was the most common challenge listed by the students. The second most common challenge was communication between dancers in a group, which is to be expected for dancers new to the group choreographic process and for dancers in this age group.",
+              "sourcePage": 5,
+              "sourceHeader": "HSCMP Value",
+              "sourceSection": "HSCMP Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Student suggestions for next year included more activities within the class to help them development movement vocabulary and learn more about improvising. There were a few comments about wanting more time with students from other schools. They were also several comments about wanting to choreograph to music with lyrics. All of these last statements came from students at CAPA.",
+              "sourcePage": 5,
+              "sourceHeader": "HSCMP Value",
+              "sourceSection": "HSCMP Value",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "I believe there is a way to address the desire to choreograph directly to music and still fulfill the goal of the program to introduce students to choreography as a way to express themselves through movement and not pantomime the lyrics to songs, or create work that illuminates the music, but not the self. My suggestion would be to develop the curriculum next year to be on the theme of music and create a series of assignments that teach different ways to hear and interpret the music. We might also be able to address the desire to interact more with other schools by having one of the assignments for each school be to choreograph to the same piece of music and perhaps combine these into a finale performance with students from multiple schools. More in-theatre time would be needed for the multi-school performance to be developed.",
+              "sourcePage": 5,
+              "sourceHeader": "HSCMP Value",
+              "sourceSection": "HSCMP Value",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "HSCMP Recommendations",
+          "items": [
+            {
+              "text": "1. Develop the curriculum so that working with music is at the forefront of the curriculum.",
+              "sourcePage": 5,
+              "sourceHeader": "HSCMP Recommendations",
+              "sourceSection": "HSCMP Recommendations",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "2. Include more small direct teaching opportunities in the curriculum so the students can learn new ways to listen to music and respond with movement.",
+              "sourcePage": 5,
+              "sourceHeader": "HSCMP Recommendations",
+              "sourceSection": "HSCMP Recommendations",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "3. Consider developing a multi-school performance to the same piece of music.",
+              "sourcePage": 5,
+              "sourceHeader": "HSCMP Recommendations",
+              "sourceSection": "HSCMP Recommendations",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "4. Have a student introduce each piece on the final program.",
+              "sourcePage": 5,
+              "sourceHeader": "HSCMP Recommendations",
+              "sourceSection": "HSCMP Recommendations",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "5. Consider hiring a production manager for the final performances to ensure students get adequate time on stage for tech, and perhaps add in -theatre time for refining a multi-school work.",
+              "sourcePage": 5,
+              "sourceHeader": "HSCMP Recommendations",
+              "sourceSection": "HSCMP Recommendations",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "Concluding Remarks",
+          "items": [
+            {
+              "text": "It is a pleasure and honor to have the chance to support and assess these programs, which make such a profound impact on so many students in Philadelphia. Many thanks for this opportunity. Miriam Giguere, PhD",
+              "sourcePage": 6,
+              "sourceHeader": "Concluding Remarks",
+              "sourceSection": "Concluding Remarks",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        }
+      ]
     },
     "mappingCorrections": [],
-    "extractionConfidence": "medium",
     "extractionBlockers": [
-      "No inputs/activities/outputs/outcomes items were extracted — verify this document actually has a logic-model grid",
-      "Document may not be a logic model — verify before treating extraction as reliable (Reads as a program assessment and evaluation report with narrative findings and recommendations rather than a logic model structure.)"
+      "Some content did not fit any of the standard columns and was put under \"Unmapped\" — check whether it belongs somewhere",
+      "This may not be a logic model — check the document before relying on this extraction (Reads as an external program assessment/evaluation report by an independent evaluator rather than an organization's logic model.)"
     ]
   }
 }

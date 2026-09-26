@@ -1,8 +1,8 @@
 {
   "id": "upenn-bioeyes",
-  "promptVersion": "2026-09-20.6",
+  "promptVersion": "2026-09-26.1",
   "promptVariant": "vision-only",
-  "capturedAt": "2026-09-23T02:54:07.031Z",
+  "capturedAt": "2026-09-26T15:24:40.006Z",
   "model": {
     "organization": "Penn",
     "program": "Effective University-School Partnerships",
@@ -13,20 +13,7 @@
       "content": "Teachers and students"
     },
     "inputs": {
-      "content": [
-        {
-          "name": "General",
-          "items": [
-            {
-              "text": "Teachers get necessary skills and equipment for teaching life science effectively.",
-              "fillColor": "light gray",
-              "sourcePage": 1,
-              "mappedBy": "auto",
-              "mappingConfidence": "spatial"
-            }
-          ]
-        }
-      ]
+      "content": []
     },
     "activities": {
       "content": [
@@ -75,12 +62,19 @@
     "documentTypeAssessment": "not_logic_model",
     "extractionStatus": "partial",
     "colorLegend": "",
-    "documentTypeNote": "Presents a Theory of Change causal chain diagram without standardized input, activity, output, and outcome column headers.",
+    "documentTypeNote": "Reads as a Theory of Change pathway / flowchart — no input/activity/output/outcome grid structure.",
     "generalOutcomes": {
       "content": [
         {
           "name": "General",
           "items": [
+            {
+              "text": "Teachers get necessary skills and equipment for teaching life science effectively.",
+              "fillColor": "light gray",
+              "sourcePage": 1,
+              "mappedBy": "auto",
+              "mappingConfidence": "spatial"
+            },
             {
               "text": "Students develop relevant science skills and a positive attitude towards science.",
               "fillColor": "light gray",
@@ -116,7 +110,7 @@
     "mappingCorrections": [],
     "extractionConfidence": "medium",
     "extractionBlockers": [
-      "This may not be a logic model — check the document before relying on this extraction (Presents a Theory of Change causal chain diagram without standardized input, activity, output, and outcome column headers.)"
+      "This may not be a logic model — check the document before relying on this extraction (Reads as a Theory of Change pathway / flowchart — no input/activity/output/outcome grid structure.)"
     ]
   }
 }
