@@ -1,0 +1,180 @@
+{
+  "organization": "Kestrel Arts Alliance",
+  "program": "Studio Pathways",
+  "mission": {
+    "content": ""
+  },
+  "targetPopulation": {
+    "content": ""
+  },
+  "inputs": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Staffing: One studio manager and three teaching artists on contract",
+            "sourceColumn": 1,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Staffing: A part-time administrator covering intake and scheduling",
+            "sourceColumn": 1,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Facilities: A ceramics studio and a shared darkroom on Kestrel Street",
+            "sourceColumn": 1,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Funding: A three-year city arts grant renewed each April",
+            "sourceColumn": 1,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "activities": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Instruction: Twelve-week studio courses in ceramics and photography",
+            "sourceColumn": 2,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Instruction: Open studio hours four afternoons a week",
+            "sourceColumn": 2,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Outreach: Portfolio review clinics for applying secondary students",
+            "sourceColumn": 2,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Outreach: An annual exhibition of participant work at the city library",
+            "sourceColumn": 2,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "outputs": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Participation: Ninety young people completing at least one studio course",
+            "sourceColumn": 3,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Participation: Six hundred open studio visits logged across the year",
+            "sourceColumn": 3,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Product: Forty finished portfolios assembled and reviewed",
+            "sourceColumn": 3,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "shortTermOutcomes": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Skills: Participants demonstrate competent use of studio equipment",
+            "sourceColumn": 4,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Confidence: Participants describe themselves as artists to their peers",
+            "sourceColumn": 4,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "mediumTermOutcomes": {
+    "content": []
+  },
+  "longTermOutcomes": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Pathways: Participants apply to arts programmes after secondary school",
+            "sourceColumn": 5,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Community: Kestrel Street sustains a visible community of young makers",
+            "sourceColumn": 5,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "impact": {
+    "content": []
+  },
+  "documentTypeAssessment": "logic_model",
+  "extractionStatus": "ok",
+  "impactStatement": {
+    "content": ""
+  },
+  "layoutFamily": "vertical_columns",
+  "unmapped": {
+    "content": []
+  },
+  "generalOutcomes": {
+    "content": []
+  },
+  "mappingCorrections": [],
+  "extractionConfidence": "high"
+}

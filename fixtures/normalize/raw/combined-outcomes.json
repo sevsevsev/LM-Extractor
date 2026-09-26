@@ -1,0 +1,125 @@
+{
+  "id": "combined-outcomes",
+  "promptVersion": "2026-09-20.6",
+  "options": {
+    "sourceText": "## Slide 1\n\nNettlefield Health Partnership — Steady Steps Logic Model INPUTS Three community health workers employed through the partnership A referral agreement with the Nettlefield GP practice ACTIVITIES Twelve-week supervised walking groups meeting twice weekly One-to-one health coaching calls every fortnight OUTPUTS Two hundred and forty adults enrolled in a walking group Nine hundred coaching calls completed across the year OUTCOMES Participants walk further in six minutes than they did at intake Participants report sleeping better and feeling less isolated Fewer participants are referred onward for cardiac assessment Nettlefield GP practice records lower repeat attendance among participants",
+    "lowLegibility": false,
+    "textOnlyFallback": false
+  },
+  "raw": {
+    "organization": "Nettlefield Health Partnership",
+    "program": "Steady Steps",
+    "mission": {
+      "content": ""
+    },
+    "targetPopulation": {
+      "content": ""
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Three community health workers employed through the partnership",
+              "sourceColumn": 1,
+              "sourcePage": 1
+            },
+            {
+              "text": "A referral agreement with the Nettlefield GP practice",
+              "sourceColumn": 1,
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Twelve-week supervised walking groups meeting twice weekly",
+              "sourceColumn": 2,
+              "sourcePage": 1
+            },
+            {
+              "text": "One-to-one health coaching calls every fortnight",
+              "sourceColumn": 2,
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Two hundred and forty adults enrolled in a walking group",
+              "sourceColumn": 3,
+              "sourcePage": 1
+            },
+            {
+              "text": "Nine hundred coaching calls completed across the year",
+              "sourceColumn": 3,
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": []
+    },
+    "mediumTermOutcomes": {
+      "content": []
+    },
+    "longTermOutcomes": {
+      "content": []
+    },
+    "impact": {
+      "content": []
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "ok",
+    "colorLegend": "",
+    "extractionConfidence": "high",
+    "generalOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Participants walk further in six minutes than they did at intake",
+              "sourceColumn": 4,
+              "sourcePage": 1
+            },
+            {
+              "text": "Participants report sleeping better and feeling less isolated",
+              "sourceColumn": 4,
+              "sourcePage": 1
+            },
+            {
+              "text": "Fewer participants are referred onward for cardiac assessment",
+              "sourceColumn": 4,
+              "sourcePage": 1
+            },
+            {
+              "text": "Nettlefield GP practice records lower repeat attendance among participants",
+              "sourceColumn": 4,
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "layoutFamily": "vertical_columns",
+    "unmapped": {
+      "content": []
+    }
+  }
+}

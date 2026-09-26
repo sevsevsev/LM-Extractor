@@ -37,3 +37,11 @@ fixtures/regression-set/bundles/
 # a baseline: the blessed extractions are fixtures/regression-set/snapshots/, and what a capture
 # session commits is the audit record in docs/verification/, not the dumps it read.
 fixtures/regression-set/extractions/
+
+# Benchmark build output: decks are regenerated from fixtures/benchmark/documents/ by
+# `npm run benchmark:decks`, bundles are multi-MB base64 rasters captured from them, and runs are
+# per-run scorecards. The committed source of truth is documents/ and nothing else.
+fixtures/benchmark/decks/
+fixtures/benchmark/bundles/
+fixtures/benchmark/extractions/
+fixtures/benchmark/runs/

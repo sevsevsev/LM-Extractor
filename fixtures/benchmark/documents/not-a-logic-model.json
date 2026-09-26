@@ -1,0 +1,59 @@
+{
+  "id": "not-a-logic-model",
+  "label": "Marlow Street Fund \u2014 Quarterly Budget",
+  "covers": "Not a logic model at all: a quarterly budget table. The extraction must return no grid items and say so, rather than forcing a budget into columns. The failure this catches is invention under pressure to fill a schema.",
+  "organization": "Marlow Street Fund",
+  "program": "",
+  "documentTypeAssessment": "not_logic_model",
+  "slides": [
+    {
+      "title": "Marlow Street Fund \u2014 Quarterly Budget Summary",
+      "columns": [
+        {
+          "heading": "COST CENTRE",
+          "domain": null,
+          "items": [
+            "Premises",
+            "Salaries",
+            "Equipment",
+            "Travel",
+            "Insurance"
+          ]
+        },
+        {
+          "heading": "Q1 BUDGET",
+          "domain": null,
+          "items": [
+            "14,200",
+            "96,500",
+            "8,400",
+            "3,100",
+            "2,750"
+          ]
+        },
+        {
+          "heading": "Q1 ACTUAL",
+          "domain": null,
+          "items": [
+            "13,880",
+            "96,500",
+            "11,260",
+            "2,240",
+            "2,750"
+          ]
+        },
+        {
+          "heading": "VARIANCE",
+          "domain": null,
+          "items": [
+            "(320)",
+            "0",
+            "2,860",
+            "(860)",
+            "0"
+          ]
+        }
+      ]
+    }
+  ]
+}

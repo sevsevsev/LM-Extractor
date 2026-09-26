@@ -1,0 +1,110 @@
+{
+  "id": "two-versions-one-model",
+  "label": "Corran Design Festival — two drafts of one model",
+  "covers": "Slide 1 and slide 3 are two differently worded drafts of the SAME logic model, with an impact statement between them. This rebuilds, synthetically, the one document shape known to fail the launch gate: one draft is silently dropped and the item count moves between runs, while pageCoverage.ts should flag the page every time. It is here to MEASURE that, not because a fix is queued — what a two-draft document should produce is a product question still open.",
+  "organization": "Corran Design Festival",
+  "program": "City Design Week",
+  "expectDropOneDraft": true,
+  "slides": [
+    {
+      "title": "City Design Week — Logic Model (draft A)",
+      "columns": [
+        {
+          "heading": "RESOURCES",
+          "domain": "inputs",
+          "items": [
+            "A design studio donated by Corran Partners for the festival month",
+            "Twelve volunteer designers recruited through the guild"
+          ]
+        },
+        {
+          "heading": "ACTIVITIES",
+          "domain": "activities",
+          "items": [
+            "A ten-day public festival of open studios and workshops",
+            "A schools programme visiting sixteen classrooms in advance"
+          ]
+        },
+        {
+          "heading": "OUTPUTS",
+          "domain": "outputs",
+          "items": [
+            "Eighty open studio events staged across the ten days",
+            "Sixteen classroom workshops delivered before the festival"
+          ]
+        },
+        {
+          "heading": "SHORT-TERM OUTCOMES",
+          "domain": "shortTermOutcomes",
+          "items": [
+            "Attenders can name a design discipline they had not heard of",
+            "Pupils describe design as work someone like them could do"
+          ]
+        },
+        {
+          "heading": "LONG-TERM OUTCOMES",
+          "domain": "longTermOutcomes",
+          "items": [
+            "The city sustains a year-round audience for design programming"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Impact statement",
+      "columns": [
+        {
+          "heading": "IMPACT STATEMENT",
+          "domain": null,
+          "items": [
+            "City Design Week exists so that every resident of the city can see design as something made by people like them, and can find a way into making it themselves."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "City Design Week — Logic Model (draft B)",
+      "columns": [
+        {
+          "heading": "RESOURCES",
+          "domain": "inputs",
+          "items": [
+            "Donated studio space secured for the duration of the festival",
+            "A volunteer designer cohort drawn from the local guild"
+          ]
+        },
+        {
+          "heading": "ACTIVITIES",
+          "domain": "activities",
+          "items": [
+            "Ten days of open studios, talks and hands-on workshops",
+            "Advance visits to secondary school classrooms across the city"
+          ]
+        },
+        {
+          "heading": "OUTPUTS",
+          "domain": "outputs",
+          "items": [
+            "Eighty staged events over the festival fortnight",
+            "Sixteen schools reached ahead of opening weekend"
+          ]
+        },
+        {
+          "heading": "SHORT-TERM OUTCOMES",
+          "domain": "shortTermOutcomes",
+          "items": [
+            "Visitors leave able to name an unfamiliar design discipline",
+            "Pupils see design as a plausible career for themselves"
+          ]
+        },
+        {
+          "heading": "LONG-TERM OUTCOMES",
+          "domain": "longTermOutcomes",
+          "items": [
+            "A standing city audience for design programming year on year"
+          ]
+        }
+      ]
+    }
+  ]
+}

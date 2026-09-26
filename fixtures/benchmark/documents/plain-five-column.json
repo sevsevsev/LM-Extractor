@@ -1,0 +1,61 @@
+{
+  "id": "plain-five-column",
+  "label": "Riverbend Youth Collective \u2014 Summer Bridge",
+  "covers": "Baseline. A clean five-column grid with plain canonical headings and no labels, nesting or ambiguity. If this document does not score 100% nothing else in the set is interpretable.",
+  "organization": "Riverbend Youth Collective",
+  "program": "Summer Bridge",
+  "slides": [
+    {
+      "title": "Riverbend Youth Collective \u2014 Summer Bridge Logic Model",
+      "columns": [
+        {
+          "heading": "RESOURCES",
+          "domain": "inputs",
+          "items": [
+            "Two full-time program coordinators based at the Riverbend site",
+            "Annual operating grant from the Halloway Foundation",
+            "Donated classroom space at Riverbend Community Centre",
+            "A volunteer roster of thirty trained reading mentors"
+          ]
+        },
+        {
+          "heading": "ACTIVITIES",
+          "domain": "activities",
+          "items": [
+            "Six-week summer literacy intensive for rising fourth graders",
+            "Weekly one-to-one mentoring pairings throughout the term",
+            "Monthly family literacy evenings held at the community centre",
+            "Quarterly professional development for volunteer mentors"
+          ]
+        },
+        {
+          "heading": "OUTPUTS",
+          "domain": "outputs",
+          "items": [
+            "One hundred and twenty rising fourth graders enrolled each summer",
+            "Two thousand four hundred mentoring contact hours delivered",
+            "Eight family literacy evenings hosted across the year",
+            "Thirty volunteer mentors completing the full training sequence"
+          ]
+        },
+        {
+          "heading": "SHORT-TERM OUTCOMES",
+          "domain": "shortTermOutcomes",
+          "items": [
+            "Participants read aloud with visibly greater fluency by August",
+            "Families report knowing which books suit their child's level",
+            "Mentors describe themselves as confident leading a session"
+          ]
+        },
+        {
+          "heading": "LONG-TERM OUTCOMES",
+          "domain": "longTermOutcomes",
+          "items": [
+            "Participants enter middle school reading at or above grade level",
+            "Riverbend families sustain a habit of reading together at home"
+          ]
+        }
+      ]
+    }
+  ]
+}

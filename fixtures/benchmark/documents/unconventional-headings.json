@@ -1,0 +1,54 @@
+{
+  "id": "unconventional-headings",
+  "label": "Beacon Hollow Works \u2014 Trade Start",
+  "covers": "Columns headed in the organisation's own words \u2014 'What We Put In', 'What We Do', 'What We Make', 'What Changes Soon', 'What Changes Eventually' \u2014 rather than canonical names. Tests domain synonym mapping on wording no synonym table can have anticipated verbatim.",
+  "organization": "Beacon Hollow Works",
+  "program": "Trade Start",
+  "slides": [
+    {
+      "title": "Beacon Hollow Works \u2014 Trade Start Logic Model",
+      "columns": [
+        {
+          "heading": "WHAT WE PUT IN",
+          "domain": "inputs",
+          "items": [
+            "A fitted-out joinery workshop on the Beacon Hollow industrial estate",
+            "Four qualified tradespeople release one day a week to teach"
+          ]
+        },
+        {
+          "heading": "WHAT WE DO",
+          "domain": "activities",
+          "items": [
+            "A sixteen-week introductory joinery course for school leavers",
+            "Employer site visits arranged in week twelve of every cohort"
+          ]
+        },
+        {
+          "heading": "WHAT WE MAKE",
+          "domain": "outputs",
+          "items": [
+            "Four cohorts of twelve school leavers trained every year",
+            "Forty-eight employer site visits arranged annually"
+          ]
+        },
+        {
+          "heading": "WHAT CHANGES SOON",
+          "domain": "shortTermOutcomes",
+          "items": [
+            "Leavers can set out and cut a mortise and tenon unsupervised",
+            "Leavers hold a current site safety card on completion"
+          ]
+        },
+        {
+          "heading": "WHAT CHANGES EVENTUALLY",
+          "domain": "longTermOutcomes",
+          "items": [
+            "Leavers are still working in the building trades three years on",
+            "Beacon Hollow employers fill apprenticeships locally rather than regionally"
+          ]
+        }
+      ]
+    }
+  ]
+}

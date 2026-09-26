@@ -15,7 +15,10 @@
     "test": "tsx --test *.test.ts shared/**/*.test.ts services/**/*.test.ts components/**/*.test.ts server/**/*.test.ts",
     "verify:api": "node scripts/verify-api.mjs",
     "start": "npm run build && node scripts/start-prod.mjs",
-    "census": "tsx scripts/stability-census.ts"
+    "census": "tsx scripts/stability-census.ts",
+    "benchmark:accuracy": "tsx scripts/benchmark-accuracy.ts",
+    "benchmark:decks": "node scripts/make-benchmark-decks.mjs",
+    "replay": "tsx scripts/normalize-replay.ts"
   },
   "dependencies": {
     "@google/genai": "^1.31.0",

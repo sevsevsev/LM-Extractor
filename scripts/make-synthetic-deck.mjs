@@ -11,13 +11,13 @@
 import JSZip from 'jszip';
 import fs from 'fs';
 
-const A = 'http://schemas.openxmlformats.org/drawingml/2006/main';
-const P = 'http://schemas.openxmlformats.org/presentationml/2006/main';
-const R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+export const A = 'http://schemas.openxmlformats.org/drawingml/2006/main';
+export const P = 'http://schemas.openxmlformats.org/presentationml/2006/main';
+export const R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
 
 const COLUMNS = ['RESOURCES', 'ACTIVITIES', 'OUTPUTS', 'SHORT-TERM OUTCOMES', 'LONG-TERM OUTCOMES'];
 
-function shape(id, name, x, y, cx, cy, lines) {
+export function shape(id, name, x, y, cx, cy, lines) {
   const paras = lines.map(t => `<a:p><a:r><a:rPr lang="en-US" dirty="0"/><a:t>${t}</a:t></a:r></a:p>`).join('');
   return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="${name}"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
 <p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr>
@@ -62,7 +62,15 @@ const SLIDE_LAYOUT = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <p:sldLayout xmlns:a="${A}" xmlns:r="${R}" xmlns:p="${P}" type="blank" preserve="1"><p:cSld name="Blank">${EMPTY_TREE}</p:cSld>
 <p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>`;
 
-export function buildDeck(slideCount) {
+/**
+ * Build a .pptx package.
+ *
+ * `renderSlide(n)` returns the slide XML for 1-based slide `n`, defaulting to this script's own
+ * filler grid. The benchmark deck generator passes its own renderer so that both it and this
+ * script share one OOXML package — LibreOffice's requirements (presentation, master, layout and
+ * theme all present) were learned once and should not be learned twice.
+ */
+export function buildDeck(slideCount, renderSlide = slideXml) {
   const zip = new JSZip();
   const slideIds = Array.from({ length: slideCount }, (_, i) => i + 1);
 
@@ -104,7 +112,7 @@ ${slideIds.map(n => `<Relationship Id="rId${n + 1}" Type="${R}/slide" Target="sl
 <Relationship Id="rId1" Type="${R}/slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>`);
 
   for (const n of slideIds) {
-    zip.file(`ppt/slides/slide${n}.xml`, slideXml(n));
+    zip.file(`ppt/slides/slide${n}.xml`, renderSlide(n));
     zip.file(`ppt/slides/_rels/slide${n}.xml.rels`, `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 <Relationship Id="rId1" Type="${R}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/></Relationships>`);
