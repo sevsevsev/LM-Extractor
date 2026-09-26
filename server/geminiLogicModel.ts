@@ -1,3 +1,5 @@
+import { mkdirSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
 import { GoogleGenAI, Type, Schema } from '@google/genai';
 import { PROMPT_VERSION, getAiExtractionPrompt, promptVariantLabel } from '../constants.js';
 import {
@@ -147,6 +149,29 @@ const extractModelSchema: Schema = {
   ],
 };
 
+/**
+ * Write the pre-normalization model to `$LM_DUMP_RAW` when that env var names a directory.
+ *
+ * Off unless the variable is set, and it never touches the response, so a deployment that does not
+ * set it runs exactly as before. Named by seed because `deriveGeminiSeed` is content-derived and
+ * therefore stable per document across runs — the same document overwrites its own dump rather
+ * than accumulating copies. A failure here is swallowed: a diagnostic must never fail an
+ * extraction a user is waiting on.
+ */
+function dumpRawModel(seed: number, raw: LogicModel, options: Record<string, unknown>): void {
+  const dir = process.env.LM_DUMP_RAW;
+  if (!dir) return;
+  try {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(
+      path.join(dir, `${seed}.raw.json`),
+      JSON.stringify({ seed, promptVersion: PROMPT_VERSION, options, raw }, null, 2)
+    );
+  } catch (error) {
+    console.warn(`LM_DUMP_RAW: could not write dump for seed ${seed}:`, (error as Error).message);
+  }
+}
+
 export interface ServerExtractResult {
   model: LogicModel;
   /** Exact prompt wording version that produced `model` — see `PROMPT_VERSION` in constants.ts. */
@@ -230,11 +255,18 @@ export async function extractLogicModelOnServer(
     })
   );
 
-  const model = normalizeExtractedLogicModel(parseLogicModelResponse(response.text), {
+  const raw = parseLogicModelResponse(response.text);
+  const normalizeOptions = {
     sourceText: textTrack || undefined,
     lowLegibility,
     textOnlyFallback: !isVision,
-  });
+  };
+  // Capture the seam between Gemini's answer and our post-processing, when asked to. This is the
+  // input the offline replay harness needs: normalization is a pure function of these two values,
+  // so one saved pair turns every later post-processing experiment into a free, deterministic
+  // diff instead of another paid extract call. See scripts/normalize-replay.ts.
+  dumpRawModel(seed, raw, normalizeOptions);
+  const model = normalizeExtractedLogicModel(raw, normalizeOptions);
 
   return {
     model,

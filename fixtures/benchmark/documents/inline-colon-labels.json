@@ -1,0 +1,59 @@
+{
+  "id": "inline-colon-labels",
+  "label": "Kestrel Arts Alliance \u2014 Studio Pathways",
+  "covers": "Every item carries an inline 'Label:' category prefix with no bullet marker, the shape PR #9 added promoteInlineColonLabels for. The items must stay in their own columns whatever happens to the labels; scoring ignores group names, so a correct promotion and a correct non-promotion both pass.",
+  "organization": "Kestrel Arts Alliance",
+  "program": "Studio Pathways",
+  "slides": [
+    {
+      "title": "Kestrel Arts Alliance \u2014 Studio Pathways Logic Model",
+      "columns": [
+        {
+          "heading": "INPUTS",
+          "domain": "inputs",
+          "items": [
+            "Staffing: One studio manager and three teaching artists on contract",
+            "Staffing: A part-time administrator covering intake and scheduling",
+            "Facilities: A ceramics studio and a shared darkroom on Kestrel Street",
+            "Funding: A three-year city arts grant renewed each April"
+          ]
+        },
+        {
+          "heading": "ACTIVITIES",
+          "domain": "activities",
+          "items": [
+            "Instruction: Twelve-week studio courses in ceramics and photography",
+            "Instruction: Open studio hours four afternoons a week",
+            "Outreach: Portfolio review clinics for applying secondary students",
+            "Outreach: An annual exhibition of participant work at the city library"
+          ]
+        },
+        {
+          "heading": "OUTPUTS",
+          "domain": "outputs",
+          "items": [
+            "Participation: Ninety young people completing at least one studio course",
+            "Participation: Six hundred open studio visits logged across the year",
+            "Product: Forty finished portfolios assembled and reviewed"
+          ]
+        },
+        {
+          "heading": "SHORT-TERM OUTCOMES",
+          "domain": "shortTermOutcomes",
+          "items": [
+            "Skills: Participants demonstrate competent use of studio equipment",
+            "Confidence: Participants describe themselves as artists to their peers"
+          ]
+        },
+        {
+          "heading": "LONG-TERM OUTCOMES",
+          "domain": "longTermOutcomes",
+          "items": [
+            "Pathways: Participants apply to arts programmes after secondary school",
+            "Community: Kestrel Street sustains a visible community of young makers"
+          ]
+        }
+      ]
+    }
+  ]
+}

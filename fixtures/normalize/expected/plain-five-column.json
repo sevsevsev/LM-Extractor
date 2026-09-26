@@ -1,0 +1,174 @@
+{
+  "organization": "Riverbend Youth Collective",
+  "program": "Summer Bridge",
+  "mission": {
+    "content": ""
+  },
+  "targetPopulation": {
+    "content": ""
+  },
+  "inputs": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Two full-time program coordinators based at the Riverbend site",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Annual operating grant from the Halloway Foundation",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Donated classroom space at Riverbend Community Centre",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "A volunteer roster of thirty trained reading mentors",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "activities": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Six-week summer literacy intensive for rising fourth graders",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Weekly one-to-one mentoring pairings throughout the term",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Monthly family literacy evenings held at the community centre",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Quarterly professional development for volunteer mentors",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "outputs": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "One hundred and twenty rising fourth graders enrolled each summer",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Two thousand four hundred mentoring contact hours delivered",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Eight family literacy evenings hosted across the year",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Thirty volunteer mentors completing the full training sequence",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "shortTermOutcomes": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Participants read aloud with visibly greater fluency by August",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Families report knowing which books suit their child's level",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Mentors describe themselves as confident leading a session",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "mediumTermOutcomes": {
+    "content": []
+  },
+  "longTermOutcomes": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Participants enter middle school reading at or above grade level",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Riverbend families sustain a habit of reading together at home",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "impact": {
+    "content": []
+  },
+  "documentTypeAssessment": "logic_model",
+  "extractionStatus": "ok",
+  "extractionConfidence": "high",
+  "layoutFamily": "vertical_columns",
+  "unmapped": {
+    "content": []
+  },
+  "generalOutcomes": {
+    "content": []
+  },
+  "mappingCorrections": []
+}

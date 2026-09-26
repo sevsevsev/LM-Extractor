@@ -49,7 +49,15 @@ import { execSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'regression-set');
+// `LM_BUNDLE_SET` picks which fixture set the capture lands in: the tier-1 regression set by
+// default, or `benchmark` for the synthetic accuracy benchmark, which captures the same way from
+// generated decks rather than from client documents.
+const ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  'fixtures',
+  process.env.LM_BUNDLE_SET === 'benchmark' ? 'benchmark' : 'regression-set'
+);
 const OUT = path.join(ROOT, 'bundles');
 const OUT_EXTRACTIONS = path.join(ROOT, 'extractions');
 mkdirSync(OUT, { recursive: true });

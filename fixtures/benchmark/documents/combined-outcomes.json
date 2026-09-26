@@ -1,0 +1,48 @@
+{
+  "id": "combined-outcomes",
+  "label": "Nettlefield Health Partnership \u2014 Steady Steps",
+  "covers": "One undifferentiated OUTCOMES column instead of short/medium/long. The items belong in generalOutcomes, and the failure to watch for is the model inventing a time horizon and splitting them across three columns.",
+  "organization": "Nettlefield Health Partnership",
+  "program": "Steady Steps",
+  "slides": [
+    {
+      "title": "Nettlefield Health Partnership \u2014 Steady Steps Logic Model",
+      "columns": [
+        {
+          "heading": "INPUTS",
+          "domain": "inputs",
+          "items": [
+            "Three community health workers employed through the partnership",
+            "A referral agreement with the Nettlefield GP practice"
+          ]
+        },
+        {
+          "heading": "ACTIVITIES",
+          "domain": "activities",
+          "items": [
+            "Twelve-week supervised walking groups meeting twice weekly",
+            "One-to-one health coaching calls every fortnight"
+          ]
+        },
+        {
+          "heading": "OUTPUTS",
+          "domain": "outputs",
+          "items": [
+            "Two hundred and forty adults enrolled in a walking group",
+            "Nine hundred coaching calls completed across the year"
+          ]
+        },
+        {
+          "heading": "OUTCOMES",
+          "domain": "generalOutcomes",
+          "items": [
+            "Participants walk further in six minutes than they did at intake",
+            "Participants report sleeping better and feeling less isolated",
+            "Fewer participants are referred onward for cardiac assessment",
+            "Nettlefield GP practice records lower repeat attendance among participants"
+          ]
+        }
+      ]
+    }
+  ]
+}

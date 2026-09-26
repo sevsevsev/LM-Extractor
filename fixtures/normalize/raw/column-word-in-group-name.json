@@ -1,0 +1,158 @@
+{
+  "id": "column-word-in-group-name",
+  "promptVersion": "2026-09-20.6",
+  "options": {
+    "sourceText": "## Slide 1\n\nAldergate Trust — Neighbourhood Futures Logic Model RESOURCES A neighbourhood office staffed five days a week Two vans maintained for the mobile pantry route ACTIVITIES Youth Outcomes After-school homework club running four evenings a week Saturday football coaching for eight to twelve year olds Family Supports Mobile pantry stops at six estates every Thursday Benefits advice drop-in every second Tuesday morning OUTPUTS Teacher Resources Sixty homework club places filled each term Twelve coaching sessions delivered every month Community Impact Four hundred pantry visits recorded across the year SHORT-TERM OUTCOMES Homework club attenders hand in assignments on time more often Pantry users report spending less of their income on food LONG-TERM OUTCOMES Aldergate children move through secondary school without falling behind Sustained Community Impact across the six estates the trust serves",
+    "lowLegibility": false,
+    "textOnlyFallback": false
+  },
+  "raw": {
+    "organization": "Aldergate Trust",
+    "program": "Neighbourhood Futures",
+    "mission": {
+      "content": ""
+    },
+    "targetPopulation": {
+      "content": ""
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "A neighbourhood office staffed five days a week",
+              "sourceColumn": 1,
+              "sourcePage": 1
+            },
+            {
+              "text": "Two vans maintained for the mobile pantry route",
+              "sourceColumn": 1,
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "Youth Outcomes",
+          "items": [
+            {
+              "text": "After-school homework club running four evenings a week",
+              "sourceColumn": 2,
+              "sourcePage": 1
+            },
+            {
+              "text": "Saturday football coaching for eight to twelve year olds",
+              "sourceColumn": 2,
+              "sourcePage": 1
+            }
+          ]
+        },
+        {
+          "name": "Family Supports",
+          "items": [
+            {
+              "text": "Mobile pantry stops at six estates every Thursday",
+              "sourceColumn": 2,
+              "sourcePage": 1
+            },
+            {
+              "text": "Benefits advice drop-in every second Tuesday morning",
+              "sourceColumn": 2,
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "Teacher Resources",
+          "items": [
+            {
+              "text": "Sixty homework club places filled each term",
+              "sourceColumn": 3,
+              "sourcePage": 1
+            },
+            {
+              "text": "Twelve coaching sessions delivered every month",
+              "sourceColumn": 3,
+              "sourcePage": 1
+            }
+          ]
+        },
+        {
+          "name": "Community Impact",
+          "items": [
+            {
+              "text": "Four hundred pantry visits recorded across the year",
+              "sourceColumn": 3,
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Homework club attenders hand in assignments on time more often",
+              "sourceColumn": 4,
+              "sourcePage": 1
+            },
+            {
+              "text": "Pantry users report spending less of their income on food",
+              "sourceColumn": 4,
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "mediumTermOutcomes": {
+      "content": []
+    },
+    "longTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Aldergate children move through secondary school without falling behind",
+              "sourceColumn": 5,
+              "sourcePage": 1
+            },
+            {
+              "text": "Sustained Community Impact across the six estates the trust serves",
+              "sourceColumn": 5,
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "impact": {
+      "content": []
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "ok",
+    "extractionConfidence": "high",
+    "generalOutcomes": {
+      "content": []
+    },
+    "impactStatement": {
+      "content": ""
+    },
+    "layoutFamily": "vertical_columns",
+    "unmapped": {
+      "content": []
+    }
+  }
+}

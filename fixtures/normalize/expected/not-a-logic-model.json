@@ -1,0 +1,88 @@
+{
+  "organization": "Marlow Street Fund",
+  "program": "",
+  "mission": {
+    "content": ""
+  },
+  "targetPopulation": {
+    "content": ""
+  },
+  "inputs": {
+    "content": []
+  },
+  "activities": {
+    "content": []
+  },
+  "outputs": {
+    "content": []
+  },
+  "shortTermOutcomes": {
+    "content": []
+  },
+  "mediumTermOutcomes": {
+    "content": []
+  },
+  "longTermOutcomes": {
+    "content": []
+  },
+  "impact": {
+    "content": []
+  },
+  "documentTypeAssessment": "not_logic_model",
+  "extractionStatus": "partial",
+  "documentTypeNote": "Reads as a quarterly budget summary table — no logic model structure.",
+  "layoutFamily": "unknown",
+  "unmapped": {
+    "content": [
+      {
+        "name": "Quarterly Budget Summary",
+        "items": [
+          {
+            "text": "Premises — Q1 BUDGET: 14,200 | Q1 ACTUAL: 13,880 | VARIANCE: (320)",
+            "sourcePage": 1,
+            "sourceHeader": "Quarterly Budget Summary",
+            "sourceSection": "Quarterly Budget Summary",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Salaries — Q1 BUDGET: 96,500 | Q1 ACTUAL: 96,500 | VARIANCE: 0",
+            "sourcePage": 1,
+            "sourceHeader": "Quarterly Budget Summary",
+            "sourceSection": "Quarterly Budget Summary",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Equipment — Q1 BUDGET: 8,400 | Q1 ACTUAL: 11,260 | VARIANCE: 2,860",
+            "sourcePage": 1,
+            "sourceHeader": "Quarterly Budget Summary",
+            "sourceSection": "Quarterly Budget Summary",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Travel — Q1 BUDGET: 3,100 | Q1 ACTUAL: 2,240 | VARIANCE: (860)",
+            "sourcePage": 1,
+            "sourceHeader": "Quarterly Budget Summary",
+            "sourceSection": "Quarterly Budget Summary",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Insurance — Q1 BUDGET: 2,750 | Q1 ACTUAL: 2,750 | VARIANCE: 0",
+            "sourcePage": 1,
+            "sourceHeader": "Quarterly Budget Summary",
+            "sourceSection": "Quarterly Budget Summary",
+            "mappingConfidence": "unmapped"
+          }
+        ]
+      }
+    ]
+  },
+  "generalOutcomes": {
+    "content": []
+  },
+  "mappingCorrections": [],
+  "extractionConfidence": "medium",
+  "extractionBlockers": [
+    "The layout of this document could not be worked out, so items may have ended up in the wrong columns",
+    "This may not be a logic model — check the document before relying on this extraction (Reads as a quarterly budget summary table — no logic model structure.)"
+  ]
+}

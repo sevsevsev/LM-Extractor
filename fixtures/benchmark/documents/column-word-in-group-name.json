@@ -1,0 +1,69 @@
+{
+  "id": "column-word-in-group-name",
+  "label": "Aldergate Trust — Neighbourhood Futures",
+  "covers": "Group headings inside columns END in a canonical column word — 'Youth Outcomes' sitting inside ACTIVITIES, 'Teacher Resources' inside OUTPUTS. This is exactly the shape the synonym remapper moved items on until PR #16; the benchmark fails loudly if that ever comes back.",
+  "organization": "Aldergate Trust",
+  "program": "Neighbourhood Futures",
+  "slides": [
+    {
+      "title": "Aldergate Trust — Neighbourhood Futures Logic Model",
+      "columns": [
+        {
+          "heading": "RESOURCES",
+          "domain": "inputs",
+          "items": [
+            "A neighbourhood office staffed five days a week",
+            "Two vans maintained for the mobile pantry route"
+          ]
+        },
+        {
+          "heading": "ACTIVITIES",
+          "domain": "activities",
+          "items": [
+            "Youth Outcomes",
+            "After-school homework club running four evenings a week",
+            "Saturday football coaching for eight to twelve year olds",
+            "Family Supports",
+            "Mobile pantry stops at six estates every Thursday",
+            "Benefits advice drop-in every second Tuesday morning"
+          ],
+          "labels": [
+            "Youth Outcomes",
+            "Family Supports"
+          ]
+        },
+        {
+          "heading": "OUTPUTS",
+          "domain": "outputs",
+          "items": [
+            "Teacher Resources",
+            "Sixty homework club places filled each term",
+            "Twelve coaching sessions delivered every month",
+            "Community Impact",
+            "Four hundred pantry visits recorded across the year"
+          ],
+          "labels": [
+            "Teacher Resources",
+            "Community Impact"
+          ]
+        },
+        {
+          "heading": "SHORT-TERM OUTCOMES",
+          "domain": "shortTermOutcomes",
+          "items": [
+            "Homework club attenders hand in assignments on time more often",
+            "Pantry users report spending less of their income on food"
+          ]
+        },
+        {
+          "heading": "LONG-TERM OUTCOMES",
+          "domain": "longTermOutcomes",
+          "items": [
+            "Aldergate children move through secondary school without falling behind",
+            "Sustained Community Impact across the six estates the trust serves"
+          ]
+        }
+      ]
+    }
+  ]
+}
