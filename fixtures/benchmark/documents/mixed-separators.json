@@ -1,0 +1,90 @@
+{
+  "id": "mixed-separators",
+  "label": "Ferrier Hall Ensemble — several separators in one column",
+  "covers": "Cells that mix separators inside a single column, and against each other: a semicolon list whose first part contains its own commas, a semicolon list closed with a full stop, a two-sentence cell whose first sentence ends on a quoted phrase, a three-sentence cell, and beside them the cells that must survive whole — a comma list that is one statement, a cell opening 'Avg.', a bracketed aside, and a single semicolon joining a clause to its qualifier. run-on-cells established that the splitter works at all; this one asks whether it still picks correctly when both kinds sit side by side in the same column, which is how real sources are written rather than one shape per document.",
+  "organization": "Ferrier Hall Ensemble",
+  "program": "Tuesday Strings",
+  "documentTypeAssessment": "logic_model",
+  "slides": [
+    {
+      "title": "Tuesday Strings — Logic Model",
+      "columns": [
+        {
+          "heading": "INPUTS",
+          "domain": "inputs",
+          "items": [
+            "Instrument hire, sheet music and rehearsal space; a part-time ensemble leader; a termly transport budget",
+            "Rehearsal rooms, instrument hire and sheet music are donated by three partner organisations",
+            "The programme is delivered with St Brelade Academy and with Ferrier Hall; both partners host a term each"
+          ],
+          "splits": {
+            "Instrument hire, sheet music and rehearsal space; a part-time ensemble leader; a termly transport budget": [
+              "Instrument hire, sheet music and rehearsal space",
+              "a part-time ensemble leader",
+              "a termly transport budget"
+            ]
+          }
+        },
+        {
+          "heading": "ACTIVITIES",
+          "domain": "activities",
+          "items": [
+            "A weekly ensemble rehearsal; a fortnightly one-to-one lesson; a termly showcase evening for families",
+            "Each cohort is recruited through the two partner schools and through word of mouth from previous cohorts",
+            "Families attend the termly showcase (bringing younger siblings with them) and stay for refreshments afterwards"
+          ],
+          "splits": {
+            "A weekly ensemble rehearsal; a fortnightly one-to-one lesson; a termly showcase evening for families": [
+              "A weekly ensemble rehearsal",
+              "a fortnightly one-to-one lesson",
+              "a termly showcase evening for families"
+            ]
+          }
+        },
+        {
+          "heading": "OUTPUTS",
+          "domain": "outputs",
+          "items": [
+            "Attendance registers; retention across the twelve-week term; end-of-term skills checklists.",
+            "Avg. 42 young people attend each week across the three neighbourhood sites"
+          ],
+          "splits": {
+            "Attendance registers; retention across the twelve-week term; end-of-term skills checklists.": [
+              "Attendance registers",
+              "retention across the twelve-week term",
+              "end-of-term skills checklists."
+            ]
+          }
+        },
+        {
+          "heading": "SHORT-TERM OUTCOMES",
+          "domain": "shortTermOutcomes",
+          "items": [
+            "Young people describe the ensemble as \"the best part of the week\". Tutors report steadier attendance term on term.",
+            "Sixty places filled each term"
+          ],
+          "splits": {
+            "Young people describe the ensemble as \"the best part of the week\". Tutors report steadier attendance term on term.": [
+              "Young people describe the ensemble as \"the best part of the week\"",
+              "Tutors report steadier attendance term on term"
+            ]
+          }
+        },
+        {
+          "heading": "LONG-TERM OUTCOMES",
+          "domain": "longTermOutcomes",
+          "items": [
+            "Young people describe themselves as musicians. Parents describe the ensemble as the fixed point of the week. Tutors report a waiting list every term."
+          ],
+          "splits": {
+            "Young people describe themselves as musicians. Parents describe the ensemble as the fixed point of the week. Tutors report a waiting list every term.": [
+              "Young people describe themselves as musicians",
+              "Parents describe the ensemble as the fixed point of the week",
+              "Tutors report a waiting list every term"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "id": "two-templates-one-content",
+  "label": "Calder Vale Rowing Trust — one programme in two house templates",
+  "covers": "The same programme is set out twice in the same file using two DIFFERENT templates: a canonical five-column grid on slide 1, then the same content on slide 3 as headerless boxes with inline 'Label:' prefixes. This is distinct from two-versions-one-model, where both drafts use the same grid and only the wording differs; here the second pass also changes the SHAPE the reader has to recognise, which is the situation the owner described in the one real document that fails the launch gate on item count. Both passes are expected in full, so a dropped pass shows as lost recall rather than being defined away, and the two are worded differently so neither can be scored by matching the other.",
+  "organization": "Calder Vale Rowing Trust",
+  "program": "Learn To Row",
+  "slides": [
+    {
+      "title": "Learn To Row — Logic Model",
+      "columns": [
+        {
+          "heading": "RESOURCES",
+          "domain": "inputs",
+          "items": [
+            "A coaching launch and eight stable training sculls",
+            "Two qualified coaches employed for the season"
+          ]
+        },
+        {
+          "heading": "ACTIVITIES",
+          "domain": "activities",
+          "items": [
+            "An eight-week beginners course each spring and autumn",
+            "Free Saturday taster mornings open to the whole town"
+          ]
+        },
+        {
+          "heading": "OUTPUTS",
+          "domain": "outputs",
+          "items": [
+            "Ninety-six beginner places filled across the two courses",
+            "Twenty taster mornings run over the season"
+          ]
+        },
+        {
+          "heading": "SHORT-TERM OUTCOMES",
+          "domain": "shortTermOutcomes",
+          "items": [
+            "Beginners can scull a length unaided by the final week",
+            "Beginners say they feel safe on the water"
+          ]
+        },
+        {
+          "heading": "LONG-TERM OUTCOMES",
+          "domain": "longTermOutcomes",
+          "items": [
+            "The club draws its membership from the whole town rather than one school"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Our theory of change",
+      "columns": [
+        {
+          "heading": "",
+          "domain": null,
+          "items": [
+            "Rowing should not be something you need a particular school to reach. The pages that follow restate the model above in the format the trust uses with its funders."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Learn To Row — funder format",
+      "columns": [
+        {
+          "heading": "",
+          "domain": "inputs",
+          "items": [
+            "Equipment: a launch for the coach and eight wide-beam boats for novices",
+            "Staffing: a pair of coaches contracted for the rowing season"
+          ]
+        },
+        {
+          "heading": "",
+          "domain": "activities",
+          "items": [
+            "Courses: two beginner intakes a year, each running eight weeks",
+            "Open days: taster sessions every Saturday with no booking needed"
+          ]
+        },
+        {
+          "heading": "",
+          "domain": "outputs",
+          "items": [
+            "Places: ninety-six novices taught between the spring and autumn intakes",
+            "Sessions: twenty open mornings delivered through the season"
+          ]
+        },
+        {
+          "heading": "",
+          "domain": "shortTermOutcomes",
+          "items": [
+            "Skill: novices complete a length on their own before the course ends",
+            "Confidence: novices report feeling secure in a boat"
+          ]
+        },
+        {
+          "heading": "",
+          "domain": "longTermOutcomes",
+          "items": [
+            "Reach: the membership stops depending on a single feeder school"
+          ]
+        }
+      ]
+    }
+  ]
+}
