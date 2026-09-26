@@ -108,6 +108,6 @@
   "extractionConfidence": "medium",
   "extractionBlockers": [
     "Some content did not fit any of the standard columns and was put under \"Unmapped\" — check whether it belongs somewhere",
-    "This may not be a logic model — check the document before relying on this extraction (Reads as an evaluation findings report narrative — no input/output/outcome column or logic model structure.)"
+    "Nothing was put in the columns, and this may not be a logic model — check the document before relying on this extraction (Reads as an evaluation findings report narrative — no input/output/outcome column or logic model structure.)"
   ]
 }

@@ -110,7 +110,7 @@
     "mappingCorrections": [],
     "extractionConfidence": "medium",
     "extractionBlockers": [
-      "This may not be a logic model — check the document before relying on this extraction (Reads as a Theory of Change pathway / flowchart — no input/activity/output/outcome grid structure.)"
+      "This document does not label its columns, so the app worked out which column each item belongs in — check the columns before relying on this extraction (Reads as a Theory of Change pathway / flowchart — no input/activity/output/outcome grid structure.)"
     ]
   }
 }

@@ -400,7 +400,7 @@
     "mappingCorrections": [],
     "extractionBlockers": [
       "Some content did not fit any of the standard columns and was put under \"Unmapped\" — check whether it belongs somewhere",
-      "This may not be a logic model — check the document before relying on this extraction (Reads as an external program assessment/evaluation report by an independent evaluator rather than an organization's logic model.)"
+      "Nothing was put in the columns, and this may not be a logic model — check the document before relying on this extraction (Reads as an external program assessment/evaluation report by an independent evaluator rather than an organization's logic model.)"
     ]
   }
 }

@@ -133,9 +133,11 @@ test('buildExtractionLogRows carries blockers, counts, and a Needs Review status
 });
 
 test('buildExtractionLogRows carries the document type flag when present', () => {
+  // The sample model fills the grid, so the flag reports what the app did to the columns rather
+  // than passing a verdict on the document — see documentTypeFlagLabel.
   const model = sampleModel({ documentTypeAssessment: 'not_logic_model' });
   const rows = buildExtractionLogRows([fakeFile('f1', { result: model })]);
-  assert.match(cell(rows[0], 'document_type_flag'), /^Not a logic model —/);
+  assert.match(cell(rows[0], 'document_type_flag'), /^No column grid in this document —/);
 });
 
 test('buildExtractionLogRows includes a hard-stopped (error) file using its own blockers', () => {
