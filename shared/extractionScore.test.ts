@@ -246,3 +246,54 @@ test('a score row renders every axis on one line', () => {
   assert.match(row, /placement/);
   assert.match(row, /unsourced\s+—/);
 });
+
+/**
+ * The hole these two close: everything a non-logic-model prints is `tolerated`, and tolerance used
+ * to excuse a surplus item wherever it landed — so an extraction that sorted a budget or an
+ * evaluation report into four grid columns scored a clean 100% on the one document in the set that
+ * exists to catch exactly that. Found 2026-09-26 while chasing a real document that went from 0
+ * items to 50 under prompt 2026-09-20.6.
+ */
+const noGridGolden: GoldenAnswer = {
+  id: 'report',
+  label: 'A report, not a logic model',
+  covers: 'x',
+  items: {},
+  tolerated: [
+    'Attendance averaged sixty-eight per cent across the year',
+    'Staffing was stable, with one coordinator in post throughout',
+  ],
+};
+
+test('a document expected to yield no grid items is marked down for filling one', () => {
+  const score = scoreExtraction(
+    noGridGolden,
+    model({ activities: groups('Staffing was stable, with one coordinator in post throughout') })
+  );
+  assert.equal(score.surplus.length, 1);
+  assert.equal(score.precision, 0);
+});
+
+test('the same items in unmapped cost it nothing', () => {
+  const score = scoreExtraction(
+    noGridGolden,
+    model({
+      unmapped: groups(
+        'Attendance averaged sixty-eight per cent across the year',
+        'Staffing was stable, with one coordinator in post throughout'
+      ),
+    })
+  );
+  assert.equal(score.surplus.length, 0);
+  assert.equal(score.precision, 1);
+  assert.equal(score.unmappedCount, 2);
+});
+
+test('tolerance still excuses a heading read as an item where the document does have a grid', () => {
+  const score = scoreExtraction(
+    { id: 'g', label: 'g', covers: 'x', items: { inputs: ['Two teaching artists'] }, tolerated: ['RESOURCES'] },
+    model({ inputs: groups('Two teaching artists', 'RESOURCES') })
+  );
+  assert.equal(score.surplus.length, 0);
+  assert.equal(score.precision, 1);
+});
