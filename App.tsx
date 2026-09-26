@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FULL_EXPORT_HEADERS, fullExportRowValues } from './shared/exportColumns';
+import { csvBlob } from './shared/csvDownload';
 import { flushSync } from 'react-dom';
 import { ProcessingFile, LogicModel, DocumentBundle, bundleImpliesLowLegibility } from './types';
 import FileUpload from './components/FileUpload';
@@ -767,7 +768,7 @@ const App: React.FC = () => {
       ...rows.map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')),
     ].join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = csvBlob(csvContent);
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;

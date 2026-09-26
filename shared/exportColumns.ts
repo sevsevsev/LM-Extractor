@@ -35,6 +35,7 @@ export const FULL_EXPORT_COLUMNS: readonly FullExportColumn[] = [
   { header: 'Border Color', field: 'borderColor' },
   { header: 'Color Legend', field: 'colorLegend' },
   { header: 'Sub-heading In Source', field: 'sourceHeader' },
+  { header: 'Source Page', field: 'sourcePage' },
   { header: 'Placed By', field: 'mappedBy' },
   { header: 'Placement Confidence', field: 'mappingConfidence' },
   { header: 'Placement Note', field: 'mappingNote' },

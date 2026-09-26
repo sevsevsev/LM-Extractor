@@ -28,6 +28,7 @@ const PROBE_ROW: Record<keyof GranularExportRow, string> = {
   borderColor: 'borderColor',
   colorLegend: 'colorLegend',
   sourceHeader: 'sourceHeader',
+  sourcePage: 'sourcePage',
   mappedBy: 'mappedBy',
   mappingConfidence: 'mappingConfidence',
   mappingNote: 'mappingNote',

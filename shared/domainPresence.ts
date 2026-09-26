@@ -32,6 +32,14 @@ export interface GranularExportRow {
   borderColor: string;
   colorLegend: string;
   sourceHeader: string;
+  /**
+   * The page of the source document this item was read off, 1-based, as a string ('' when the
+   * extraction did not record one). This is the same reference the board prints under each item
+   * ("Source: page 3") and the only thing in the export that lets someone check an item against the
+   * document it came from, so it belongs in the CSV: without it, verifying one row of a 124-item
+   * export means searching the whole document by eye.
+   */
+  sourcePage: string;
   mappedBy: string;
   mappingConfidence: string;
   mappingNote: string;
@@ -97,6 +105,9 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
         borderColor: '',
         colorLegend,
         sourceHeader: '',
+        // Overview prose (mission / target population / impact statement) is one field for the
+        // whole document and carries no per-page reference.
+        sourcePage: '',
         mappedBy: '',
         mappingConfidence: '',
         mappingNote: '',
@@ -130,6 +141,7 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
             borderColor: item.borderColor?.trim() || '',
             colorLegend,
             sourceHeader: item.sourceHeader?.trim() || g.name || '',
+            sourcePage: typeof item.sourcePage === 'number' ? String(item.sourcePage) : '',
             mappedBy: item.mappedBy || '',
             mappingConfidence: item.mappingConfidence || '',
             mappingNote: item.mappingNote?.trim() || '',
