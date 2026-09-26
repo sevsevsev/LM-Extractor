@@ -11,6 +11,7 @@
  *   npm run regression:check    # diff against committed snapshots; non-zero exit on any change
  *   npm run regression:check -- --update   # accept current output as the new baseline
  *   npm run regression:check -- --only=oxford-circle
+ *   npm run regression:check -- --require-bundles   # fail if any document has no bundle here
  *
  * Capturing a bundle (once per document, in the browser): see fixtures/regression-set/README.md.
  */
@@ -18,6 +19,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { diffExtractions, formatExtractionDiff } from '../shared/extractionDiff.ts';
+import { regressionOutcome } from '../shared/regressionOutcome.ts';
 import type { LogicModel } from '../types.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -44,6 +46,12 @@ interface Snapshot {
 
 const args = process.argv.slice(2);
 const update = args.includes('--update');
+/**
+ * Fail the run when any manifest document has no bundle on this machine. Off by default: bundles
+ * are gitignored, so a fresh clone has none and the guard would report failure while nothing is
+ * wrong. On for a machine that is supposed to hold the whole set.
+ */
+const requireBundles = args.includes('--require-bundles');
 const onlyArg = args.find(a => a.startsWith('--only='));
 const only = onlyArg ? onlyArg.slice('--only='.length) : null;
 const apiBase = process.env.LM_API_BASE || 'http://localhost:3011';
@@ -162,16 +170,18 @@ async function main(): Promise<void> {
     for (const e of missingBundles) console.log(`  - ${e.id} (${e.covers})`);
     console.log('  See fixtures/regression-set/README.md to capture them.');
   }
-  if (failures.length > 0) {
-    console.log(`\n${failures.length} document(s) errored — is \`npm run dev\` running with GEMINI_API_KEY set?`);
-  }
 
-  if (failures.length > 0 || missingBundles.length > 0) process.exit(2);
-  if (changed > 0 && !update) {
-    console.log('\nOutput changed. If intended, re-run with --update to accept the new baseline.');
-    process.exit(1);
-  }
-  process.exit(0);
+  const outcome = regressionOutcome({
+    total: entries.length,
+    unchanged,
+    changed,
+    missingBundles: missingBundles.length,
+    failures: failures.length,
+    update,
+    requireBundles,
+  });
+  console.log(`\n${outcome.summary}`);
+  process.exit(outcome.exitCode);
 }
 
 main().catch(error => {

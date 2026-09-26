@@ -5,7 +5,8 @@ diffed against committed snapshots. Ten documents, not a hundred — see "Why te
 
 ```bash
 npm run dev                             # API must be running, GEMINI_API_KEY set
-npm run regression:check                # diff vs snapshots; exit 1 if anything changed
+npm run regression:check                # diff vs snapshots; exit 1 if a measured document changed
+npm run regression:check -- --require-bundles  # also fail if any document has no bundle here
 npm run regression:check -- --update    # accept current output as the new baseline
 npm run regression:check -- --only=oxford
 ```
@@ -145,6 +146,24 @@ and so produces nothing to score. Closing that needs a low-DPI raster the app st
 *invention* change. Collapsing a move into a remove-plus-add would hide the distinction a prompt
 change is usually being judged on.
 
-A document with no captured bundle is reported loudly and exits non-zero. It is never silently
-skipped — that is the failure mode the gold-fixture tests in `shared/extractPlacement.test.ts` had
-for months, where both snapshot tests passed while asserting nothing.
+A document with no captured bundle is reported loudly, named in the summary, and never silently
+skipped — silent skipping is the failure mode the gold-fixture tests in
+`shared/extractPlacement.test.ts` had for months, where both snapshot tests passed while asserting
+nothing.
+
+It no longer fails the run, though, and that changed on 2026-09-26. Bundles are gitignored
+multi-MB rasters, so any machine that has not captured all seventeen — every fresh clone, and the
+repository's ordinary state — saw the tier-1 guard report failure while nothing was wrong. A guard
+that cries wolf at rest is one people learn to ignore, which costs more than the case it was
+protecting. The rule is now by what the run achieved:
+
+| | |
+|---|---|
+| **0** | something was measured and nothing changed (any skipped documents are named) |
+| **1** | a measured document changed — the real regression signal |
+| **2** | an extract call errored, or NOTHING was measured at all |
+
+Exit 2 on "nothing measured" is the case the old rule was really guarding, and it is kept: a run
+that tested nothing must never look like a pass. `--require-bundles` restores the strict behaviour
+for a machine that is supposed to hold the whole set. The decision table is
+`shared/regressionOutcome.ts`, with a test per row.

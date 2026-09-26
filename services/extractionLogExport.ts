@@ -22,6 +22,10 @@ export const EXTRACTION_LOG_HEADERS = [
   // so any aggregate error rate must be grouped by these before it means anything.
   'prompt_version',
   'prompt_variant',
+  // Which model answered. `EXTRACT_MODEL_ID` is a rolling alias, so Google can rotate the served
+  // model with no change here — without this column an accuracy shift that originated there would
+  // leave no trace in the record, and the search would start in our own diff instead.
+  'model_id',
   'organization',
   'program',
   'qa_status',
@@ -82,6 +86,7 @@ export function buildExtractionLogRows(files: ProcessingFile[]): string[][] {
       f.status,
       f.promptVersion || '',
       f.promptVariant || '',
+      f.modelId || '',
       m?.organization || '',
       m?.program || '',
       m ? qaStatusLabel(m) : 'Error',

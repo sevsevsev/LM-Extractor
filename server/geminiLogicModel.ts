@@ -19,7 +19,7 @@ import { deriveGeminiSeed } from './geminiSeed.js';
  * the models.list response). The alias resolves forward automatically as Google rotates the
  * recommended model, which is what we actually want for a rarely-touched local tool.
  */
-const EXTRACT_MODEL_ID = 'gemini-flash-latest';
+export const EXTRACT_MODEL_ID = 'gemini-flash-latest';
 
 /**
  * Every property here is a QUESTION PUT TO GEMINI. A field listed in this schema but left
@@ -165,7 +165,7 @@ function dumpRawModel(seed: number, raw: LogicModel, options: Record<string, unk
     mkdirSync(dir, { recursive: true });
     writeFileSync(
       path.join(dir, `${seed}.raw.json`),
-      JSON.stringify({ seed, promptVersion: PROMPT_VERSION, options, raw }, null, 2)
+      JSON.stringify({ seed, promptVersion: PROMPT_VERSION, modelId: EXTRACT_MODEL_ID, options, raw }, null, 2)
     );
   } catch (error) {
     console.warn(`LM_DUMP_RAW: could not write dump for seed ${seed}:`, (error as Error).message);
@@ -174,6 +174,14 @@ function dumpRawModel(seed: number, raw: LogicModel, options: Record<string, unk
 
 export interface ServerExtractResult {
   model: LogicModel;
+  /**
+   * The model alias that actually answered. `EXTRACT_MODEL_ID` is a ROLLING alias, deliberately —
+   * a pinned snapshot gets sunset for new keys. The cost of that choice is that Google can rotate
+   * what answers underneath us, and until this field existed the record said only which prompt
+   * ran: an accuracy shift originating at Google would have left no trace anywhere in the
+   * extraction log, and we would have gone looking in our own diff.
+   */
+  modelId: string;
   /** Exact prompt wording version that produced `model` — see `PROMPT_VERSION` in constants.ts. */
   promptVersion: string;
   /**
@@ -270,6 +278,7 @@ export async function extractLogicModelOnServer(
 
   return {
     model,
+    modelId: EXTRACT_MODEL_ID,
     promptVersion: PROMPT_VERSION,
     promptVariant: promptVariantLabel({ isVision, hasTextTrack, lowLegibility }),
   };
