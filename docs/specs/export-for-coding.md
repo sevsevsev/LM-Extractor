@@ -28,6 +28,7 @@ From editable extract results, download a CSV the Qualitative Outcomes Coder acc
 | `source_filename` | uploaded file name — lets an operator's own file-naming convention (e.g. an `orgid_progid_` prefix) be used to key rows back to a source file (coder ignores unknown cols) |
 | `qa_status` | `Needs Review` \| `Successfully Processed` — same document-level signal as the session list's NEEDS REVIEW grouping (`shared/qaStatus.ts`), for post-hoc QA (coder ignores unknown cols) |
 | `document_type_flag` | `` \| `Possibly Not a Logic Model` \| `Unclear Document Type` — Gemini's document-type self-report (`shared/extractionFidelity.ts`), flags a source that may be a Theory of Change / impact report / other overlapping-but-different document rather than a logic model; never blocks extraction, a human decides (coder ignores unknown cols) |
+| `source_type` | always `logic_model` — what kind of source the row came from. Outcome text from other sources (e.g. a partner's free-text "Program Outcomes" field in the district database) is loaded into the coder with its own value, so coded outcomes from the two can be told apart downstream (coder passes unknown cols through to its export) |
 
 ### Reading this file as a coder (plain-language glossary)
 
@@ -45,6 +46,7 @@ they actually mean:
 | `needs_review` | `Yes` when the AI flagged this specific item as uncertain. Blank otherwise. Currently always blank: item-level flagging was removed 2026-09-20 (friction-log session 9). |
 | `qa_status` | Whether the whole document was flagged for a second look. `Needs Review` or `Successfully Processed`. |
 | `document_type_flag` | Set when the source does not lay its logic model out as a labelled column grid — a Theory of Change, an impact report, a brochure. Two things it can say: that the document did not label its columns, so the app decided each item's column (the rows are still usable, check the columns), or that nothing reached the columns at all and the source does not read as a logic model. Blank normally. |
+| `source_type` | Where the text came from. Always `logic_model` in this file. Outcomes coded from other sources, such as a partner's free-text outcomes field, carry a different value. |
 | `row_id` | An internal identifier. Ignore it unless you need to point back at one exact row. |
 
 **`Needs Review` does not mean the extraction is wrong.** It means something about the document
@@ -90,6 +92,8 @@ actually reads does not carry it.
 Domain list and columns live in this doc; bump a one-line version note when changing filter (e.g. add Impact).
 
 **Version:** v1.4 — 2026-09-19 — added `General Outcomes` to the domain filter (`services/codingExport.ts`'s `CODING_EXPORT_DOMAINS`/`DOMAIN_FIELDS` already shipped this; this doc's AC #2 and domain list were not updated at the time, violating this doc's own "bump a one-line version note when changing filter" rule — found via codebase audit, `docs/specs/codebase-audit-2026-09-19.md` #17). Also fixed the empty-export message (`services/codingExport.ts`), which still said "No short-, medium-, or long-term outcome rows."
+
+**Version:** v1.6 — 2026-09-27 — added `source_type` column, always `logic_model` (appended, so existing column positions are unchanged). The coder keeps unknown columns and passes them through to its export (`services/geminiService.ts` `parseCSV`/`atomicJsonToCSV` in Qualitative-Outcomes-Coder), so the value survives coding.
 
 **Version:** v1.5 — 2026-09-20 — added a plain-language glossary of the column names for coders. No column added, renamed, moved or removed: the header row is unchanged.
 

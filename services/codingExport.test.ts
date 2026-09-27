@@ -65,7 +65,7 @@ test('coding export CSV header row matches the coder intake contract', () => {
   const header = csv!.split('\n')[0];
   assert.equal(
     header,
-    '"row_id","organization","program","group","domain","outcome_text","color_coding","needs_review","color_legend","source_filename","qa_status","document_type_flag"',
+    '"row_id","organization","program","group","domain","outcome_text","color_coding","needs_review","color_legend","source_filename","qa_status","document_type_flag","source_type"',
     'The coding CSV header row changed. This is the Qualitative Outcomes Coder intake contract — ' +
       'renaming, reordering or removing a column here breaks that tool. See docs/specs/export-for-coding.md.'
   );
@@ -75,6 +75,12 @@ test('coding export carries the uploaded filename on every row', () => {
   const rows = buildCodingExportRows([fakeFile('f1', sampleModel())]);
   assert.ok(rows.length > 0);
   assert.ok(rows.every(r => r[9] === 'f1.pdf'));
+});
+
+test('coding export marks every row as coming from a logic model', () => {
+  const rows = buildCodingExportRows([fakeFile('f1', sampleModel())]);
+  assert.ok(rows.length > 0);
+  assert.ok(rows.every(r => r[12] === 'logic_model'));
 });
 
 test('coding export carries QA status, reusing the same signal as the session list', () => {
