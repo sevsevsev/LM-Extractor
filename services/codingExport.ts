@@ -15,6 +15,13 @@ const CODING_EXPORT_DOMAINS = [
 
 type CodingDomain = (typeof CODING_EXPORT_DOMAINS)[number];
 
+/**
+ * What kind of source a coding row came from. Every row this app exports comes from a logic model;
+ * outcome text taken from elsewhere (a partner's free-text "Program Outcomes" field, for example)
+ * is loaded into the coder with its own value here, so coded outcomes can be told apart downstream.
+ */
+export const CODING_SOURCE_TYPE = 'logic_model';
+
 const DOMAIN_FIELDS: { domain: CodingDomain; field: keyof LogicModel }[] = [
   { domain: 'Short-Term Outcomes', field: 'shortTermOutcomes' },
   { domain: 'Medium-Term Outcomes', field: 'mediumTermOutcomes' },
@@ -63,6 +70,7 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
             displayFileName(f),
             qaStatus,
             documentTypeFlag,
+            CODING_SOURCE_TYPE,
           ]);
         });
       });
@@ -89,6 +97,7 @@ export function buildCodingExportCsv(files: ProcessingFile[]): string | null {
     'source_filename',
     'qa_status',
     'document_type_flag',
+    'source_type',
   ];
   const escape = (c: string) => `"${String(c).replace(/"/g, '""')}"`;
   return [headers.map(escape).join(','), ...rows.map(row => row.map(escape).join(','))].join('\n');
