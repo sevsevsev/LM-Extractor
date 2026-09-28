@@ -1,0 +1,203 @@
+{
+  "organization": "Learn To Row",
+  "program": "Learn To Row",
+  "mission": {
+    "content": ""
+  },
+  "targetPopulation": {
+    "content": ""
+  },
+  "inputs": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "A coaching launch and eight stable training sculls",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Two qualified coaches employed for the season",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Equipment: a launch for the coach and eight wide-beam boats for novices",
+            "sourcePage": 3,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Staffing: a pair of coaches contracted for the rowing season",
+            "sourcePage": 3,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "activities": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "An eight-week beginners course each spring and autumn",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Free Saturday taster mornings open to the whole town",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Courses: two beginner intakes a year, each running eight weeks",
+            "sourcePage": 3,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Open days: taster sessions every Saturday with no booking needed",
+            "sourcePage": 3,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "outputs": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Ninety-six beginner places filled across the two courses",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Twenty taster mornings run over the season",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Places: ninety-six novices taught between the spring and autumn intakes",
+            "sourcePage": 3,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Sessions: twenty open mornings delivered through the season",
+            "sourcePage": 3,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "shortTermOutcomes": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Beginners can scull a length unaided by the final week",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Beginners say they feel safe on the water",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Skill: novices complete a length on their own before the course ends",
+            "sourcePage": 3,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Confidence: novices report feeling secure in a boat",
+            "sourcePage": 3,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "mediumTermOutcomes": {
+    "content": []
+  },
+  "longTermOutcomes": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "The club draws its membership from the whole town rather than one school",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Reach: the membership stops depending on a single feeder school",
+            "sourcePage": 3,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "impact": {
+    "content": []
+  },
+  "documentTypeAssessment": "logic_model",
+  "extractionStatus": "ok",
+  "impactStatement": {
+    "content": ""
+  },
+  "layoutFamily": "vertical_columns",
+  "unmapped": {
+    "content": [
+      {
+        "name": "Our theory of change",
+        "items": [
+          {
+            "text": "Rowing should not be something you need a particular school to reach.",
+            "sourcePage": 2,
+            "sourceHeader": "Our theory of change",
+            "sourceSection": "Our theory of change",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "The pages that follow restate the model above in the format the trust uses with its funders.",
+            "sourcePage": 2,
+            "sourceHeader": "Our theory of change",
+            "sourceSection": "Our theory of change",
+            "mappingConfidence": "unmapped"
+          }
+        ]
+      }
+    ]
+  },
+  "generalOutcomes": {
+    "content": []
+  },
+  "mappingCorrections": [],
+  "extractionConfidence": "high"
+}
