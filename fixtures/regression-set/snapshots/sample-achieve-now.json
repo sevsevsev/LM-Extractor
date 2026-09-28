@@ -1,8 +1,8 @@
 {
   "id": "sample-achieve-now",
-  "promptVersion": "2026-09-20.6",
+  "promptVersion": "2026-09-26.1",
   "promptVariant": "vision+text",
-  "capturedAt": "2026-09-23T02:55:03.664Z",
+  "capturedAt": "2026-09-28T01:25:30.983Z",
   "model": {
     "organization": "Achieve Now",
     "program": "Achieve Now",
@@ -235,12 +235,6 @@
               "mappingConfidence": "spatial"
             },
             {
-              "text": "Avg Student Gains",
-              "sourcePage": 1,
-              "mappedBy": "auto",
-              "mappingConfidence": "spatial"
-            },
-            {
               "text": "# of lessons",
               "sourcePage": 1,
               "mappedBy": "auto",
@@ -300,14 +294,14 @@
             },
             {
               "text": "Coaches give growth mindset feedback during lessons",
-              "fillColor": "dark blue",
+              "fillColor": "blue",
               "sourcePage": 1,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Weekly synthetic phonics instruction",
-              "fillColor": "blue",
+              "fillColor": "dark blue",
               "sourcePage": 1,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
@@ -321,7 +315,7 @@
             },
             {
               "text": "Professional development opportunities throughout year",
-              "fillColor": "light green",
+              "fillColor": "lime green",
               "sourcePage": 1,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
@@ -351,14 +345,14 @@
             },
             {
               "text": "Students receive robust process praise",
-              "fillColor": "dark blue",
+              "fillColor": "blue",
               "sourcePage": 1,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Students acquire skills and strategies",
-              "fillColor": "blue",
+              "fillColor": "dark blue",
               "sourcePage": 1,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
@@ -372,7 +366,7 @@
             },
             {
               "text": "Achieve Now staff gain expertise",
-              "fillColor": "light green",
+              "fillColor": "lime green",
               "sourcePage": 1,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
@@ -402,14 +396,14 @@
             },
             {
               "text": "Students show increased growth mindset and resilience",
-              "fillColor": "dark blue",
+              "fillColor": "blue",
               "sourcePage": 1,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
             },
             {
               "text": "Students meet or exceed ELA standards",
-              "fillColor": "blue",
+              "fillColor": "dark blue",
               "sourcePage": 1,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
@@ -423,7 +417,7 @@
             },
             {
               "text": "Volunteers and students receive stronger, more targeted support",
-              "fillColor": "light green",
+              "fillColor": "lime green",
               "sourcePage": 1,
               "mappedBy": "auto",
               "mappingConfidence": "spatial"
@@ -444,7 +438,6 @@
     },
     "documentTypeAssessment": "logic_model",
     "extractionStatus": "ok",
-    "colorLegend": "",
     "extractionConfidence": "high",
     "generalOutcomes": {
       "content": []
