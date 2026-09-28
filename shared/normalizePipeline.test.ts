@@ -93,3 +93,41 @@ test('a labelled list is promoted to a group and then split into its parts', () 
   // Nine statements were printed as three cells, and nine is what a reviewer should find.
   assert.equal(groups.reduce((n, g) => n + g.items.length, 0), 9);
 });
+
+/**
+ * The restated-duplicate drop, exercised through the whole pipeline rather than on its own.
+ *
+ * Order is the point. `dropRestatedDuplicates` compares an `unmapped` item with what sits in the
+ * columns, so it can only be right once `applySourceAwareMapping` has put everything in its final
+ * domain — run it earlier and a restated copy would be compared against a column the item has not
+ * reached yet. The unit tests in shared/restatedDuplicates.test.ts cannot see that; this can.
+ */
+test('a restated copy worded exactly like a column item leaves the board once', () => {
+  const cell = (text: string) => ({ text });
+  const model = {
+    organization: 'X', program: 'Y',
+    mission: { content: '' }, targetPopulation: { content: '' },
+    inputs: { content: [{ name: 'General', items: [cell('A minibus shared with the youth club')] }] },
+    activities: { content: [{ name: 'General', items: [cell('Saturday football coaching')] }] },
+    outputs: { content: [] }, generalOutcomes: { content: [] },
+    shortTermOutcomes: { content: [] }, mediumTermOutcomes: { content: [] },
+    longTermOutcomes: { content: [] }, impact: { content: [] },
+    unmapped: { content: [{
+      name: 'Restated — funder format',
+      items: [
+        cell('A minibus shared with the youth club'),
+        cell('Saturday football coaching, two hours, all abilities'),
+      ],
+    }] },
+  } as unknown as LogicModel;
+
+  const out = normalizeExtractedLogicModel(model);
+  const unmapped = (out.unmapped?.content ?? []).flatMap(g => g.items.map(i => i.text));
+  // The identical copy goes, because the reader can already read it in `inputs`. The line that
+  // carries wording the first printing lacks stays, because dropping it would lose content.
+  assert.deepEqual(unmapped, ['Saturday football coaching, two hours, all abilities']);
+  assert.deepEqual(
+    (out.inputs?.content ?? []).flatMap(g => g.items.map(i => i.text)),
+    ['A minibus shared with the youth club']
+  );
+});

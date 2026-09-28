@@ -7,6 +7,7 @@ import { applySourceAwareMapping } from './sourceMapping.js';
 import { promoteInlineColonLabels } from './inlineLabelGroups.js';
 import { splitRunOnItems } from './listItemSplit.js';
 import { reconcileExtractionFidelity } from './extractionFidelity.js';
+import { dropRestatedDuplicates } from './restatedDuplicates.js';
 
 type GroupedDomain =
   | 'outputs'
@@ -201,6 +202,10 @@ export function normalizeExtractedLogicModel(
   // its own column is placed on its own rather than dragging the whole cell with it.
   splitRunOnItems(model);
   applySourceAwareMapping(model);
+  // After mapping, because a restated copy only counts as a duplicate once both it and the item it
+  // repeats have reached their final domains; before the fidelity rollup, so the page-coverage
+  // check counts the board the reviewer will actually see.
+  dropRestatedDuplicates(model);
   reconcileExtractionFidelity(model, {
     lowLegibility: options?.lowLegibility,
     textOnlyFallback: options?.textOnlyFallback,
