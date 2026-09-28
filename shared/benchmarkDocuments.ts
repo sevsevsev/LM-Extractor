@@ -28,6 +28,13 @@ export interface BenchmarkColumn {
    * Where the items under this heading belong. `null` means the column is not grid content at all
    * (a budget line, a prose impact statement) and its items are expected nowhere — the extraction
    * is not penalised for reading them, only for placing them in a grid domain.
+   *
+   * `'unmapped'` is a real expectation, not an absence: it marks a column the extraction should
+   * read and then set aside. That is how a RESTATEMENT is written down — the second printing of a
+   * programme the document has already set out, which the owner decided on 2026-09-28 should reach
+   * the reader once. Expecting it in `unmapped` scores all three outcomes correctly: dropped
+   * altogether is a recall miss, mapped into a column a second time is a misplacement, and set
+   * aside is right. A column the extraction may place anywhere without penalty is `null`, not this.
    */
   domain: ScoredDomain | null;
   /** Everything printed under the heading, in reading order — items and in-column labels alike. */
@@ -64,12 +71,6 @@ export interface BenchmarkDocument {
   program?: string;
   /** Expected document-type verdict, when the document is here to test that judgement. */
   documentTypeAssessment?: 'logic_model' | 'not_logic_model' | 'unclear';
-  /**
-   * Set on a document that prints the same model twice. The expected answer still asks for every
-   * item on every page — anything printed should be extracted — so a dropped draft shows up as
-   * lost recall rather than being defined away.
-   */
-  expectDropOneDraft?: boolean;
   slides: BenchmarkSlide[];
 }
 

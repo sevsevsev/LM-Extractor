@@ -1,7 +1,7 @@
 {
   "id": "two-templates-one-content",
   "label": "Calder Vale Rowing Trust — one programme in two house templates",
-  "covers": "The same programme is set out twice in the same file using two DIFFERENT templates: a canonical five-column grid on slide 1, then the same content on slide 3 as headerless boxes with inline 'Label:' prefixes. This is distinct from two-versions-one-model, where both drafts use the same grid and only the wording differs; here the second pass also changes the SHAPE the reader has to recognise, which is the situation the owner described in the one real document that fails the launch gate on item count. Both passes are expected in full, so a dropped pass shows as lost recall rather than being defined away, and the two are worded differently so neither can be scored by matching the other.",
+  "covers": "The same programme is set out twice in the same file using two DIFFERENT templates: a canonical five-column grid on slide 1, then the same content on slide 3 as headerless boxes with inline 'Label:' prefixes. This is distinct from two-versions-one-model, where both drafts use the same grid and only the wording differs; here the second pass also changes the SHAPE the reader has to recognise, which is the situation the owner described in the one real document that fails the launch gate on item count. The owner decided on 2026-09-28 that a reader should see each item once, so the FIRST pass is expected in the columns and the restating second pass is expected in unmapped: dropping it altogether still shows as lost recall, and mapping it into the columns a second time shows as misplacement. Two captures of this document on prompt 2026-09-26.1 from byte-identical input disagreed about which of those two things to do, which is why the rule is now written into the prompt and measured here.",
   "organization": "Calder Vale Rowing Trust",
   "program": "Learn To Row",
   "slides": [
@@ -66,7 +66,7 @@
       "columns": [
         {
           "heading": "",
-          "domain": "inputs",
+          "domain": "unmapped",
           "items": [
             "Equipment: a launch for the coach and eight wide-beam boats for novices",
             "Staffing: a pair of coaches contracted for the rowing season"
@@ -74,7 +74,7 @@
         },
         {
           "heading": "",
-          "domain": "activities",
+          "domain": "unmapped",
           "items": [
             "Courses: two beginner intakes a year, each running eight weeks",
             "Open days: taster sessions every Saturday with no booking needed"
@@ -82,7 +82,7 @@
         },
         {
           "heading": "",
-          "domain": "outputs",
+          "domain": "unmapped",
           "items": [
             "Places: ninety-six novices taught between the spring and autumn intakes",
             "Sessions: twenty open mornings delivered through the season"
@@ -90,7 +90,7 @@
         },
         {
           "heading": "",
-          "domain": "shortTermOutcomes",
+          "domain": "unmapped",
           "items": [
             "Skill: novices complete a length on their own before the course ends",
             "Confidence: novices report feeling secure in a boat"
@@ -98,7 +98,7 @@
         },
         {
           "heading": "",
-          "domain": "longTermOutcomes",
+          "domain": "unmapped",
           "items": [
             "Reach: the membership stops depending on a single feeder school"
           ]

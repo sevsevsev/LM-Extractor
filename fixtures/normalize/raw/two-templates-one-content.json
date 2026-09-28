@@ -1,13 +1,13 @@
 {
   "id": "two-templates-one-content",
-  "promptVersion": "2026-09-26.1",
+  "promptVersion": "2026-09-28.1",
   "options": {
     "sourceText": "## Slide 1\n\nLearn To Row — Logic Model RESOURCES A coaching launch and eight stable training sculls Two qualified coaches employed for the season ACTIVITIES An eight-week beginners course each spring and autumn Free Saturday taster mornings open to the whole town OUTPUTS Ninety-six beginner places filled across the two courses Twenty taster mornings run over the season SHORT-TERM OUTCOMES Beginners can scull a length unaided by the final week Beginners say they feel safe on the water LONG-TERM OUTCOMES The club draws its membership from the whole town rather than one school\n\n## Slide 2\n\nOur theory of change Rowing should not be something you need a particular school to reach. The pages that follow restate the model above in the format the trust uses with its funders.\n\n## Slide 3\n\nLearn To Row — funder format Equipment: a launch for the coach and eight wide-beam boats for novices Staffing: a pair of coaches contracted for the rowing season Courses: two beginner intakes a year, each running eight weeks Open days: taster sessions every Saturday with no booking needed Places: ninety-six novices taught between the spring and autumn intakes Sessions: twenty open mornings delivered through the season Skill: novices complete a length on their own before the course ends Confidence: novices report feeling secure in a boat Reach: the membership stops depending on a single feeder school",
     "lowLegibility": false,
     "textOnlyFallback": false
   },
   "raw": {
-    "organization": "Learn To Row",
+    "organization": "",
     "program": "Learn To Row",
     "mission": {
       "content": ""
@@ -27,14 +27,6 @@
             {
               "text": "Two qualified coaches employed for the season",
               "sourcePage": 1
-            },
-            {
-              "text": "Equipment: a launch for the coach and eight wide-beam boats for novices",
-              "sourcePage": 3
-            },
-            {
-              "text": "Staffing: a pair of coaches contracted for the rowing season",
-              "sourcePage": 3
             }
           ]
         }
@@ -52,14 +44,6 @@
             {
               "text": "Free Saturday taster mornings open to the whole town",
               "sourcePage": 1
-            },
-            {
-              "text": "Courses: two beginner intakes a year, each running eight weeks",
-              "sourcePage": 3
-            },
-            {
-              "text": "Open days: taster sessions every Saturday with no booking needed",
-              "sourcePage": 3
             }
           ]
         }
@@ -77,14 +61,6 @@
             {
               "text": "Twenty taster mornings run over the season",
               "sourcePage": 1
-            },
-            {
-              "text": "Places: ninety-six novices taught between the spring and autumn intakes",
-              "sourcePage": 3
-            },
-            {
-              "text": "Sessions: twenty open mornings delivered through the season",
-              "sourcePage": 3
             }
           ]
         }
@@ -102,14 +78,6 @@
             {
               "text": "Beginners say they feel safe on the water",
               "sourcePage": 1
-            },
-            {
-              "text": "Skill: novices complete a length on their own before the course ends",
-              "sourcePage": 3
-            },
-            {
-              "text": "Confidence: novices report feeling secure in a boat",
-              "sourcePage": 3
             }
           ]
         }
@@ -126,10 +94,6 @@
             {
               "text": "The club draws its membership from the whole town rather than one school",
               "sourcePage": 1
-            },
-            {
-              "text": "Reach: the membership stops depending on a single feeder school",
-              "sourcePage": 3
             }
           ]
         }
@@ -140,6 +104,10 @@
     },
     "documentTypeAssessment": "logic_model",
     "extractionStatus": "ok",
+    "colorLegend": "",
+    "generalOutcomes": {
+      "content": []
+    },
     "impactStatement": {
       "content": ""
     },
@@ -150,12 +118,49 @@
           "name": "Our theory of change",
           "items": [
             {
-              "text": "Rowing should not be something you need a particular school to reach.",
+              "text": "Rowing should not be something you need a particular school to reach. The pages that follow restate the model above in the format the trust uses with its funders.",
               "sourcePage": 2
+            }
+          ]
+        },
+        {
+          "name": "Restated — funder format",
+          "items": [
+            {
+              "text": "Equipment: a launch for the coach and eight wide-beam boats for novices",
+              "sourcePage": 3
             },
             {
-              "text": "The pages that follow restate the model above in the format the trust uses with its funders.",
-              "sourcePage": 2
+              "text": "Staffing: a pair of coaches contracted for the rowing season",
+              "sourcePage": 3
+            },
+            {
+              "text": "Courses: two beginner intakes a year, each running eight weeks",
+              "sourcePage": 3
+            },
+            {
+              "text": "Open days: taster sessions every Saturday with no booking needed",
+              "sourcePage": 3
+            },
+            {
+              "text": "Places: ninety-six novices taught between the spring and autumn intakes",
+              "sourcePage": 3
+            },
+            {
+              "text": "Sessions: twenty open mornings delivered through the season",
+              "sourcePage": 3
+            },
+            {
+              "text": "Skill: novices complete a length on their own before the course ends",
+              "sourcePage": 3
+            },
+            {
+              "text": "Confidence: novices report feeling secure in a boat",
+              "sourcePage": 3
+            },
+            {
+              "text": "Reach: the membership stops depending on a single feeder school",
+              "sourcePage": 3
             }
           ]
         }

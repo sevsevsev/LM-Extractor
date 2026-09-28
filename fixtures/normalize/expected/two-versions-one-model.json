@@ -14,29 +14,13 @@
         "items": [
           {
             "text": "A design studio donated by Corran Partners for the festival month",
-            "sourceColumn": 1,
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
             "text": "Twelve volunteer designers recruited through the guild",
-            "sourceColumn": 1,
             "sourcePage": 1,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Donated studio space secured for the duration of the festival",
-            "sourceColumn": 1,
-            "sourcePage": 3,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
-          },
-          {
-            "text": "A volunteer designer cohort drawn from the local guild",
-            "sourceColumn": 1,
-            "sourcePage": 3,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           }
@@ -51,29 +35,13 @@
         "items": [
           {
             "text": "A ten-day public festival of open studios and workshops",
-            "sourceColumn": 2,
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
             "text": "A schools programme visiting sixteen classrooms in advance",
-            "sourceColumn": 2,
             "sourcePage": 1,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Ten days of open studios, talks and hands-on workshops",
-            "sourceColumn": 2,
-            "sourcePage": 3,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Advance visits to secondary school classrooms across the city",
-            "sourceColumn": 2,
-            "sourcePage": 3,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           }
@@ -88,29 +56,13 @@
         "items": [
           {
             "text": "Eighty open studio events staged across the ten days",
-            "sourceColumn": 3,
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
             "text": "Sixteen classroom workshops delivered before the festival",
-            "sourceColumn": 3,
             "sourcePage": 1,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Eighty staged events over the festival fortnight",
-            "sourceColumn": 3,
-            "sourcePage": 3,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Sixteen schools reached ahead of opening weekend",
-            "sourceColumn": 3,
-            "sourcePage": 3,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           }
@@ -125,29 +77,13 @@
         "items": [
           {
             "text": "Attenders can name a design discipline they had not heard of",
-            "sourceColumn": 4,
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
             "text": "Pupils describe design as work someone like them could do",
-            "sourceColumn": 4,
             "sourcePage": 1,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Visitors leave able to name an unfamiliar design discipline",
-            "sourceColumn": 4,
-            "sourcePage": 3,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Pupils see design as a plausible career for themselves",
-            "sourceColumn": 4,
-            "sourcePage": 3,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           }
@@ -165,15 +101,7 @@
         "items": [
           {
             "text": "The city sustains a year-round audience for design programming",
-            "sourceColumn": 5,
             "sourcePage": 1,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
-          },
-          {
-            "text": "A standing city audience for design programming year on year",
-            "sourceColumn": 5,
-            "sourcePage": 3,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           }
@@ -185,8 +113,9 @@
     "content": []
   },
   "documentTypeAssessment": "logic_model",
-  "extractionStatus": "ok",
+  "extractionStatus": "partial",
   "colorLegend": "",
+  "extractionConfidence": "medium",
   "generalOutcomes": {
     "content": []
   },
@@ -195,8 +124,79 @@
   },
   "layoutFamily": "vertical_columns",
   "unmapped": {
-    "content": []
+    "content": [
+      {
+        "name": "Restated — draft B",
+        "items": [
+          {
+            "text": "Donated studio space secured for the duration of the festival",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — draft B",
+            "sourceSection": "Restated — draft B",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "A volunteer designer cohort drawn from the local guild",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — draft B",
+            "sourceSection": "Restated — draft B",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Ten days of open studios, talks and hands-on workshops",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — draft B",
+            "sourceSection": "Restated — draft B",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Advance visits to secondary school classrooms across the city",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — draft B",
+            "sourceSection": "Restated — draft B",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Eighty staged events over the festival fortnight",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — draft B",
+            "sourceSection": "Restated — draft B",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Sixteen schools reached ahead of opening weekend",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — draft B",
+            "sourceSection": "Restated — draft B",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Visitors leave able to name an unfamiliar design discipline",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — draft B",
+            "sourceSection": "Restated — draft B",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Pupils see design as a plausible career for themselves",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — draft B",
+            "sourceSection": "Restated — draft B",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "A standing city audience for design programming year on year",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — draft B",
+            "sourceSection": "Restated — draft B",
+            "mappingConfidence": "unmapped"
+          }
+        ]
+      }
+    ]
   },
   "mappingCorrections": [],
-  "extractionConfidence": "high"
+  "extractionBlockers": [
+    "Some content did not fit any of the standard columns and was put under \"Unmapped\" — check whether it belongs somewhere"
+  ]
 }

@@ -175,8 +175,9 @@ test('the splitter produces exactly the parts every committed spec declares', ()
     for (const slide of doc.slides) {
       for (const column of slide.columns) {
         // `splitRunOnItems` walks the grid domains only, so a non-grid column (a budget line, a
-        // prose paragraph) never reaches the splitter however its sentences are punctuated.
-        if (column.domain === null) continue;
+        // prose paragraph) and a column expected in `unmapped` (a restated pass) never reach the
+        // splitter however their sentences are punctuated.
+        if (column.domain === null || column.domain === 'unmapped') continue;
         for (const item of column.items) {
           const declared = column.splits?.[item] ?? null;
           assert.deepEqual(
@@ -235,13 +236,44 @@ test('the set prints a column nested two heading levels deep', () => {
 test('the set prints one programme twice in two different templates', () => {
   const doc = loadAll().find(d => d.id === 'two-templates-one-content');
   assert.ok(doc, 'two-templates-one-content must stay in the set');
-  const headed = doc.slides.flatMap(s => s.columns).filter(c => c.domain !== null && c.heading);
-  const headerless = doc.slides.flatMap(s => s.columns).filter(c => c.domain !== null && !c.heading);
-  assert.ok(headed.length >= 5, 'one pass is a headed grid');
-  assert.ok(headerless.length >= 5, 'the other pass prints no headings at all');
-  // Both passes are expected in full, so dropping either shows up as lost recall.
-  const expected = Object.values(goldenFromDocument(doc).items).flat();
+  const columns = doc.slides.flatMap(s => s.columns);
+  const headed = columns.filter(c => c.domain !== null && c.domain !== 'unmapped' && c.heading);
+  const headerless = columns.filter(c => c.domain === 'unmapped' && !c.heading);
+  assert.ok(headed.length >= 5, 'the first pass is a headed grid, expected in the columns');
+  assert.ok(headerless.length >= 5, 'the restating pass prints no headings at all');
+  // Both passes are expected somewhere, so dropping either still shows up as lost recall — the
+  // restatement is set aside in `unmapped`, not defined away.
+  const golden = goldenFromDocument(doc);
+  const expected = Object.values(golden.items).flat();
   assert.equal(expected.length, headed.concat(headerless).reduce((n, c) => n + c.items.length, 0));
+  assert.equal(
+    golden.items.unmapped?.length,
+    headerless.reduce((n, c) => n + c.items.length, 0),
+    'every item of the restating pass is expected in unmapped'
+  );
+});
+
+/**
+ * The owner's 2026-09-28 decision, written down where a run is graded against it: a programme
+ * printed twice reaches the reader once. Before this, both documents that print a second pass
+ * expected it in the grid columns, so a run that set the restatement aside — the behaviour he
+ * chose — scored as a failure, and a run that mapped it in scored as a pass. Two captures of
+ * `two-templates-one-content` from byte-identical input did one each.
+ */
+test('a restated pass is expected in unmapped, never a second time in the columns', () => {
+  const ids = ['two-templates-one-content', 'two-versions-one-model'];
+  for (const id of ids) {
+    const doc = loadAll().find(d => d.id === id);
+    assert.ok(doc, `${id} must stay in the set`);
+    const golden = goldenFromDocument(doc);
+    const restated = golden.items.unmapped ?? [];
+    assert.ok(restated.length >= 5, `${id}: its restating pass is what the document is for`);
+    const grid = SCORED_DOMAINS.filter(d => d !== 'unmapped').flatMap(d => golden.items[d] ?? []);
+    assert.ok(grid.length >= 5, `${id}: the first pass is still expected in the columns`);
+    for (const item of restated) {
+      assert.ok(!grid.includes(item), `${id}: "${item}" cannot be expected in two places at once`);
+    }
+  }
 });
 
 test('a column can mix cells that split with cells that must survive whole', () => {
