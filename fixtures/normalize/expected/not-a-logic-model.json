@@ -30,43 +30,49 @@
   },
   "documentTypeAssessment": "not_logic_model",
   "extractionStatus": "partial",
-  "documentTypeNote": "Reads as a quarterly budget summary table — no logic model structure.",
-  "layoutFamily": "unknown",
+  "documentTypeNote": "Document is a quarterly budget summary table, not a logic model.",
+  "generalOutcomes": {
+    "content": []
+  },
+  "impactStatement": {
+    "content": ""
+  },
+  "layoutFamily": "vertical_columns",
   "unmapped": {
     "content": [
       {
         "name": "Quarterly Budget Summary",
         "items": [
           {
-            "text": "Premises — Q1 BUDGET: 14,200 | Q1 ACTUAL: 13,880 | VARIANCE: (320)",
+            "text": "Premises — Q1 Budget: 14,200 | Q1 Actual: 13,880 | Variance: (320)",
             "sourcePage": 1,
             "sourceHeader": "Quarterly Budget Summary",
             "sourceSection": "Quarterly Budget Summary",
             "mappingConfidence": "unmapped"
           },
           {
-            "text": "Salaries — Q1 BUDGET: 96,500 | Q1 ACTUAL: 96,500 | VARIANCE: 0",
+            "text": "Salaries — Q1 Budget: 96,500 | Q1 Actual: 96,500 | Variance: 0",
             "sourcePage": 1,
             "sourceHeader": "Quarterly Budget Summary",
             "sourceSection": "Quarterly Budget Summary",
             "mappingConfidence": "unmapped"
           },
           {
-            "text": "Equipment — Q1 BUDGET: 8,400 | Q1 ACTUAL: 11,260 | VARIANCE: 2,860",
+            "text": "Equipment — Q1 Budget: 8,400 | Q1 Actual: 11,260 | Variance: 2,860",
             "sourcePage": 1,
             "sourceHeader": "Quarterly Budget Summary",
             "sourceSection": "Quarterly Budget Summary",
             "mappingConfidence": "unmapped"
           },
           {
-            "text": "Travel — Q1 BUDGET: 3,100 | Q1 ACTUAL: 2,240 | VARIANCE: (860)",
+            "text": "Travel — Q1 Budget: 3,100 | Q1 Actual: 2,240 | Variance: (860)",
             "sourcePage": 1,
             "sourceHeader": "Quarterly Budget Summary",
             "sourceSection": "Quarterly Budget Summary",
             "mappingConfidence": "unmapped"
           },
           {
-            "text": "Insurance — Q1 BUDGET: 2,750 | Q1 ACTUAL: 2,750 | VARIANCE: 0",
+            "text": "Insurance — Q1 Budget: 2,750 | Q1 Actual: 2,750 | Variance: 0",
             "sourcePage": 1,
             "sourceHeader": "Quarterly Budget Summary",
             "sourceSection": "Quarterly Budget Summary",
@@ -76,13 +82,9 @@
       }
     ]
   },
-  "generalOutcomes": {
-    "content": []
-  },
   "mappingCorrections": [],
   "extractionConfidence": "medium",
   "extractionBlockers": [
-    "The layout of this document could not be worked out, so items may have ended up in the wrong columns",
-    "Nothing was put in the columns, and this may not be a logic model — check the document before relying on this extraction (Reads as a quarterly budget summary table — no logic model structure.)"
+    "Nothing was put in the columns, and this may not be a logic model — check the document before relying on this extraction (Document is a quarterly budget summary table, not a logic model.)"
   ]
 }

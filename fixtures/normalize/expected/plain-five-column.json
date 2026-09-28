@@ -163,12 +163,12 @@
   "documentTypeAssessment": "logic_model",
   "extractionStatus": "ok",
   "extractionConfidence": "high",
-  "layoutFamily": "vertical_columns",
-  "unmapped": {
-    "content": []
-  },
   "generalOutcomes": {
     "content": []
   },
+  "unmapped": {
+    "content": []
+  },
+  "layoutFamily": "vertical_columns",
   "mappingCorrections": []
 }

@@ -1,6 +1,6 @@
 {
   "id": "inline-colon-labels",
-  "promptVersion": "2026-09-20.6",
+  "promptVersion": "2026-09-26.1",
   "options": {
     "sourceText": "## Slide 1\n\nKestrel Arts Alliance — Studio Pathways Logic Model INPUTS Staffing: One studio manager and three teaching artists on contract Staffing: A part-time administrator covering intake and scheduling Facilities: A ceramics studio and a shared darkroom on Kestrel Street Funding: A three-year city arts grant renewed each April ACTIVITIES Instruction: Twelve-week studio courses in ceramics and photography Instruction: Open studio hours four afternoons a week Outreach: Portfolio review clinics for applying secondary students Outreach: An annual exhibition of participant work at the city library OUTPUTS Participation: Ninety young people completing at least one studio course Participation: Six hundred open studio visits logged across the year Product: Forty finished portfolios assembled and reviewed SHORT-TERM OUTCOMES Skills: Participants demonstrate competent use of studio equipment Confidence: Participants describe themselves as artists to their peers LONG-TERM OUTCOMES Pathways: Participants apply to arts programmes after secondary school Community: Kestrel Street sustains a visible community of young makers",
     "lowLegibility": false,
@@ -143,6 +143,10 @@
     },
     "documentTypeAssessment": "logic_model",
     "extractionStatus": "ok",
+    "extractionConfidence": "high",
+    "generalOutcomes": {
+      "content": []
+    },
     "impactStatement": {
       "content": ""
     },

@@ -1,6 +1,6 @@
 {
-  "organization": "Kestrel Arts Alliance",
-  "program": "Studio Pathways",
+  "organization": "Tuesday Strings",
+  "program": "Tuesday Strings",
   "mission": {
     "content": ""
   },
@@ -13,29 +13,31 @@
         "name": "General",
         "items": [
           {
-            "text": "Staffing: One studio manager and three teaching artists on contract",
-            "sourceColumn": 1,
+            "text": "Instrument hire, sheet music and rehearsal space",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
-            "text": "Staffing: A part-time administrator covering intake and scheduling",
-            "sourceColumn": 1,
+            "text": "a part-time ensemble leader",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
-            "text": "Facilities: A ceramics studio and a shared darkroom on Kestrel Street",
-            "sourceColumn": 1,
+            "text": "a termly transport budget",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
-            "text": "Funding: A three-year city arts grant renewed each April",
-            "sourceColumn": 1,
+            "text": "Rehearsal rooms, instrument hire and sheet music are donated by three partner organisations",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "The programme is delivered with St Brelade Academy and with Ferrier Hall; both partners host a term each",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
@@ -50,29 +52,31 @@
         "name": "General",
         "items": [
           {
-            "text": "Instruction: Twelve-week studio courses in ceramics and photography",
-            "sourceColumn": 2,
+            "text": "A weekly ensemble rehearsal",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
-            "text": "Instruction: Open studio hours four afternoons a week",
-            "sourceColumn": 2,
+            "text": "a fortnightly one-to-one lesson",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
-            "text": "Outreach: Portfolio review clinics for applying secondary students",
-            "sourceColumn": 2,
+            "text": "a termly showcase evening for families",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
-            "text": "Outreach: An annual exhibition of participant work at the city library",
-            "sourceColumn": 2,
+            "text": "Each cohort is recruited through the two partner schools and through word of mouth from previous cohorts",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Families attend the termly showcase (bringing younger siblings with them) and stay for refreshments afterwards",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
@@ -87,22 +91,25 @@
         "name": "General",
         "items": [
           {
-            "text": "Participation: Ninety young people completing at least one studio course",
-            "sourceColumn": 3,
+            "text": "Attendance registers",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
-            "text": "Participation: Six hundred open studio visits logged across the year",
-            "sourceColumn": 3,
+            "text": "retention across the twelve-week term",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
-            "text": "Product: Forty finished portfolios assembled and reviewed",
-            "sourceColumn": 3,
+            "text": "end-of-term skills checklists.",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Avg. 42 young people attend each week across the three neighbourhood sites",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
@@ -117,15 +124,19 @@
         "name": "General",
         "items": [
           {
-            "text": "Skills: Participants demonstrate competent use of studio equipment",
-            "sourceColumn": 4,
+            "text": "Young people describe the ensemble as \"the best part of the week\".",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
-            "text": "Confidence: Participants describe themselves as artists to their peers",
-            "sourceColumn": 4,
+            "text": "Tutors report steadier attendance term on term.",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Sixty places filled each term",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
@@ -143,15 +154,19 @@
         "name": "General",
         "items": [
           {
-            "text": "Pathways: Participants apply to arts programmes after secondary school",
-            "sourceColumn": 5,
+            "text": "Young people describe themselves as musicians.",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
-            "text": "Community: Kestrel Street sustains a visible community of young makers",
-            "sourceColumn": 5,
+            "text": "Parents describe the ensemble as the fixed point of the week.",
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Tutors report a waiting list every term.",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
@@ -165,6 +180,7 @@
   },
   "documentTypeAssessment": "logic_model",
   "extractionStatus": "ok",
+  "colorLegend": "",
   "extractionConfidence": "high",
   "generalOutcomes": {
     "content": []

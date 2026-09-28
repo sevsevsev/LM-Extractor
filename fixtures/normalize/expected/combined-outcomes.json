@@ -91,7 +91,6 @@
   "documentTypeAssessment": "logic_model",
   "extractionStatus": "ok",
   "colorLegend": "",
-  "extractionConfidence": "high",
   "generalOutcomes": {
     "content": [
       {
@@ -129,9 +128,13 @@
       }
     ]
   },
+  "impactStatement": {
+    "content": ""
+  },
   "layoutFamily": "vertical_columns",
   "unmapped": {
     "content": []
   },
-  "mappingCorrections": []
+  "mappingCorrections": [],
+  "extractionConfidence": "high"
 }

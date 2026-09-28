@@ -1,0 +1,140 @@
+{
+  "id": "mixed-separators",
+  "promptVersion": "2026-09-26.1",
+  "options": {
+    "sourceText": "## Slide 1\n\nTuesday Strings — Logic Model INPUTS Instrument hire, sheet music and rehearsal space; a part-time ensemble leader; a termly transport budget Rehearsal rooms, instrument hire and sheet music are donated by three partner organisations The programme is delivered with St Brelade Academy and with Ferrier Hall; both partners host a term each ACTIVITIES A weekly ensemble rehearsal; a fortnightly one-to-one lesson; a termly showcase evening for families Each cohort is recruited through the two partner schools and through word of mouth from previous cohorts Families attend the termly showcase (bringing younger siblings with them) and stay for refreshments afterwards OUTPUTS Attendance registers; retention across the twelve-week term; end-of-term skills checklists. Avg. 42 young people attend each week across the three neighbourhood sites SHORT-TERM OUTCOMES Young people describe the ensemble as \"the best part of the week\". Tutors report steadier attendance term on term. Sixty places filled each term LONG-TERM OUTCOMES Young people describe themselves as musicians. Parents describe the ensemble as the fixed point of the week. Tutors report a waiting list every term.",
+    "lowLegibility": false,
+    "textOnlyFallback": false
+  },
+  "raw": {
+    "organization": "Tuesday Strings",
+    "program": "Tuesday Strings",
+    "mission": {
+      "content": ""
+    },
+    "targetPopulation": {
+      "content": ""
+    },
+    "inputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Instrument hire, sheet music and rehearsal space; a part-time ensemble leader; a termly transport budget",
+              "sourcePage": 1
+            },
+            {
+              "text": "Rehearsal rooms, instrument hire and sheet music are donated by three partner organisations",
+              "sourcePage": 1
+            },
+            {
+              "text": "The programme is delivered with St Brelade Academy and with Ferrier Hall; both partners host a term each",
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "activities": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "A weekly ensemble rehearsal; a fortnightly one-to-one lesson; a termly showcase evening for families",
+              "sourcePage": 1
+            },
+            {
+              "text": "Each cohort is recruited through the two partner schools and through word of mouth from previous cohorts",
+              "sourcePage": 1
+            },
+            {
+              "text": "Families attend the termly showcase (bringing younger siblings with them) and stay for refreshments afterwards",
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "outputs": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Attendance registers; retention across the twelve-week term; end-of-term skills checklists.",
+              "sourcePage": 1
+            },
+            {
+              "text": "Avg. 42 young people attend each week across the three neighbourhood sites",
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "shortTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Young people describe the ensemble as \"the best part of the week\".",
+              "sourcePage": 1
+            },
+            {
+              "text": "Tutors report steadier attendance term on term.",
+              "sourcePage": 1
+            },
+            {
+              "text": "Sixty places filled each term",
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "mediumTermOutcomes": {
+      "content": []
+    },
+    "longTermOutcomes": {
+      "content": [
+        {
+          "name": "General",
+          "items": [
+            {
+              "text": "Young people describe themselves as musicians.",
+              "sourcePage": 1
+            },
+            {
+              "text": "Parents describe the ensemble as the fixed point of the week.",
+              "sourcePage": 1
+            },
+            {
+              "text": "Tutors report a waiting list every term.",
+              "sourcePage": 1
+            }
+          ]
+        }
+      ]
+    },
+    "impact": {
+      "content": []
+    },
+    "documentTypeAssessment": "logic_model",
+    "extractionStatus": "ok",
+    "colorLegend": "",
+    "extractionConfidence": "high",
+    "generalOutcomes": {
+      "content": []
+    },
+    "impactStatement": {
+      "content": ""
+    },
+    "layoutFamily": "vertical_columns",
+    "unmapped": {
+      "content": []
+    }
+  }
+}

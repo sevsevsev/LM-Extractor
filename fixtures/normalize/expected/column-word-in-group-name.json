@@ -175,6 +175,7 @@
   },
   "documentTypeAssessment": "logic_model",
   "extractionStatus": "ok",
+  "colorLegend": "",
   "extractionConfidence": "high",
   "generalOutcomes": {
     "content": []

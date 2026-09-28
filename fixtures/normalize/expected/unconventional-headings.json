@@ -14,12 +14,14 @@
         "items": [
           {
             "text": "A fitted-out joinery workshop on the Beacon Hollow industrial estate",
+            "sourceColumn": 1,
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
             "text": "Four qualified tradespeople release one day a week to teach",
+            "sourceColumn": 1,
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
@@ -35,12 +37,14 @@
         "items": [
           {
             "text": "A sixteen-week introductory joinery course for school leavers",
+            "sourceColumn": 2,
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
             "text": "Employer site visits arranged in week twelve of every cohort",
+            "sourceColumn": 2,
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
@@ -56,12 +60,14 @@
         "items": [
           {
             "text": "Four cohorts of twelve school leavers trained every year",
+            "sourceColumn": 3,
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
             "text": "Forty-eight employer site visits arranged annually",
+            "sourceColumn": 3,
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
@@ -77,12 +83,14 @@
         "items": [
           {
             "text": "Leavers can set out and cut a mortise and tenon unsupervised",
+            "sourceColumn": 4,
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
             "text": "Leavers hold a current site safety card on completion",
+            "sourceColumn": 4,
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
@@ -101,12 +109,14 @@
         "items": [
           {
             "text": "Leavers are still working in the building trades three years on",
+            "sourceColumn": 5,
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           },
           {
             "text": "Beacon Hollow employers fill apprenticeships locally rather than regionally",
+            "sourceColumn": 5,
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
@@ -120,17 +130,13 @@
   },
   "documentTypeAssessment": "logic_model",
   "extractionStatus": "ok",
-  "colorLegend": "",
-  "extractionConfidence": "high",
-  "generalOutcomes": {
-    "content": []
-  },
-  "impactStatement": {
-    "content": ""
-  },
   "layoutFamily": "vertical_columns",
   "unmapped": {
     "content": []
   },
-  "mappingCorrections": []
+  "generalOutcomes": {
+    "content": []
+  },
+  "mappingCorrections": [],
+  "extractionConfidence": "high"
 }

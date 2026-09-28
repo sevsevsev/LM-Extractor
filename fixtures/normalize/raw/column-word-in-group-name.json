@@ -1,6 +1,6 @@
 {
   "id": "column-word-in-group-name",
-  "promptVersion": "2026-09-20.6",
+  "promptVersion": "2026-09-26.1",
   "options": {
     "sourceText": "## Slide 1\n\nAldergate Trust — Neighbourhood Futures Logic Model RESOURCES A neighbourhood office staffed five days a week Two vans maintained for the mobile pantry route ACTIVITIES Youth Outcomes After-school homework club running four evenings a week Saturday football coaching for eight to twelve year olds Family Supports Mobile pantry stops at six estates every Thursday Benefits advice drop-in every second Tuesday morning OUTPUTS Teacher Resources Sixty homework club places filled each term Twelve coaching sessions delivered every month Community Impact Four hundred pantry visits recorded across the year SHORT-TERM OUTCOMES Homework club attenders hand in assignments on time more often Pantry users report spending less of their income on food LONG-TERM OUTCOMES Aldergate children move through secondary school without falling behind Sustained Community Impact across the six estates the trust serves",
     "lowLegibility": false,
@@ -143,6 +143,7 @@
     },
     "documentTypeAssessment": "logic_model",
     "extractionStatus": "ok",
+    "colorLegend": "",
     "extractionConfidence": "high",
     "generalOutcomes": {
       "content": []

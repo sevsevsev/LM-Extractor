@@ -1,6 +1,6 @@
 {
   "id": "combined-outcomes",
-  "promptVersion": "2026-09-20.6",
+  "promptVersion": "2026-09-26.1",
   "options": {
     "sourceText": "## Slide 1\n\nNettlefield Health Partnership — Steady Steps Logic Model INPUTS Three community health workers employed through the partnership A referral agreement with the Nettlefield GP practice ACTIVITIES Twelve-week supervised walking groups meeting twice weekly One-to-one health coaching calls every fortnight OUTPUTS Two hundred and forty adults enrolled in a walking group Nine hundred coaching calls completed across the year OUTCOMES Participants walk further in six minutes than they did at intake Participants report sleeping better and feeling less isolated Fewer participants are referred onward for cardiac assessment Nettlefield GP practice records lower repeat attendance among participants",
     "lowLegibility": false,
@@ -87,7 +87,6 @@
     "documentTypeAssessment": "logic_model",
     "extractionStatus": "ok",
     "colorLegend": "",
-    "extractionConfidence": "high",
     "generalOutcomes": {
       "content": [
         {
@@ -116,6 +115,9 @@
           ]
         }
       ]
+    },
+    "impactStatement": {
+      "content": ""
     },
     "layoutFamily": "vertical_columns",
     "unmapped": {

@@ -39,7 +39,7 @@
     "documentTypeAssessment": "not_logic_model",
     "extractionStatus": "ok",
     "colorLegend": "",
-    "documentTypeNote": "Reads as an independent evaluation and assessment report on a programme rather than a logic model.",
+    "documentTypeNote": "Reads as an independent evaluation/assessment report rather than an organization setting out its own logic model structure.",
     "generalOutcomes": {
       "content": []
     },
@@ -53,15 +53,7 @@
           "name": "ABOUT THIS ASSESSMENT",
           "items": [
             {
-              "text": "I was commissioned in September to assess the second year of Stage Steps and I visited each partner school twice between October and May.",
-              "sourcePage": 1
-            },
-            {
-              "text": "The goal of the afterschool programme is to give young people a regular creative outlet and a route into performance.",
-              "sourcePage": 1
-            },
-            {
-              "text": "The project is designed to give students a way to express themselves physically and to work together toward something public.",
+              "text": "I was commissioned in September to assess the second year of Stage Steps and I visited each partner school twice between October and May. The goal of the afterschool programme is to give young people a regular creative outlet and a route into performance. The project is designed to give students a way to express themselves physically and to work together toward something public.",
               "sourcePage": 1
             }
           ]
@@ -70,15 +62,7 @@
           "name": "WHAT I OBSERVED",
           "items": [
             {
-              "text": "Two teaching artists and a coordinator were in post throughout the year, and I found the staffing stable and the sessions well prepared.",
-              "sourcePage": 1
-            },
-            {
-              "text": "Weekly workshops ran in all four schools, although the Thursday group lost four weeks in February when the hall was double-booked.",
-              "sourcePage": 1
-            },
-            {
-              "text": "At the spring performances you could see that the students had learned to hold an audience, to take a cue from one another, and to recover when something went wrong.",
+              "text": "Two teaching artists and a coordinator were in post throughout the year, and I found the staffing stable and the sessions well prepared. Weekly workshops ran in all four schools, although the Thursday group lost four weeks in February when the hall was double-booked. At the spring performances you could see that the students had learned to hold an audience, to take a cue from one another, and to recover when something went wrong.",
               "sourcePage": 1
             }
           ]
@@ -87,15 +71,7 @@
           "name": "WHAT THE SURVEYS SHOWED",
           "items": [
             {
-              "text": "Sixty-one young people returned the end-of-year survey and forty-eight of them said they would take part again.",
-              "sourcePage": 1
-            },
-            {
-              "text": "Teachers reported that students enjoy the classes, which give them the opportunity to express themselves physically.",
-              "sourcePage": 1
-            },
-            {
-              "text": "Attendance averaged seventy-one per cent, which I would treat with caution because two schools counted it differently.",
+              "text": "Sixty-one young people returned the end-of-year survey and forty-eight of them said they would take part again. Teachers reported that students enjoy the classes, which give them the opportunity to express themselves physically. Attendance averaged seventy-one per cent, which I would treat with caution because two schools counted it differently.",
               "sourcePage": 1
             }
           ]

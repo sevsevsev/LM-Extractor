@@ -1,6 +1,6 @@
 {
   "id": "evaluation-report-no-headings",
-  "promptVersion": "2026-09-20.6",
+  "promptVersion": "2026-09-26.1",
   "options": {
     "sourceText": "## Slide 1\n\nWexford Trust — Year Two Evaluation Findings This report sets out what the evaluation team found in the second year of the programme, drawing on attendance records, three site visits and interviews with eleven participating families. Staffing was stable across the year, with one coordinator and four sessional tutors in post throughout. Weekly sessions ran in all three neighbourhoods, though the Tuesday cohort was suspended for five weeks in February when the hall was unavailable. Attendance averaged sixty-eight per cent, which is below the seventy-five per cent the trustees had hoped for but above the sector figure the team benchmarked against. Participants reported feeling more confident, although the evaluators note that the self-report instrument was not validated and the sample was small. The evaluation could not establish whether reading gains were attributable to the programme, because no comparison group was available. Two recommendations follow: agree a single attendance definition before year three, and commission an independent reading assessment. The trustees will consider these recommendations at the March meeting and report back to the funder in April.",
     "lowLegibility": false,
@@ -13,7 +13,7 @@
       "content": ""
     },
     "targetPopulation": {
-      "content": "Participating families"
+      "content": ""
     },
     "inputs": {
       "content": []
@@ -39,7 +39,7 @@
     "documentTypeAssessment": "not_logic_model",
     "extractionStatus": "ok",
     "colorLegend": "",
-    "documentTypeNote": "Reads as an evaluation findings report narrative — no input/output/outcome column or logic model structure.",
+    "documentTypeNote": "Evaluation findings report describing observations, methodology, and recommendations rather than an organization setting out its logic model categories.",
     "generalOutcomes": {
       "content": []
     },
@@ -50,7 +50,7 @@
     "unmapped": {
       "content": [
         {
-          "name": "Evaluation Findings",
+          "name": "Year Two Evaluation Findings",
           "items": [
             {
               "text": "This report sets out what the evaluation team found in the second year of the programme, drawing on attendance records, three site visits and interviews with eleven participating families.",

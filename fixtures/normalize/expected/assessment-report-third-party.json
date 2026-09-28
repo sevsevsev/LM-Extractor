@@ -31,7 +31,7 @@
   "documentTypeAssessment": "not_logic_model",
   "extractionStatus": "partial",
   "colorLegend": "",
-  "documentTypeNote": "Reads as an independent evaluation and assessment report on a programme rather than a logic model.",
+  "documentTypeNote": "Reads as an independent evaluation/assessment report rather than an organization setting out its own logic model structure.",
   "generalOutcomes": {
     "content": []
   },
@@ -45,21 +45,7 @@
         "name": "ABOUT THIS ASSESSMENT",
         "items": [
           {
-            "text": "I was commissioned in September to assess the second year of Stage Steps and I visited each partner school twice between October and May.",
-            "sourcePage": 1,
-            "sourceHeader": "ABOUT THIS ASSESSMENT",
-            "sourceSection": "ABOUT THIS ASSESSMENT",
-            "mappingConfidence": "unmapped"
-          },
-          {
-            "text": "The goal of the afterschool programme is to give young people a regular creative outlet and a route into performance.",
-            "sourcePage": 1,
-            "sourceHeader": "ABOUT THIS ASSESSMENT",
-            "sourceSection": "ABOUT THIS ASSESSMENT",
-            "mappingConfidence": "unmapped"
-          },
-          {
-            "text": "The project is designed to give students a way to express themselves physically and to work together toward something public.",
+            "text": "I was commissioned in September to assess the second year of Stage Steps and I visited each partner school twice between October and May. The goal of the afterschool programme is to give young people a regular creative outlet and a route into performance. The project is designed to give students a way to express themselves physically and to work together toward something public.",
             "sourcePage": 1,
             "sourceHeader": "ABOUT THIS ASSESSMENT",
             "sourceSection": "ABOUT THIS ASSESSMENT",
@@ -71,21 +57,7 @@
         "name": "WHAT I OBSERVED",
         "items": [
           {
-            "text": "Two teaching artists and a coordinator were in post throughout the year, and I found the staffing stable and the sessions well prepared.",
-            "sourcePage": 1,
-            "sourceHeader": "WHAT I OBSERVED",
-            "sourceSection": "WHAT I OBSERVED",
-            "mappingConfidence": "unmapped"
-          },
-          {
-            "text": "Weekly workshops ran in all four schools, although the Thursday group lost four weeks in February when the hall was double-booked.",
-            "sourcePage": 1,
-            "sourceHeader": "WHAT I OBSERVED",
-            "sourceSection": "WHAT I OBSERVED",
-            "mappingConfidence": "unmapped"
-          },
-          {
-            "text": "At the spring performances you could see that the students had learned to hold an audience, to take a cue from one another, and to recover when something went wrong.",
+            "text": "Two teaching artists and a coordinator were in post throughout the year, and I found the staffing stable and the sessions well prepared. Weekly workshops ran in all four schools, although the Thursday group lost four weeks in February when the hall was double-booked. At the spring performances you could see that the students had learned to hold an audience, to take a cue from one another, and to recover when something went wrong.",
             "sourcePage": 1,
             "sourceHeader": "WHAT I OBSERVED",
             "sourceSection": "WHAT I OBSERVED",
@@ -97,21 +69,7 @@
         "name": "WHAT THE SURVEYS SHOWED",
         "items": [
           {
-            "text": "Sixty-one young people returned the end-of-year survey and forty-eight of them said they would take part again.",
-            "sourcePage": 1,
-            "sourceHeader": "WHAT THE SURVEYS SHOWED",
-            "sourceSection": "WHAT THE SURVEYS SHOWED",
-            "mappingConfidence": "unmapped"
-          },
-          {
-            "text": "Teachers reported that students enjoy the classes, which give them the opportunity to express themselves physically.",
-            "sourcePage": 1,
-            "sourceHeader": "WHAT THE SURVEYS SHOWED",
-            "sourceSection": "WHAT THE SURVEYS SHOWED",
-            "mappingConfidence": "unmapped"
-          },
-          {
-            "text": "Attendance averaged seventy-one per cent, which I would treat with caution because two schools counted it differently.",
+            "text": "Sixty-one young people returned the end-of-year survey and forty-eight of them said they would take part again. Teachers reported that students enjoy the classes, which give them the opportunity to express themselves physically. Attendance averaged seventy-one per cent, which I would treat with caution because two schools counted it differently.",
             "sourcePage": 1,
             "sourceHeader": "WHAT THE SURVEYS SHOWED",
             "sourceSection": "WHAT THE SURVEYS SHOWED",
@@ -151,6 +109,6 @@
   "extractionConfidence": "medium",
   "extractionBlockers": [
     "Some content did not fit any of the standard columns and was put under \"Unmapped\" — check whether it belongs somewhere",
-    "Nothing was put in the columns, and this may not be a logic model — check the document before relying on this extraction (Reads as an independent evaluation and assessment report on a programme rather than a logic model.)"
+    "Nothing was put in the columns, and this may not be a logic model — check the document before relying on this extraction (Reads as an independent evaluation/assessment report rather than an organization setting out its own logic model structure.)"
   ]
 }

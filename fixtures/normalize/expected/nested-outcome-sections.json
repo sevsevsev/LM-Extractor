@@ -1,0 +1,205 @@
+{
+  "organization": "Page Turners",
+  "program": "Page Turners",
+  "mission": {
+    "content": ""
+  },
+  "targetPopulation": {
+    "content": ""
+  },
+  "inputs": {
+    "content": [
+      {
+        "name": "Staffing",
+        "items": [
+          {
+            "text": "A part-time reading coordinator based at the library",
+            "sourceColumn": 1,
+            "sourcePage": 1,
+            "sourceHeader": "Staffing",
+            "sourceSection": "Staffing",
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Six trained volunteer reading partners",
+            "sourceColumn": 1,
+            "sourcePage": 1,
+            "sourceHeader": "Staffing",
+            "sourceSection": "Staffing",
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      },
+      {
+        "name": "Materials",
+        "items": [
+          {
+            "text": "A rotating collection of four hundred levelled readers",
+            "sourceColumn": 1,
+            "sourcePage": 1,
+            "sourceHeader": "Materials",
+            "sourceSection": "Materials",
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Printed reading records for every child enrolled",
+            "sourceColumn": 1,
+            "sourcePage": 1,
+            "sourceHeader": "Materials",
+            "sourceSection": "Materials",
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "activities": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Weekly one-to-one reading sessions of thirty minutes",
+            "sourceColumn": 2,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "A half-term family reading morning at the library",
+            "sourceColumn": 2,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Termly training refreshers for the volunteer partners",
+            "sourceColumn": 2,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "outputs": {
+    "content": [
+      {
+        "name": "General",
+        "items": [
+          {
+            "text": "Around six hundred reading sessions delivered each year",
+            "sourceColumn": 3,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "Three family reading mornings held across the year",
+            "sourceColumn": 3,
+            "sourcePage": 1,
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "shortTermOutcomes": {
+    "content": []
+  },
+  "mediumTermOutcomes": {
+    "content": []
+  },
+  "longTermOutcomes": {
+    "content": []
+  },
+  "impact": {
+    "content": []
+  },
+  "documentTypeAssessment": "logic_model",
+  "extractionStatus": "ok",
+  "colorLegend": "",
+  "generalOutcomes": {
+    "content": [
+      {
+        "name": "For young people",
+        "items": [
+          {
+            "text": "While they are with us — Children choose a book without being prompted",
+            "sourceColumn": 4,
+            "sourcePage": 1,
+            "sourceHeader": "For young people",
+            "sourceSection": "For young people",
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "While they are with us — Children read aloud to an adult without visible anxiety",
+            "sourceColumn": 4,
+            "sourcePage": 1,
+            "sourceHeader": "For young people",
+            "sourceSection": "For young people",
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "After they leave us — Children keep a library membership of their own",
+            "sourceColumn": 4,
+            "sourcePage": 1,
+            "sourceHeader": "For young people",
+            "sourceSection": "For young people",
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "After they leave us — Children move up a reading band by the end of the year",
+            "sourceColumn": 4,
+            "sourcePage": 1,
+            "sourceHeader": "For young people",
+            "sourceSection": "For young people",
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      },
+      {
+        "name": "For families",
+        "items": [
+          {
+            "text": "While they are with us — Parents and carers hear their child read at home each week",
+            "sourceColumn": 4,
+            "sourcePage": 1,
+            "sourceHeader": "For families",
+            "sourceSection": "For families",
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          },
+          {
+            "text": "After they leave us — Families visit the library together outside session times",
+            "sourceColumn": 4,
+            "sourcePage": 1,
+            "sourceHeader": "For families",
+            "sourceSection": "For families",
+            "mappedBy": "auto",
+            "mappingConfidence": "spatial"
+          }
+        ]
+      }
+    ]
+  },
+  "impactStatement": {
+    "content": ""
+  },
+  "layoutFamily": "vertical_columns",
+  "unmapped": {
+    "content": []
+  },
+  "mappingCorrections": [],
+  "extractionConfidence": "high"
+}

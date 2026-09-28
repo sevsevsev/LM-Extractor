@@ -52,7 +52,7 @@
         "name": "General",
         "items": [
           {
-            "text": "Partnerships confirmed with a memorandum of understanding and insurance documents",
+            "text": "Partnerships confirmed with a memorandum of understanding and insurance documents.",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
@@ -148,7 +148,7 @@
         "name": "General",
         "items": [
           {
-            "text": "Graduates continue in ensemble music beyond the programme year",
+            "text": "Graduates continue in ensemble music beyond the programme year.",
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
@@ -174,13 +174,16 @@
   },
   "documentTypeAssessment": "logic_model",
   "extractionStatus": "ok",
+  "extractionConfidence": "high",
   "generalOutcomes": {
     "content": []
   },
+  "impactStatement": {
+    "content": ""
+  },
+  "layoutFamily": "vertical_columns",
   "unmapped": {
     "content": []
   },
-  "layoutFamily": "vertical_columns",
-  "mappingCorrections": [],
-  "extractionConfidence": "high"
+  "mappingCorrections": []
 }

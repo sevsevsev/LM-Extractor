@@ -97,7 +97,7 @@
     "documentTypeAssessment": "not_logic_model",
     "extractionStatus": "ok",
     "colorLegend": "",
-    "documentTypeNote": "Presents as a Theory of Change diagram arranged in columns without category headers.",
+    "documentTypeNote": "Presents a Theory of Change in columns without explicit category headers.",
     "extractionConfidence": "high",
     "generalOutcomes": {
       "content": [

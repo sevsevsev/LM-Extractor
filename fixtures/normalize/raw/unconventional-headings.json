@@ -1,6 +1,6 @@
 {
   "id": "unconventional-headings",
-  "promptVersion": "2026-09-20.6",
+  "promptVersion": "2026-09-26.1",
   "options": {
     "sourceText": "## Slide 1\n\nBeacon Hollow Works — Trade Start Logic Model WHAT WE PUT IN A fitted-out joinery workshop on the Beacon Hollow industrial estate Four qualified tradespeople release one day a week to teach WHAT WE DO A sixteen-week introductory joinery course for school leavers Employer site visits arranged in week twelve of every cohort WHAT WE MAKE Four cohorts of twelve school leavers trained every year Forty-eight employer site visits arranged annually WHAT CHANGES SOON Leavers can set out and cut a mortise and tenon unsupervised Leavers hold a current site safety card on completion WHAT CHANGES EVENTUALLY Leavers are still working in the building trades three years on Beacon Hollow employers fill apprenticeships locally rather than regionally",
     "lowLegibility": false,
@@ -22,10 +22,12 @@
           "items": [
             {
               "text": "A fitted-out joinery workshop on the Beacon Hollow industrial estate",
+              "sourceColumn": 1,
               "sourcePage": 1
             },
             {
               "text": "Four qualified tradespeople release one day a week to teach",
+              "sourceColumn": 1,
               "sourcePage": 1
             }
           ]
@@ -39,10 +41,12 @@
           "items": [
             {
               "text": "A sixteen-week introductory joinery course for school leavers",
+              "sourceColumn": 2,
               "sourcePage": 1
             },
             {
               "text": "Employer site visits arranged in week twelve of every cohort",
+              "sourceColumn": 2,
               "sourcePage": 1
             }
           ]
@@ -56,10 +60,12 @@
           "items": [
             {
               "text": "Four cohorts of twelve school leavers trained every year",
+              "sourceColumn": 3,
               "sourcePage": 1
             },
             {
               "text": "Forty-eight employer site visits arranged annually",
+              "sourceColumn": 3,
               "sourcePage": 1
             }
           ]
@@ -73,10 +79,12 @@
           "items": [
             {
               "text": "Leavers can set out and cut a mortise and tenon unsupervised",
+              "sourceColumn": 4,
               "sourcePage": 1
             },
             {
               "text": "Leavers hold a current site safety card on completion",
+              "sourceColumn": 4,
               "sourcePage": 1
             }
           ]
@@ -93,10 +101,12 @@
           "items": [
             {
               "text": "Leavers are still working in the building trades three years on",
+              "sourceColumn": 5,
               "sourcePage": 1
             },
             {
               "text": "Beacon Hollow employers fill apprenticeships locally rather than regionally",
+              "sourceColumn": 5,
               "sourcePage": 1
             }
           ]
@@ -108,14 +118,6 @@
     },
     "documentTypeAssessment": "logic_model",
     "extractionStatus": "ok",
-    "colorLegend": "",
-    "extractionConfidence": "high",
-    "generalOutcomes": {
-      "content": []
-    },
-    "impactStatement": {
-      "content": ""
-    },
     "layoutFamily": "vertical_columns",
     "unmapped": {
       "content": []

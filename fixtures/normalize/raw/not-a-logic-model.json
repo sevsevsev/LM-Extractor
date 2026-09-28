@@ -1,6 +1,6 @@
 {
   "id": "not-a-logic-model",
-  "promptVersion": "2026-09-20.6",
+  "promptVersion": "2026-09-26.1",
   "options": {
     "sourceText": "## Slide 1\n\nMarlow Street Fund — Quarterly Budget Summary COST CENTRE Premises Salaries Equipment Travel Insurance Q1 BUDGET 14,200 96,500 8,400 3,100 2,750 Q1 ACTUAL 13,880 96,500 11,260 2,240 2,750 VARIANCE (320) 0 2,860 (860) 0",
     "lowLegibility": false,
@@ -38,31 +38,37 @@
     },
     "documentTypeAssessment": "not_logic_model",
     "extractionStatus": "ok",
-    "documentTypeNote": "Reads as a quarterly budget summary table — no logic model structure.",
-    "layoutFamily": "unknown",
+    "documentTypeNote": "Document is a quarterly budget summary table, not a logic model.",
+    "generalOutcomes": {
+      "content": []
+    },
+    "impactStatement": {
+      "content": ""
+    },
+    "layoutFamily": "vertical_columns",
     "unmapped": {
       "content": [
         {
           "name": "Quarterly Budget Summary",
           "items": [
             {
-              "text": "Premises — Q1 BUDGET: 14,200 | Q1 ACTUAL: 13,880 | VARIANCE: (320)",
+              "text": "Premises — Q1 Budget: 14,200 | Q1 Actual: 13,880 | Variance: (320)",
               "sourcePage": 1
             },
             {
-              "text": "Salaries — Q1 BUDGET: 96,500 | Q1 ACTUAL: 96,500 | VARIANCE: 0",
+              "text": "Salaries — Q1 Budget: 96,500 | Q1 Actual: 96,500 | Variance: 0",
               "sourcePage": 1
             },
             {
-              "text": "Equipment — Q1 BUDGET: 8,400 | Q1 ACTUAL: 11,260 | VARIANCE: 2,860",
+              "text": "Equipment — Q1 Budget: 8,400 | Q1 Actual: 11,260 | Variance: 2,860",
               "sourcePage": 1
             },
             {
-              "text": "Travel — Q1 BUDGET: 3,100 | Q1 ACTUAL: 2,240 | VARIANCE: (860)",
+              "text": "Travel — Q1 Budget: 3,100 | Q1 Actual: 2,240 | Variance: (860)",
               "sourcePage": 1
             },
             {
-              "text": "Insurance — Q1 BUDGET: 2,750 | Q1 ACTUAL: 2,750 | VARIANCE: 0",
+              "text": "Insurance — Q1 Budget: 2,750 | Q1 Actual: 2,750 | Variance: 0",
               "sourcePage": 1
             }
           ]
