@@ -1,0 +1,81 @@
+{
+  "id": "headed-sections-no-restatement",
+  "label": "Bramble Court Foundation — a grid with long headed sections beside it",
+  "covers": "A five-column grid printed beside TWO long headed non-standard sections that belong in unmapped and nowhere else: an 'About the organisation' block and a nine-entry reference list. The document prints ONE programme ONCE, so the restatement rule has nothing to act on. It was written after prompt 2026-09-28.1 was found, by a same-bundle control arm, to cost unmapped content on two real documents with no second printing at all — a bibliography and an organisation's own self-description stopped reaching unmapped. MEASURED AND HONEST ABOUT ITS LIMIT: this document scores 100% on the prompt that loses that content as well as on the one that keeps it, so it does NOT reproduce that failure and must not be read as a guard against it. What it does pin is the expectation nothing else in the set carried — that a headed non-standard section reaches unmapped IN FULL, every entry — so a future change that truncates such a section shows up here as lost recall rather than scoring a clean sheet. Whatever makes the real documents lose their sections is not length or heading alone.",
+  "organization": "Bramble Court Foundation",
+  "program": "Kitchen Table Numeracy",
+  "slides": [
+    {
+      "title": "Kitchen Table Numeracy — Logic Model",
+      "columns": [
+        {
+          "heading": "INPUTS",
+          "domain": "inputs",
+          "items": [
+            "Two numeracy tutors employed three days a week",
+            "A donated meeting room in the parish hall"
+          ]
+        },
+        {
+          "heading": "ACTIVITIES",
+          "domain": "activities",
+          "items": [
+            "Fortnightly numeracy sessions for parents and carers",
+            "A termly maths-at-home workshop for whole families"
+          ]
+        },
+        {
+          "heading": "OUTPUTS",
+          "domain": "outputs",
+          "items": [
+            "Sixty parents enrolled across the academic year",
+            "Eighteen fortnightly sessions delivered"
+          ]
+        },
+        {
+          "heading": "SHORT-TERM OUTCOMES",
+          "domain": "shortTermOutcomes",
+          "items": [
+            "Parents say they feel able to help with homework",
+            "Parents use everyday routines to practise number work"
+          ]
+        },
+        {
+          "heading": "LONG-TERM OUTCOMES",
+          "domain": "longTermOutcomes",
+          "items": [
+            "Children arrive at secondary school at the expected standard in maths"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "About the organisation, and the evidence behind this model",
+      "columns": [
+        {
+          "heading": "ABOUT THE ORGANISATION",
+          "domain": "unmapped",
+          "items": [
+            "The foundation was set up by three primary teachers in the borough it still serves",
+            "It works only with families already using the parish hall, and takes no referrals"
+          ]
+        },
+        {
+          "heading": "REFERENCES",
+          "domain": "unmapped",
+          "items": [
+            "Adeyemi, O. (2019). Parental confidence and early number sense. Journal of Numeracy Practice, 14(2)",
+            "Bhatt, R. and Olsen, K. (2021). Everyday counting routines in the home",
+            "Carrow, J. (2018). Short-course numeracy for adults: a review of the evidence",
+            "Denholm, P. (2022). What families do between sessions",
+            "Egerton, M. (2017). Measuring confidence rather than attainment",
+            "Fairhurst, S. and Nwosu, A. (2020). Venue familiarity and adult attendance",
+            "Gallacher, T. (2023). Transition to secondary maths: a longitudinal study",
+            "Halvorsen, I. (2016). Tutor training for community numeracy programmes",
+            "Ibbotson, C. (2021). Why parents stop attending, and what brings them back"
+          ]
+        }
+      ]
+    }
+  ]
+}

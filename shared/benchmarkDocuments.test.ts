@@ -276,6 +276,36 @@ test('a restated pass is expected in unmapped, never a second time in the column
   }
 });
 
+/**
+ * Written after prompt `2026-09-28.1` was shown, by a same-bundle control arm, to cost unmapped
+ * content on two real documents with no second printing at all — a reference list and an
+ * organisation's own self-description stopped arriving. The benchmark scored 100% throughout,
+ * because no document in it expected enough unmapped content to lose.
+ *
+ * It does NOT reproduce that failure: measured on both prompts, it scores 100% on the one that
+ * loses the real documents' sections as well as on the one that keeps them. So whatever drives the
+ * real loss is not a headed section and a long list on their own, and this document is not a guard
+ * against that regression — saying otherwise in a later change would be false. What it does pin is
+ * the expectation nothing else in the set carried: a headed non-standard section belongs in
+ * `unmapped` IN FULL, so a change that truncates one is lost recall rather than a clean sheet.
+ */
+test('the set prints long headed sections that belong in unmapped and nowhere else', () => {
+  const doc = loadAll().find(d => d.id === 'headed-sections-no-restatement');
+  assert.ok(doc, 'headed-sections-no-restatement must stay in the set');
+  const golden = goldenFromDocument(doc);
+  const unmapped = golden.items.unmapped ?? [];
+  assert.ok(unmapped.length >= 10, 'a short section could be lost without moving the number much');
+  const headed = doc.slides.flatMap(s => s.columns).filter(c => c.domain === 'unmapped');
+  assert.ok(headed.length >= 2, 'two sections, so one surviving does not hide the other');
+  for (const column of headed) assert.ok(column.heading, 'these sections are headed, not loose prose');
+  // No second printing anywhere: the restatement rule must have nothing to act on here.
+  const grid = SCORED_DOMAINS.filter(d => d !== 'unmapped').flatMap(d => golden.items[d] ?? []);
+  assert.equal(new Set(grid).size, grid.length, 'the grid prints each item once');
+  for (const item of unmapped) {
+    assert.ok(!grid.includes(item), `${item} is a section entry, not a restated grid item`);
+  }
+});
+
 test('a column can mix cells that split with cells that must survive whole', () => {
   const doc = loadAll().find(d => d.id === 'mixed-separators');
   assert.ok(doc, 'mixed-separators must stay in the set');

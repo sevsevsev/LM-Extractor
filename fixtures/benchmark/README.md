@@ -1,6 +1,6 @@
 # Accuracy benchmark
 
-Fourteen invented logic-model documents whose correct extraction is known by construction, and a
+Fifteen invented logic-model documents whose correct extraction is known by construction, and a
 scorer that turns an extraction into four numbers.
 
 ## Why this exists beside the regression set
