@@ -1,5 +1,5 @@
 {
-  "organization": "Learn To Row",
+  "organization": "",
   "program": "Learn To Row",
   "mission": {
     "content": ""
@@ -23,18 +23,6 @@
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Equipment: a launch for the coach and eight wide-beam boats for novices",
-            "sourcePage": 3,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Staffing: a pair of coaches contracted for the rowing season",
-            "sourcePage": 3,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
           }
         ]
       }
@@ -54,18 +42,6 @@
           {
             "text": "Free Saturday taster mornings open to the whole town",
             "sourcePage": 1,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Courses: two beginner intakes a year, each running eight weeks",
-            "sourcePage": 3,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Open days: taster sessions every Saturday with no booking needed",
-            "sourcePage": 3,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
           }
@@ -89,18 +65,6 @@
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Places: ninety-six novices taught between the spring and autumn intakes",
-            "sourcePage": 3,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Sessions: twenty open mornings delivered through the season",
-            "sourcePage": 3,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
           }
         ]
       }
@@ -122,18 +86,6 @@
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Skill: novices complete a length on their own before the course ends",
-            "sourcePage": 3,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Confidence: novices report feeling secure in a boat",
-            "sourcePage": 3,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
           }
         ]
       }
@@ -152,12 +104,6 @@
             "sourcePage": 1,
             "mappedBy": "auto",
             "mappingConfidence": "spatial"
-          },
-          {
-            "text": "Reach: the membership stops depending on a single feeder school",
-            "sourcePage": 3,
-            "mappedBy": "auto",
-            "mappingConfidence": "spatial"
           }
         ]
       }
@@ -167,7 +113,11 @@
     "content": []
   },
   "documentTypeAssessment": "logic_model",
-  "extractionStatus": "ok",
+  "extractionStatus": "partial",
+  "colorLegend": "",
+  "generalOutcomes": {
+    "content": []
+  },
   "impactStatement": {
     "content": ""
   },
@@ -178,26 +128,87 @@
         "name": "Our theory of change",
         "items": [
           {
-            "text": "Rowing should not be something you need a particular school to reach.",
-            "sourcePage": 2,
-            "sourceHeader": "Our theory of change",
-            "sourceSection": "Our theory of change",
-            "mappingConfidence": "unmapped"
-          },
-          {
-            "text": "The pages that follow restate the model above in the format the trust uses with its funders.",
+            "text": "Rowing should not be something you need a particular school to reach. The pages that follow restate the model above in the format the trust uses with its funders.",
             "sourcePage": 2,
             "sourceHeader": "Our theory of change",
             "sourceSection": "Our theory of change",
             "mappingConfidence": "unmapped"
           }
         ]
+      },
+      {
+        "name": "Restated — funder format",
+        "items": [
+          {
+            "text": "Equipment: a launch for the coach and eight wide-beam boats for novices",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — funder format",
+            "sourceSection": "Restated — funder format",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Staffing: a pair of coaches contracted for the rowing season",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — funder format",
+            "sourceSection": "Restated — funder format",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Courses: two beginner intakes a year, each running eight weeks",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — funder format",
+            "sourceSection": "Restated — funder format",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Open days: taster sessions every Saturday with no booking needed",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — funder format",
+            "sourceSection": "Restated — funder format",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Places: ninety-six novices taught between the spring and autumn intakes",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — funder format",
+            "sourceSection": "Restated — funder format",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Sessions: twenty open mornings delivered through the season",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — funder format",
+            "sourceSection": "Restated — funder format",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Skill: novices complete a length on their own before the course ends",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — funder format",
+            "sourceSection": "Restated — funder format",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Confidence: novices report feeling secure in a boat",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — funder format",
+            "sourceSection": "Restated — funder format",
+            "mappingConfidence": "unmapped"
+          },
+          {
+            "text": "Reach: the membership stops depending on a single feeder school",
+            "sourcePage": 3,
+            "sourceHeader": "Restated — funder format",
+            "sourceSection": "Restated — funder format",
+            "mappingConfidence": "unmapped"
+          }
+        ]
       }
     ]
   },
-  "generalOutcomes": {
-    "content": []
-  },
   "mappingCorrections": [],
-  "extractionConfidence": "high"
+  "extractionConfidence": "medium",
+  "extractionBlockers": [
+    "Some content did not fit any of the standard columns and was put under \"Unmapped\" — check whether it belongs somewhere"
+  ]
 }

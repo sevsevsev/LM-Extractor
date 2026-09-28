@@ -32,7 +32,7 @@
  * (`services/extractionLogExport.ts`) so a batch's results can be attributed to the exact prompt
  * that produced them. Format: `YYYY-MM-DD.N`.
  */
-export const PROMPT_VERSION = '2026-09-26.1';
+export const PROMPT_VERSION = '2026-09-28.1';
 
 /** Same contract as `PROMPT_VERSION`, versioned separately — different call, different failure mode. */
 export const DETECT_PROMPT_VERSION = '2026-09-19.1';
@@ -649,6 +649,18 @@ ${
       find it again: \`"Unlabeled — sidebar right of the grid"\`, \`"Unlabeled — text below the grid"\`.
       **Content you can read but cannot place is still content.** Dropping it silently is the worst
       outcome; a row a human deletes is the cheapest one.
+    - **A SECOND PRINTING OF THE SAME PROGRAM** — the document sets out its model, then states the
+      same model again in another form: a second draft, a reprint in a funder's template, a
+      one-page summary of the grid above, the same content as headerless boxes with inline
+      \`Label:\` prefixes. **Extract the program ONCE.** Map the **first** printing into the
+      columns, and put every item of the later printing in \`unmapped\`, with \`group.name\` naming
+      that pass (\`"Restated — funder format"\`, \`"Restated — draft B"\`). Never map the same thing
+      into a column twice from two passes: whoever reads the board must see each item once, and
+      first-printed is the tiebreak because nothing in these documents says which pass is
+      authoritative. **This is not licence to drop it** — a later printing goes to \`unmapped\`,
+      never nowhere, and often carries wording the first pass lacks. It applies only when the two
+      passes are the SAME program restated. Two different programs, or a grid plus genuinely new
+      content, are both mapped in full.
     - **Not** page furniture: document titles, organization names, logos, page or slide numbers,
       headers, footers, decorative captions, or a colour key already recorded in \`colorLegend\`.
       Those are not content and do not belong in \`unmapped\`.

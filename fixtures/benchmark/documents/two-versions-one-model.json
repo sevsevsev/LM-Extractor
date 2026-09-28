@@ -1,10 +1,9 @@
 {
   "id": "two-versions-one-model",
   "label": "Corran Design Festival — two drafts of one model",
-  "covers": "Slide 1 and slide 3 are two differently worded drafts of the SAME logic model, with an impact statement between them. This rebuilds, synthetically, the one document shape known to fail the launch gate: one draft is silently dropped and the item count moves between runs, while pageCoverage.ts should flag the page every time. It is here to MEASURE that, not because a fix is queued — what a two-draft document should produce is a product question still open.",
+  "covers": "Slide 1 and slide 3 are two differently worded drafts of the SAME logic model, with an impact statement between them. This rebuilds, synthetically, the one document shape known to fail the launch gate: one draft is silently dropped and the item count moves between runs, while pageCoverage.ts should flag the page every time. The owner decided on 2026-09-28 that a reader should see each item once, so draft A is expected in the columns and draft B, the restatement, is expected in unmapped. Page order is the tiebreak: nothing in the document says which draft is authoritative, so the first one printed is the one extracted, and the benchmark now holds the extractor to that instead of letting it choose afresh per run. Dropping draft B altogether still shows as lost recall.",
   "organization": "Corran Design Festival",
   "program": "City Design Week",
-  "expectDropOneDraft": true,
   "slides": [
     {
       "title": "City Design Week — Logic Model (draft A)",
@@ -67,7 +66,7 @@
       "columns": [
         {
           "heading": "RESOURCES",
-          "domain": "inputs",
+          "domain": "unmapped",
           "items": [
             "Donated studio space secured for the duration of the festival",
             "A volunteer designer cohort drawn from the local guild"
@@ -75,7 +74,7 @@
         },
         {
           "heading": "ACTIVITIES",
-          "domain": "activities",
+          "domain": "unmapped",
           "items": [
             "Ten days of open studios, talks and hands-on workshops",
             "Advance visits to secondary school classrooms across the city"
@@ -83,7 +82,7 @@
         },
         {
           "heading": "OUTPUTS",
-          "domain": "outputs",
+          "domain": "unmapped",
           "items": [
             "Eighty staged events over the festival fortnight",
             "Sixteen schools reached ahead of opening weekend"
@@ -91,7 +90,7 @@
         },
         {
           "heading": "SHORT-TERM OUTCOMES",
-          "domain": "shortTermOutcomes",
+          "domain": "unmapped",
           "items": [
             "Visitors leave able to name an unfamiliar design discipline",
             "Pupils see design as a plausible career for themselves"
@@ -99,7 +98,7 @@
         },
         {
           "heading": "LONG-TERM OUTCOMES",
-          "domain": "longTermOutcomes",
+          "domain": "unmapped",
           "items": [
             "A standing city audience for design programming year on year"
           ]
