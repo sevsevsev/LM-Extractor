@@ -1,10 +1,10 @@
 {
   "id": "sample-mamadele-axe-puro",
-  "promptVersion": "2026-09-20.6",
+  "promptVersion": "2026-09-26.1",
   "promptVariant": "vision+text",
-  "capturedAt": "2026-09-23T02:54:52.216Z",
+  "capturedAt": "2026-09-28T01:25:19.403Z",
   "model": {
-    "organization": "MAMADÊLÊ FOUNDATION",
+    "organization": "Mamadêlê Foundation",
     "program": "",
     "mission": {
       "content": ""
@@ -861,11 +861,15 @@
     },
     "documentTypeAssessment": "logic_model",
     "extractionStatus": "ok",
+    "colorLegend": "",
     "extractionConfidence": "high",
-    "layoutFamily": "vertical_columns",
     "generalOutcomes": {
       "content": []
     },
+    "impactStatement": {
+      "content": ""
+    },
+    "layoutFamily": "vertical_columns",
     "unmapped": {
       "content": []
     },

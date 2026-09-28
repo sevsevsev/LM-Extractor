@@ -1,8 +1,8 @@
 {
   "id": "ymca-teen-workforce",
-  "promptVersion": "2026-09-20.6",
+  "promptVersion": "2026-09-26.1",
   "promptVariant": "vision+text",
-  "capturedAt": "2026-09-23T02:54:23.802Z",
+  "capturedAt": "2026-09-28T01:24:41.914Z",
   "model": {
     "organization": "Greater Philadelphia YMCA",
     "program": "Teen Workforce Development Program",
@@ -10,7 +10,7 @@
       "content": "To empower teens in Philadelphia and Camden, NJ, by providing equitable access to career skills, internships, and mentorship to bridge opportunity gaps and prepare students for professional and financial success."
     },
     "targetPopulation": {
-      "content": "Teens in underserved communities in Philadelphia, PA and Camden, NJ"
+      "content": "Teens in underserved communities in Philadelphia and Camden, NJ"
     },
     "inputs": {
       "content": [
@@ -222,7 +222,6 @@
     "documentTypeAssessment": "logic_model",
     "extractionStatus": "ok",
     "colorLegend": "",
-    "extractionConfidence": "high",
     "generalOutcomes": {
       "content": []
     },
@@ -265,6 +264,7 @@
         }
       ]
     },
-    "mappingCorrections": []
+    "mappingCorrections": [],
+    "extractionConfidence": "high"
   }
 }

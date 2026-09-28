@@ -1,8 +1,8 @@
 {
   "id": "ymca-youth-civic-engagement",
-  "promptVersion": "2026-09-20.6",
+  "promptVersion": "2026-09-26.1",
   "promptVariant": "vision+text",
-  "capturedAt": "2026-09-23T02:53:09.054Z",
+  "capturedAt": "2026-09-28T01:21:58.795Z",
   "model": {
     "organization": "Great Philadelphia YMCA",
     "program": "Youth Civic Engagement",
@@ -10,7 +10,7 @@
       "content": "The mission of the Greater Philadelphia YMCA’s Youth Civic Engagement (YCE) program is to empower youth to become informed, engaged citizens who are capable of making meaningful contributions to society. Through interactive civic education programs, including Youth and Government (YAG) and Model United Nations (MUN), YCE aims to develop critical civic knowledge, leadership, and social-emotional skills, preparing students for lifelong civic engagement and leadership roles."
     },
     "targetPopulation": {
-      "content": "Youth"
+      "content": ""
     },
     "inputs": {
       "content": [
@@ -248,14 +248,7 @@
     },
     "documentTypeAssessment": "logic_model",
     "extractionStatus": "ok",
-    "colorLegend": "",
     "extractionConfidence": "high",
-    "generalOutcomes": {
-      "content": []
-    },
-    "impactStatement": {
-      "content": ""
-    },
     "layoutFamily": "prose_sections",
     "unmapped": {
       "content": [
@@ -284,6 +277,9 @@
           ]
         }
       ]
+    },
+    "generalOutcomes": {
+      "content": []
     },
     "mappingCorrections": []
   }

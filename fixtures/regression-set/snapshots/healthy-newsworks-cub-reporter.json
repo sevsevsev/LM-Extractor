@@ -1,8 +1,8 @@
 {
   "id": "healthy-newsworks-cub-reporter",
-  "promptVersion": "2026-09-20.6",
+  "promptVersion": "2026-09-26.1",
   "promptVariant": "vision+text",
-  "capturedAt": "2026-09-23T02:52:32.867Z",
+  "capturedAt": "2026-09-28T01:20:54.288Z",
   "model": {
     "organization": "Healthy NewsWorks",
     "program": "Core Reporters & Cub Reporters",
@@ -10,7 +10,7 @@
       "content": ""
     },
     "targetPopulation": {
-      "content": "Students in grades K-8 (Core Reporters: Grades 4-8; Cub Reporters: Grades K-3), teachers, schools, and families"
+      "content": "Core Reporters (Grades 4-8) and Cub Reporters (Grades K-3)"
     },
     "inputs": {
       "content": [
@@ -19,6 +19,7 @@
           "items": [
             {
               "text": "15 Board Members",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
@@ -27,6 +28,7 @@
             },
             {
               "text": "FT Executive Director",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
@@ -35,6 +37,7 @@
             },
             {
               "text": "FT Chief of Staff",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
@@ -43,6 +46,7 @@
             },
             {
               "text": "7 PT staff: Outreach Manager, Program Manager, 4 Program Associates, 1 Communications Assoc.",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
@@ -51,6 +55,7 @@
             },
             {
               "text": "Volunteers (Editors, Teachers, Evaluators)",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
@@ -59,6 +64,7 @@
             },
             {
               "text": "Education Consultants",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
@@ -67,6 +73,7 @@
             },
             {
               "text": "Community Advisory Board",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
@@ -75,6 +82,7 @@
             },
             {
               "text": "Local and national health leaders",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "HNW Human Resources",
               "sourceSection": "HNW Human Resources",
@@ -88,6 +96,7 @@
           "items": [
             {
               "text": "School teachers, administrators",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "School Human Resources",
               "sourceSection": "School Human Resources",
@@ -96,6 +105,7 @@
             },
             {
               "text": "Student journalists",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "School Human Resources",
               "sourceSection": "School Human Resources",
@@ -104,6 +114,7 @@
             },
             {
               "text": "Student families",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "School Human Resources",
               "sourceSection": "School Human Resources",
@@ -117,6 +128,7 @@
           "items": [
             {
               "text": "Website",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "Program Resources",
               "sourceSection": "Program Resources",
@@ -125,6 +137,7 @@
             },
             {
               "text": "Lesson plans and learning resources for students, teachers, schools",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "Program Resources",
               "sourceSection": "Program Resources",
@@ -133,6 +146,7 @@
             },
             {
               "text": "Reporter Kits",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "Program Resources",
               "sourceSection": "Program Resources",
@@ -141,6 +155,7 @@
             },
             {
               "text": "Canvas learning management system",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "Program Resources",
               "sourceSection": "Program Resources",
@@ -149,6 +164,7 @@
             },
             {
               "text": "PA Act 48 designation",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "Program Resources",
               "sourceSection": "Program Resources",
@@ -162,6 +178,7 @@
           "items": [
             {
               "text": "Schools, businesses, nonprofits, and schools",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "Community Partners",
               "sourceSection": "Community Partners",
@@ -175,6 +192,7 @@
           "items": [
             {
               "text": "Legal (In-kind)",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "Other Resources",
               "sourceSection": "Other Resources",
@@ -183,6 +201,7 @@
             },
             {
               "text": "Accounting",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "Other Resources",
               "sourceSection": "Other Resources",
@@ -191,6 +210,7 @@
             },
             {
               "text": "Office supplies",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "Other Resources",
               "sourceSection": "Other Resources",
@@ -199,6 +219,7 @@
             },
             {
               "text": "Equipment/Technology (computers, microphones, headsets, video cameras)",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "Other Resources",
               "sourceSection": "Other Resources",
@@ -207,6 +228,7 @@
             },
             {
               "text": "Financial and in-kind donations",
+              "sourceColumn": 1,
               "sourcePage": 1,
               "sourceHeader": "Other Resources",
               "sourceSection": "Other Resources",
@@ -224,6 +246,7 @@
           "items": [
             {
               "text": "Annual updates",
+              "sourceColumn": 2,
               "sourcePage": 1,
               "sourceHeader": "Curriculum Development",
               "sourceSection": "Curriculum Development",
@@ -232,6 +255,7 @@
             },
             {
               "text": "Modifications for virtual delivery",
+              "sourceColumn": 2,
               "sourcePage": 1,
               "sourceHeader": "Curriculum Development",
               "sourceSection": "Curriculum Development",
@@ -245,6 +269,7 @@
           "items": [
             {
               "text": "Annual updates",
+              "sourceColumn": 2,
               "sourcePage": 1,
               "sourceHeader": "Teacher/School Resources",
               "sourceSection": "Teacher/School Resources",
@@ -258,6 +283,7 @@
           "items": [
             {
               "text": "Up to 24 classroom lessons on health topics, interviewing, researching, writing",
+              "sourceColumn": 2,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters (Grades 4-8)",
               "sourceSection": "Core Reporters (Grades 4-8)",
@@ -266,6 +292,7 @@
             },
             {
               "text": "Hands-on guidance on research, interviewing, and writing print and digital media",
+              "sourceColumn": 2,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters (Grades 4-8)",
               "sourceSection": "Core Reporters (Grades 4-8)",
@@ -274,6 +301,7 @@
             },
             {
               "text": "Coordinate activities, field trips, interviews with health leaders, and book launch",
+              "sourceColumn": 2,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters (Grades 4-8)",
               "sourceSection": "Core Reporters (Grades 4-8)",
@@ -282,6 +310,7 @@
             },
             {
               "text": "Edit, design, print, and disseminate newspapers and annual book",
+              "sourceColumn": 2,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters (Grades 4-8)",
               "sourceSection": "Core Reporters (Grades 4-8)",
@@ -290,6 +319,7 @@
             },
             {
               "text": "Administer and evaluate pre/post student tests and end-of-year student reflection papers and teacher surveys",
+              "sourceColumn": 2,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters (Grades 4-8)",
               "sourceSection": "Core Reporters (Grades 4-8)",
@@ -303,6 +333,7 @@
           "items": [
             {
               "text": "Classroom lessons (virtual or in person) in one or both of 3 focus areas, each with 5 lessons:",
+              "sourceColumn": 2,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters (Grades K-3)",
               "sourceSection": "Cub Reporters (Grades K-3)",
@@ -311,6 +342,7 @@
             },
             {
               "text": "Hearty Kids – heart health",
+              "sourceColumn": 2,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters (Grades K-3)",
               "sourceSection": "Cub Reporters (Grades K-3)",
@@ -319,6 +351,7 @@
             },
             {
               "text": "Kind Kids – social/emotional lessons",
+              "sourceColumn": 2,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters (Grades K-3)",
               "sourceSection": "Cub Reporters (Grades K-3)",
@@ -327,6 +360,7 @@
             },
             {
               "text": "Super Snackers - nutrition",
+              "sourceColumn": 2,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters (Grades K-3)",
               "sourceSection": "Cub Reporters (Grades K-3)",
@@ -335,6 +369,7 @@
             },
             {
               "text": "Coordinate family engagement activities",
+              "sourceColumn": 2,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters (Grades K-3)",
               "sourceSection": "Cub Reporters (Grades K-3)",
@@ -343,6 +378,7 @@
             },
             {
               "text": "Edit, design, print, and disseminate junior section of newspaper",
+              "sourceColumn": 2,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters (Grades K-3)",
               "sourceSection": "Cub Reporters (Grades K-3)",
@@ -351,6 +387,7 @@
             },
             {
               "text": "Administer and evaluate post-program teacher surveys",
+              "sourceColumn": 2,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters (Grades K-3)",
               "sourceSection": "Cub Reporters (Grades K-3)",
@@ -368,6 +405,7 @@
           "items": [
             {
               "text": "60+ lesson plans and supporting student resources for Core Reporters provided annually; 12+ for Cub Reporters – all aligned with national Common Core ELA and National Health standards (New lessons/materials developed continuously.)",
+              "sourceColumn": 3,
               "sourcePage": 1,
               "sourceHeader": "Curriculum Development",
               "sourceSection": "Curriculum Development",
@@ -381,6 +419,7 @@
           "items": [
             {
               "text": "Teacher toolkit, including training videos",
+              "sourceColumn": 3,
               "sourcePage": 1,
               "sourceHeader": "Teacher/School Resources",
               "sourceSection": "Teacher/School Resources",
@@ -389,6 +428,7 @@
             },
             {
               "text": "In-person and online training modules",
+              "sourceColumn": 3,
               "sourcePage": 1,
               "sourceHeader": "Teacher/School Resources",
               "sourceSection": "Teacher/School Resources",
@@ -397,6 +437,7 @@
             },
             {
               "text": "Pennsylvania Act 48 approved organization",
+              "sourceColumn": 3,
               "sourcePage": 1,
               "sourceHeader": "Teacher/School Resources",
               "sourceSection": "Teacher/School Resources",
@@ -410,6 +451,7 @@
           "items": [
             {
               "text": "Program delivered to 600 students in 26 classrooms",
+              "sourceColumn": 3,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -418,6 +460,7 @@
             },
             {
               "text": "Quantitative and qualitative evaluation",
+              "sourceColumn": 3,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -431,6 +474,7 @@
           "items": [
             {
               "text": "Program delivered to 600+ students in 30+ classrooms",
+              "sourceColumn": 3,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -439,6 +483,7 @@
             },
             {
               "text": "Quantitative and qualitative evaluation",
+              "sourceColumn": 3,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -452,6 +497,7 @@
           "items": [
             {
               "text": "40+ school newspapers",
+              "sourceColumn": 3,
               "sourcePage": 1,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
@@ -460,6 +506,7 @@
             },
             {
               "text": "2 magazines",
+              "sourceColumn": 3,
               "sourcePage": 1,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
@@ -468,6 +515,7 @@
             },
             {
               "text": "10+ videos",
+              "sourceColumn": 3,
               "sourcePage": 1,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
@@ -476,6 +524,7 @@
             },
             {
               "text": "20+ interviews with health leaders",
+              "sourceColumn": 3,
               "sourcePage": 1,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
@@ -484,6 +533,7 @@
             },
             {
               "text": "7,000 students, teachers, family members reached",
+              "sourceColumn": 3,
               "sourcePage": 1,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
@@ -501,6 +551,7 @@
           "items": [
             {
               "text": "Students demonstrate improvements in/increased:",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -509,6 +560,7 @@
             },
             {
               "text": "Academic Skills — Writing",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -517,6 +569,7 @@
             },
             {
               "text": "Academic Skills — Research skills",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -525,6 +578,7 @@
             },
             {
               "text": "Academic Skills — Ability to identify a trustworthy website",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -533,6 +587,7 @@
             },
             {
               "text": "Academic Skills — Sourcing skills",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -541,6 +596,7 @@
             },
             {
               "text": "Academic Skills — Interviewing skills",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -549,6 +605,7 @@
             },
             {
               "text": "Academic Skills — Public speaking",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -557,6 +614,7 @@
             },
             {
               "text": "Soft Skills — Confidence",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -565,6 +623,7 @@
             },
             {
               "text": "Soft Skills — Teamwork",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -573,6 +632,7 @@
             },
             {
               "text": "Soft Skills — Self-reflection",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -581,6 +641,7 @@
             },
             {
               "text": "Soft Skills — Kindness or Altruism",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -589,6 +650,7 @@
             },
             {
               "text": "Soft Skills — Pride in publishing",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -597,6 +659,7 @@
             },
             {
               "text": "Health Knowledge & Behaviors — Key facts about health topics covered",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -605,6 +668,7 @@
             },
             {
               "text": "Health Knowledge & Behaviors — Ways to maintain and improve health",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -618,6 +682,7 @@
           "items": [
             {
               "text": "Students demonstrate improvements in:",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -626,6 +691,7 @@
             },
             {
               "text": "Academic Skills — Writing",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -634,6 +700,7 @@
             },
             {
               "text": "Academic Skills — Reading",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -642,6 +709,7 @@
             },
             {
               "text": "Soft Skills — Confidence",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -650,6 +718,7 @@
             },
             {
               "text": "Soft Skills — Teamwork",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -658,6 +727,7 @@
             },
             {
               "text": "Soft Skills — Pride in publishing",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -666,6 +736,7 @@
             },
             {
               "text": "Soft Skills — Kindness/altruism",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -674,6 +745,7 @@
             },
             {
               "text": "Soft Skills — Positive behaviors",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -682,6 +754,7 @@
             },
             {
               "text": "Health Knowledge & Behaviors — Key facts about health",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -690,6 +763,7 @@
             },
             {
               "text": "Health Knowledge & Behaviors — Ways to maintain and improve health",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -703,6 +777,7 @@
           "items": [
             {
               "text": "Increased community knowledge of health topics and ways to maintain and improve health.",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
@@ -711,6 +786,7 @@
             },
             {
               "text": "Promote nonfiction reading",
+              "sourceColumn": 4,
               "sourcePage": 1,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
@@ -728,6 +804,7 @@
           "items": [
             {
               "text": "Students will demonstrate improvements in/increased:",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -736,6 +813,7 @@
             },
             {
               "text": "Academic Skills — Likelihood of passing end-of-year assessments in English Language Arts",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -744,6 +822,7 @@
             },
             {
               "text": "Academic Skills — GPA",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -752,6 +831,7 @@
             },
             {
               "text": "Academic Skills — ACT scores in English, Reading, Composite",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -760,6 +840,7 @@
             },
             {
               "text": "Academic Skills — Media literacy",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -768,6 +849,7 @@
             },
             {
               "text": "Academic Skills — Attitude toward writing",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -776,6 +858,7 @@
             },
             {
               "text": "Soft Skills — Participation in extracurricular activities and service organizations",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -784,6 +867,7 @@
             },
             {
               "text": "Soft Skills — Involvement in activities requiring leadership skills",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -792,6 +876,7 @@
             },
             {
               "text": "Soft Skills — Community connections",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -800,6 +885,7 @@
             },
             {
               "text": "Health Knowledge & Behaviors — Healthy behaviors",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -813,6 +899,7 @@
           "items": [
             {
               "text": "Students will demonstrate improvements in/increased:",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -821,6 +908,7 @@
             },
             {
               "text": "Academic Skills — Grades in elementary, middle school",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -829,6 +917,7 @@
             },
             {
               "text": "Academic Skills — Literacy",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -837,6 +926,7 @@
             },
             {
               "text": "Academic Skills — Communication",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -845,6 +935,7 @@
             },
             {
               "text": "Soft Skills — Involvement in activities requiring leadership skills",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -853,6 +944,7 @@
             },
             {
               "text": "Soft Skills — Community connections",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -861,6 +953,7 @@
             },
             {
               "text": "Health Knowledge & Behaviors — Healthy behaviors",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -874,6 +967,7 @@
           "items": [
             {
               "text": "Improved community-wide healthy behaviors",
+              "sourceColumn": 5,
               "sourcePage": 1,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
@@ -891,6 +985,7 @@
           "items": [
             {
               "text": "Students will demonstrate improvements in/increased:",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -899,6 +994,7 @@
             },
             {
               "text": "Academic Skills — Likelihood of college acceptance",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -907,6 +1003,7 @@
             },
             {
               "text": "Academic Skills — College GPA",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -915,6 +1012,7 @@
             },
             {
               "text": "Academic Skills — Ability to identify misinformation and omissions in media",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -923,6 +1021,7 @@
             },
             {
               "text": "Soft Skills — Self-esteem",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -931,6 +1030,7 @@
             },
             {
               "text": "Soft Skills — Resiliency",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -939,6 +1039,7 @@
             },
             {
               "text": "Soft Skills — Social-emotional skills",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -947,6 +1048,7 @@
             },
             {
               "text": "Soft Skills — Positive social behavior",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -955,6 +1057,7 @@
             },
             {
               "text": "Soft Skills — Reduced emotional distress",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -963,6 +1066,7 @@
             },
             {
               "text": "Soft Skills — Relationship skills",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -971,6 +1075,7 @@
             },
             {
               "text": "Soft Skills — Civic involvement/engagement",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -979,6 +1084,7 @@
             },
             {
               "text": "Health Knowledge & Behaviors — Health",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -987,6 +1093,7 @@
             },
             {
               "text": "Health Knowledge & Behaviors — Health literacy",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Core Reporters",
               "sourceSection": "Core Reporters",
@@ -1000,6 +1107,7 @@
           "items": [
             {
               "text": "Students will demonstrate improvements in/increased:",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -1008,6 +1116,7 @@
             },
             {
               "text": "Academic Skills — Performance on standardized tests",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -1016,6 +1125,7 @@
             },
             {
               "text": "Soft Skills — Social-emotional skills",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -1024,6 +1134,7 @@
             },
             {
               "text": "Soft Skills — Positive social behavior",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -1032,6 +1143,7 @@
             },
             {
               "text": "Soft Skills — Civic involvement/engagement",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -1040,6 +1152,7 @@
             },
             {
               "text": "Health Knowledge & Behaviors — Healthy behaviors",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Cub Reporters",
               "sourceSection": "Cub Reporters",
@@ -1053,6 +1166,7 @@
           "items": [
             {
               "text": "Improved community-wide healthy behaviors",
+              "sourceColumn": 6,
               "sourcePage": 1,
               "sourceHeader": "Student Publications",
               "sourceSection": "Student Publications",
@@ -1070,6 +1184,7 @@
           "items": [
             {
               "text": "Reduced prevalence of chronic disease",
+              "sourceColumn": 7,
               "sourcePage": 1,
               "sourceHeader": "Expected community-level impacts include",
               "sourceSection": "Expected community-level impacts include",
@@ -1078,6 +1193,7 @@
             },
             {
               "text": "Reduced rates of poverty",
+              "sourceColumn": 7,
               "sourcePage": 1,
               "sourceHeader": "Expected community-level impacts include",
               "sourceSection": "Expected community-level impacts include",
@@ -1086,6 +1202,7 @@
             },
             {
               "text": "Lower unemployment rates",
+              "sourceColumn": 7,
               "sourcePage": 1,
               "sourceHeader": "Expected community-level impacts include",
               "sourceSection": "Expected community-level impacts include",
@@ -1094,6 +1211,7 @@
             },
             {
               "text": "Improved health",
+              "sourceColumn": 7,
               "sourcePage": 1,
               "sourceHeader": "Expected community-level impacts include",
               "sourceSection": "Expected community-level impacts include",
@@ -1102,6 +1220,7 @@
             },
             {
               "text": "Reduced rate of disability",
+              "sourceColumn": 7,
               "sourcePage": 1,
               "sourceHeader": "Expected community-level impacts include",
               "sourceSection": "Expected community-level impacts include",
@@ -1110,6 +1229,7 @@
             },
             {
               "text": "Increased volunteerism",
+              "sourceColumn": 7,
               "sourcePage": 1,
               "sourceHeader": "Expected community-level impacts include",
               "sourceSection": "Expected community-level impacts include",
@@ -1121,9 +1241,8 @@
       ]
     },
     "documentTypeAssessment": "logic_model",
-    "extractionStatus": "ok",
+    "extractionStatus": "partial",
     "colorLegend": "",
-    "extractionConfidence": "high",
     "generalOutcomes": {
       "content": []
     },
@@ -1144,30 +1263,137 @@
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "2 – Research supporting intermediate outcomes: Ensio, T.C. & Boxeth, K. R. (2000). The effects of publishing on student attitude toward writing. ERIC Research Report. https://eric.ed.gov/?id=ED448471; Joint Committee on National Health Standards. (2007). National health education standards: Achieving excellence; Jones, D., Crowley, D. M., & Greenberg, M.T. (2017). Improving social emotional skills in childhood enhances long-term well-being and economic outcomes. Edna Bennet Pierce Prevention Research Center, Pennsylvania State University; National Center for Family Literacy. (2008). Developing early literacy: Report of the national early literacy panel. https://lincs.ed.gov/publications/pdf/NELPReport09.pdf; Newspaper Association of America. (2008). High school journalism matters. https://bit.ly/37MCIbd",
+              "text": "2 – Research supporting intermediate outcomes: Ensio, T.C. & Boxeth, K. R. (2000). The effects of publishing on student attitude toward writing. ERIC Research Report. https://eric.ed.gov/?id=ED448471",
               "sourcePage": 2,
               "sourceHeader": "Notes and References",
               "sourceSection": "Notes and References",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "3 – Research supporting long-term outcomes: Durlak, J. A., Weissberg, R. P., Dymnicki, A. B., Taylor, R. D. & Schellinger , K. B. (2011). The impact of enhancing students’ social and emotional learning: A meta-analysis of school-based universal interventions. Child Development, 82, 405 – 432; Fredricks, J.A. & Eccles, J.S. (2008). Participation in extracurricular activities in the middle school years: Are there developmental benefits for African American and European American youth? Journal of Youth and Adolescence, 37, 1029-1043. https://link.springer.com/article/10.1007/s10964-008-9309-4; Hobbs, R. & Frost, R. (2003). Measuring the acquisition of media-literacy skills. Reading Research Quarterly, 38, 330 – 352; Jones, D., Crowley, D. M., & Greenberg, M.T. (2017). Improving social emotional skills in childhood enhances long-term well-being and economic outcomes. Edna Bennet Pierce Prevention Research Center, Pennsylvania State University; Kolbe, L.J. (2019). School health as a strategy to improve both public health and education. Annual Review of Public Health, 40, 443-463. https://doi.org/10.1146/annurev-publhealth-040218-043727; National Center for Educational Evaluation and Regional Assistance, Institute of Education Sciences. (2012). Teaching elementary school students to be effective writers. https://ies.ed.gov/ncee/wwc/Docs/PracticeGuide/writing_pg_062612.pdf; Newspaper Association of America. (2008). High school journalism matters. https://bit.ly/37MCIbd; Taylor, R., Oberle, E., Durlak, J. A., & Weissberg, R. P. (2017). Promoting positive youth development through school-based social and emotional learning interventions: A meta-analysis of follow-up effects. Child Development, 88, 1156 – 1171.",
+              "text": "Joint Committee on National Health Standards. (2007). National health education standards: Achieving excellence.",
               "sourcePage": 2,
               "sourceHeader": "Notes and References",
               "sourceSection": "Notes and References",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "4 – Research supporting impacts: Jones, D., Crowley, D. M., & Greenberg, M.T. (2017). Improving social emotional skills in childhood enhances long-term well-being and economic outcomes. Edna Bennet Pierce Prevention Research Center, Pennsylvania State University; Neufield, K.H.S., Gaucher, D., Starzyk , K.B., & Boese, G.D. (2018). How feeling connected to one’s own community can increase support for addressing injustice impacting outgroup communities. SAGE Journals, 22 (4), 530-548. https://doi.org/10.1177/1368430217749881; Robert Wood Johnson Foundation. (2020). Building a culture of health: Sense of community. https://www.rwjf.org/en/cultureofhealth/taking-action/making-health-a-shared-value/sense-of-community.html; Trostel, P.A. (2015). It’s not just the money: The benefits of college education to individuals and society. Government & Civic Life, 4. https://digitalcommons.library.umaine.edu/mcspc_gov_civic/4/; U.S. Bureau of Labor Statistics. (2018). Career outlook: Measuring the value of education. https://www.bls.gov/careeroutlook/2018/data-on-display/education-pays.htm; U.S. Department of Health and Human Services, CDC, Coordinating Center for Health Promotion. (2007). Healthy youth: An investment in our nation’s future, 2007.",
+              "text": "Jones, D., Crowley, D. M., & Greenberg, M.T. (2017). Improving social emotional skills in childhood enhances long-term well-being and economic outcomes. Edna Bennet Pierce Prevention Research Center, Pennsylvania State University.",
+              "sourcePage": 2,
+              "sourceHeader": "Notes and References",
+              "sourceSection": "Notes and References",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "National Center for Family Literacy. (2008). Developing early literacy: Report of the national early literacy panel. https://lincs.ed.gov/publications/pdf/NELPReport09.pdf",
+              "sourcePage": 2,
+              "sourceHeader": "Notes and References",
+              "sourceSection": "Notes and References",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Newspaper Association of America. (2008). High school journalism matters. https://bit.ly/37MCIbd",
+              "sourcePage": 2,
+              "sourceHeader": "Notes and References",
+              "sourceSection": "Notes and References",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "3 – Research supporting long-term outcomes: Durlak, J. A., Weissberg, R. P., Dymnicki, A. B., Taylor, R. D. & Schellinger , K. B. (2011). The impact of enhancing students’ social and emotional learning: A meta -analysis of school-based universal interventions. Child Development, 82, 405 – 432.",
+              "sourcePage": 2,
+              "sourceHeader": "Notes and References",
+              "sourceSection": "Notes and References",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Fredricks, J.A. & Eccles, J.S. (2008). Participation in extracurricular activities in the middle school years: Are there developmental benefits for African American and European American youth? Journal of Youth and Adolescence, 37, 1029-1043. https://link.springer.com/article/10.1007/s10964 - 008 - 9309 - 4",
+              "sourcePage": 2,
+              "sourceHeader": "Notes and References",
+              "sourceSection": "Notes and References",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Hobbs, R. & Frost, R. (2003). Measuring the acquisition of media-literacy skills. Reading Research Quarterly, 38, 330 – 352.",
+              "sourcePage": 2,
+              "sourceHeader": "Notes and References",
+              "sourceSection": "Notes and References",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Kolbe, L.J. (2019). School health as a strategy to improve both public health and education. Annual Review of Public Health, 40, 443-463. https://doi.org/10.1146/annurev - publhealth - 040218 - 043727",
+              "sourcePage": 2,
+              "sourceHeader": "Notes and References",
+              "sourceSection": "Notes and References",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "National Center for Educational Evaluation and Regional Assistance, Institute of Education Sciences. (2012). Teaching elementary school students to be effective writers. https://ies.ed.gov/ncee/wwc/Docs/PracticeGuide/writing_pg_062612.pdf",
+              "sourcePage": 2,
+              "sourceHeader": "Notes and References",
+              "sourceSection": "Notes and References",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Taylor, R., Oberle, E., Durlak, J. A., & Weissberg, R. P. (2017). Promoting positive youth development through school-based social and emotional learning interventions: A meta-analysis of follow-up effects. Child Development, 88 , 1156 – 1171.",
+              "sourcePage": 2,
+              "sourceHeader": "Notes and References",
+              "sourceSection": "Notes and References",
+              "mappingConfidence": "unmapped"
+            }
+          ]
+        },
+        {
+          "name": "Notes and References (cont.)",
+          "items": [
+            {
+              "text": "4 – Research supporting impacts: Jones, D., Crowley, D. M., & Greenberg, M.T. (2017). Improving social emotional skills in childhood enhances long-term well-being and economic outcomes. Edna Bennet Pierce Prevention Research Center, Pennsylvania State University.",
               "sourcePage": 3,
-              "sourceHeader": "Notes and References",
-              "sourceSection": "Notes and References",
+              "sourceHeader": "Notes and References (cont.)",
+              "sourceSection": "Notes and References (cont.)",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Neufield, K.H.S., Gaucher, D., Starzyk , K.B., & Boese, G.D. (2018). How feeling connected to one’s own community can increase support for addressing injustice impa cting outgroup communities. SAGE Journals, 22 (4), 530-548. https://doi.org/10.1177/1368430217749881",
+              "sourcePage": 3,
+              "sourceHeader": "Notes and References (cont.)",
+              "sourceSection": "Notes and References (cont.)",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Robert Wood Johnson Foundation. (2020). Building a culture of health: Sense of community. https://www.rwjf.org/en/cultureofhealth/taking - action/making - health - a - shared - value/sense - of - community.html",
+              "sourcePage": 3,
+              "sourceHeader": "Notes and References (cont.)",
+              "sourceSection": "Notes and References (cont.)",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "Trostel , P.A. (2015). It’s not just the money: The benefits of college education to individuals and society. Government & Civic Life, 4. https://digitalcommons.library.umaine.edu/mcspc_gov_civic/4/",
+              "sourcePage": 3,
+              "sourceHeader": "Notes and References (cont.)",
+              "sourceSection": "Notes and References (cont.)",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "U.S. Bureau of Labor Statistics. (2018). Career outlook: Measuring the value of education. https://www.bls.gov/careeroutlook/2018/data - on - display/education - pays.htm",
+              "sourcePage": 3,
+              "sourceHeader": "Notes and References (cont.)",
+              "sourceSection": "Notes and References (cont.)",
+              "mappingConfidence": "unmapped"
+            },
+            {
+              "text": "U.S. Department of Health and Human Services, CDC, Coordinating Center for Health Promotion. (2007). Healthy youth: An investment in our nation’s future, 2007.",
+              "sourcePage": 3,
+              "sourceHeader": "Notes and References (cont.)",
+              "sourceSection": "Notes and References (cont.)",
               "mappingConfidence": "unmapped"
             }
           ]
         }
       ]
     },
-    "mappingCorrections": []
+    "mappingCorrections": [],
+    "extractionConfidence": "medium",
+    "extractionBlockers": [
+      "Some content did not fit any of the standard columns and was put under \"Unmapped\" — check whether it belongs somewhere"
+    ]
   }
 }

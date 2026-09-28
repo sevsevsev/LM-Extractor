@@ -1,11 +1,11 @@
 {
   "id": "trinity-boys-girls-rising",
-  "promptVersion": "2026-09-20.6",
+  "promptVersion": "2026-09-26.1",
   "promptVariant": "vision-only",
-  "capturedAt": "2026-09-23T02:54:15.237Z",
+  "capturedAt": "2026-09-28T01:24:30.390Z",
   "model": {
-    "organization": "BOYS & GIRLS RISING",
-    "program": "LEADERSHIP & LIFE SKILLS PROGRAM",
+    "organization": "Boys & Girls Rising",
+    "program": "Leadership & Life Skills Program",
     "mission": {
       "content": "To empower youth through mentorship, education, and life skills that build confidence, character, and a brighter future."
     },
@@ -328,82 +328,82 @@
     "unmapped": {
       "content": [
         {
-          "name": "SITUATION / NEED",
+          "name": "Situation / Need",
           "items": [
             {
               "text": "19147 (Queen Village) youth face challenges including: — 96% economically disadvantaged population",
-              "sourceHeader": "SITUATION / NEED",
-              "sourceSection": "SITUATION / NEED",
+              "sourceHeader": "Situation / Need",
+              "sourceSection": "Situation / Need",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "Limited access to balanced enrichment programs, especially for boys",
-              "sourceHeader": "SITUATION / NEED",
-              "sourceSection": "SITUATION / NEED",
+              "text": "19147 (Queen Village) youth face challenges including: — Limited access to balanced enrichment programs, especially for boys",
+              "sourceHeader": "Situation / Need",
+              "sourceSection": "Situation / Need",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "High need for social-emotional learning, mentorship, and life skills",
-              "sourceHeader": "SITUATION / NEED",
-              "sourceSection": "SITUATION / NEED",
+              "text": "19147 (Queen Village) youth face challenges including: — High need for social-emotional learning, mentorship, and life skills",
+              "sourceHeader": "Situation / Need",
+              "sourceSection": "Situation / Need",
               "mappingConfidence": "unmapped"
             },
             {
-              "text": "24% of youth require additional support (IEPs)",
-              "sourceHeader": "SITUATION / NEED",
-              "sourceSection": "SITUATION / NEED",
+              "text": "19147 (Queen Village) youth face challenges including: — 24% of youth require additional support (IEPs)",
+              "sourceHeader": "Situation / Need",
+              "sourceSection": "Situation / Need",
               "mappingConfidence": "unmapped"
             },
             {
               "text": "While programs exist for girls (Girls on the Run, Girl Scouts, Girls with a Purpose, Girls First), there is a gap in inclusive, structured programming that equally supports both boys and girls.",
-              "sourceHeader": "SITUATION / NEED",
-              "sourceSection": "SITUATION / NEED",
+              "sourceHeader": "Situation / Need",
+              "sourceSection": "Situation / Need",
               "mappingConfidence": "unmapped"
             }
           ]
         },
         {
-          "name": "EVALUATION METHODS",
+          "name": "Evaluation Methods",
           "items": [
             {
               "text": "Pre/Post Surveys",
-              "sourceHeader": "EVALUATION METHODS",
-              "sourceSection": "EVALUATION METHODS",
+              "sourceHeader": "Evaluation Methods",
+              "sourceSection": "Evaluation Methods",
               "mappingConfidence": "unmapped"
             },
             {
               "text": "Attendance & Participation Tracking",
-              "sourceHeader": "EVALUATION METHODS",
-              "sourceSection": "EVALUATION METHODS",
+              "sourceHeader": "Evaluation Methods",
+              "sourceSection": "Evaluation Methods",
               "mappingConfidence": "unmapped"
             },
             {
               "text": "Behavior & Engagement Observations",
-              "sourceHeader": "EVALUATION METHODS",
-              "sourceSection": "EVALUATION METHODS",
+              "sourceHeader": "Evaluation Methods",
+              "sourceSection": "Evaluation Methods",
               "mappingConfidence": "unmapped"
             },
             {
               "text": "Parent/Guardian Feedback",
-              "sourceHeader": "EVALUATION METHODS",
-              "sourceSection": "EVALUATION METHODS",
+              "sourceHeader": "Evaluation Methods",
+              "sourceSection": "Evaluation Methods",
               "mappingConfidence": "unmapped"
             },
             {
               "text": "Youth Reflection Journals",
-              "sourceHeader": "EVALUATION METHODS",
-              "sourceSection": "EVALUATION METHODS",
+              "sourceHeader": "Evaluation Methods",
+              "sourceSection": "Evaluation Methods",
               "mappingConfidence": "unmapped"
             }
           ]
         },
         {
-          "name": "OUR BELIEF",
+          "name": "Our Belief",
           "items": [
             {
               "text": "When we invest in youth today, we build stronger leaders, stronger families, and stronger communities tomorrow.",
-              "sourceHeader": "OUR BELIEF",
-              "sourceSection": "OUR BELIEF",
+              "sourceHeader": "Our Belief",
+              "sourceSection": "Our Belief",
               "mappingConfidence": "unmapped"
             }
           ]
