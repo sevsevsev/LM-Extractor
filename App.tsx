@@ -15,6 +15,7 @@ import { normalizeExtractedLogicModel } from './shared/extractNormalize';
 import { buildGranularExportRows } from './shared/domainPresence';
 import { sliceDocumentBundle } from './shared/documentBundleSlicing';
 import { displayFileName, PROCESSING_STATUS_LABELS } from './shared/processingFileDisplay';
+import { describeBatchPdfOutcome } from './shared/batchPdfExport';
 import {
   retainRegressionBundle,
   retainRegressionExtraction,
@@ -828,7 +829,9 @@ const App: React.FC = () => {
         link.click();
         URL.revokeObjectURL(url);
       } else {
-        alert("Couldn't create the PDF. Try again.");
+        // Null means the template had nothing to draw, not a transient failure — retrying it
+        // will do the same thing, so don't ask for one.
+        alert("This extraction has nothing to put in a PDF.");
       }
     } catch (e) {
       console.error('PDF generation failed', e);
@@ -847,24 +850,37 @@ const App: React.FC = () => {
     try {
       const { generatePdfFromElement, createZipFromBlobs } = await import('./services/pdfService');
       const blobs: { name: string; blob: Blob }[] = [];
+      // One document that can't be drawn used to throw straight out of this loop and lose the
+      // whole batch — at 251 files that cost every other PDF. Keep each document's failure to
+      // itself and report what was left out once the ZIP has downloaded.
+      const empty: string[] = [];
+      const failed: string[] = [];
 
       for (const file of completed) {
-        mountPdfTemplate(file.id);
-        const elementId = `pdf-template-${file.id}`;
-        const blob = await generatePdfFromElement(elementId, '');
-        if (blob) {
-          blobs.push({
-            name: `${file.result!.program || 'model'}_${file.id}.pdf`,
-            blob,
-          });
+        const name = displayFileName(file);
+        try {
+          mountPdfTemplate(file.id);
+          const elementId = `pdf-template-${file.id}`;
+          const blob = await generatePdfFromElement(elementId, '');
+          if (blob) {
+            blobs.push({
+              name: `${file.result!.program || 'model'}_${file.id}.pdf`,
+              blob,
+            });
+          } else {
+            empty.push(name);
+          }
+        } catch (e) {
+          console.error(`PDF generation failed for ${name}`, e);
+          failed.push(name);
         }
       }
 
       if (blobs.length > 0) {
         await createZipFromBlobs(blobs);
-      } else {
-        alert("Couldn't create the ZIP. Try downloading files one at a time.");
       }
+      const note = describeBatchPdfOutcome({ total: completed.length, empty, failed });
+      if (note) alert(note);
     } catch (e) {
       console.error('Batch PDF failed', e);
       alert("Couldn't create the batch ZIP. Try downloading files one at a time.");
