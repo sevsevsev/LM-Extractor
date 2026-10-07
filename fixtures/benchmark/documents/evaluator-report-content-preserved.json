@@ -1,0 +1,51 @@
+{
+  "id": "evaluator-report-content-preserved",
+  "label": "Linden Row Partners — Independent Review of the Harbour Programme",
+  "covers": "An external reviewer's report about somebody else's programme, which must put NOTHING in a grid column and must still hand back everything it printed, in unmapped. The two documents already in the set that cover this shape expect nothing anywhere, so their recall is a free 1 and a run that returns an empty extraction scores a clean sheet on them. This one expects every paragraph in unmapped, so losing the content is lost recall. The failure this catches is a quiet drop in recall on exactly the documents whose whole content lives in unmapped, which is on record from a real review document and was invisible to this benchmark.",
+  "organization": "Linden Row Partners",
+  "program": "",
+  "documentTypeAssessment": "not_logic_model",
+  "slides": [
+    {
+      "title": "Linden Row Partners — Independent Review of the Harbour Programme",
+      "columns": [
+        {
+          "heading": "SCOPE OF THIS REVIEW",
+          "domain": "unmapped",
+          "items": [
+            "Linden Row Partners was commissioned in March to review the Harbour Programme's second delivery year and to report to the funding board.",
+            "The review drew on the programme's own monitoring returns, two unannounced site visits and conversations with nine staff and fourteen participants.",
+            "No comparison group was available, so this review does not attempt to attribute change to the programme."
+          ]
+        },
+        {
+          "heading": "WHAT WE OBSERVED",
+          "domain": "unmapped",
+          "items": [
+            "Delivery ran in all four harbour-side neighbourhoods, with the Thursday cohort moving venue twice during the year.",
+            "Staffing was thin in the autumn term, when two of the five keyworker posts sat vacant for nine weeks.",
+            "Participants we spoke to described the keyworker relationship as the thing they would miss if the programme ended."
+          ]
+        },
+        {
+          "heading": "WHERE THE EVIDENCE IS WEAK",
+          "domain": "unmapped",
+          "items": [
+            "Attendance is recorded three different ways across the four sites, so the headline figure in the annual return cannot be reconciled.",
+            "The confidence measure used at intake was written in-house and has not been validated against anything.",
+            "Outcomes for the participants who left before week six are not recorded at all, and they are a fifth of the intake."
+          ]
+        },
+        {
+          "heading": "RECOMMENDATIONS TO THE BOARD",
+          "domain": "unmapped",
+          "items": [
+            "Agree one attendance definition across the four sites before the third delivery year opens.",
+            "Commission an independent assessment of the confidence measure, or replace it with a validated instrument.",
+            "Record a leaving reason for every participant who stops attending, however briefly they were enrolled."
+          ]
+        }
+      ]
+    }
+  ]
+}

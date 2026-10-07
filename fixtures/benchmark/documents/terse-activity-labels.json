@@ -1,0 +1,61 @@
+{
+  "id": "terse-activity-labels",
+  "label": "Kestrel Lane Arts Trust — Studio Saturdays",
+  "covers": "An activities column printed as bare discipline names — ten cells of one or two words, five of them a single word. A run that expands them into descriptive phrases (\"Choir\" becoming \"Weekly choir rehearsals for young people\") loses every one of those items while the item COUNT stays the same, so no count-based check and no snapshot diff of lengths can see it. The failure this catches is a request or prompt change that makes the model paraphrase terse cells instead of lifting them; it is on record from a real document, and no other document in this set is short enough to show it.",
+  "organization": "Kestrel Lane Arts Trust",
+  "program": "Studio Saturdays",
+  "documentTypeAssessment": "logic_model",
+  "slides": [
+    {
+      "title": "Kestrel Lane Arts Trust — Studio Saturdays Logic Model",
+      "columns": [
+        {
+          "heading": "RESOURCES",
+          "domain": "inputs",
+          "items": [
+            "A ground-floor studio leased from the Kestrel Lane Trust",
+            "Three sessional teaching artists paid hourly",
+            "Equipment grant from the Walmsley Family Foundation",
+            "Two decks and a mixer donated by a local radio station"
+          ]
+        },
+        {
+          "heading": "ACTIVITIES",
+          "domain": "activities",
+          "items": [
+            "DJ",
+            "Dance",
+            "Choir",
+            "Mural",
+            "Zine",
+            "Spoken word",
+            "Screen print",
+            "Stop motion",
+            "Beat making",
+            "Portrait photography"
+          ]
+        },
+        {
+          "heading": "OUTPUTS",
+          "domain": "outputs",
+          "items": [
+            "Forty young people attending at least ten Saturday sessions",
+            "Ten disciplines offered across the year with no gaps in provision",
+            "One end-of-year exhibition mounted in the studio",
+            "Sixty finished pieces catalogued and photographed"
+          ]
+        },
+        {
+          "heading": "OUTCOMES",
+          "domain": "generalOutcomes",
+          "items": [
+            "Young people name a discipline they intend to keep practising",
+            "Attenders report that the studio is somewhere they are known",
+            "Teaching artists retain their Saturday hours across the full year",
+            "Families attend the exhibition who had not entered the studio before"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Accuracy benchmark
 
-Fifteen invented logic-model documents whose correct extraction is known by construction, and a
+Seventeen invented logic-model documents whose correct extraction is known by construction, and a
 scorer that turns an extraction into four numbers.
 
 ## Why this exists beside the regression set
@@ -60,6 +60,25 @@ the behaviour this benchmark exists to catch. They still count toward `unsourced
 Group names are not scored at all. Grouping is the axis measured as unstable without items moving,
 and the launch gate is "same items in same columns", so scoring group names would fail documents
 the gate passes.
+
+## Two things it was blind to, and now is not
+
+On 2026-10-07 a change to the Gemini request (PR #36, reverted by #37) scored this set at 100% and
+cost two real documents accuracy. Both failures were outside what the set could express, so the
+benchmark was blind rather than wrong, and two documents were added to close it.
+
+`terse-activity-labels` prints an activities column of one- and two-word cells. The real failure
+rewrote such cells into descriptive phrases, losing all ten while the item count held, which no
+count and no length diff can see. Dice similarity puts a one-word expectation against a six-word
+paraphrase at 0.33, well under `MATCH_THRESHOLD`, so the loss lands on `recall` where it belongs.
+
+`evaluator-report-content-preserved` is a review document about somebody else's programme. The two
+documents already covering that shape expect nothing anywhere, which means `recall` is a free 1 for
+them and an empty extraction scores a clean sheet — so the real failure, which dropped eleven items
+from `unmapped` and nothing from a column, was invisible. This one expects every paragraph in
+`unmapped`, which is the owner's decided behaviour for such a document: fill no column, lose
+nothing. `shared/benchmarkDocuments.test.ts` asserts both properties, and asserts that the older
+pair really does score an empty run at 1, so the gap stays documented rather than folklore.
 
 ## What it cannot tell you
 
