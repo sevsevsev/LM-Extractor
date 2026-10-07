@@ -14,10 +14,14 @@ npm run regression:check -- --only=oxford
 ## Why this works at ten documents
 
 `server/geminiSeed.ts` keys Gemini's seed on **document content only** — never the prompt — and
-extraction runs at `temperature: 0`. So re-running an unchanged prompt is *intended* to reproduce
+extraction passes that seed on every call. So re-running an unchanged prompt is *intended* to reproduce
 the same output, so that any difference the runner reports is attributable to the prompt change
 rather than to sampling noise. That turns "estimate a rate, which needs ~100 documents per arm"
 into "diff ten outputs" — in the common case, with no statistics needed.
+
+`temperature: 0` used to back this up as well, but Google deprecated `temperature`, `top_p` and
+`top_k`; newer models ignore them and future ones reject them, so the calls no longer send one and
+`seed` is the only stabilizer left. Reproduction may be looser than the numbers below recorded.
 
 **This is not absolute, and it's been observed to matter in practice.** `geminiSeed.ts`'s own
 comment is upfront that Gemini's seed is "mostly deterministic... not a guaranteed absolute

@@ -66,7 +66,11 @@ export async function detectLogicModelGroupsOnServer(
         config: {
           responseMimeType: 'application/json',
           responseSchema: detectSchema,
-          temperature: 0,
+          // No `temperature`/`topP`/`topK` — Google deprecated them; see server/geminiLogicModel.ts.
+          // `seed` stays. No `thinkingLevel` here, unlike extraction: this call only has to split
+          // pages into groups, and on `gemini-3.8-flash` it still does that correctly at the
+          // model's default. The three multi-page benchmark documents scored 100% on 2026-10-07
+          // with this call left alone.
           seed,
         },
       })
