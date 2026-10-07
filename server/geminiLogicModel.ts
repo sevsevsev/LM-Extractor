@@ -257,7 +257,11 @@ export async function extractLogicModelOnServer(
       config: {
         responseMimeType: 'application/json',
         responseSchema: extractModelSchema,
-        temperature: 0,
+        // No `temperature`/`topP`/`topK`: Google deprecated them. Newer Gemini models ignore
+        // them, and future ones return 400. Determinism now rests on `seed` alone, which is still
+        // a supported GenerationConfig field. No `thinkingConfig` is set either — this call has
+        // never set one, so the model default applies and nothing had to be migrated from the
+        // removed `thinkingBudget` to `thinkingLevel`.
         seed,
       },
     })

@@ -66,7 +66,8 @@ export async function detectLogicModelGroupsOnServer(
         config: {
           responseMimeType: 'application/json',
           responseSchema: detectSchema,
-          temperature: 0,
+          // No `temperature`/`topP`/`topK` and no `thinkingConfig` — see server/geminiLogicModel.ts
+          // for why. `seed` stays.
           seed,
         },
       })
