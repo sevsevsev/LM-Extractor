@@ -49,6 +49,7 @@ function fullRecord(): PersistedFileRecord {
     promptVersion: '2026-09-20.6',
     promptVariant: 'vision+text',
     modelId: 'gemini-flash-latest',
+    servedModelId: 'gemini-3.8-flash',
   };
 }
 

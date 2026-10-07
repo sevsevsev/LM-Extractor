@@ -11,15 +11,14 @@ import { parseLogicModelResponse } from '../shared/logicModelValidate.js';
 import { normalizeExtractedLogicModel } from '../shared/extractNormalize.js';
 import { withRetry } from './geminiRetry.js';
 import { deriveGeminiSeed } from './geminiSeed.js';
+import { extractModelId, servedModelId } from './geminiModelConfig.js';
 
 /**
- * Use Google's rolling `-latest` aliases, not a dated snapshot (e.g. `gemini-2.5-flash`) — pinned
- * snapshots get sunset for new API keys/projects (confirmed 2026-09-14: `gemini-2.5-flash` returned
- * 404 "no longer available to new users" on a freshly created key even though it still appeared in
- * the models.list response). The alias resolves forward automatically as Google rotates the
- * recommended model, which is what we actually want for a rarely-touched local tool.
+ * Which model answers, and why the default is a rolling alias, now live in
+ * `server/geminiModelConfig.ts` so that neither is a hardcoded string in this file. Re-exported
+ * here because the extraction log and the raw dump both record it.
  */
-export const EXTRACT_MODEL_ID = 'gemini-flash-latest';
+export { extractModelId } from './geminiModelConfig.js';
 
 /**
  * Every property here is a QUESTION PUT TO GEMINI. A field listed in this schema but left
@@ -158,14 +157,31 @@ const extractModelSchema: Schema = {
  * than accumulating copies. A failure here is swallowed: a diagnostic must never fail an
  * extraction a user is waiting on.
  */
-function dumpRawModel(seed: number, raw: LogicModel, options: Record<string, unknown>): void {
+function dumpRawModel(
+  seed: number,
+  raw: LogicModel,
+  options: Record<string, unknown>,
+  served: string | undefined
+): void {
   const dir = process.env.LM_DUMP_RAW;
   if (!dir) return;
   try {
     mkdirSync(dir, { recursive: true });
     writeFileSync(
       path.join(dir, `${seed}.raw.json`),
-      JSON.stringify({ seed, promptVersion: PROMPT_VERSION, modelId: EXTRACT_MODEL_ID, options, raw }, null, 2)
+      JSON.stringify(
+        {
+          seed,
+          promptVersion: PROMPT_VERSION,
+          modelId: extractModelId(),
+          // What actually answered, which is the only field that survives a silent roll.
+          servedModelId: served ?? 'unknown',
+          options,
+          raw,
+        },
+        null,
+        2
+      )
     );
   } catch (error) {
     console.warn(`LM_DUMP_RAW: could not write dump for seed ${seed}:`, (error as Error).message);
@@ -175,13 +191,22 @@ function dumpRawModel(seed: number, raw: LogicModel, options: Record<string, unk
 export interface ServerExtractResult {
   model: LogicModel;
   /**
-   * The model alias that actually answered. `EXTRACT_MODEL_ID` is a ROLLING alias, deliberately —
-   * a pinned snapshot gets sunset for new keys. The cost of that choice is that Google can rotate
-   * what answers underneath us, and until this field existed the record said only which prompt
-   * ran: an accuracy shift originating at Google would have left no trace anywhere in the
-   * extraction log, and we would have gone looking in our own diff.
+   * What we ASKED for — the configured model id, usually a rolling alias. See
+   * `server/geminiModelConfig.ts`.
    */
   modelId: string;
+  /**
+   * What ANSWERED, as reported by `response.modelVersion`, or `undefined` when the response did
+   * not say.
+   *
+   * The two differ whenever `modelId` is an alias, and the difference is the whole point. A
+   * rolling alias means Google can rotate the served model with no change on our side; recording
+   * only the alias is what let the 2026-10-07 roll to `gemini-3.8-flash` go unnoticed until an
+   * accuracy shift was blamed on our own diff. Never inferred and never defaulted to the alias: a
+   * caller that cannot read this writes "unknown", because a wrong provenance field is worse than
+   * an absent one.
+   */
+  servedModelId?: string;
   /** Exact prompt wording version that produced `model` — see `PROMPT_VERSION` in constants.ts. */
   promptVersion: string;
   /**
@@ -252,7 +277,7 @@ export async function extractLogicModelOnServer(
 
   const response = await withRetry(() =>
     ai.models.generateContent({
-      model: EXTRACT_MODEL_ID,
+      model: extractModelId(),
       contents: contents as never,
       config: {
         responseMimeType: 'application/json',
@@ -262,7 +287,7 @@ export async function extractLogicModelOnServer(
         // a supported GenerationConfig field.
         seed,
         // NO `thinkingConfig` HERE, AND DO NOT ADD ONE WITHOUT RUNNING THE REGRESSION SET.
-        // `EXTRACT_MODEL_ID` is a rolling alias that now resolves to `gemini-3.8-flash`, whose
+        // The configured model is a rolling alias that now resolves to `gemini-3.8-flash`, whose
         // thinking default is Medium. That default collapses two of the fifteen BENCHMARK
         // documents to a single item, and `thinkingLevel: LOW` scores the whole invented set at
         // 100%, so LOW was shipped in PR #36 on that evidence. It was wrong.
@@ -299,12 +324,14 @@ export async function extractLogicModelOnServer(
   // input the offline replay harness needs: normalization is a pure function of these two values,
   // so one saved pair turns every later post-processing experiment into a free, deterministic
   // diff instead of another paid extract call. See scripts/normalize-replay.ts.
-  dumpRawModel(seed, raw, normalizeOptions);
+  const served = servedModelId(response);
+  dumpRawModel(seed, raw, normalizeOptions, served);
   const model = normalizeExtractedLogicModel(raw, normalizeOptions);
 
   return {
     model,
-    modelId: EXTRACT_MODEL_ID,
+    modelId: extractModelId(),
+    servedModelId: served,
     promptVersion: PROMPT_VERSION,
     promptVariant: promptVariantLabel({ isVision, hasTextTrack, lowLegibility }),
   };

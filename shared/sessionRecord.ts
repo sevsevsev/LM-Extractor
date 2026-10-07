@@ -43,6 +43,7 @@ function toPersistedRecord(f: ProcessingFile): PersistedFileRecord {
     promptVersion: f.promptVersion,
     promptVariant: f.promptVariant,
     modelId: f.modelId,
+    servedModelId: f.servedModelId,
   };
 }
 
@@ -70,6 +71,7 @@ export function persistedRecordToProcessingFile(record: PersistedFileRecord): Pr
     promptVersion: record.promptVersion,
     promptVariant: record.promptVariant,
     modelId: record.modelId,
+    servedModelId: record.servedModelId,
   };
 }
 
