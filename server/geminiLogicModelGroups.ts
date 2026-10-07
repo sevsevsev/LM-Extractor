@@ -4,9 +4,7 @@ import type { DetectLogicModelGroupsInput, LogicModelPageGroup } from '../types.
 import { normalizeLogicModelPageGroups } from '../shared/logicModelPageGroups.js';
 import { withRetry } from './geminiRetry.js';
 import { deriveGeminiSeed } from './geminiSeed.js';
-
-/** Same rolling alias as extraction — see server/geminiLogicModel.ts for why. */
-const DETECT_MODEL_ID = 'gemini-flash-latest';
+import { DETECT_MODEL_ID } from './modelConfig.js';
 
 const detectSchema: Schema = {
   type: Type.OBJECT,
