@@ -314,3 +314,93 @@ test('a column can mix cells that split with cells that must survive whole', () 
   );
   assert.ok(mixed.length >= 3, 'the point is both kinds side by side, not one shape per column');
 });
+
+/**
+ * Written on 2026-10-07, after a request-parameter change (PR #36, reverted by #37) was proven by a
+ * paired same-bundle run to rewrite a real document's one-word activity labels into four-to-nine
+ * word phrases, losing all ten while the item count held at 33. The benchmark passed that change at
+ * 100%, because the shortest activities column in the set was four words at its shortest and the
+ * only one-word cells anywhere were a budget's cost centres, which are not expected in a column at
+ * all. The benchmark was not wrong, it was blind.
+ *
+ * This document is the eye. It is deliberately scored as well as declared: the second half asserts
+ * that paraphrasing its cells actually COSTS recall, so the document cannot be weakened into
+ * something that merely looks like a guard. An item count is held equal across both arms to show
+ * why nothing counting items could have caught this.
+ */
+test('the set prints an activities column of one- and two-word cells', () => {
+  const doc = loadAll().find(d => d.id === 'terse-activity-labels');
+  assert.ok(doc, 'terse-activity-labels must stay in the set');
+  const activities = doc.slides[0].columns.find(c => c.domain === 'activities');
+  assert.ok(activities, 'its activities column is the point of the document');
+  const words = activities.items.map(i => i.split(/\s+/).length).sort((a, b) => a - b);
+  assert.ok(words.filter(n => n === 1).length >= 5, `five single-word cells at least, got ${words}`);
+  assert.ok(words.every(n => n <= 2), `every cell one or two words, got ${words}`);
+  // Expected as items, not set aside as labels — a label would be unscored and lose nothing.
+  const expected = goldenFromDocument(doc).items.activities ?? [];
+  assert.equal(expected.length, activities.items.length);
+});
+
+test('paraphrasing the terse cells costs recall even when the item count holds', () => {
+  const doc = loadAll().find(d => d.id === 'terse-activity-labels');
+  assert.ok(doc, 'terse-activity-labels must stay in the set');
+  const golden = goldenFromDocument(doc);
+  const sourceText = documentTextTrack(doc);
+
+  const perfect = scoreExtraction(golden, perfectExtraction(doc), { sourceText });
+  assert.equal(perfect.recall, 1, 'the document must be scoreable before it is useful');
+
+  // The observed failure: each terse cell comes back as a descriptive phrase built around it.
+  const paraphrased = perfectExtraction(doc);
+  for (const group of (paraphrased.activities as { content: LogicModelGroup[] }).content) {
+    group.items = (group.items ?? []).map(item => ({
+      ...item,
+      text: `Weekly ${String(item.text).toLowerCase()} sessions for young people`,
+    }));
+  }
+  const expanded = scoreExtraction(golden, paraphrased, { sourceText });
+
+  assert.equal(expanded.actualCount, perfect.actualCount, 'the count is identical — that is the point');
+  assert.ok(expanded.recall < 0.6, `expansion must cost recall, got ${expanded.recall}`);
+  const lostActivities = expanded.misses.filter(m => m.domain === 'activities');
+  assert.equal(lostActivities.length, (golden.items.activities ?? []).length, 'every terse cell is lost');
+});
+
+/**
+ * The other half of 2026-10-07's lesson. PR #36 also cost a real review document eleven of its
+ * items, every one of them in `unmapped`, and the benchmark could not see that either: a document
+ * that expects no grid items scores `recall` 1 unconditionally, because there is nothing in the
+ * expected answer to miss. `not-a-logic-model` and `assessment-report-third-party` are both that
+ * shape, so a run returning a completely empty extraction scores a clean sheet on both — asserted
+ * below, because it is the blindness this document exists to close rather than a thing to fix in
+ * the scorer. Expecting the content in `unmapped` is the owner's 2026-09-28 decision written where
+ * a run is graded against it: a review document fills no column and still loses nothing.
+ */
+test('a review document expects its content in unmapped, so losing it is lost recall', () => {
+  const doc = loadAll().find(d => d.id === 'evaluator-report-content-preserved');
+  assert.ok(doc, 'evaluator-report-content-preserved must stay in the set');
+  const golden = goldenFromDocument(doc);
+  const sourceText = documentTextTrack(doc);
+
+  const grid = SCORED_DOMAINS.filter(d => d !== 'unmapped').flatMap(d => golden.items[d] ?? []);
+  assert.equal(grid.length, 0, 'nothing in this document belongs in a column');
+  assert.ok((golden.items.unmapped ?? []).length >= 10, 'a short document could be lost unnoticed');
+
+  const empty = () => {
+    const model: Record<string, { content: LogicModelGroup[] }> = {};
+    for (const domain of SCORED_DOMAINS) model[domain] = { content: [] };
+    return { organization: '', program: '', documentTypeAssessment: 'not_logic_model', ...model } as unknown as LogicModel;
+  };
+
+  assert.equal(scoreExtraction(golden, empty(), { sourceText }).recall, 0, 'returning nothing is total loss');
+
+  // The pair already in the set, scored the same way: both give an empty run a perfect recall.
+  for (const id of ['not-a-logic-model', 'assessment-report-third-party']) {
+    const other = loadAll().find(d => d.id === id);
+    assert.ok(other, `${id} must stay in the set`);
+    const score = scoreExtraction(goldenFromDocument(other), empty(), {
+      sourceText: documentTextTrack(other),
+    });
+    assert.equal(score.recall, 1, `${id} cannot see content loss — that is why the document above exists`);
+  }
+});
