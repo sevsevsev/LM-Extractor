@@ -74,7 +74,19 @@ interface Bundle {
   [key: string]: unknown;
 }
 
-async function extract(bundle: Bundle): Promise<{ model: LogicModel; promptVersion: string; promptVariant: string }> {
+interface ExtractResult {
+  model: LogicModel;
+  promptVersion: string;
+  promptVariant: string;
+  /**
+   * Which model answered. Recorded in the run record so a score is a claim about a
+   * (prompt, model) pair rather than about a prompt alone — a 100% here means nothing a month
+   * later if the alias has rotated and the record cannot say what it rotated from.
+   */
+  modelVersion?: string;
+}
+
+async function extract(bundle: Bundle): Promise<ExtractResult> {
   const response = await fetch(`${apiBase}/api/gemini/extract`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -84,6 +96,7 @@ async function extract(bundle: Bundle): Promise<{ model: LogicModel; promptVersi
     model?: LogicModel;
     promptVersion?: string;
     promptVariant?: string;
+    modelVersion?: string;
     error?: string;
   };
   if (!response.ok || !payload.model) throw new Error(payload.error || `extract failed (${response.status})`);
@@ -91,6 +104,7 @@ async function extract(bundle: Bundle): Promise<{ model: LogicModel; promptVersi
     model: payload.model,
     promptVersion: payload.promptVersion ?? 'unknown',
     promptVariant: payload.promptVariant ?? 'unknown',
+    modelVersion: payload.modelVersion,
   };
 }
 
@@ -143,13 +157,14 @@ async function main(): Promise<void> {
 
   const perPass: ExtractionScore[][] = [];
   let promptVersion = 'unknown';
+  let modelVersion: string | undefined;
 
   for (let pass = 1; pass <= passes; pass++) {
     if (passes > 1) console.log(`\n=== pass ${pass} of ${passes} ===`);
     const scores: ExtractionScore[] = [];
     for (const doc of docs) {
       const bundle = JSON.parse(readFileSync(path.join(bundlesDir, `${doc.id}.json`), 'utf8')) as Bundle;
-      let result: { model: LogicModel; promptVersion: string; promptVariant: string };
+      let result: ExtractResult;
       if (replay) {
         result = JSON.parse(readFileSync(path.join(extractionsDir, `${doc.id}.json`), 'utf8'));
       } else {
@@ -161,6 +176,7 @@ async function main(): Promise<void> {
         }
       }
       promptVersion = result.promptVersion;
+      modelVersion = result.modelVersion ?? modelVersion;
       const score = scoreExtraction(goldenFromDocument(doc), result.model, {
         // The bundle's own text track is what the model was shown; fall back to the spec's text
         // when a bundle carries none, so `unsourced` is never silently null.
@@ -230,7 +246,11 @@ async function main(): Promise<void> {
   const recordPath = path.join(runsDir, `${stamp}.json`);
   writeFileSync(
     recordPath,
-    JSON.stringify({ at: new Date().toISOString(), promptVersion, passes, scores: perPass }, null, 2)
+    JSON.stringify(
+      { at: new Date().toISOString(), promptVersion, modelVersion, passes, scores: perPass },
+      null,
+      2
+    )
   );
   console.log(`\nRun record: ${path.relative(root, recordPath)}`);
 }

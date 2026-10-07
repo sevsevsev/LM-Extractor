@@ -505,7 +505,7 @@ const App: React.FC = () => {
         //
         // The server also reports which prompt it used, so the extraction log can attribute a
         // result to an exact PROMPT_VERSION + variant rather than pooling unlike documents.
-        const { model: extractedResult, promptVersion, promptVariant, modelId } =
+        const { model: extractedResult, promptVersion, promptVariant, modelId, modelVersion } =
           await extractLogicModel(extractBundle);
         captureRegressionExtraction(files.find(f => f.id === fileId), extractBundle, {
           model: extractedResult,
@@ -548,6 +548,7 @@ const App: React.FC = () => {
                   promptVersion,
                   promptVariant,
                   modelId,
+                  modelVersion,
                   progressMsg: undefined,
                   error: undefined,
                   extractionBlockers: undefined,

@@ -53,8 +53,11 @@ export interface ExtractLogicModelResult {
   /** Prompt wording version + variant the server actually used — see constants.ts. */
   promptVersion?: string;
   promptVariant?: string;
-  /** The Gemini model alias that answered — a rolling alias, so it is recorded, not assumed. */
+  /** The Gemini model alias we asked for — a rolling alias, so it is recorded, not assumed. */
   modelId?: string;
+  /** The model that actually answered. The alias does not change when Google rotates what sits
+   * behind it, so this is the only field that can evidence a rotation. See `ServerExtractResult`. */
+  modelVersion?: string;
 }
 
 export const extractLogicModel = async (bundle: DocumentBundle): Promise<ExtractLogicModelResult> => {
@@ -63,6 +66,7 @@ export const extractLogicModel = async (bundle: DocumentBundle): Promise<Extract
     promptVersion?: string;
     promptVariant?: string;
     modelId?: string;
+    modelVersion?: string;
     error?: string;
   }>('/api/gemini/extract', bundle);
   if (!data.model) throw new Error('Server response missing logic model.');
@@ -71,6 +75,7 @@ export const extractLogicModel = async (bundle: DocumentBundle): Promise<Extract
     promptVersion: data.promptVersion,
     promptVariant: data.promptVariant,
     modelId: data.modelId,
+    modelVersion: data.modelVersion,
   };
 };
 

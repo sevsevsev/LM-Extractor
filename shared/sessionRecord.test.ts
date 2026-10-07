@@ -49,6 +49,10 @@ function fullRecord(): PersistedFileRecord {
     promptVersion: '2026-09-20.6',
     promptVariant: 'vision+text',
     modelId: 'gemini-flash-latest',
+    // Deliberately a different value from `modelId`: the alias asked for and the model that
+    // answered are two separate facts, and a round trip that conflated them would still pass if
+    // both fields held the same string.
+    modelVersion: 'gemini-3.8-flash',
   };
 }
 

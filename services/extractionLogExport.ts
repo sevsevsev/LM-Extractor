@@ -23,10 +23,14 @@ export const EXTRACTION_LOG_HEADERS = [
   // so any aggregate error rate must be grouped by these before it means anything.
   'prompt_version',
   'prompt_variant',
-  // Which model answered. `EXTRACT_MODEL_ID` is a rolling alias, so Google can rotate the served
-  // model with no change here — without this column an accuracy shift that originated there would
-  // leave no trace in the record, and the search would start in our own diff instead.
+  // Which model was ASKED for, and which one ANSWERED. `EXTRACT_MODEL_ID` is a rolling alias, so
+  // Google can rotate the served model with no change here — and `model_id` does not move when
+  // they do, which is why it alone was never enough: an accuracy shift originating at Google left
+  // no trace in the record and the search started in our own diff instead. `model_version` is the
+  // served model as Gemini reports it, so grouping a batch by it separates "Google changed the
+  // model" from "we changed the prompt".
   'model_id',
+  'model_version',
   'organization',
   'program',
   'qa_status',
@@ -88,6 +92,7 @@ export function buildExtractionLogRows(files: ProcessingFile[]): string[][] {
       f.promptVersion || '',
       f.promptVariant || '',
       f.modelId || '',
+      f.modelVersion || '',
       m?.organization || '',
       m?.program || '',
       m ? qaStatusLabel(m) : 'Error',

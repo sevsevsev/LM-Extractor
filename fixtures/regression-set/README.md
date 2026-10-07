@@ -11,6 +11,35 @@ npm run regression:check -- --update    # accept current output as the new basel
 npm run regression:check -- --only=oxford
 ```
 
+## Qualifying a different model, without editing code
+
+The model and the generation knobs that depend on which model it is live in
+`server/modelConfig.ts` and are read from the environment, so "does this still work on the next
+model" costs a server restart rather than a commit and a revert:
+
+```bash
+LM_EXTRACT_MODEL=gemini-3.7-flash npm run dev   # a candidate model
+LM_EXTRACT_THINKING_LEVEL=default npm run dev   # send no thinkingConfig at all
+LM_EXTRACT_THINKING_LEVEL=low npm run dev       # the shipped default, stated explicitly
+```
+
+`default` is a real arm, not an absence — on `gemini-3.8-flash` it is what extracts
+`seamaac-urban-arts` and `philadelphia-ballet-lets-dance` correctly, while the shipped `low` is
+what expands their short Activities labels at an unchanged item count. An unrecognised level makes
+the server refuse to start rather than fall back silently: an experiment that quietly runs the
+default and reports its numbers under the candidate's name is worse than one that will not start.
+
+Both variables are for experiments; normal runs set neither. There is no watch mode
+(`npm run dev` is plain `tsx server.ts`), so **a server started before a checkout keeps serving the
+old code** — restart between arms, and prefer reading `modelVersion` out of a response over
+trusting the commit on disk.
+
+Every extract response carries `modelVersion`, the model that actually answered (e.g.
+`gemini-3.8-flash`), as distinct from `modelId`, the alias asked for (`gemini-flash-latest`). It is
+recorded in snapshots, the benchmark run record and the extraction-log CSV, and the runner prints
+`· model A -> B` in a document's diff header when its baseline was captured on a different one —
+so a diff can no longer silently span a prompt change and a model rotation at once.
+
 ## Why this works at ten documents
 
 `server/geminiSeed.ts` keys Gemini's seed on **document content only** — never the prompt — and

@@ -20,6 +20,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { diffExtractions, formatExtractionDiff } from '../shared/extractionDiff.ts';
+import { modelChangeNote } from '../shared/modelChangeNote.ts';
 import { regressionOutcome } from '../shared/regressionOutcome.ts';
 import type { LogicModel } from '../types.ts';
 
@@ -41,6 +42,17 @@ interface Snapshot {
   id: string;
   promptVersion: string;
   promptVariant: string;
+  /**
+   * The model that produced this baseline, as Gemini reported it. A snapshot recording only
+   * `promptVersion` cannot be read honestly once the rolling alias moves: the 2026-10-07 run
+   * diffed baselines blessed on two older prompt versions against a newly rotated model, and
+   * nothing in the stored data said the model had changed — which made every difference
+   * unattributable without going back to the git log. A baseline is a claim about a
+   * (prompt, model) pair, so record both.
+   *
+   * Optional so snapshots committed before this field existed still load.
+   */
+  modelVersion?: string;
   capturedAt: string;
   model: LogicModel;
 }
@@ -66,7 +78,9 @@ function loadManifest(): ManifestEntry[] {
   return only ? entries.filter(e => e.id === only || e.id.includes(only)) : entries;
 }
 
-async function extract(bundle: unknown): Promise<{ model: LogicModel; promptVersion: string; promptVariant: string }> {
+async function extract(
+  bundle: unknown
+): Promise<{ model: LogicModel; promptVersion: string; promptVariant: string; modelVersion?: string }> {
   const response = await fetch(`${apiBase}/api/gemini/extract`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -76,6 +90,7 @@ async function extract(bundle: unknown): Promise<{ model: LogicModel; promptVers
     model?: LogicModel;
     promptVersion?: string;
     promptVariant?: string;
+    modelVersion?: string;
     error?: string;
   };
   if (!response.ok || !payload.model) {
@@ -85,6 +100,7 @@ async function extract(bundle: unknown): Promise<{ model: LogicModel; promptVers
     model: payload.model,
     promptVersion: payload.promptVersion ?? 'unknown',
     promptVariant: payload.promptVariant ?? 'unknown',
+    modelVersion: payload.modelVersion,
   };
 }
 
@@ -133,6 +149,7 @@ async function main(): Promise<void> {
       id: entry.id,
       promptVersion: result.promptVersion,
       promptVariant: result.promptVariant,
+      modelVersion: result.modelVersion,
       capturedAt: new Date().toISOString(),
       model: result.model,
     };
@@ -160,7 +177,13 @@ async function main(): Promise<void> {
       previous.promptVersion === result.promptVersion
         ? result.promptVersion
         : `${previous.promptVersion} -> ${result.promptVersion}`;
-    console.log(formatExtractionDiff(`${entry.label} [${versionNote}, ${result.promptVariant}]`, diff));
+    // Report a model rotation in the same breath as a prompt change, because a diff that spans
+    // both is not evidence about either on its own. Baselines written before `modelVersion`
+    // existed say nothing about their model, so say so rather than implying a change.
+    const modelNote = modelChangeNote(previous.modelVersion, result.modelVersion);
+    console.log(
+      formatExtractionDiff(`${entry.label} [${versionNote}${modelNote}, ${result.promptVariant}]`, diff)
+    );
 
     if (diff.unchanged) {
       unchanged++;
