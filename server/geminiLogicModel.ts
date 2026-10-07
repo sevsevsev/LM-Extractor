@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { GoogleGenAI, ThinkingLevel, Type, Schema } from '@google/genai';
+import { GoogleGenAI, Type, Schema } from '@google/genai';
 import { PROMPT_VERSION, getAiExtractionPrompt, promptVariantLabel } from '../constants.js';
 import {
   bundleImpliesLowLegibility,
@@ -261,19 +261,30 @@ export async function extractLogicModelOnServer(
         // them, and future ones return 400. Determinism now rests on `seed` alone, which is still
         // a supported GenerationConfig field.
         seed,
-        // `EXTRACT_MODEL_ID` is a rolling alias and it now resolves to `gemini-3.8-flash`, whose
-        // thinking default is Medium. That default BREAKS this extraction: measured 2026-10-07
-        // over the 15 benchmark documents, two of them (`inline-colon-labels` and
-        // `theory-of-change-own-voice`) come back with ONE item and nothing else — Gemini's raw
-        // answer, not our post-processing, with `finishReason: STOP` and ~1.7k thought tokens
-        // spent. `high` fails the same way; `low` returns no thoughts at all and scores the whole
-        // set at 100% (212 extracted / 186 expected), twice over, which is the number this set
-        // has always produced.
+        // NO `thinkingConfig` HERE, AND DO NOT ADD ONE WITHOUT RUNNING THE REGRESSION SET.
+        // `EXTRACT_MODEL_ID` is a rolling alias that now resolves to `gemini-3.8-flash`, whose
+        // thinking default is Medium. That default collapses two of the fifteen BENCHMARK
+        // documents to a single item, and `thinkingLevel: LOW` scores the whole invented set at
+        // 100%, so LOW was shipped in PR #36 on that evidence. It was wrong.
         //
-        // So this is a deliberate `low`, not a default. The call never set `thinkingBudget`, so
-        // nothing was migrated from it; the level is here because the new model needs it. Revisit
-        // when the alias rolls again — a run of `npm run benchmark:accuracy` is what catches it.
-        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+        // Measured 2026-10-07 on real documents, paired arms on the same PROMPT_VERSION
+        // (2026-09-28.3), same bundles, two runs per arm, every run identical within its arm:
+        //   - `seamaac` Activities: word counts 1,1,1,1,3,4,4,4,4,5 without the level, four of
+        //     them single words, 19 chars average. With LOW: ZERO labels of two words or fewer,
+        //     44 chars average. Item count 33 either way, so no count-based check can see it.
+        //     That is precisely the failure `seamaac`'s `covers` field exists to guard.
+        //   - `philadelphia-ballet-lets-dance` unmapped: 38 without the level, 27 with it.
+        //
+        // The invented decks contain no single-word-label case and no narrative
+        // not-a-logic-model case, so neither failure could appear there. The benchmark was not
+        // wrong, it was blind — which is why a generation-config change needs the regression set
+        // before it merges, not after. `MINIMAL` is not an escape: this model rejects it with
+        // 400 "Thinking level MINIMAL is not supported for this model" (tested, not inferred),
+        // and `high` collapses the benchmark the same way Medium does.
+        //
+        // So the Medium default stands, and the benchmark collapse is open rather than fixed. It
+        // has never been reproduced on any real document. Whatever fixes it must be measured on
+        // the regression set, and the decks need those two shapes added first.
       },
     })
   );
