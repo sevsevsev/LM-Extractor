@@ -26,6 +26,47 @@ Builds the client, then serves API + `dist` from Express on `:3011` (override wi
 - `npm run split:survey` — every blessed snapshot cell that the run-on splitter would divide, and into what
 - `npm start` — build + production server
 
+## Which Gemini model answers
+
+Both Gemini calls read their model from `server/geminiModelConfig.ts`. The default is the rolling
+alias `gemini-flash-latest`, because a dated snapshot gets sunset for new API keys —
+`gemini-2.5-flash` already returns 404 "no longer available to new users" on a freshly created key.
+
+The price of a rolling alias is that Google can change what answers with no change here, and on
+2026-10-07 it did: the alias moved to `gemini-3.8-flash` and extraction accuracy moved with it. So
+two things are true of this codebase and should stay true.
+
+**The model is configuration, not code.** Override either call without touching a file:
+
+```bash
+LM_EXTRACT_MODEL=gemini-3.7-flash npm run benchmark:accuracy   # score a candidate
+LM_EXTRACT_MODEL=gemini-3.7-flash npm run regression:check     # the real set, on his machine
+LM_DETECT_MODEL=gemini-3.8-flash npm run dev                   # page-group detection only
+```
+
+`LM_EXTRACT_THINKING_LEVEL` is there for the same reason, as an experiment knob with no shipped
+effect: unset (and `=default`) sends no `thinkingConfig` at all, which is the measured default —
+`thinkingLevel: low` scored the invented benchmark at 100% and cost two real documents accuracy
+(PR #36, reverted by #37). An unrecognised value refuses to start rather than quietly running the
+default and filing its numbers under the candidate's name.
+
+A blank value means unset. `CANDIDATE_MODEL_IDS` in that module is the short list worth scoring
+when the served model changes — a list, deliberately, because picking one model and tuning to it is
+the same bet in different clothes, due again at the next rotation. Membership means "worth
+measuring", never "known good".
+
+**Every result records which model produced it.** `served_model_id` in the extraction-log CSV, the
+`servedModelId` field on regression snapshots and in benchmark run records, and the `LM_DUMP_RAW`
+dumps all carry `response.modelVersion` — what answered, as distinct from the alias we asked for.
+Absent means unknown and never "the same as the alias". `npm run regression:check` says out loud
+when a baseline was captured on a different served model than the one answering, because a diff
+spanning a model change attributes nothing.
+
+What none of this does is make extraction model-independent. The prompt is tuned against observed
+model behaviour and extraction quality is a property of the model, so a model change always needs
+measuring on `fixtures/regression-set/` as well as the benchmark. What it removes is the cost of
+measuring it.
+
 ## Hosted deploy (Vercel)
 
 The same API is exposed two ways so one codebase serves both targets:

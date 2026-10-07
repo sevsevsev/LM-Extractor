@@ -30,8 +30,10 @@ export interface PersistedFileRecord {
   /** Which prompt produced `result` — kept so a resumed session still exports an honest log. */
   promptVersion?: string;
   promptVariant?: string;
-  /** Which model answered — see ProcessingFile.modelId. Kept so a resumed session logs honestly. */
+  /** Which model was asked for — see ProcessingFile.modelId. Kept so a resumed session logs honestly. */
   modelId?: string;
+  /** Which model answered — see ProcessingFile.servedModelId. Absent on records written before it existed. */
+  servedModelId?: string;
 }
 
 /** As actually stored in the `files` object store — `file` omitted for a split entry. */

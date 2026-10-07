@@ -23,6 +23,18 @@ into "diff ten outputs" — in the common case, with no statistics needed.
 `top_k`; newer models ignore them and future ones reject them, so the calls no longer send one and
 `seed` is the only stabilizer left. Reproduction may be looser than the numbers below recorded.
 
+**A baseline is a statement about a (prompt, model) pair, not about a prompt.** Snapshots record
+`promptVersion` and `servedModelId` — what actually answered, per `response.modelVersion`. They
+recorded only the prompt until 2026-10-07, which is why that day's seventeen-document diff could
+not be interpreted: it spanned two prompt versions *and* a silent rotation of `gemini-flash-latest`
+to `gemini-3.8-flash`, with nothing in the data saying so. `regression:check` now names the pair on
+every row and prints a warning listing any document whose baseline came from a different served
+model than the one answering, because such a diff attributes nothing. Baselines blessed before the
+field existed read `unknown`, which is never treated as agreeing with the model running now. To
+compare against one of those honestly, pin the model with `LM_EXTRACT_MODEL` (see
+`server/geminiModelConfig.ts`) or re-bless on the current model first and change one thing at a
+time.
+
 **This is not absolute, and it's been observed to matter in practice.** `geminiSeed.ts`'s own
 comment is upfront that Gemini's seed is "mostly deterministic... not a guaranteed absolute
 deterministic behavior" — a stabilizer for sampling noise, not a hard guarantee. Confirmed

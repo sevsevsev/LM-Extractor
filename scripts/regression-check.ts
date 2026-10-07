@@ -41,6 +41,20 @@ interface Snapshot {
   id: string;
   promptVersion: string;
   promptVariant: string;
+  /**
+   * Which model ANSWERED when this baseline was captured, per `response.modelVersion`.
+   *
+   * A baseline is a statement about a (prompt, model) PAIR, not about a prompt. Snapshots recorded
+   * only `promptVersion` until 2026-10-07, which is exactly why that day's seventeen-document diff
+   * could not be interpreted: it spanned two prompt versions AND a silent rotation of
+   * `gemini-flash-latest` to `gemini-3.8-flash`, and nothing in the data said so.
+   *
+   * `'unknown'` on every baseline blessed before this field existed. Absent or unknown is never
+   * treated as equal to the running model, and a difference here is REPORTED but is never itself a
+   * diff: the comparison is of extracted content, and silently failing a document because its
+   * baseline predates this field would make the harness useless on the set it already has.
+   */
+  servedModelId?: string;
   capturedAt: string;
   model: LogicModel;
 }
@@ -66,7 +80,9 @@ function loadManifest(): ManifestEntry[] {
   return only ? entries.filter(e => e.id === only || e.id.includes(only)) : entries;
 }
 
-async function extract(bundle: unknown): Promise<{ model: LogicModel; promptVersion: string; promptVariant: string }> {
+async function extract(
+  bundle: unknown
+): Promise<{ model: LogicModel; promptVersion: string; promptVariant: string; servedModelId: string }> {
   const response = await fetch(`${apiBase}/api/gemini/extract`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -76,6 +92,7 @@ async function extract(bundle: unknown): Promise<{ model: LogicModel; promptVers
     model?: LogicModel;
     promptVersion?: string;
     promptVariant?: string;
+    servedModelId?: string;
     error?: string;
   };
   if (!response.ok || !payload.model) {
@@ -85,6 +102,7 @@ async function extract(bundle: unknown): Promise<{ model: LogicModel; promptVers
     model: payload.model,
     promptVersion: payload.promptVersion ?? 'unknown',
     promptVariant: payload.promptVariant ?? 'unknown',
+    servedModelId: payload.servedModelId ?? 'unknown',
   };
 }
 
@@ -103,6 +121,13 @@ async function main(): Promise<void> {
   const unblessed: ManifestEntry[] = [];
   const failures: { entry: ManifestEntry; error: string }[] = [];
   const variantsSeen = new Set<string>();
+  /**
+   * Documents whose baseline was captured on a different served model than the one answering now
+   * (or on none recorded at all). Collected so the summary can say it out loud: a diff that spans
+   * a model change attributes nothing, and the alternative is reading a list of moved documents
+   * and reaching for our own diff first, which is what happened on 2026-10-07.
+   */
+  const modelMoved: string[] = [];
 
   console.log(`Regression set: ${entries.length} document(s) via ${apiBase}\n`);
 
@@ -133,6 +158,7 @@ async function main(): Promise<void> {
       id: entry.id,
       promptVersion: result.promptVersion,
       promptVariant: result.promptVariant,
+      servedModelId: result.servedModelId,
       capturedAt: new Date().toISOString(),
       model: result.model,
     };
@@ -144,13 +170,16 @@ async function main(): Promise<void> {
         unblessed.push(entry);
         console.log(
           `  ? ${entry.label} — ran, but there is no committed snapshot to check it against ` +
-            `(${result.promptVersion}, ${result.promptVariant})`
+            `(${result.promptVersion}, ${result.promptVariant}, ${result.servedModelId})`
         );
         continue;
       }
       writeFileSync(snapshotPath, `${JSON.stringify(snapshot, null, 2)}\n`);
       updated++;
-      console.log(`  + ${entry.label} — new baseline (${result.promptVersion}, ${result.promptVariant})`);
+      console.log(
+        `  + ${entry.label} — new baseline ` +
+          `(${result.promptVersion}, ${result.promptVariant}, ${result.servedModelId})`
+      );
       continue;
     }
 
@@ -160,7 +189,18 @@ async function main(): Promise<void> {
       previous.promptVersion === result.promptVersion
         ? result.promptVersion
         : `${previous.promptVersion} -> ${result.promptVersion}`;
-    console.log(formatExtractionDiff(`${entry.label} [${versionNote}, ${result.promptVariant}]`, diff));
+    // A baseline blessed before snapshots recorded the served model reads as 'unknown', which is
+    // not a claim that the model is the same one. Shown either way so the header says what pair
+    // this comparison actually spans.
+    const baselineModel = previous.servedModelId ?? 'unknown';
+    const modelNote =
+      baselineModel === result.servedModelId
+        ? result.servedModelId
+        : `${baselineModel} -> ${result.servedModelId}`;
+    if (baselineModel !== result.servedModelId) modelMoved.push(entry.id);
+    console.log(
+      formatExtractionDiff(`${entry.label} [${versionNote}, ${result.promptVariant}, ${modelNote}]`, diff)
+    );
 
     if (diff.unchanged) {
       unchanged++;
@@ -176,6 +216,19 @@ async function main(): Promise<void> {
   console.log('\n---');
   console.log(`unchanged ${unchanged}  changed ${changed}  baselines written ${updated}`);
   if (variantsSeen.size > 0) console.log(`variants exercised: ${[...variantsSeen].sort().join(', ')}`);
+
+  if (modelMoved.length > 0) {
+    console.log(
+      `\n! ${modelMoved.length} document(s) have a baseline from a DIFFERENT served model than the one ` +
+        'answering now, so any difference below mixes a model change with your own:'
+    );
+    for (const id of modelMoved) console.log(`  - ${id}`);
+    console.log(
+      '  A comparison spanning a model change attributes nothing. Either re-bless on this model ' +
+        'first and change one thing at a time, or pin the baseline\'s model with LM_EXTRACT_MODEL ' +
+        '(see server/geminiModelConfig.ts) and run again.'
+    );
+  }
 
   if (missingBundles.length > 0) {
     console.log(`\n${missingBundles.length} document(s) have no captured bundle and were NOT tested:`);

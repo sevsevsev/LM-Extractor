@@ -327,12 +327,18 @@ export interface ProcessingFile {
   promptVersion?: string;
   promptVariant?: string;
   /**
-   * Which Gemini model answered, as reported by the server. `EXTRACT_MODEL_ID` is a ROLLING alias
-   * (a pinned snapshot gets sunset for new keys), so Google can change what answers underneath us
-   * with no code change here. Recorded per file so that an accuracy shift can be attributed to a
-   * model rotation rather than hunted for in our own diff.
+   * Which Gemini model the server ASKED for — normally a rolling alias, since a pinned snapshot
+   * gets sunset for new keys. Configured in `server/geminiModelConfig.ts`.
    */
   modelId?: string;
+  /**
+   * Which Gemini model ANSWERED, as the response reported it. Recorded per file because a rolling
+   * alias means Google can change this with no code change here: on 2026-10-07 the alias moved to
+   * `gemini-3.8-flash` and, with only the alias recorded, the resulting accuracy shift was hunted
+   * for in our own diff for three weeks. Absent on files extracted before this field existed, and
+   * on a response that did not report it — treat absent as unknown, never as equal to `modelId`.
+   */
+  servedModelId?: string;
   /**
    * Set by the "Treat as one logic model" revert action (or could be set some other way in
    * future) — when a file with this flag reaches conversion, the multi-logic-model detection

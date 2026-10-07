@@ -4,9 +4,7 @@ import type { DetectLogicModelGroupsInput, LogicModelPageGroup } from '../types.
 import { normalizeLogicModelPageGroups } from '../shared/logicModelPageGroups.js';
 import { withRetry } from './geminiRetry.js';
 import { deriveGeminiSeed } from './geminiSeed.js';
-
-/** Same rolling alias as extraction — see server/geminiLogicModel.ts for why. */
-const DETECT_MODEL_ID = 'gemini-flash-latest';
+import { detectModelId } from './geminiModelConfig.js';
 
 const detectSchema: Schema = {
   type: Type.OBJECT,
@@ -61,7 +59,7 @@ export async function detectLogicModelGroupsOnServer(
   try {
     const response = await withRetry(() =>
       ai.models.generateContent({
-        model: DETECT_MODEL_ID,
+        model: detectModelId(),
         contents: { parts } as never,
         config: {
           responseMimeType: 'application/json',

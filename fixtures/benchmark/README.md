@@ -44,6 +44,24 @@ npm run benchmark:accuracy -- --replay   # re-score the saved answers, zero call
 npm run benchmark:accuracy -- --passes=3 # report whether the SCORE moves between runs
 ```
 
+## A score belongs to a model
+
+Every run prints `prompt <version>  requested <id>  answered <id>` and files the same in its run
+record under `promptVersion`, `requestedModelId` and `servedModelIds`. That is not bookkeeping: on
+2026-10-07 this set scored 100% and then 87.1% with no change on our side, because
+`gemini-flash-latest` rotated to `gemini-3.8-flash` underneath it. A score filed without the model
+that produced it is a number nobody can use later.
+
+To score a candidate, set the model rather than editing source:
+
+```bash
+LM_EXTRACT_MODEL=gemini-3.7-flash npm run benchmark:accuracy
+```
+
+`CANDIDATE_MODEL_IDS` in `server/geminiModelConfig.ts` is the short list worth scoring when the
+served model moves. A perfect score here still does not clear a model for use — see **What it
+cannot tell you** below, and run `fixtures/regression-set/` as well.
+
 ## The four numbers
 
 | | |

@@ -90,9 +90,33 @@ test('buildExtractionLogRows records which prompt version and variant produced t
 
 test('buildExtractionLogRows records which model answered, not only which prompt ran', () => {
   // The extract model is a rolling alias, so the served model can change with no code change here.
-  // Without this column an accuracy shift originating at Google leaves no trace in the record.
+  // Without these columns an accuracy shift originating at Google leaves no trace in the record.
+  const rows = buildExtractionLogRows([
+    fakeFile('f1', { modelId: 'gemini-flash-latest', servedModelId: 'gemini-3.8-flash' }),
+  ]);
+  assert.equal(cell(rows[0], 'model_id'), 'gemini-flash-latest');
+  assert.equal(cell(rows[0], 'served_model_id'), 'gemini-3.8-flash');
+});
+
+/**
+ * The two columns exist precisely because they differ: the alias is what we asked for, and the
+ * rotation it hides is what a later reader needs. A row recording only the alias cannot answer
+ * "which model produced this", which is the question the 2026-10-07 roll left unanswerable across
+ * three weeks of exports.
+ */
+test('the asked-for model and the answering model are separate columns', () => {
+  const rows = buildExtractionLogRows([
+    fakeFile('f1', { modelId: 'gemini-flash-latest', servedModelId: 'gemini-3.8-flash' }),
+  ]);
+  assert.notEqual(cell(rows[0], 'model_id'), cell(rows[0], 'served_model_id'));
+});
+
+test('served_model_id is blank, never the alias, when the response did not say', () => {
+  // Blank means unknown. Defaulting it to the alias would manufacture a provenance claim, which is
+  // worse than admitting the row predates the field.
   const rows = buildExtractionLogRows([fakeFile('f1', { modelId: 'gemini-flash-latest' })]);
   assert.equal(cell(rows[0], 'model_id'), 'gemini-flash-latest');
+  assert.equal(cell(rows[0], 'served_model_id'), '');
 });
 
 test('buildExtractionLogRows leaves prompt columns blank for a file extracted before they existed', () => {
@@ -102,6 +126,7 @@ test('buildExtractionLogRows leaves prompt columns blank for a file extracted be
   assert.equal(cell(rows[0], 'prompt_version'), '');
   assert.equal(cell(rows[0], 'prompt_variant'), '');
   assert.equal(cell(rows[0], 'model_id'), '');
+  assert.equal(cell(rows[0], 'served_model_id'), '');
 });
 
 test('buildExtractionLogRows carries blockers, counts, and a Needs Review status for a flagged file', () => {

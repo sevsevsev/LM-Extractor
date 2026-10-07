@@ -42,6 +42,7 @@ import {
   type ExtractionScore,
 } from '../shared/extractionScore.ts';
 import type { LogicModel } from '../types.ts';
+import { CANDIDATE_MODEL_IDS, extractModelId } from '../server/geminiModelConfig.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const setDir = path.join(root, 'fixtures', 'benchmark');
@@ -74,7 +75,9 @@ interface Bundle {
   [key: string]: unknown;
 }
 
-async function extract(bundle: Bundle): Promise<{ model: LogicModel; promptVersion: string; promptVariant: string }> {
+async function extract(
+  bundle: Bundle
+): Promise<{ model: LogicModel; promptVersion: string; promptVariant: string; servedModelId: string }> {
   const response = await fetch(`${apiBase}/api/gemini/extract`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -83,6 +86,7 @@ async function extract(bundle: Bundle): Promise<{ model: LogicModel; promptVersi
   const payload = (await response.json().catch(() => ({}))) as {
     model?: LogicModel;
     promptVersion?: string;
+    servedModelId?: string;
     promptVariant?: string;
     error?: string;
   };
@@ -90,6 +94,7 @@ async function extract(bundle: Bundle): Promise<{ model: LogicModel; promptVersi
   return {
     model: payload.model,
     promptVersion: payload.promptVersion ?? 'unknown',
+    servedModelId: payload.servedModelId ?? 'unknown',
     promptVariant: payload.promptVariant ?? 'unknown',
   };
 }
@@ -143,13 +148,24 @@ async function main(): Promise<void> {
 
   const perPass: ExtractionScore[][] = [];
   let promptVersion = 'unknown';
+  /**
+   * Which model actually answered. A benchmark number is a statement about a (prompt, model) pair:
+   * this set scored 100% on one served model and 87.1% on the next with no change on our side, so
+   * a score filed without the model is a number nobody can use later.
+   */
+  const servedModels = new Set<string>();
 
   for (let pass = 1; pass <= passes; pass++) {
     if (passes > 1) console.log(`\n=== pass ${pass} of ${passes} ===`);
     const scores: ExtractionScore[] = [];
     for (const doc of docs) {
       const bundle = JSON.parse(readFileSync(path.join(bundlesDir, `${doc.id}.json`), 'utf8')) as Bundle;
-      let result: { model: LogicModel; promptVersion: string; promptVariant: string };
+      let result: {
+        model: LogicModel;
+        promptVersion: string;
+        promptVariant: string;
+        servedModelId?: string;
+      };
       if (replay) {
         result = JSON.parse(readFileSync(path.join(extractionsDir, `${doc.id}.json`), 'utf8'));
       } else {
@@ -161,6 +177,9 @@ async function main(): Promise<void> {
         }
       }
       promptVersion = result.promptVersion;
+      // A saved answer from before this field existed replays as 'unknown' rather than as the
+      // model running now, which would be a fabricated provenance.
+      servedModels.add(result.servedModelId ?? 'unknown');
       const score = scoreExtraction(goldenFromDocument(doc), result.model, {
         // The bundle's own text track is what the model was shown; fall back to the spec's text
         // when a bundle carries none, so `unsourced` is never silently null.
@@ -202,6 +221,19 @@ async function main(): Promise<void> {
     );
   }
 
+  /**
+   * The pair this score belongs to, printed where the score is read rather than only filed in the
+   * run record. A benchmark total means nothing without the model that produced it: this set
+   * scored 100% and then 87.1% with no change on our side, because the alias moved.
+   */
+  const served = [...servedModels].sort().join(', ') || 'unknown';
+  console.log(`\nprompt ${promptVersion}  requested ${extractModelId()}  answered ${served}`);
+  const others = CANDIDATE_MODEL_IDS.filter(id => !servedModels.has(id) && id !== extractModelId());
+  if (others.length > 0) {
+    console.log(`to score a candidate: LM_EXTRACT_MODEL=${others[0]} npm run benchmark:accuracy`);
+    console.log(`candidates: ${CANDIDATE_MODEL_IDS.join(', ')} (worth measuring, not known good)`);
+  }
+
   if (passes > 1) {
     // Reproducibility of the SCORE, which is the axis the launch gate is defined on. Two passes
     // that agree do not prove stability — they only fail to disprove it — so the wording matches
@@ -230,7 +262,18 @@ async function main(): Promise<void> {
   const recordPath = path.join(runsDir, `${stamp}.json`);
   writeFileSync(
     recordPath,
-    JSON.stringify({ at: new Date().toISOString(), promptVersion, passes, scores: perPass }, null, 2)
+    JSON.stringify(
+      {
+        at: new Date().toISOString(),
+        promptVersion,
+        servedModelIds: [...servedModels].sort(),
+        requestedModelId: extractModelId(),
+        passes,
+        scores: perPass,
+      },
+      null,
+      2
+    )
   );
   console.log(`\nRun record: ${path.relative(root, recordPath)}`);
 }

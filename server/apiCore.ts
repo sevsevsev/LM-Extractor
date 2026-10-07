@@ -117,8 +117,9 @@ export async function handleExtractRequest(rawBody: unknown): Promise<ApiResult>
       };
     }
 
-    const { model, modelId, promptVersion, promptVariant } = await extractLogicModelOnServer(apiKey, bundle);
-    return { status: 200, body: { model, modelId, promptVersion, promptVariant } };
+    const { model, modelId, servedModelId, promptVersion, promptVariant } =
+      await extractLogicModelOnServer(apiKey, bundle);
+    return { status: 200, body: { model, modelId, servedModelId, promptVersion, promptVariant } };
   } catch (error) {
     return errorResult(error);
   }
