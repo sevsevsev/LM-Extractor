@@ -2,8 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   CANDIDATE_MODEL_IDS,
+  THINKING_LEVELS,
   detectModelId,
   extractModelId,
+  extractThinkingLevel,
   servedModelId,
 } from './geminiModelConfig.ts';
 
@@ -93,4 +95,41 @@ test('the candidate list is a non-empty list of distinct ids including the defau
   assert.ok(CANDIDATE_MODEL_IDS.length >= 2, 'a list of one is a pin, which is the thing it avoids');
   assert.equal(new Set(CANDIDATE_MODEL_IDS).size, CANDIDATE_MODEL_IDS.length, 'no duplicates');
   assert.ok(CANDIDATE_MODEL_IDS.includes('gemini-flash-latest'), 'the default is measurable too');
+});
+
+test('no thinking level is sent unless an experiment asks for one', () => {
+  // The shipped default, and a measured decision: `thinkingLevel: LOW` scored the invented
+  // benchmark at 100% and cost two real documents accuracy (PR #36, reverted by #37).
+  withEnv({ LM_EXTRACT_THINKING_LEVEL: undefined }, () => assert.equal(extractThinkingLevel(), null));
+  for (const explicit of ['default', 'none', 'unset', 'DEFAULT']) {
+    withEnv({ LM_EXTRACT_THINKING_LEVEL: explicit }, () =>
+      assert.equal(extractThinkingLevel(), null, explicit)
+    );
+  }
+});
+
+test('each thinking level is selectable, case-insensitively', () => {
+  for (const level of THINKING_LEVELS) {
+    withEnv({ LM_EXTRACT_THINKING_LEVEL: level }, () => assert.equal(extractThinkingLevel(), level));
+    withEnv({ LM_EXTRACT_THINKING_LEVEL: level.toUpperCase() }, () =>
+      assert.equal(extractThinkingLevel(), level, level.toUpperCase())
+    );
+  }
+});
+
+/**
+ * The failure this prevents is not a crash, it is a confidently mislabelled measurement: an
+ * experiment that silently runs the default and files its numbers under the candidate's name.
+ */
+test('an unrecognised thinking level throws instead of quietly running the default', () => {
+  for (const bad of ['lowish', 'off', 'LOWEST', '0', '-1']) {
+    withEnv({ LM_EXTRACT_THINKING_LEVEL: bad }, () => {
+      assert.throws(() => extractThinkingLevel(), /is not a thinking level/, bad);
+    });
+  }
+  // And the message names the way out, so nobody has to read the source to recover.
+  withEnv({ LM_EXTRACT_THINKING_LEVEL: 'lowish' }, () => {
+    assert.throws(() => extractThinkingLevel(), /minimal, low, medium, high/);
+    assert.throws(() => extractThinkingLevel(), /"default"/);
+  });
 });

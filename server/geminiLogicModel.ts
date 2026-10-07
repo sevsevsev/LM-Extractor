@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { GoogleGenAI, Type, Schema } from '@google/genai';
+import { GoogleGenAI, Type, Schema, ThinkingLevel } from '@google/genai';
 import { PROMPT_VERSION, getAiExtractionPrompt, promptVariantLabel } from '../constants.js';
 import {
   bundleImpliesLowLegibility,
@@ -11,7 +11,7 @@ import { parseLogicModelResponse } from '../shared/logicModelValidate.js';
 import { normalizeExtractedLogicModel } from '../shared/extractNormalize.js';
 import { withRetry } from './geminiRetry.js';
 import { deriveGeminiSeed } from './geminiSeed.js';
-import { extractModelId, servedModelId } from './geminiModelConfig.js';
+import { extractModelId, extractThinkingLevel, servedModelId } from './geminiModelConfig.js';
 
 /**
  * Which model answers, and why the default is a rolling alias, now live in
@@ -216,6 +216,27 @@ export interface ServerExtractResult {
   promptVariant: string;
 }
 
+/**
+ * The SDK's enum, or `undefined` for "send no `thinkingConfig`" — which is the shipped behaviour.
+ *
+ * A string literal does not typecheck against `ThinkingLevel` (TS2820), so the mapping is explicit
+ * rather than a cast: a cast would compile today and send a wire value the SDK never promised.
+ */
+function thinkingConfigForRequest(): { thinkingLevel: ThinkingLevel } | undefined {
+  switch (extractThinkingLevel()) {
+    case 'minimal':
+      return { thinkingLevel: ThinkingLevel.MINIMAL };
+    case 'low':
+      return { thinkingLevel: ThinkingLevel.LOW };
+    case 'medium':
+      return { thinkingLevel: ThinkingLevel.MEDIUM };
+    case 'high':
+      return { thinkingLevel: ThinkingLevel.HIGH };
+    default:
+      return undefined;
+  }
+}
+
 export async function extractLogicModelOnServer(
   apiKey: string,
   bundle: DocumentBundle
@@ -275,6 +296,9 @@ export async function extractLogicModelOnServer(
   // the same document share a seed and the comparison between them is paired. See geminiSeed.ts.
   const seed = deriveGeminiSeed([textTrack, ...images]);
 
+  // Resolved before the request is built so an unusable value fails here, not after a paid call.
+  const thinkingConfig = thinkingConfigForRequest();
+
   const response = await withRetry(() =>
     ai.models.generateContent({
       model: extractModelId(),
@@ -286,7 +310,10 @@ export async function extractLogicModelOnServer(
         // them, and future ones return 400. Determinism now rests on `seed` alone, which is still
         // a supported GenerationConfig field.
         seed,
-        // NO `thinkingConfig` HERE, AND DO NOT ADD ONE WITHOUT RUNNING THE REGRESSION SET.
+        // NO `thinkingConfig` BY DEFAULT, AND DO NOT CHANGE THAT DEFAULT WITHOUT RUNNING THE
+        // REGRESSION SET. `LM_EXTRACT_THINKING_LEVEL` can set one for an EXPERIMENT — see
+        // `server/geminiModelConfig.ts` — and sends nothing when unset, which is the shipped
+        // behaviour and the measured one.
         // The configured model is a rolling alias that now resolves to `gemini-3.8-flash`, whose
         // thinking default is Medium. That default collapses two of the fifteen BENCHMARK
         // documents to a single item, and `thinkingLevel: LOW` scores the whole invented set at
@@ -310,6 +337,7 @@ export async function extractLogicModelOnServer(
         // So the Medium default stands, and the benchmark collapse is open rather than fixed. It
         // has never been reproduced on any real document. Whatever fixes it must be measured on
         // the regression set, and the decks need those two shapes added first.
+        ...(thinkingConfig ? { thinkingConfig } : {}),
       },
     })
   );

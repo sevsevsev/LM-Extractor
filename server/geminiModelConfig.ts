@@ -92,3 +92,43 @@ export function servedModelId(response: unknown): string | undefined {
   const trimmed = version.trim();
   return trimmed.length > 0 ? trimmed : undefined;
 }
+
+/**
+ * The thinking level for the extraction call, as an EXPERIMENT KNOB with no shipped effect.
+ *
+ * Default: unset, meaning no `thinkingConfig` is sent at all and the model's own default stands.
+ * That is deliberate and it is a measured decision, not an omission — see the long comment at the
+ * request in `server/geminiLogicModel.ts`. In short, `thinkingLevel: LOW` scored the invented
+ * benchmark at 100% and cost two real documents accuracy (PR #36, reverted by #37), so the default
+ * here must keep sending nothing.
+ *
+ * It exists anyway because being unable to select an arm without editing tracked source is what
+ * made that question expensive: every one of the day's measurements needed a source edit, a server
+ * restart and a revert. A knob that only an experiment sets is cheap; re-running that experiment
+ * by hand is not.
+ *
+ * An unrecognised value THROWS rather than falling back to the default. An experiment that quietly
+ * runs the default and files its numbers under the candidate's name is a worse failure than one
+ * that refuses to start, and this project has already been burned once by a measurement that
+ * turned out to describe a different arm than its label claimed.
+ */
+export const THINKING_LEVELS = ['minimal', 'low', 'medium', 'high'] as const;
+
+export type ThinkingLevelName = (typeof THINKING_LEVELS)[number];
+
+/**
+ * `null` means send no `thinkingConfig`, which is both the default and what `=default` selects
+ * explicitly. Not every level is accepted by every model: `gemini-3.8-flash` rejects `minimal`
+ * with a 400, which is the model's answer to give, not ours to pre-empt.
+ */
+export function extractThinkingLevel(): ThinkingLevelName | null {
+  const raw = fromEnv('LM_EXTRACT_THINKING_LEVEL');
+  if (raw === null) return null;
+  const value = raw.toLowerCase();
+  if (value === 'default' || value === 'none' || value === 'unset') return null;
+  if ((THINKING_LEVELS as readonly string[]).includes(value)) return value as ThinkingLevelName;
+  throw new Error(
+    `LM_EXTRACT_THINKING_LEVEL=${raw} is not a thinking level. ` +
+      `Use one of ${THINKING_LEVELS.join(', ')}, or "default" to send none (the shipped behaviour).`
+  );
+}

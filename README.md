@@ -44,6 +44,12 @@ LM_EXTRACT_MODEL=gemini-3.7-flash npm run regression:check     # the real set, o
 LM_DETECT_MODEL=gemini-3.8-flash npm run dev                   # page-group detection only
 ```
 
+`LM_EXTRACT_THINKING_LEVEL` is there for the same reason, as an experiment knob with no shipped
+effect: unset (and `=default`) sends no `thinkingConfig` at all, which is the measured default —
+`thinkingLevel: low` scored the invented benchmark at 100% and cost two real documents accuracy
+(PR #36, reverted by #37). An unrecognised value refuses to start rather than quietly running the
+default and filing its numbers under the candidate's name.
+
 A blank value means unset. `CANDIDATE_MODEL_IDS` in that module is the short list worth scoring
 when the served model changes — a list, deliberately, because picking one model and tuning to it is
 the same bet in different clothes, due again at the next rotation. Membership means "worth
