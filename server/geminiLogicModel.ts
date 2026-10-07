@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { GoogleGenAI, Type, Schema } from '@google/genai';
+import { GoogleGenAI, ThinkingLevel, Type, Schema } from '@google/genai';
 import { PROMPT_VERSION, getAiExtractionPrompt, promptVariantLabel } from '../constants.js';
 import {
   bundleImpliesLowLegibility,
@@ -259,10 +259,21 @@ export async function extractLogicModelOnServer(
         responseSchema: extractModelSchema,
         // No `temperature`/`topP`/`topK`: Google deprecated them. Newer Gemini models ignore
         // them, and future ones return 400. Determinism now rests on `seed` alone, which is still
-        // a supported GenerationConfig field. No `thinkingConfig` is set either — this call has
-        // never set one, so the model default applies and nothing had to be migrated from the
-        // removed `thinkingBudget` to `thinkingLevel`.
+        // a supported GenerationConfig field.
         seed,
+        // `EXTRACT_MODEL_ID` is a rolling alias and it now resolves to `gemini-3.8-flash`, whose
+        // thinking default is Medium. That default BREAKS this extraction: measured 2026-10-07
+        // over the 15 benchmark documents, two of them (`inline-colon-labels` and
+        // `theory-of-change-own-voice`) come back with ONE item and nothing else — Gemini's raw
+        // answer, not our post-processing, with `finishReason: STOP` and ~1.7k thought tokens
+        // spent. `high` fails the same way; `low` returns no thoughts at all and scores the whole
+        // set at 100% (212 extracted / 186 expected), twice over, which is the number this set
+        // has always produced.
+        //
+        // So this is a deliberate `low`, not a default. The call never set `thinkingBudget`, so
+        // nothing was migrated from it; the level is here because the new model needs it. Revisit
+        // when the alias rolls again — a run of `npm run benchmark:accuracy` is what catches it.
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
       },
     })
   );
