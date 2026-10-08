@@ -12,6 +12,7 @@ import { normalizeExtractedLogicModel } from '../shared/extractNormalize.js';
 import { withRetry } from './geminiRetry.js';
 import { deriveGeminiSeed } from './geminiSeed.js';
 import { extractModelId, extractThinkingLevel, servedModelId } from './geminiModelConfig.js';
+import type { ServerExtractResult } from './extractionProvider.js';
 
 /**
  * Which model answers, and why the default is a rolling alias, now live in
@@ -188,33 +189,12 @@ function dumpRawModel(
   }
 }
 
-export interface ServerExtractResult {
-  model: LogicModel;
-  /**
-   * What we ASKED for — the configured model id, usually a rolling alias. See
-   * `server/geminiModelConfig.ts`.
-   */
-  modelId: string;
-  /**
-   * What ANSWERED, as reported by `response.modelVersion`, or `undefined` when the response did
-   * not say.
-   *
-   * The two differ whenever `modelId` is an alias, and the difference is the whole point. A
-   * rolling alias means Google can rotate the served model with no change on our side; recording
-   * only the alias is what let the 2026-10-07 roll to `gemini-3.8-flash` go unnoticed until an
-   * accuracy shift was blamed on our own diff. Never inferred and never defaulted to the alias: a
-   * caller that cannot read this writes "unknown", because a wrong provenance field is worse than
-   * an absent one.
-   */
-  servedModelId?: string;
-  /** Exact prompt wording version that produced `model` — see `PROMPT_VERSION` in constants.ts. */
-  promptVersion: string;
-  /**
-   * Which of the prompt's variants this document actually received. Reported by the server rather
-   * than re-derived on the client, so the extraction log records what was really sent.
-   */
-  promptVariant: string;
-}
+/**
+ * Re-exported, not defined here: the shape belongs to the seam now
+ * (`server/extractionProvider.ts`), so a second provider does not have to import the Gemini
+ * implementation to describe its own return type.
+ */
+export type { ServerExtractResult } from './extractionProvider.js';
 
 /**
  * The SDK's enum, or `undefined` for "send no `thinkingConfig`" — which is the shipped behaviour.

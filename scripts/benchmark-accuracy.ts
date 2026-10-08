@@ -42,7 +42,9 @@ import {
   type ExtractionScore,
 } from '../shared/extractionScore.ts';
 import type { LogicModel } from '../types.ts';
-import { CANDIDATE_MODEL_IDS, extractModelId } from '../server/geminiModelConfig.ts';
+import { CANDIDATE_MODEL_IDS } from '../server/geminiModelConfig.ts';
+import { extractModelIdFor, extractionProviderId } from '../server/extractionProvider.ts';
+import { getExtractionProvider } from '../server/extractionProviders.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const setDir = path.join(root, 'fixtures', 'benchmark');
@@ -227,12 +229,19 @@ async function main(): Promise<void> {
    * scored 100% and then 87.1% with no change on our side, because the alias moved.
    */
   const served = [...servedModels].sort().join(', ') || 'unknown';
-  console.log(`\nprompt ${promptVersion}  requested ${extractModelId()}  answered ${served}`);
-  const others = CANDIDATE_MODEL_IDS.filter(id => !servedModels.has(id) && id !== extractModelId());
-  if (others.length > 0) {
-    console.log(`to score a candidate: LM_EXTRACT_MODEL=${others[0]} npm run benchmark:accuracy`);
-    console.log(`candidates: ${CANDIDATE_MODEL_IDS.join(', ')} (worth measuring, not known good)`);
+  const provider = getExtractionProvider();
+  const requested = extractModelIdFor(provider.id);
+  console.log(
+    `\nprompt ${promptVersion}  provider ${provider.id}  requested ${requested}  answered ${served}`
+  );
+  if (provider.id === 'gemini') {
+    const others = CANDIDATE_MODEL_IDS.filter(id => !servedModels.has(id) && id !== requested);
+    if (others.length > 0) {
+      console.log(`to score a candidate: LM_EXTRACT_MODEL=${others[0]} npm run benchmark:accuracy`);
+      console.log(`candidates: ${CANDIDATE_MODEL_IDS.join(', ')} (worth measuring, not known good)`);
+    }
   }
+  console.log(`to score another provider: LM_EXTRACT_PROVIDER=anthropic npm run benchmark:accuracy`);
 
   if (passes > 1) {
     // Reproducibility of the SCORE, which is the axis the launch gate is defined on. Two passes
@@ -255,6 +264,17 @@ async function main(): Promise<void> {
         ? `\nSCORE MOVED between passes on: ${moved.map(m => m.id).join(', ')}`
         : `\nNo score moved across ${passes} passes — not proof of stability, but nothing disproved it.`
     );
+    /**
+     * What a multi-pass run means depends on the provider, so it is said here rather than left for
+     * a reader to assume. On a provider with no seed there is nothing pinning two passes together:
+     * agreement is a weaker signal and disagreement is not by itself a regression.
+     */
+    if (!getExtractionProvider().supportsSeed) {
+      console.log(
+        `(provider ${getExtractionProvider().id} has no seed, so passes were not pinned to the ` +
+          `document — read agreement here as weaker than on a seeded provider.)`
+      );
+    }
   }
 
   mkdirSync(runsDir, { recursive: true });
@@ -267,7 +287,8 @@ async function main(): Promise<void> {
         at: new Date().toISOString(),
         promptVersion,
         servedModelIds: [...servedModels].sort(),
-        requestedModelId: extractModelId(),
+        provider: extractionProviderId(),
+        requestedModelId: extractModelIdFor(extractionProviderId()),
         passes,
         scores: perPass,
       },

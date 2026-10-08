@@ -5,7 +5,7 @@ Local Vite + React app that reliably extracts structured logic models from PDF/D
 ## Run locally (development)
 
 1. `npm install`
-2. Set `GEMINI_API_KEY` in `.env.local`
+2. Set `GEMINI_API_KEY` in `.env.local` (or `ANTHROPIC_API_KEY`, with `LM_EXTRACT_PROVIDER=anthropic`)
 3. `npm run dev` — Express API (`:3011`) + Vite (`:3000`)
 
 ## Production (single process)
@@ -49,6 +49,23 @@ effect: unset (and `=default`) sends no `thinkingConfig` at all, which is the me
 `thinkingLevel: low` scored the invented benchmark at 100% and cost two real documents accuracy
 (PR #36, reverted by #37). An unrecognised value refuses to start rather than quietly running the
 default and filing its numbers under the candidate's name.
+
+**The provider is configuration too.** `LM_EXTRACT_PROVIDER` chooses the vendor behind both
+calls — `gemini` (default, shipped, measured) or `anthropic`. The key follows the provider, so
+running on Anthropic needs `ANTHROPIC_API_KEY` and no Gemini key at all:
+
+```bash
+LM_EXTRACT_PROVIDER=anthropic npm run benchmark:accuracy       # score the other vendor
+LM_EXTRACT_PROVIDER=anthropic LM_EXTRACT_MODEL=claude-sonnet-5-5 npm run dev
+LM_EXTRACT_EFFORT=high npm run benchmark:accuracy              # the Anthropic-side thinking knob
+```
+
+The Anthropic path has **never made a live call** — it was written and typechecked where no key
+was available, so treat it as a candidate, not a tested path. It also has no `seed`: Gemini's
+content-derived seed is what makes `census` and `regression:check` mean "same document, same
+answer", and the Messages API has no equivalent, so on that provider the benchmark says so rather
+than reading sampling noise as a regression. Both points, and what the 2026-10-07 comparison does
+and does not establish, are in `docs/specs/provider-seam.md`.
 
 A blank value means unset. `CANDIDATE_MODEL_IDS` in that module is the short list worth scoring
 when the served model changes — a list, deliberately, because picking one model and tuning to it is
