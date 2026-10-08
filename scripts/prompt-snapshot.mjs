@@ -36,7 +36,7 @@ out['extract:no-options'] = getAiExtractionPrompt(true);
 // Kept in step with LAYERED_PROBES in constants.test.ts.
 const probes = [
   ['present', 'Inputs\\nStaff\\nActivities\\nTutoring\\nOutputs\\nSessions'],
-  ['absent', 'We believe every young person deserves a mentor and we work with schools across the city. '.repeat(6)],
+  ['absent', 'We believe every young person deserves a mentor and we work with schools across the city.\\n'.repeat(10)],
 ];
 for (const [grid, textTrack] of probes) {
   out['extract-layered:grid=' + grid] = getAiExtractionPrompt(true, { hasTextTrack: true, textTrack, shape: 'layered' });
