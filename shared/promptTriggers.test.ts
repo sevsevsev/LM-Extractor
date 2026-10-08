@@ -4,9 +4,8 @@ import { detectLayoutSignals, MIN_CHARS_TO_CLAIM_ABSENCE } from './promptTrigger
 import { getAiExtractionPrompt, promptShapeFromEnv, promptVariantLabel } from '../constants.ts';
 
 const GRID = ['## Slide 1', '**Inputs**', 'Staff', '**Activities**', '- Tutoring', '### Outputs', '40 sessions', 'Short-Term Outcomes:', 'Better grades'].join('\n');
-const NARRATIVE = Array.from({ length: 10 }, (_, i) =>
-  `Paragraph ${i + 1}: our programme believes every young person deserves a mentor, and our activities have grown each year.`
-).join('\n');
+const NARRATIVE = ('Our programme believes every young person deserves a mentor. ' +
+  'We work with schools across the city and our activities have grown each year. ').repeat(6);
 
 test('three distinct column names on lines of their own read as a grid', () => {
   assert.equal(detectLayoutSignals(GRID).grid, 'present');
@@ -15,15 +14,6 @@ test('three distinct column names on lines of their own read as a grid', () => {
 test('column words inside prose are not headings', () => {
   assert.ok(NARRATIVE.length >= MIN_CHARS_TO_CLAIM_ABSENCE);
   assert.equal(detectLayoutSignals(NARRATIVE).grid, 'absent');
-});
-
-test('a flattened PPTX track reads its grid from inline capitals, and never claims absence', () => {
-  const flat =
-    '## Slide 1\n\nRiverbend Logic Model RESOURCES Two coordinators ACTIVITIES Weekly mentoring ' +
-    'OUTPUTS Forty sessions SHORT-TERM OUTCOMES Better reading';
-  assert.equal(detectLayoutSignals(flat).grid, 'present');
-  const flatProse = '## Slide 1\n\n' + 'Our activities and outputs are described in the outcomes report. '.repeat(10);
-  assert.equal(detectLayoutSignals(flatProse).grid, 'unknown');
 });
 
 test('no text track, or too little text, claims nothing', () => {

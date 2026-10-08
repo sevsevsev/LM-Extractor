@@ -34,7 +34,7 @@ function loadSnapshot(): Record<string, string> {
 /** One text track per layout signal. Kept in step with the same list in scripts/prompt-snapshot.mjs. */
 const LAYERED_PROBES: Array<[string, string]> = [
   ['present', 'Inputs\nStaff\nActivities\nTutoring\nOutputs\nSessions'],
-  ['absent', 'We believe every young person deserves a mentor and we work with schools across the city.\n'.repeat(10)],
+  ['absent', 'We believe every young person deserves a mentor and we work with schools across the city. '.repeat(6)],
 ];
 
 function currentVariants(): Record<string, string> {
