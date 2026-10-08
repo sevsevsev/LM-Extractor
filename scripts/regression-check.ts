@@ -12,6 +12,7 @@
  *   npm run regression:check -- --update   # accept current output as the new baseline
  *   npm run regression:check -- --only=<id> --update   # bless a document captured for the first time
  *   npm run regression:check -- --only=oxford-circle
+ *   npm run regression:check -- --input=text-only      # send no page images (scripts/inputArm.ts); never blesses
  *   npm run regression:check -- --require-bundles   # fail if any document has no bundle here
  *
  * Capturing a bundle (once per document, in the browser): see fixtures/regression-set/README.md.
@@ -22,6 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { diffExtractions, formatExtractionDiff } from '../shared/extractionDiff.ts';
 import { regressionOutcome } from '../shared/regressionOutcome.ts';
 import type { LogicModel } from '../types.ts';
+import { applyInputArm, inputArmFromArgs } from './inputArm.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const setDir = path.join(root, 'fixtures', 'regression-set');
@@ -61,6 +63,13 @@ interface Snapshot {
 
 const args = process.argv.slice(2);
 const update = args.includes('--update');
+const inputArm = inputArmFromArgs(args);
+// A snapshot is the baseline every later run is checked against. Blessing one from an experiment
+// arm would quietly make the experiment the baseline.
+if (update && inputArm !== 'both') {
+  console.error(`--update cannot be combined with --input=${inputArm}: an experiment arm never becomes a baseline.`);
+  process.exit(2);
+}
 /**
  * Fail the run when any manifest document has no bundle on this machine. Off by default: bundles
  * are gitignored, so a fresh clone has none and the guard would report failure while nothing is
@@ -141,7 +150,7 @@ async function main(): Promise<void> {
       continue;
     }
 
-    const bundle = JSON.parse(readFileSync(bundlePath, 'utf8'));
+    const bundle = applyInputArm(JSON.parse(readFileSync(bundlePath, 'utf8')), inputArm);
     let result: Awaited<ReturnType<typeof extract>>;
     try {
       result = await extract(bundle);

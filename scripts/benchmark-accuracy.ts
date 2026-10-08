@@ -20,6 +20,7 @@
  *   npm run benchmark:accuracy -- --passes=3 # also report whether the SCORE moves between runs
  *   npm run benchmark:accuracy -- --only=inline
  *   npm run benchmark:accuracy -- --replay   # re-score the last run's saved extractions, 0 calls
+ *   npm run benchmark:accuracy -- --input=text-only   # send no page images (scripts/inputArm.ts)
  *
  * `--replay` is the cheap half of the loop: the saved extraction is the model's answer, and
  * scoring it again costs nothing. Use it whenever the change under test is in the scorer or in
@@ -42,6 +43,7 @@ import {
   type ExtractionScore,
 } from '../shared/extractionScore.ts';
 import type { LogicModel } from '../types.ts';
+import { applyInputArm, inputArmFromArgs } from './inputArm.ts';
 import { CANDIDATE_MODEL_IDS, extractModelId } from '../server/geminiModelConfig.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -57,6 +59,7 @@ const capture = args.includes('--capture');
 const replay = args.includes('--replay');
 const onlyArg = args.find(a => a.startsWith('--only='));
 const only = onlyArg ? onlyArg.slice('--only='.length) : null;
+const inputArm = inputArmFromArgs(args);
 const passesArg = args.find(a => a.startsWith('--passes='));
 const passes = passesArg ? Math.max(1, Number(passesArg.slice('--passes='.length))) : 1;
 const apiBase = process.env.LM_API_BASE || 'http://localhost:3011';
@@ -159,7 +162,10 @@ async function main(): Promise<void> {
     if (passes > 1) console.log(`\n=== pass ${pass} of ${passes} ===`);
     const scores: ExtractionScore[] = [];
     for (const doc of docs) {
-      const bundle = JSON.parse(readFileSync(path.join(bundlesDir, `${doc.id}.json`), 'utf8')) as Bundle;
+      const bundle = applyInputArm(
+        JSON.parse(readFileSync(path.join(bundlesDir, `${doc.id}.json`), 'utf8')) as Bundle,
+        inputArm
+      );
       let result: {
         model: LogicModel;
         promptVersion: string;
@@ -265,6 +271,7 @@ async function main(): Promise<void> {
     JSON.stringify(
       {
         at: new Date().toISOString(),
+        inputArm,
         promptVersion,
         servedModelIds: [...servedModels].sort(),
         requestedModelId: extractModelId(),
