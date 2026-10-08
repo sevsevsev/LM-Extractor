@@ -67,6 +67,27 @@ model behaviour and extraction quality is a property of the model, so a model ch
 measuring on `fixtures/regression-set/` as well as the benchmark. What it removes is the cost of
 measuring it.
 
+## Experiment arms
+
+Two arms exist for measuring the shape of the extraction rather than the model. Neither changes
+anything unless it is set, and a result from either is labelled so it cannot pool with the default.
+
+```bash
+LM_PROMPT_SHAPE=layered npm run dev                  # prompt sections sent only when their trigger is present
+npm run benchmark:accuracy -- --input=text-only      # send no page images, text track only
+npm run regression:check -- --input=text-only        # same, on the real set (never blesses)
+```
+
+`layered` sends the shipped rules in the same words but leaves out the failure-mode recap, and the
+no-grid method when the text track shows a labelled grid; see `layeredExtractionPrompt` in
+`constants.ts` for what it keeps on purpose and why. Its prompt variant reads
+`…+layered:grid=present|absent|unknown`. `text-only` asks what the page rasters buy; see
+`scripts/inputArm.ts` for what it cannot see.
+
+Post-processing never moves an item between domains. It may fix shape (colons, inline labels,
+run-on cells, exact restated duplicates) and fill an empty field from labelled source text, and it
+reports anything it would once have moved as a review blocker. See `normalizeExtractedLogicModel`.
+
 ## Hosted deploy (Vercel)
 
 The same API is exposed two ways so one codebase serves both targets:
