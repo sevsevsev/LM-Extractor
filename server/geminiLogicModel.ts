@@ -247,7 +247,7 @@ export async function extractLogicModelOnServer(
   const isVision = images.length > 0;
   const lowLegibility = bundleImpliesLowLegibility(bundle);
   const hasTextTrack = textTrack.length > 0;
-  const prompt = getAiExtractionPrompt(isVision, { lowLegibility, hasTextTrack, textTrack });
+  const prompt = getAiExtractionPrompt(isVision, { lowLegibility, hasTextTrack });
 
   let contents: unknown;
   if (isVision) {
@@ -361,6 +361,6 @@ export async function extractLogicModelOnServer(
     modelId: extractModelId(),
     servedModelId: served,
     promptVersion: PROMPT_VERSION,
-    promptVariant: promptVariantLabel({ isVision, hasTextTrack, lowLegibility, textTrack }),
+    promptVariant: promptVariantLabel({ isVision, hasTextTrack, lowLegibility }),
   };
 }
