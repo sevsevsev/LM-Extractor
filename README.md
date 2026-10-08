@@ -67,6 +67,20 @@ model behaviour and extraction quality is a property of the model, so a model ch
 measuring on `fixtures/regression-set/` as well as the benchmark. What it removes is the cost of
 measuring it.
 
+## Experiment arm
+
+```bash
+npm run benchmark:accuracy -- --input=text-only      # send no page images, text track only
+npm run regression:check -- --input=text-only        # same, on the real set (never blesses)
+```
+
+`text-only` asks what the page rasters buy; see `scripts/inputArm.ts` for what it cannot see. The
+prompt variant on every row reads `text-only`, so its results cannot pool with the default.
+
+Post-processing never moves an item between domains. It may fix shape (colons, inline labels,
+run-on cells, exact restated duplicates) and fill an empty field from labelled source text, and it
+reports anything it would once have moved as a review blocker. See `normalizeExtractedLogicModel`.
+
 ## Hosted deploy (Vercel)
 
 The same API is exposed two ways so one codebase serves both targets:

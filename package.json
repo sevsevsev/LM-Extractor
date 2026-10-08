@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "prompt:snapshot": "node scripts/prompt-snapshot.mjs",
     "regression:check": "tsx scripts/regression-check.ts",
-    "test": "tsx --test *.test.ts shared/**/*.test.ts services/**/*.test.ts components/**/*.test.ts server/**/*.test.ts",
+    "test": "tsx --test *.test.ts shared/**/*.test.ts services/**/*.test.ts components/**/*.test.ts server/**/*.test.ts scripts/**/*.test.ts",
     "verify:api": "node scripts/verify-api.mjs",
     "start": "npm run build && node scripts/start-prod.mjs",
     "census": "tsx scripts/stability-census.ts",

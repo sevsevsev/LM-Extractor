@@ -6,6 +6,7 @@ import {
   shouldSuggestMismatch,
   reassignItemDomain,
   countMappedItems,
+  findGroupsNamingOtherColumns,
 } from './sourceMapping.ts';
 import type { LogicModel } from '../types.ts';
 
@@ -66,7 +67,7 @@ test('isKnownInputSubBucket recognizes Resources buckets', () => {
   assert.equal(isKnownInputSubBucket('Summer Intensive'), false);
 });
 
-test('applySourceAwareMapping remaps synonym mismatch and keeps track groups', () => {
+test('applySourceAwareMapping leaves a group headed with another column name where it is, and keeps track groups', () => {
   const m = applySourceAwareMapping(
     baseModel({
       activities: {
@@ -80,26 +81,31 @@ test('applySourceAwareMapping remaps synonym mismatch and keeps track groups', (
       },
     })
   );
-  assert.ok(m.outputs.content.some(g => g.items.some(i => /Misplaced/.test(i.text))));
+  assert.ok(!m.outputs.content.some(g => g.items.some(i => /Misplaced/.test(i.text))));
+  const misheaded = m.activities.content.find(g => g.name === 'Outputs');
+  assert.equal(misheaded?.items[0].sourceHeader, 'Outputs');
   assert.ok(m.activities.content.some(g => g.name === 'Summer Intensive'));
+  assert.deepEqual(findGroupsNamingOtherColumns(m), [
+    { domain: 'activities', groupName: 'Outputs', namesColumn: 'outputs' },
+  ]);
   assert.equal(m.layoutFamily, 'vertical_columns');
 });
 
-test('applySourceAwareMapping routes a bare "Outcomes" header to generalOutcomes, not shortTermOutcomes', () => {
+test('applySourceAwareMapping leaves a bare "Outcomes" group in shortTermOutcomes and reports it, rather than moving it', () => {
   const m = applySourceAwareMapping(
     baseModel({
-      // Gemini put these under shortTermOutcomes (its only real option pre-fix), but the group
-      // header it also recorded says the source column was just "Outcomes" — synonym-based
-      // remap should move it to generalOutcomes rather than leaving it mislabeled as short-term.
+      // COLUMN FIDELITY 7 tells the model to use generalOutcomes here. When it does not, that is a
+      // prompt failure for a reviewer to see, not something a group-name match quietly repairs.
       shortTermOutcomes: {
         content: [{ name: 'Outcomes', items: [{ text: 'Participants report increased confidence' }] }],
       },
     })
   );
-  assert.ok(
-    m.generalOutcomes?.content.some(g => g.items.some(i => /increased confidence/.test(i.text)))
-  );
-  assert.ok(!m.shortTermOutcomes.content.some(g => g.items.some(i => /increased confidence/.test(i.text))));
+  assert.ok(m.shortTermOutcomes.content.some(g => g.items.some(i => /increased confidence/.test(i.text))));
+  assert.deepEqual(m.generalOutcomes?.content, []);
+  assert.deepEqual(findGroupsNamingOtherColumns(m), [
+    { domain: 'shortTermOutcomes', groupName: 'Outcomes', namesColumn: 'generalOutcomes' },
+  ]);
 });
 
 test('applySourceAwareMapping initializes an empty generalOutcomes even when the source never used it', () => {
@@ -240,13 +246,16 @@ test('applySourceAwareMapping does not pull a "<qualifier> Resources" group into
   assert.deepEqual(m.inputs.content, []);
 });
 
-/** The move itself is untouched when the header really is another column's name. */
-test('applySourceAwareMapping still moves a group whose header names another column outright', () => {
+/** A header that really is another column's name is reported, never acted on. */
+test('applySourceAwareMapping does not move a group whose header names another column outright', () => {
   const m = applySourceAwareMapping(
     baseModel({
       activities: { content: [{ name: 'Resources', items: [{ text: 'Grant funding and in-kind support' }] }] },
     })
   );
-  assert.ok(m.inputs.content.some(g => g.items.some(i => /Grant funding/.test(i.text))));
-  assert.deepEqual(m.activities.content, []);
+  assert.deepEqual(m.inputs.content, []);
+  assert.ok(m.activities.content.some(g => g.items.some(i => /Grant funding/.test(i.text))));
+  assert.deepEqual(findGroupsNamingOtherColumns(m), [
+    { domain: 'activities', groupName: 'Resources', namesColumn: 'inputs' },
+  ]);
 });

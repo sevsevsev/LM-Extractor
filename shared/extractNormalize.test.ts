@@ -152,11 +152,13 @@ const youthMovesFourthTryMisparse: LogicModel = {
   impact: { content: [] },
 };
 
-test('promotes Impact Statement prose from long-term outcomes item', () => {
+test('never moves Impact Statement-shaped prose out of the outcomes column the model put it in', () => {
+  // This used to be promoted into impactStatement by a prose classifier. Post-processing no longer
+  // moves items between domains: the item stays, and a reviewer moves it if it is misplaced.
   const m = normalizeExtractedLogicModel(structuredClone(youthMovesFourthTryMisparse));
-  assert.ok(m.impactStatement?.content?.includes('Through sustained participation'));
+  assert.ok(!m.impactStatement?.content?.includes('Through sustained participation'));
   const ltTexts = m.longTermOutcomes.content.flatMap(g => g.items.map(i => i.text));
-  assert.ok(!ltTexts.some(t => t.includes('Through sustained participation')));
+  assert.ok(ltTexts.some(t => t.includes('Through sustained participation')));
   assert.ok(ltTexts.some(t => t.includes('Educational attainment')));
 });
 
@@ -258,10 +260,8 @@ test('fills Impact Statement from source text when vision omitted it', () => {
 });
 
 /**
- * `promoteImpactStatementFromGroupedDomains` is a deliberately narrow exception to the extract
- * prompt's "never infer [impactStatement] from wording alone" rule — see that function's comment
- * for the owner split (the prompt governs Gemini's read of the page; this governs its output).
- * These pin the two behaviours that exception depends on.
+ * `promoteImpactStatementFromGroupedDomains` was removed on 2026-10-08: post-processing may fill an
+ * EMPTY field from labelled source text, but never moves an item between domains.
  */
 const OVERVIEW_PROSE =
   'Through sustained participation, students in the community will improve their educational outcomes and build lasting creative confidence across the neighborhood.';
@@ -282,20 +282,19 @@ function modelWithOutcomeProse(): LogicModel {
   };
 }
 
-test('impact-statement promotion runs when a heading exists but its body is unrecoverable', () => {
-  // The usual reason this path exists: vision captured the prose, the text layer did not.
-  const result = normalizeExtractedLogicModel(modelWithOutcomeProse(), {
-    sourceText: '## Page 1\nIMPACT STATEMENT\nMission\nWe help local families.',
-  });
-  assert.equal(result.impactStatement?.content, OVERVIEW_PROSE);
-  assert.equal(result.shortTermOutcomes.content.length, 0);
+test('an outcome item that reads like overview prose stays in its column, with or without a text layer', () => {
+  for (const options of [{ sourceText: '## Page 1\nIMPACT STATEMENT\nMission\nWe help local families.' }, {}]) {
+    const result = normalizeExtractedLogicModel(modelWithOutcomeProse(), options);
+    assert.ok(!result.impactStatement?.content?.trim());
+    assert.equal(result.shortTermOutcomes.content[0].items[0].text, OVERVIEW_PROSE);
+  }
 });
 
-test('impact-statement promotion is unchanged when there is no text layer to check', () => {
-  // Vision-only bundle: no evidence either way, so behavior stays as it was — the sparse-outcomes
-  // gate is still the only guard.
-  const result = normalizeExtractedLogicModel(modelWithOutcomeProse(), {});
-  assert.equal(result.impactStatement?.content, OVERVIEW_PROSE);
+test('filling an empty impactStatement from labelled source text leaves the matching outcome item in place', () => {
+  const sourceText = `IMPACT STATEMENT\n${OVERVIEW_PROSE}\n## Page 2\nResources`;
+  const result = normalizeExtractedLogicModel(modelWithOutcomeProse(), { sourceText });
+  assert.ok(result.impactStatement?.content?.startsWith(OVERVIEW_PROSE));
+  assert.equal(result.shortTermOutcomes.content[0].items[0].text, OVERVIEW_PROSE);
 });
 
 test('a trailing colon on a group name is dropped, and a bare punctuation name is left alone', () => {

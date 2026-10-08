@@ -83,9 +83,10 @@ function pushItem(groups: LogicModelGroup[], groupName: string, item: LogicModel
 }
 
 /**
- * Post-extract: annotate mapping metadata; synonym-remap when a group header
- * clearly belongs to another domain; leave track/custom group names in place
- * (spatial trust). Does not invent content.
+ * Post-extract: annotate mapping metadata and leave every item in the domain the model placed it
+ * in (spatial trust). A group header that names another column outright is recorded as
+ * `sourceHeader` and flagged for review by `findGroupsNamingOtherColumns`, never acted on. Does
+ * not invent content and does not move it.
  */
 export function applySourceAwareMapping(model: LogicModel): LogicModel {
   ensureUnmapped(model);
@@ -113,14 +114,19 @@ export function applySourceAwareMapping(model: LogicModel): LogicModel {
           continue;
         }
 
-        // The header names another column outright → evidence-based move.
+        // The header names another column outright. This used to MOVE the item there, on the
+        // strength of a group name. It no longer does: post-processing never moves an item
+        // between domains (see `normalizeExtractedLogicModel`). The item stays where the model
+        // placed it, carrying the header as `sourceHeader`, and `reconcileExtractionFidelity`
+        // raises a review blocker naming the column so a person makes the call.
         if (movesTo && movesTo !== domain) {
-          const moved = annotateItem(raw, {
-            sourceHeader: header,
-            mappedBy: 'auto',
-            mappingConfidence: 'synonym',
-          });
-          pushItem(getGroups(model[movesTo]), 'General', moved);
+          remaining.push(
+            annotateItem(raw, {
+              sourceHeader: header,
+              mappedBy: raw.mappedBy ?? 'auto',
+              mappingConfidence: raw.mappingConfidence ?? 'spatial',
+            })
+          );
           continue;
         }
 
@@ -334,4 +340,34 @@ export function reassignItemDomain(
 
   next.mappingCorrections = [...(next.mappingCorrections ?? []), event];
   return { model: next, event };
+}
+
+export interface GroupNamingOtherColumn {
+  /** The domain the group sits in — where the model placed it, and where it stays. */
+  domain: CanonicalGroupedDomain;
+  /** The group's own name, exactly as the board shows it. */
+  groupName: string;
+  /** The column that name refers to outright. */
+  namesColumn: CanonicalGroupedDomain;
+}
+
+/**
+ * Groups whose name is, outright, the name of a DIFFERENT column — an "Outputs" group sitting in
+ * Activities. That is either a model placement error or a source that really does nest one
+ * column's heading under another's, and code cannot tell which. Until 2026-10-08 the mapper moved
+ * these items; now it leaves them and this reports them, so the fidelity rollup can ask a person.
+ * Uses `columnNameToDomain` — the unqualified column name, not a word match — so "Youth Outcomes"
+ * inside an outcomes column is not reported.
+ */
+export function findGroupsNamingOtherColumns(model: LogicModel): GroupNamingOtherColumn[] {
+  const out: GroupNamingOtherColumn[] = [];
+  for (const domain of GROUPED_FIELDS) {
+    for (const group of getGroups(model[domain])) {
+      const name = (group.name || '').trim();
+      if (!name || group.items.length === 0) continue;
+      const namesColumn = columnNameToDomain(name);
+      if (namesColumn && namesColumn !== domain) out.push({ domain, groupName: name, namesColumn });
+    }
+  }
+  return out;
 }
