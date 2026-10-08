@@ -35,6 +35,10 @@ function baseModel(overrides: Partial<LogicModel> = {}): LogicModel {
     longTermOutcomes: empty,
     impact: empty,
     layoutFamily: 'vertical_columns',
+    // Both are schema-required, so a real answer always carries them. Tests that want to see what
+    // happens when one is missing delete it explicitly.
+    extractionStatus: 'ok',
+    documentTypeAssessment: 'logic_model',
     ...overrides,
   };
 }
@@ -344,10 +348,27 @@ test('documentTypeAssessment "logic_model" (or absent) never flags', () => {
   assert.equal(clean.extractionStatus, 'ok');
   assert.equal(documentTypeFlagLabel(clean), '');
 
+});
+
+test('a missing documentTypeAssessment reads as unclear, never as logic_model', () => {
   const absent = baseModel({ activities: { content: groups(manyItems(8, 0)) } });
+  delete absent.documentTypeAssessment;
   reconcileExtractionFidelity(absent);
-  assert.equal(absent.extractionStatus, 'ok');
-  assert.equal(documentTypeFlagLabel(absent), '');
+  assert.equal(absent.documentTypeAssessment, 'unclear');
+  assert.equal(absent.extractionStatus, 'partial');
+  assert.notEqual(documentTypeFlagLabel(absent), '');
+  assert.ok(absent.extractionBlockers?.includes(FIDELITY_BLOCKERS.documentTypeNotReported));
+  assert.equal(shouldHardStopExtraction(absent), false);
+});
+
+test('a missing extractionStatus reads as partial, never as ok', () => {
+  const absent = baseModel({ activities: { content: groups(manyItems(8, 0)) } });
+  delete absent.extractionStatus;
+  reconcileExtractionFidelity(absent);
+  assert.equal(absent.extractionStatus, 'partial');
+  assert.equal(absent.extractionConfidence, 'medium');
+  assert.ok(absent.extractionBlockers?.includes(FIDELITY_BLOCKERS.statusNotReported));
+  assert.equal(shouldHardStopExtraction(absent), false);
 });
 
 test('textOnlyFallback flags for review, never hard-stops, even with clean-looking content', () => {

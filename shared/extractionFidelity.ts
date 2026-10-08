@@ -91,6 +91,12 @@ export const FIDELITY_BLOCKERS = {
    */
   noColumnGrid:
     'This document does not label its columns, so the app worked out which column each item belongs in — check the columns before relying on this extraction',
+  /** The model returned no `extractionStatus`; read as partial, never as ok. */
+  statusNotReported:
+    'The AI did not say whether it read the whole document, so treat this extraction as possibly incomplete',
+  /** The model returned no `documentTypeAssessment`; read as unclear, never as logic_model. */
+  documentTypeNotReported:
+    'The AI did not say what kind of document this is, so the columns may be the app’s sorting rather than the document’s own',
   /**
    * A group inside one column is headed with another column's own name. Post-processing used to
    * move those items; it now leaves them where the model put them and asks. Specific wording
@@ -357,9 +363,17 @@ export function reconcileExtractionFidelity(
 ): LogicModel {
   const lowLegibility = Boolean(options?.lowLegibility);
   const modelBlockers = normalizeBlockers(model.extractionBlockers);
-  let status: ExtractionStatus = isExtractionStatus(model.extractionStatus)
-    ? model.extractionStatus
-    : 'ok';
+  // A verdict the model did not give is read as the LESS favourable one, never the more. Missing
+  // `extractionStatus` used to default to 'ok', which skips the whole abstain branch: an extraction
+  // the model had tried to give up on would present as a clean success. The schema now requires
+  // the field, so this should not fire on the shipped provider — it is here for the case it
+  // catches, a provider or schema path that does not enforce `required`.
+  const statusMissing = !isExtractionStatus(model.extractionStatus);
+  let status: ExtractionStatus = statusMissing ? 'partial' : (model.extractionStatus as ExtractionStatus);
+  // Same rule for the document-type verdict: absent reads as 'unclear', which puts the per-row
+  // flag on every row, rather than as 'logic_model', which says the columns are the document's own.
+  const documentTypeMissing = !isDocumentTypeAssessment(model.documentTypeAssessment);
+  if (documentTypeMissing) model.documentTypeAssessment = 'unclear';
 
   if (status === 'abstained') {
     const blockers: string[] = [];
@@ -438,6 +452,8 @@ export function reconcileExtractionFidelity(
   const blockers: string[] = [];
   const seen = new Set<string>();
   for (const b of modelBlockers) pushBlocker(blockers, seen, b);
+  if (statusMissing) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.statusNotReported);
+  if (documentTypeMissing) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.documentTypeNotReported);
 
   if (noContent) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.noContent);
   else if (noGridItems) pushBlocker(blockers, seen, FIDELITY_BLOCKERS.noGridItems);
