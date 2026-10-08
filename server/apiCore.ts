@@ -1,14 +1,21 @@
 import type { DetectLogicModelGroupsInput, DocumentBundle, SourceImageRef } from '../types';
-import { extractLogicModelOnServer } from './geminiLogicModel.js';
-import { detectLogicModelGroupsOnServer } from './geminiLogicModelGroups.js';
+import { apiKeyFor, apiKeyVarFor, extractionProviderId } from './extractionProvider.js';
+import { getExtractionProvider } from './extractionProviders.js';
 
 export interface ApiResult {
   status: number;
   body: Record<string, unknown>;
 }
 
+/**
+ * The configured provider's key.
+ *
+ * Reads the variable the PROVIDER names rather than `GEMINI_API_KEY` by name, which is the whole
+ * point of `server/extractionProvider.ts`: before this, switching vendor still required a Gemini
+ * key to be present, which is not a seam.
+ */
 export function getApiKey(): string {
-  return (process.env.GEMINI_API_KEY || '').trim();
+  return apiKeyFor(extractionProviderId());
 }
 
 /** Vercel parses JSON bodies, but local/edge cases can still hand us a raw string. */
@@ -26,9 +33,12 @@ export function parseJsonBody(body: unknown): Record<string, unknown> {
 }
 
 function missingKeyResult(): ApiResult {
+  // Names the variable this provider actually wants, so a half-configured switch says which key is
+  // missing instead of sending the operator to the other vendor's dashboard.
+  const variable = apiKeyVarFor(extractionProviderId());
   return {
     status: 500,
-    body: { error: 'Server is missing GEMINI_API_KEY. Set it in the hosting environment variables.' },
+    body: { error: `Server is missing ${variable}. Set it in the hosting environment variables.` },
   };
 }
 
@@ -117,9 +127,17 @@ export async function handleExtractRequest(rawBody: unknown): Promise<ApiResult>
       };
     }
 
-    const { model, modelId, servedModelId, promptVersion, promptVariant } =
-      await extractLogicModelOnServer(apiKey, bundle);
-    return { status: 200, body: { model, modelId, servedModelId, promptVersion, promptVariant } };
+    const provider = getExtractionProvider();
+    const { model, modelId, servedModelId, promptVersion, promptVariant } = await provider.extract(
+      apiKey,
+      bundle
+    );
+    // `provider` joins the response for the same reason `servedModelId` did: a number filed
+    // without the (provider, model, prompt) triple it came from is a number nobody can use later.
+    return {
+      status: 200,
+      body: { model, modelId, servedModelId, promptVersion, promptVariant, provider: provider.id },
+    };
   } catch (error) {
     return errorResult(error);
   }
@@ -150,7 +168,7 @@ export async function handleDetectLogicModelGroupsRequest(rawBody: unknown): Pro
       };
     }
 
-    const groups = await detectLogicModelGroupsOnServer(apiKey, input);
+    const groups = await getExtractionProvider().detectLogicModelGroups(apiKey, input);
     return { status: 200, body: { groups } };
   } catch (error) {
     return errorResult(error);

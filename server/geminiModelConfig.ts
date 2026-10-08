@@ -20,21 +20,11 @@
  * this removes is the cost of measuring it, not the measurement.
  */
 
+import { fromEnv } from './envConfig.js';
+
 /** The rolling alias both calls use unless told otherwise. */
 const DEFAULT_MODEL_ID = 'gemini-flash-latest';
 
-/**
- * Read at CALL time, never at module load, so a test or a script can set the variable after this
- * module is imported and still be heard. An empty or whitespace-only value is treated as unset
- * rather than as a model named "" — a blank variable in a shell profile should not break
- * extraction.
- */
-function fromEnv(name: string): string | null {
-  const raw = process.env[name];
-  if (typeof raw !== 'string') return null;
-  const trimmed = raw.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
 
 /**
  * The model for the extraction call. `LM_EXTRACT_MODEL` overrides it.
