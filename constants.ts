@@ -27,6 +27,8 @@
  *    verification pass measured 0 invented items in 204 and those rules are the likeliest reason.
  */
 
+import { detectLayoutSignals, type LayoutSignals } from './shared/promptTriggers.js';
+
 /**
  * Bump on ANY change to extraction prompt wording. Emitted into the extraction-log CSV
  * (`services/extractionLogExport.ts`) so a batch's results can be attributed to the exact prompt
@@ -49,12 +51,47 @@ export interface ExtractionPromptOptions {
    * When true with vision, the prompt teaches how to fuse both inputs.
    */
   hasTextTrack?: boolean;
+  /**
+   * `full` (default) is the prompt as tuned through 2026-09-28.3. `layered` is an EXPERIMENT ARM:
+   * the same rules, but sections whose trigger is absent are left out. Unset means `full`, and
+   * so does `LM_PROMPT_SHAPE` unset — see `promptShapeFromEnv`.
+   */
+  shape?: PromptShape;
+  /**
+   * The bundle's Track A text. Read only by the `layered` shape, to decide which sections to send
+   * (`shared/promptTriggers.ts`). Ignored by `full`, so passing it changes nothing by default.
+   */
+  textTrack?: string;
+}
+
+export const PROMPT_SHAPES = ['full', 'layered'] as const;
+export type PromptShape = (typeof PROMPT_SHAPES)[number];
+
+/**
+ * The prompt shape an experiment asked for, read at call time. Unset or blank means `full`, the
+ * shipped prompt. An unrecognised value THROWS rather than quietly running `full`, for the reason
+ * `geminiModelConfig.ts` gives for the thinking knob: an experiment that runs the default and
+ * files its numbers under the candidate's name is worse than one that refuses to start.
+ *
+ * Guarded because constants.ts also reaches the browser bundle, where `process` does not exist.
+ */
+export function promptShapeFromEnv(): PromptShape {
+  const raw =
+    typeof process !== 'undefined' && process?.env ? process.env.LM_PROMPT_SHAPE : undefined;
+  const value = typeof raw === 'string' ? raw.trim().toLowerCase() : '';
+  if (!value) return 'full';
+  if ((PROMPT_SHAPES as readonly string[]).includes(value)) return value as PromptShape;
+  throw new Error(`LM_PROMPT_SHAPE=${raw} is not one of: ${PROMPT_SHAPES.join(', ')}`);
 }
 
 export interface PromptVariantInput {
   isVision: boolean;
   hasTextTrack: boolean;
   lowLegibility?: boolean;
+  /** Defaults like `getAiExtractionPrompt`'s: the option, else `LM_PROMPT_SHAPE`, else `full`. */
+  shape?: PromptShape;
+  /** Needed to label a `layered` prompt, whose text depends on what was detected in it. */
+  textTrack?: string;
 }
 
 /**
@@ -67,7 +104,12 @@ export interface PromptVariantInput {
  */
 export function promptVariantLabel(v: PromptVariantInput): string {
   const base = v.isVision ? (v.hasTextTrack ? 'vision+text' : 'vision-only') : 'text-only';
-  return v.lowLegibility ? `${base}+lowleg` : base;
+  const label = v.lowLegibility ? `${base}+lowleg` : base;
+  if ((v.shape ?? promptShapeFromEnv()) === 'full') return label;
+  // A layered prompt's text depends on what was detected, so the label carries it: two documents
+  // that got different section sets must not pool into one error rate.
+  const signals = detectLayoutSignals(v.hasTextTrack ? v.textTrack : undefined);
+  return `${label}+layered:grid=${signals.grid}`;
 }
 
 /**
@@ -414,7 +456,13 @@ const columnFidelitySection = `
        \`mediumTermOutcomes\` / \`longTermOutcomes\` by left-to-right position — a differently-named column
        is not a time-horizon guess, however many outcome-shaped columns there are.
 
-    **WHEN THERE IS NO GRID** (Theory of Change, narrative, brochure — a source with no column headers):
+`;
+
+/**
+ * Split from `columnFidelitySection` so the layered shape can send one without the other. Joined,
+ * the two are byte-identical to the section as it stood at 2026-09-28.3; the snapshot test proves it.
+ */
+const noGridSection = `    **WHEN THERE IS NO GRID** (Theory of Change, narrative, brochure — a source with no column headers):
     Every rule above assigns by POSITION, and a document without column headers gives you no position
     to use.
 
@@ -652,7 +700,10 @@ ${
       Those are not content and do not belong in \`unmapped\`.
     - \`layoutFamily\`: \`vertical_columns\` | \`horizontal_rows\` | \`diagram\` | \`prose_sections\` | \`unknown\`.
 
-    **ONE PROGRAM PRINTED TWICE** — the document sets out its model, then states the same model
+`;
+
+/** Split from `itemShapeAndLocationSection` for the layered shape; joined, byte-identical. */
+const restatedProgramSection = `    **ONE PROGRAM PRINTED TWICE** — the document sets out its model, then states the same model
     again in another form: a second draft, a reprint in a funder's template, a one-page summary of
     the grid above, the same content as headerless boxes with inline \`Label:\` prefixes.
     **Extract the program ONCE.** Map the **first** printing into the columns, and put every item
@@ -780,15 +831,19 @@ export const getAiExtractionPrompt = (
   options?: ExtractionPromptOptions
 ): string => {
   const hasTextTrack = Boolean(options?.hasTextTrack);
-
-  const roleSource = isVision
-    ? hasTextTrack
-      ? 'a dual-track DocumentBundle (page images + structural Markdown/text)'
-      : 'visual document images'
-    : 'text content';
+  const shape = options?.shape ?? promptShapeFromEnv();
+  if (shape === 'layered') {
+    return layeredExtractionPrompt(
+      isVision,
+      hasTextTrack,
+      Boolean(options?.lowLegibility),
+      detectLayoutSignals(hasTextTrack ? options?.textTrack : undefined)
+    );
+  }
 
   return (
-    `Role: You are an expert Logic Model Analyst extracting structured JSON from ${roleSource}.
+    roleLine(isVision, hasTextTrack) +
+    `
 ${lowLegibilitySection(Boolean(options?.lowLegibility))}
 ${inputTracksSection(isVision, hasTextTrack)}` +
     goalAndPresenceFirstSection +
@@ -796,15 +851,85 @@ ${inputTracksSection(isVision, hasTextTrack)}` +
     phaseBExtractionRulesSection(hasTextTrack) +
     contextAndOverviewSection(isVision, hasTextTrack) +
     columnFidelitySection +
+    noGridSection +
     knownFailureModesSection(isVision, hasTextTrack) +
     groupingGateSection +
     colourAndEmphasisSection(isVision) +
     itemShapeAndLocationSection(isVision) +
+    restatedProgramSection +
     documentTypeCheckSection +
     fidelityStatusSection +
     outputFormatSection
   );
 };
+
+function roleLine(isVision: boolean, hasTextTrack: boolean): string {
+  const roleSource = isVision
+    ? hasTextTrack
+      ? 'a dual-track DocumentBundle (page images + structural Markdown/text)'
+      : 'visual document images'
+    : 'text content';
+  return `Role: You are an expert Logic Model Analyst extracting structured JSON from ${roleSource}.`;
+}
+
+/**
+ * The LAYERED shape — an experiment arm, never the default. Same rules, same wording, fewer of
+ * them: a section is sent only when its trigger may be present (`shared/promptTriggers.ts`, where
+ * `unknown` always means "send it").
+ *
+ * What it leaves out, and on what evidence:
+ * - KNOWN FAILURE MODES, always. It restates rules stated above it; its own EVIDENCE note says that
+ *   redundancy "has never been measured against a version without it, and it is the first
+ *   candidate for the agreed prune-before-adding pass". This arm is that measurement.
+ * - WHEN THERE IS NO GRID, when the text track shows a labelled grid — together with the GOAL's
+ *   pointer to it, so no rule refers to a section that is not there.
+ *
+ * What it deliberately keeps although a trigger might say otherwise: COLUMN FIDELITY (the no-grid
+ * method and the grouping gate both cite its rule 7 by number) and COLOUR CODING (Phase A points
+ * to it on every input), and ONE PROGRAM PRINTED TWICE. That last one was pruned in the first
+ * draft of this arm whenever a grid was visible and no column name headed lines on two pages, and
+ * measuring the trigger over the benchmark specs found it wrong exactly where it matters:
+ * `two-templates-one-content` restates its grid as headerless `Label:` boxes, which carry no column
+ * heading for the detector to see twice. A trigger that misses the case its rule exists for is not
+ * a trigger. Leaving out a section another rule cites would likewise make that rule's meaning
+ * depend on text the model never saw.
+ *
+ * Nothing else is reworded. Every included section is the same text `full` sends, so a difference
+ * between the arms is attributable to what was left out, which is the only question this asks.
+ */
+function layeredExtractionPrompt(
+  isVision: boolean,
+  hasTextTrack: boolean,
+  lowLegibility: boolean,
+  signals: LayoutSignals
+): string {
+  const sendNoGrid = signals.grid !== 'present';
+  const goal = sendNoGrid
+    ? goalAndPresenceFirstSection
+    : goalAndPresenceFirstSection.replace(
+        ' (A source with NO column headers at all is the one exception — see WHEN THERE IS NO GRID.)',
+        ''
+      );
+  return (
+    roleLine(isVision, hasTextTrack) +
+    `
+${lowLegibilitySection(lowLegibility)}
+${inputTracksSection(isVision, hasTextTrack)}` +
+    goal +
+    phaseALayoutMapSection(isVision, hasTextTrack) +
+    phaseBExtractionRulesSection(hasTextTrack) +
+    contextAndOverviewSection(isVision, hasTextTrack) +
+    columnFidelitySection +
+    (sendNoGrid ? noGridSection : '') +
+    groupingGateSection +
+    colourAndEmphasisSection(isVision) +
+    itemShapeAndLocationSection(isVision) +
+    restatedProgramSection +
+    documentTypeCheckSection +
+    fidelityStatusSection +
+    outputFormatSection
+  );
+}
 
 /**
  * Cheap pre-pass, run before the main extraction call, deciding ONLY whether an uploaded

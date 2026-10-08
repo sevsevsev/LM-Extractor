@@ -31,17 +31,28 @@ function loadSnapshot(): Record<string, string> {
   return JSON.parse(fs.readFileSync(SNAPSHOT_PATH, 'utf8')) as Record<string, string>;
 }
 
+/** One text track per layout signal. Kept in step with the same list in scripts/prompt-snapshot.mjs. */
+const LAYERED_PROBES: Array<[string, string]> = [
+  ['present', 'Inputs\nStaff\nActivities\nTutoring\nOutputs\nSessions'],
+  ['absent', 'We believe every young person deserves a mentor and we work with schools across the city. '.repeat(6)],
+];
+
 function currentVariants(): Record<string, string> {
   const out: Record<string, string> = {};
   for (const isVision of [true, false]) {
     for (const hasTextTrack of [true, false]) {
       for (const lowLegibility of [true, false]) {
         out[`extract:vision=${isVision}:text=${hasTextTrack}:lowleg=${lowLegibility}`] =
-          getAiExtractionPrompt(isVision, { lowLegibility, hasTextTrack });
+          getAiExtractionPrompt(isVision, { lowLegibility, hasTextTrack, shape: 'full' });
       }
     }
   }
   out['extract:no-options'] = getAiExtractionPrompt(true);
+  // The layered experiment arm, one per layout signal it can act on, so its text is reviewable in
+  // the same diff as the shipped prompt's.
+  for (const [grid, textTrack] of LAYERED_PROBES) {
+    out[`extract-layered:grid=${grid}`] = getAiExtractionPrompt(true, { hasTextTrack: true, textTrack, shape: 'layered' });
+  }
   for (const n of [1, 2, 7]) out[`detect:pages=${n}`] = getDetectLogicModelGroupsPrompt(n);
   return out;
 }
