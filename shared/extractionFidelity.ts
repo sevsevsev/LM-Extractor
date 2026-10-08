@@ -9,7 +9,8 @@ import type {
 } from '../types';
 import { stringDomainHasContent, groupedDomainHasContent } from './domainPresence.js';
 import { findUncoveredGridPages, formatUncoveredPages } from './pageCoverage.js';
-import { shouldSuggestMismatch } from './sourceMapping.js';
+import { findGroupsNamingOtherColumns, shouldSuggestMismatch } from './sourceMapping.js';
+import { domainFieldLabel } from './domainSynonyms.js';
 
 const STATUSES: readonly ExtractionStatus[] = ['ok', 'partial', 'abstained'];
 const CONFIDENCES: readonly ExtractionConfidence[] = ['high', 'medium', 'low'];
@@ -90,6 +91,12 @@ export const FIDELITY_BLOCKERS = {
    */
   noColumnGrid:
     'This document does not label its columns, so the app worked out which column each item belongs in — check the columns before relying on this extraction',
+  /**
+   * A group inside one column is headed with another column's own name. Post-processing used to
+   * move those items; it now leaves them where the model put them and asks. Specific wording
+   * appended per group by `reconcileExtractionFidelity`.
+   */
+  groupNamesOtherColumn: 'A group in one column is headed with the name of a different column — check whether its items belong there',
   notLogicModel:
     'Nothing was put in the columns, and this may not be a logic model — check the document before relying on this extraction',
   /** Vision conversion failed entirely (not just low-res) — extracted from the text layer alone. */
@@ -403,6 +410,10 @@ export function reconcileExtractionFidelity(
   const uncoveredPages =
     noContent || noGridItems ? [] : findUncoveredGridPages(model, options?.sourceText);
   const hasUncoveredPages = uncoveredPages.length > 0;
+  // Groups headed with another column's name. Post-processing no longer moves these (see
+  // `normalizeExtractedLogicModel`), so the decision comes here, to a person. Same non-severe
+  // ceiling as everything else in this block: ok -> partial/medium, never a hard stop.
+  const misheadedGroups = findGroupsNamingOtherColumns(model);
 
   if (status === 'ok') {
     if (
@@ -415,7 +426,8 @@ export function reconcileExtractionFidelity(
       modelBlockers.length > 0 ||
       noContent ||
       hasMissedContentSignal ||
-      hasUncoveredPages
+      hasUncoveredPages ||
+      misheadedGroups.length > 0
     ) {
       status = upgradeStatus(status, 'partial');
     }
@@ -458,6 +470,14 @@ export function reconcileExtractionFidelity(
       blockers,
       seen,
       `${FIDELITY_BLOCKERS.pageNotExtracted} (${formatUncoveredPages(uncoveredPages)})`
+    );
+  }
+
+  for (const g of misheadedGroups.slice(0, 2)) {
+    pushBlocker(
+      blockers,
+      seen,
+      `${FIDELITY_BLOCKERS.groupNamesOtherColumn} ("${g.groupName}" is in ${domainFieldLabel(g.domain)})`
     );
   }
 

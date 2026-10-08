@@ -515,3 +515,29 @@ test('page coverage stays quiet when nothing came back at all', () => {
   assert.ok(model.extractionBlockers?.includes(FIDELITY_BLOCKERS.noContent));
   assert.ok(!model.extractionBlockers?.some(b => b.startsWith(FIDELITY_BLOCKERS.pageNotExtracted)));
 });
+
+test('a group headed with another column name stays put and raises a review blocker naming it', () => {
+  const model = {
+    organization: 'O',
+    program: 'P',
+    mission: { content: '' },
+    targetPopulation: { content: '' },
+    inputs: { content: [] },
+    activities: {
+      content: [
+        { name: 'Resources', items: [{ text: 'Grant funding' }] },
+        { name: 'General', items: [{ text: 'a' }, { text: 'b' }, { text: 'c' }, { text: 'd' }, { text: 'e' }, { text: 'f' }] },
+      ],
+    },
+    outputs: { content: [] },
+    shortTermOutcomes: { content: [] },
+    mediumTermOutcomes: { content: [] },
+    longTermOutcomes: { content: [] },
+    impact: { content: [] },
+    extractionStatus: 'ok',
+    documentTypeAssessment: 'logic_model',
+  } as LogicModel;
+  const out = reconcileExtractionFidelity(model);
+  assert.equal(out.extractionStatus, 'partial');
+  assert.ok(out.extractionBlockers?.some(b => b.includes('"Resources" is in Activities')));
+});
