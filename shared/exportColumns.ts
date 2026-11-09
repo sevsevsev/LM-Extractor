@@ -44,6 +44,7 @@ export const FULL_EXPORT_COLUMNS: readonly FullExportColumn[] = [
   { header: 'Review Reasons', field: 'extractionBlockers' },
   { header: 'Placement Changes (JSON)', field: 'mappingCorrectionsJson' },
   { header: 'Source Filename', field: 'sourceFilename' },
+  { header: 'Document Hash', field: 'documentHash' },
   { header: 'QA Status', field: 'qaStatus' },
   { header: 'Document Type Flag', field: 'documentTypeFlag' },
 ] as const;

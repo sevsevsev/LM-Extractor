@@ -318,6 +318,13 @@ export interface ProcessingFile {
   sourcePageRange?: { start: number; end: number };
   splitPartLabel?: string;
   /**
+   * Content fingerprint of the uploaded document — see `shared/documentHash.ts`. Set once, during
+   * conversion; split siblings inherit the ORIGINAL upload's hash, because the hash identifies the
+   * document that arrived, not the part of it this entry covers. Empty means unknown (an insecure
+   * context or an unreadable blob), never "no duplicate".
+   */
+  documentHash?: string;
+  /**
    * Which extraction prompt actually produced `result`, as reported by the server
    * (`PROMPT_VERSION` / `promptVariantLabel` in constants.ts). Recorded per file because a batch
    * can span several prompt variants — a text-only fallback and a low-legibility vision document

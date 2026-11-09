@@ -26,6 +26,7 @@ over for root-causing.
 | Column | Source |
 |--------|--------|
 | `source_filename` | `displayFileName(file)` — includes the split part label when relevant |
+| `document_hash` | `ProcessingFile.documentHash` — leading 16 hex of SHA-256 over the uploaded bytes (`shared/documentHash.ts`). Split siblings share the original upload's hash. Blank means unknown (insecure context / unreadable blob), never "not a duplicate" |
 | `pipeline_status` | `ProcessingFile.status` (`editing`/`completed`/`error`) |
 | `organization` / `program` | From the extracted model; blank for a hard-stopped file |
 | `qa_status` | `qaStatusLabel()` — `Needs Review` / `Successfully Processed`, or `Error` for a hard stop |

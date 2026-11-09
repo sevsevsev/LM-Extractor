@@ -37,6 +37,7 @@ const PROBE_ROW: Record<keyof GranularExportRow, string> = {
   extractionBlockers: 'extractionBlockers',
   mappingCorrectionsJson: 'mappingCorrectionsJson',
   sourceFilename: 'sourceFilename',
+  documentHash: 'documentHash',
   qaStatus: 'qaStatus',
   documentTypeFlag: 'documentTypeFlag',
 };

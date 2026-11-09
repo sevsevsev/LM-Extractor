@@ -24,12 +24,13 @@ function sampleModel(overrides: Partial<LogicModel> = {}): LogicModel {
   };
 }
 
-function fakeFile(id: string, model: LogicModel): ProcessingFile {
+function fakeFile(id: string, model: LogicModel, documentHash?: string): ProcessingFile {
   return {
     id,
     file: { name: `${id}.pdf` } as File,
     status: 'editing',
     result: model,
+    documentHash,
   };
 }
 
@@ -65,9 +66,10 @@ test('coding export CSV header row matches the coder intake contract', () => {
   const header = csv!.split('\n')[0];
   assert.equal(
     header,
-    '"row_id","organization","program","group","domain","outcome_text","color_coding","needs_review","color_legend","source_filename","qa_status","document_type_flag","source_type"',
+    '"row_id","organization","program","group","domain","outcome_text","color_coding","needs_review","color_legend","source_filename","qa_status","document_type_flag","source_type","document_hash"',
     'The coding CSV header row changed. This is the Qualitative Outcomes Coder intake contract — ' +
-      'renaming, reordering or removing a column here breaks that tool. See docs/specs/export-for-coding.md.'
+      'renaming, reordering or removing a column here breaks that tool, and a new column goes on ' +
+      'the END for the same reason. See docs/specs/export-for-coding.md.'
   );
 });
 
@@ -75,6 +77,15 @@ test('coding export carries the uploaded filename on every row', () => {
   const rows = buildCodingExportRows([fakeFile('f1', sampleModel())]);
   assert.ok(rows.length > 0);
   assert.ok(rows.every(r => r[9] === 'f1.pdf'));
+});
+
+test('coding export carries the document hash last, after source_type', () => {
+  const rows = buildCodingExportRows([fakeFile('f1', sampleModel(), 'ba7816bf8f01cfea')]);
+  assert.ok(rows.length > 0);
+  assert.ok(rows.every(r => r[13] === 'ba7816bf8f01cfea'));
+
+  const unknown = buildCodingExportRows([fakeFile('f2', sampleModel())]);
+  assert.ok(unknown.every(r => r[13] === ''));
 });
 
 test('coding export marks every row as coming from a logic model', () => {

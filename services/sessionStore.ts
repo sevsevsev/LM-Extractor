@@ -27,6 +27,8 @@ export interface PersistedFileRecord {
   sourcePageRange?: { start: number; end: number };
   splitPartLabel?: string;
   forceSingleModel?: boolean;
+  /** Content fingerprint of the upload — see shared/documentHash.ts. Kept so a resumed session still exports it. */
+  documentHash?: string;
   /** Which prompt produced `result` — kept so a resumed session still exports an honest log. */
   promptVersion?: string;
   promptVariant?: string;

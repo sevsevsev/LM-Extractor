@@ -45,6 +45,7 @@ function fullRecord(): PersistedFileRecord {
     sourceDocumentId: 'doc-9',
     sourcePageRange: { start: 2, end: 4 },
     splitPartLabel: 'Part 2',
+    documentHash: '0123456789abcdef',
     forceSingleModel: true,
     promptVersion: '2026-09-20.6',
     promptVariant: 'vision+text',

@@ -71,6 +71,7 @@ export function buildCodingExportRows(files: ProcessingFile[]): string[][] {
             qaStatus,
             documentTypeFlag,
             CODING_SOURCE_TYPE,
+            f.documentHash || '',
           ]);
         });
       });
@@ -98,6 +99,9 @@ export function buildCodingExportCsv(files: ProcessingFile[]): string | null {
     'qa_status',
     'document_type_flag',
     'source_type',
+    // Appended, never inserted: these headers are an intake contract with the Qualitative
+    // Outcomes Coder (docs/specs/export-for-coding.md), so a new column goes on the end.
+    'document_hash',
   ];
   const escape = (c: string) => `"${String(c).replace(/"/g, '""')}"`;
   return [headers.map(escape).join(','), ...rows.map(row => row.map(escape).join(','))].join('\n');
