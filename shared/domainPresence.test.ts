@@ -55,6 +55,23 @@ test('buildGranularExportRows carries sourceFilename on every row', () => {
   assert.ok(rows.every(r => r.sourceFilename === '1234_5678_foster-grandparent.pdf'));
 });
 
+test('buildGranularExportRows carries the document hash on every row', () => {
+  // The complement to sourceFilename: two uploads of one document under two names share a hash,
+  // which is the only thing in the CSV that makes a repeated submission visible.
+  const rows = buildGranularExportRows([
+    { model: baseModel(), sourceFilename: 'a.pdf', documentHash: 'ba7816bf8f01cfea' },
+  ]);
+  assert.ok(rows.length > 0);
+  assert.ok(rows.every(r => r.documentHash === 'ba7816bf8f01cfea'));
+});
+
+test('buildGranularExportRows leaves the document hash empty when it is unknown', () => {
+  // Empty means UNKNOWN — an insecure context or an unreadable blob — never "not a duplicate".
+  const rows = buildGranularExportRows([{ model: baseModel(), sourceFilename: 'a.pdf' }]);
+  assert.ok(rows.length > 0);
+  assert.ok(rows.every(r => r.documentHash === ''));
+});
+
 test('buildGranularExportRows carries a QA status matching the session list flag', () => {
   const clean = buildGranularExportRows([{ model: baseModel(), sourceFilename: 'a.pdf' }]);
   assert.ok(clean.every(r => r.qaStatus === 'Successfully Processed'));

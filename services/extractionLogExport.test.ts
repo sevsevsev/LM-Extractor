@@ -52,6 +52,15 @@ function fakeFile(id: string, overrides: Partial<ProcessingFile> = {}): Processi
   };
 }
 
+test('the log records the document hash, and leaves it empty when unknown', () => {
+  const [hashed] = buildExtractionLogRows([fakeFile('f1', { documentHash: 'ba7816bf8f01cfea' })]);
+  assert.equal(cell(hashed, 'document_hash'), 'ba7816bf8f01cfea');
+
+  // Unknown is empty, not a placeholder that could be mistaken for a real fingerprint.
+  const [plain] = buildExtractionLogRows([fakeFile('f2')]);
+  assert.equal(cell(plain, 'document_hash'), '');
+});
+
 test('countExtractionLogRows counts editing/completed/error files only', () => {
   const files: ProcessingFile[] = [
     fakeFile('f1', { status: 'editing' }),

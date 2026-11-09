@@ -13,6 +13,7 @@ import { countCodingExportRows, downloadCodingExportCsv } from './services/codin
 import { countExtractionLogRows, downloadExtractionLogCsv } from './services/extractionLogExport';
 import { normalizeExtractedLogicModel } from './shared/extractNormalize';
 import { buildGranularExportRows } from './shared/domainPresence';
+import { documentHashFromFile } from './shared/documentHash';
 import { sliceDocumentBundle } from './shared/documentBundleSlicing';
 import { displayFileName, PROCESSING_STATUS_LABELS } from './shared/processingFileDisplay';
 import { describeBatchPdfOutcome } from './shared/batchPdfExport';
@@ -392,6 +393,14 @@ const App: React.FC = () => {
         let bundle: DocumentBundle;
         const fileName = pendingFile.file.name.toLowerCase();
 
+        // Fingerprint the bytes before converting them. Never throws and never blocks: an
+        // unavailable crypto.subtle or an unreadable blob leaves the field empty, which the
+        // exports render as unknown. See shared/documentHash.ts.
+        const documentHash = await documentHashFromFile(pendingFile.file);
+        if (documentHash) {
+          setFiles(prev => prev.map(f => (f.id === fileId ? { ...f, documentHash } : f)));
+        }
+
         try {
           const {
             convertPdfToImages,
@@ -651,6 +660,9 @@ const App: React.FC = () => {
               sourceDocumentId,
               sourcePageRange: { start: group.startPage, end: group.endPage },
               splitPartLabel: `Part ${i + 1} of ${total}`,
+              // The hash identifies the document that arrived, not this slice of it, so every
+              // sibling carries the original upload's fingerprint.
+              documentHash: original.documentHash,
             };
           });
           return prev.flatMap(f => (f.id === fileId ? splitEntries : f));
@@ -761,6 +773,7 @@ const App: React.FC = () => {
         model: modelForExport(f.result!, f.warnings),
         sourceFilename: displayFileName(f),
         fileId: f.id,
+        documentHash: f.documentHash,
       }))
     );
     const rows = exportRows.map(fullExportRowValues);

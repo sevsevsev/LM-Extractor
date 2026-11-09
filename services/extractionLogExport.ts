@@ -17,6 +17,10 @@ import { csvBlob } from '../shared/csvDownload.js';
  */
 export const EXTRACTION_LOG_HEADERS = [
   'source_filename',
+  // What the document IS, as opposed to what it was called. Two uploads of the same document under
+  // two filenames are one row each with one hash — the only thing in this log that makes a repeated
+  // submission visible rather than something to infer. Empty means unknown, never "not a duplicate".
+  'document_hash',
   'pipeline_status',
   // Which prompt actually produced this row. A batch routinely spans several prompt variants
   // (a text-only fallback and a low-legibility vision document get materially different text),
@@ -87,6 +91,7 @@ export function buildExtractionLogRows(files: ProcessingFile[]): string[][] {
 
     rows.push([
       displayFileName(f),
+      f.documentHash || '',
       f.status,
       f.promptVersion || '',
       f.promptVariant || '',

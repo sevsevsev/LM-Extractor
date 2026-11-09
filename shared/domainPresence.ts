@@ -50,6 +50,13 @@ export interface GranularExportRow {
   /** Uploaded file name (e.g. "1234_5678_program-name.pdf") — the caller's own ID, not derived from content. */
   sourceFilename: string;
   /**
+   * Content fingerprint of the uploaded document — see `shared/documentHash.ts`. The complement to
+   * `sourceFilename`: the filename is what the operator called the document, this is what the
+   * document actually is, so the same document submitted twice under two names is visible here.
+   * '' means unknown, never "not a duplicate".
+   */
+  documentHash: string;
+  /**
    * Document-level QA signal — "Needs Review" or "Successfully Processed", from the same check
    * that drives the session list's NEEDS REVIEW grouping (see shared/qaStatus.ts). Distinct from
    * the per-item `needsReview` field above.
@@ -66,6 +73,8 @@ export interface GranularExportRow {
 export interface GranularExportEntry {
   model: LogicModel;
   sourceFilename: string;
+  /** `ProcessingFile.documentHash`; omit when unknown. */
+  documentHash?: string;
   /** `ProcessingFile.id` — supplies the `rowId` prefix. Omit only in tests that don't need a key. */
   fileId?: string;
 }
@@ -74,7 +83,7 @@ export interface GranularExportEntry {
 export function buildGranularExportRows(entries: GranularExportEntry[]): GranularExportRow[] {
   const rows: GranularExportRow[] = [];
 
-  for (const { model: m, sourceFilename, fileId } of entries) {
+  for (const { model: m, sourceFilename, fileId, documentHash } of entries) {
     const colorLegend = m.colorLegend?.trim() || '';
     const extractionStatus = m.extractionStatus || '';
     const extractionConfidence = m.extractionConfidence || '';
@@ -116,6 +125,7 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
         extractionBlockers,
         mappingCorrectionsJson,
         sourceFilename,
+        documentHash: documentHash || '',
         qaStatus,
         documentTypeFlag,
       });
@@ -150,6 +160,7 @@ export function buildGranularExportRows(entries: GranularExportEntry[]): Granula
             extractionBlockers,
             mappingCorrectionsJson,
             sourceFilename,
+        documentHash: documentHash || '',
             qaStatus,
             documentTypeFlag,
           });

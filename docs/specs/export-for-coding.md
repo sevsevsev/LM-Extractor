@@ -29,6 +29,7 @@ From editable extract results, download a CSV the Qualitative Outcomes Coder acc
 | `qa_status` | `Needs Review` \| `Successfully Processed` — same document-level signal as the session list's NEEDS REVIEW grouping (`shared/qaStatus.ts`), for post-hoc QA (coder ignores unknown cols) |
 | `document_type_flag` | `` \| `Possibly Not a Logic Model` \| `Unclear Document Type` — Gemini's document-type self-report (`shared/extractionFidelity.ts`), flags a source that may be a Theory of Change / impact report / other overlapping-but-different document rather than a logic model; never blocks extraction, a human decides (coder ignores unknown cols) |
 | `source_type` | always `logic_model` — what kind of source the row came from. Outcome text from other sources (e.g. a partner's free-text "Program Outcomes" field in the district database) is loaded into the coder with its own value, so coded outcomes from the two can be told apart downstream (coder passes unknown cols through to its export) |
+| `document_hash` | leading 16 hex characters of the SHA-256 digest of the uploaded file's bytes — the same document submitted twice under two filenames carries the same hash, so a duplicate submission is visible rather than inferred. Blank means unknown, never "not a duplicate" (coder ignores unknown cols) |
 
 ### Reading this file as a coder (plain-language glossary)
 
@@ -96,6 +97,8 @@ Domain list and columns live in this doc; bump a one-line version note when chan
 **Version:** v1.6 — 2026-09-27 — added `source_type` column, always `logic_model` (appended, so existing column positions are unchanged). The coder keeps unknown columns and passes them through to its export (`services/geminiService.ts` `parseCSV`/`atomicJsonToCSV` in Qualitative-Outcomes-Coder), so the value survives coding.
 
 **Version:** v1.5 — 2026-09-20 — added a plain-language glossary of the column names for coders. No column added, renamed, moved or removed: the header row is unchanged.
+
+**Version:** v1.4 — 2026-11-09 — added `document_hash` column (appended, so existing column positions are unchanged).
 
 **Version:** v1.3 — 2026-09-18 — added `document_type_flag` column (appended, so existing column positions are unchanged).
 
