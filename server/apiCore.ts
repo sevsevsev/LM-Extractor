@@ -1,6 +1,7 @@
 import type { DetectLogicModelGroupsInput, DocumentBundle, SourceImageRef } from '../types';
 import { extractLogicModelOnServer } from './geminiLogicModel.js';
 import { detectLogicModelGroupsOnServer } from './geminiLogicModelGroups.js';
+import { ModelCallTimeoutError } from './geminiRetry.js';
 
 export interface ApiResult {
   status: number;
@@ -32,7 +33,18 @@ function missingKeyResult(): ApiResult {
   };
 }
 
-function errorResult(error: unknown): ApiResult {
+/**
+ * A document that ran out of time is reported BY US, with a sentence and a machine-readable
+ * `code`, so the browser never has to fall back to the platform's bodiless 504 ("Request failed
+ * (504)", reported 2026-11-10). The code also tells the browser not to retry: the deadline is
+ * reached again on every attempt for the same document, so retrying only spends minutes to
+ * arrive at the same sentence. See server/geminiRetry.ts for why the hosted budget sits under
+ * the function cap.
+ */
+export function errorResult(error: unknown): ApiResult {
+  if (error instanceof ModelCallTimeoutError) {
+    return { status: 504, body: { error: error.message, code: 'model_timeout', retryable: false } };
+  }
   const message = error instanceof Error ? error.message : 'Unknown server error';
   return { status: 500, body: { error: message } };
 }

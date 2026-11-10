@@ -24,6 +24,13 @@ export const friendlyError = (error: unknown): string => {
   if (/\b413\b|payload too large|request entity too large/i.test(message)) {
     return 'This document is too large for the hosted upload limit. Try a shorter PDF or run locally.';
   }
+  // The hosting platform cut the function off before it could answer, so there is no JSON body
+  // and nothing but the status line to go on. The server's own deadline (server/geminiRetry.ts)
+  // should normally beat this, so reaching here means time went somewhere outside the model call
+  // — a cold start, or an unusually large upload.
+  if (/\b504\b|gateway time-?out/i.test(message)) {
+    return 'The server was cut off before it finished this document. Try it again on its own; if it fails again, this document is too slow for the hosted time limit.';
+  }
   if (/Failed to convert|Unsupported file format|vision/i.test(message)) {
     return "Couldn't read this document. Try a PDF, or a simpler DOCX/PPTX.";
   }

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { parseDocumentBundle, parseDetectLogicModelGroupsInput } from './apiCore.ts';
+import { errorResult, parseDocumentBundle, parseDetectLogicModelGroupsInput } from './apiCore.ts';
+import { ModelCallTimeoutError } from './geminiRetry.ts';
 
 const base = {
   sourceFormat: 'pdf',
@@ -159,4 +160,24 @@ test('parseDocumentBundle still requires images or textTrack, unaffected by imag
     warnings: [],
   });
   assert.equal(bundle, null);
+});
+
+/**
+ * The 504 report of 2026-11-10: the platform killed the invocation and answered with HTML, so the
+ * browser had no JSON to read and showed the bare status line "Request failed (504)". The server
+ * must answer for itself, in words, and say the answer is not worth retrying.
+ */
+test('a model-call timeout is reported as a readable 504 the browser will not retry', () => {
+  const result = errorResult(new ModelCallTimeoutError(50_000));
+  assert.equal(result.status, 504);
+  assert.equal(result.body.code, 'model_timeout');
+  assert.equal(result.body.retryable, false);
+  assert.match(String(result.body.error), /50 seconds/);
+});
+
+test('any other failure is still a 500 carrying its own message', () => {
+  const result = errorResult(new Error('something else broke'));
+  assert.equal(result.status, 500);
+  assert.equal(result.body.error, 'something else broke');
+  assert.equal(result.body.retryable, undefined);
 });
