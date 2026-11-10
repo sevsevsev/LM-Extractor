@@ -11,7 +11,20 @@ function isTransientHttpStatus(status: number): boolean {
   return status === 429 || (status >= 500 && status < 600);
 }
 
-async function postJson<T extends { error?: string }>(url: string, body: unknown): Promise<T> {
+/**
+ * The server marks an answer it does not want retried (`retryable: false`). Today that is the
+ * model-call deadline: the same document reaches the same deadline on every attempt, so three
+ * more rounds of roughly a minute each only delay the same sentence — which is what the
+ * "Request failed (504)" report of 2026-11-10 looked like from the operator's side.
+ */
+function serverSaysDoNotRetry(payload: { retryable?: boolean }): boolean {
+  return payload.retryable === false;
+}
+
+async function postJson<T extends { error?: string; retryable?: boolean }>(
+  url: string,
+  body: unknown
+): Promise<T> {
   let lastError: unknown;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
@@ -26,7 +39,11 @@ async function postJson<T extends { error?: string }>(url: string, body: unknown
 
       if (!response.ok) {
         const message = payload.error || `Request failed (${response.status})`;
-        if (attempt < MAX_RETRIES && isTransientHttpStatus(response.status)) {
+        if (
+          attempt < MAX_RETRIES &&
+          isTransientHttpStatus(response.status) &&
+          !serverSaysDoNotRetry(payload)
+        ) {
           await sleep(BASE_DELAY_MS * Math.pow(2, attempt));
           continue;
         }

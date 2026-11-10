@@ -57,11 +57,13 @@ export async function detectLogicModelGroupsOnServer(
 
   let raw: unknown;
   try {
-    const response = await withRetry(() =>
+    const response = await withRetry(signal =>
       ai.models.generateContent({
         model: detectModelId(),
         contents: { parts } as never,
         config: {
+          // See the same line in geminiLogicModel.ts — the deadline must be able to stop the call.
+          abortSignal: signal,
           responseMimeType: 'application/json',
           responseSchema: detectSchema,
           // No `temperature`/`topP`/`topK` — Google deprecated them; see server/geminiLogicModel.ts.

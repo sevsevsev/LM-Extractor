@@ -299,11 +299,14 @@ export async function extractLogicModelOnServer(
   // Resolved before the request is built so an unusable value fails here, not after a paid call.
   const thinkingConfig = thinkingConfigForRequest();
 
-  const response = await withRetry(() =>
+  const response = await withRetry(signal =>
     ai.models.generateContent({
       model: extractModelId(),
       contents: contents as never,
       config: {
+        // Lets the deadline in geminiRetry.ts actually stop the request rather than leave it
+        // running unobserved for the rest of the invocation.
+        abortSignal: signal,
         responseMimeType: 'application/json',
         responseSchema: extractModelSchema,
         // No `temperature`/`topP`/`topK`: Google deprecated them. Newer Gemini models ignore
